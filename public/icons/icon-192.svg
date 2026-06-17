@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192" role="img" aria-label="共享日历">
+  <rect width="192" height="192" rx="42" fill="#0f766e"/>
+  <rect x="38" y="52" width="116" height="102" rx="18" fill="#f5f7f8"/>
+  <path d="M62 38v30M130 38v30" stroke="#f9735b" stroke-width="14" stroke-linecap="round"/>
+  <path d="M58 92h76M58 122h44" stroke="#172026" stroke-width="12" stroke-linecap="round"/>
+</svg>
