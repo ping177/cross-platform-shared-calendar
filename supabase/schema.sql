@@ -16,11 +16,28 @@ create table if not exists public.spaces (
 
 create table if not exists public.space_members (
   space_id uuid not null references public.spaces(id) on delete cascade,
-  user_id uuid not null references auth.users(id) on delete cascade,
+  user_id uuid not null constraint space_members_user_profile_fkey references public.profiles(id) on delete cascade,
   role text not null check (role in ('owner', 'member')),
   joined_at timestamptz not null default now(),
   primary key (space_id, user_id)
 );
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'space_members_user_profile_fkey'
+      and conrelid = 'public.space_members'::regclass
+  ) then
+    alter table public.space_members
+      add constraint space_members_user_profile_fkey
+      foreign key (user_id)
+      references public.profiles(id)
+      on delete cascade;
+  end if;
+end;
+$$;
 
 create table if not exists public.events (
   id uuid primary key default gen_random_uuid(),
@@ -47,6 +64,8 @@ create unique index if not exists one_space_per_user_idx on public.space_members
 create index if not exists space_members_space_id_idx on public.space_members (space_id);
 create index if not exists events_space_starts_idx on public.events (space_id, starts_at);
 create index if not exists events_owner_idx on public.events (owner_user_id);
+
+alter table public.events replica identity full;
 
 create or replace function public.touch_updated_at()
 returns trigger
@@ -106,7 +125,7 @@ declare
   candidate text;
 begin
   loop
-    candidate := upper(substr(encode(gen_random_bytes(8), 'hex'), 1, 8));
+    candidate := upper(substr(encode(extensions.gen_random_bytes(8), 'hex'), 1, 8));
     exit when not exists (
       select 1 from public.spaces where invite_code = candidate
     );
@@ -290,6 +309,20 @@ alter table public.profiles enable row level security;
 alter table public.spaces enable row level security;
 alter table public.space_members enable row level security;
 alter table public.events enable row level security;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'events'
+  ) then
+    alter publication supabase_realtime add table public.events;
+  end if;
+end;
+$$;
 
 drop policy if exists "profiles_select_same_space" on public.profiles;
 create policy "profiles_select_same_space"

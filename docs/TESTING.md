@@ -1,5 +1,17 @@
 # Testing
 
+## Current Smoke-Test Status
+
+- Passed: local production build.
+- Passed: Supabase schema, RPC, RLS, and Realtime validation.
+- Passed: two-user desktop flow for space creation/join and event create/update/delete.
+- Passed: third-user capacity rejection and non-member RLS read/write isolation.
+- Passed: iOS Safari layout and add-to-home-screen behavior.
+- Passed: Android Chrome layout and creation of a home-screen shortcut.
+- Pending: Android Magic Link login.
+- Pending: viewing, creating, editing, and deleting events after login on Android.
+- Pending reason: the Android device is temporarily unavailable. Earlier attempts were also interrupted by Supabase's default email frequency limit and a Site URL that had incorrectly remained set to `http://localhost:3000`.
+
 ## Local Build
 
 - Run:
@@ -15,6 +27,10 @@
 - Execute `supabase/schema.sql` in the Supabase SQL Editor.
 - Confirm tables, indexes, triggers, RLS policies, and RPC functions are created.
 - Confirm RLS is enabled for `profiles`, `spaces`, `space_members`, and `events`.
+- Confirm `public.generate_invite_code()` can create a code without a `gen_random_bytes` lookup error.
+- Confirm PostgREST can query `space_members` with `profiles(display_name)` through the direct profile foreign key.
+- Confirm `public.events` is included in the `supabase_realtime` publication.
+- Confirm `public.events` uses `replica identity full` so filtered DELETE events include `space_id`.
 
 ## Magic Link
 
@@ -31,6 +47,8 @@
 - User A creates, edits, and deletes an event.
 - User B creates, edits, and deletes an event.
 - Confirm both users can see shared updates.
+- Keep User B open while User A creates an event, and confirm it appears without refreshing.
+- Delete the event in User B's session and confirm it disappears from User A's session without refreshing.
 - Confirm "我的", "对方的", and "共同的" labels render correctly from each user's perspective.
 
 ## Space Capacity
