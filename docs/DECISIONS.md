@@ -11,6 +11,11 @@
 - Event ownership uses stable fields: `scope + owner_user_id`.
 - The app does not store relative viewpoint values such as `mine`, `partner`, or `shared` for event ownership.
 - UI labels like "我的", "对方的", and "共同的" are derived from the current user and `owner_user_id`.
+- Both space members can read personal events, but only `owner_user_id` can update or delete them.
+- Both space members can update or delete shared events.
+- Members may create a personal event for their partner; after creation, only the assigned owner can manage it.
+- Existing events cannot change `space_id`, `created_by`, `scope`, or `owner_user_id`.
+- Frontend read-only behavior is for usability; RLS and database triggers remain the final permission boundary.
 
 ## Space Membership
 

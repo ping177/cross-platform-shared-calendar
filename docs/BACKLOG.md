@@ -9,10 +9,10 @@
 
 ## v0.1.1
 
-- Fix Magic Link issues found during integration testing.
-- Fix RLS or RPC edge cases found during integration testing.
-- Fix Realtime subscription issues.
-- Fix mobile Safari or Android Chrome usability issues.
+- Completed: restrict personal event updates/deletes to `owner_user_id`.
+- Completed: show non-owner personal events as read-only details.
+- Completed: desktop two-account UI, RLS, direct API, trigger, and Realtime regression tests.
+- Deferred: Android Magic Link and authenticated CRUD testing when the device is available.
 
 ## v0.2
 

@@ -1,5 +1,22 @@
 # Development Log
 
+## 2026-06-20 - v0.1.1
+
+- Implemented owner-only update/delete policies for personal events while keeping them visible to both members.
+- Kept shared events editable and deletable by both space members.
+- Added read-only personal-event details for the non-owner.
+- Adjusted the event sheet so read-only details stay within the viewport and scroll correctly on desktop and mobile.
+- Locked existing event identity fields: `space_id`, `created_by`, `scope`, and `owner_user_id`.
+- Added a non-destructive v0.1.1 patch SQL for existing Supabase projects with smoke-test data.
+- Added a preflight query that must return zero invalid scope/owner rows before applying the patch.
+- Applied the patch after the preflight returned zero invalid rows.
+- Verified desktop two-account read-only and owner-management behavior for personal events.
+- Verified both members can still edit and delete shared events.
+- Verified non-owner direct API updates/deletes affect zero personal-event rows.
+- Verified the trigger rejects changes to all four event identity fields.
+- Verified allowed personal/shared updates and deletes continue to propagate through Realtime; one stale browser subscription required a single refresh before the regression test.
+- Android authenticated testing remains pending and is not part of this change.
+
 ## 2026-06-20
 
 - Completed the available v0.1 Supabase smoke-test scope.

@@ -141,6 +141,24 @@ language plpgsql
 set search_path = public
 as $$
 begin
+  if tg_op = 'UPDATE' then
+    if new.space_id is distinct from old.space_id then
+      raise exception 'Event space_id cannot be changed';
+    end if;
+
+    if new.created_by is distinct from old.created_by then
+      raise exception 'Event created_by cannot be changed';
+    end if;
+
+    if new.scope is distinct from old.scope then
+      raise exception 'Event scope cannot be changed';
+    end if;
+
+    if new.owner_user_id is distinct from old.owner_user_id then
+      raise exception 'Event owner_user_id cannot be changed';
+    end if;
+  end if;
+
   if new.scope = 'shared' and new.owner_user_id is not null then
     raise exception 'Shared events must not have an owner_user_id';
   end if;
@@ -166,6 +184,28 @@ drop trigger if exists events_validate_owner on public.events;
 create trigger events_validate_owner
 before insert or update on public.events
 for each row execute function public.validate_event_owner();
+
+create or replace function public.can_manage_event(
+  event_space_id uuid,
+  event_scope text,
+  event_owner_user_id uuid
+)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select
+    public.is_space_member(event_space_id)
+    and (
+      event_scope = 'shared'
+      or (
+        event_scope = 'personal'
+        and event_owner_user_id = auth.uid()
+      )
+    );
+$$;
 
 create or replace function public.handle_new_user()
 returns trigger
@@ -370,13 +410,13 @@ with check (
 drop policy if exists "events_update_member" on public.events;
 create policy "events_update_member"
 on public.events for update
-using (public.is_space_member(space_id))
-with check (public.is_space_member(space_id));
+using (public.can_manage_event(space_id, scope, owner_user_id))
+with check (public.can_manage_event(space_id, scope, owner_user_id));
 
 drop policy if exists "events_delete_member" on public.events;
 create policy "events_delete_member"
 on public.events for delete
-using (public.is_space_member(space_id));
+using (public.can_manage_event(space_id, scope, owner_user_id));
 
 grant execute on function public.create_space_with_invite(text) to authenticated;
 grant execute on function public.join_space_by_invite_code(text) to authenticated;

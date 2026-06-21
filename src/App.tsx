@@ -71,6 +71,10 @@ function audienceFromEvent(event: CalendarEvent, userId: string): EventAudience 
   return event.owner_user_id === userId ? 'mine' : 'partner';
 }
 
+function canManageEvent(event: CalendarEvent, userId: string) {
+  return event.scope === 'shared' || event.owner_user_id === userId;
+}
+
 function audienceLabel(audience: EventAudience) {
   return audience === 'mine' ? '我的' : audience === 'partner' ? '对方的' : '共同的';
 }
@@ -665,24 +669,19 @@ function EventSheet({
   const [busy, setBusy] = useState(false);
 
   const canChoosePartner = Boolean(partnerId);
+  const canManage = !event || canManageEvent(event, userId);
 
   async function save(formEvent: React.FormEvent) {
     formEvent.preventDefault();
-    setBusy(true);
-    setError('');
 
-    const ownerUserId = draft.audience === 'shared' ? null : draft.audience === 'mine' ? userId : partnerId;
-
-    if (draft.audience === 'partner' && !partnerId) {
-      setBusy(false);
-      setError('对方加入空间后，才能创建对方的个人日程。');
+    if (event && !canManage) {
       return;
     }
 
-    const payload = {
-      space_id: space.id,
-      scope: draft.audience === 'shared' ? 'shared' : 'personal',
-      owner_user_id: ownerUserId,
+    setBusy(true);
+    setError('');
+
+    const contentPayload = {
       title: draft.title.trim(),
       description: draft.description.trim() || null,
       starts_at: fromDateInputValue(draft.startsAt),
@@ -690,9 +689,26 @@ function EventSheet({
       all_day: draft.allDay,
     };
 
-    const result = event
-      ? await supabase.from('events').update(payload).eq('id', event.id)
-      : await supabase.from('events').insert(payload);
+    let result;
+
+    if (event) {
+      result = await supabase.from('events').update(contentPayload).eq('id', event.id);
+    } else {
+      const ownerUserId = draft.audience === 'shared' ? null : draft.audience === 'mine' ? userId : partnerId;
+
+      if (draft.audience === 'partner' && !partnerId) {
+        setBusy(false);
+        setError('对方加入空间后，才能创建对方的个人日程。');
+        return;
+      }
+
+      result = await supabase.from('events').insert({
+        ...contentPayload,
+        space_id: space.id,
+        scope: draft.audience === 'shared' ? 'shared' : 'personal',
+        owner_user_id: ownerUserId,
+      });
+    }
 
     setBusy(false);
 
@@ -706,7 +722,7 @@ function EventSheet({
   }
 
   async function deleteEvent() {
-    if (!event) {
+    if (!event || !canManage) {
       return;
     }
 
@@ -724,10 +740,10 @@ function EventSheet({
   }
 
   return (
-    <div className="fixed inset-0 z-20 bg-ink/35">
-      <div className="absolute inset-x-0 bottom-0 mx-auto max-h-[92vh] max-w-3xl overflow-y-auto rounded-t-2xl bg-white p-5 shadow-soft safe-bottom">
+    <div className="fixed inset-0 z-20 flex items-end bg-ink/35 md:items-center md:px-4 md:py-6">
+      <div className="mx-auto max-h-[92dvh] w-full max-w-3xl overflow-y-auto overscroll-contain rounded-t-2xl bg-white p-5 shadow-soft safe-bottom md:max-h-[calc(100dvh-3rem)] md:rounded-lg">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold">{event ? '编辑日程' : '新建日程'}</h2>
+          <h2 className="text-xl font-bold">{event ? canManage ? '编辑日程' : '日程详情' : '新建日程'}</h2>
           <button className="grid h-10 w-10 place-items-center rounded-lg bg-mist" type="button" onClick={onClose} aria-label="关闭">
             <X size={20} />
           </button>
@@ -735,7 +751,17 @@ function EventSheet({
 
         {error && <div className="mt-4"><Notice tone="error" message={error} /></div>}
 
-        <form className="mt-5 space-y-4" onSubmit={save}>
+        {event && !canManage ? (
+          <div className="mt-5 space-y-4">
+            <ReadOnlyField label="标题" value={event.title} />
+            <ReadOnlyField label="归属" value={audienceLabel(audienceFromEvent(event, userId))} />
+            <ReadOnlyField label="开始时间" value={new Date(event.starts_at).toLocaleString('zh-CN')} />
+            <ReadOnlyField label="结束时间" value={event.ends_at ? new Date(event.ends_at).toLocaleString('zh-CN') : '未设置'} />
+            <ReadOnlyField label="全天" value={event.all_day ? '是' : '否'} />
+            <ReadOnlyField label="描述" value={event.description || '无'} />
+          </div>
+        ) : (
+          <form className="mt-5 space-y-4" onSubmit={save}>
           <Field label="标题">
             <input className="w-full rounded-lg border border-ink/15 px-4 py-3 outline-none focus:border-teal" required value={draft.title} onChange={(inputEvent) => setDraft({ ...draft, title: inputEvent.target.value })} />
           </Field>
@@ -746,7 +772,7 @@ function EventSheet({
                 <button
                   key={audience}
                   type="button"
-                  disabled={audience === 'partner' && !canChoosePartner}
+                  disabled={Boolean(event) || (audience === 'partner' && !canChoosePartner)}
                   className={`h-11 rounded-lg text-sm font-semibold disabled:opacity-40 ${draft.audience === audience ? 'bg-teal text-white' : 'bg-mist text-ink/70'}`}
                   onClick={() => setDraft({ ...draft, audience })}
                 >
@@ -783,8 +809,18 @@ function EventSheet({
               {busy ? '保存中' : '保存'}
             </button>
           </div>
-        </form>
+          </form>
+        )}
       </div>
+    </div>
+  );
+}
+
+function ReadOnlyField({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-sm font-semibold text-ink/55">{label}</p>
+      <p className="mt-1 whitespace-pre-wrap rounded-lg bg-mist px-4 py-3 text-ink">{value}</p>
     </div>
   );
 }
