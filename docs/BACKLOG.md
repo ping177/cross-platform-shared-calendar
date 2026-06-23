@@ -14,6 +14,17 @@
 - Completed: desktop two-account UI, RLS, direct API, trigger, and Realtime regression tests.
 - Deferred: Android Magic Link and authenticated CRUD testing when the device is available.
 
+## v0.1.2
+
+- Completed: deploy the current app to a stable Vercel HTTPS Production URL.
+- Completed: configure the Production Site URL and allowed Redirect URLs in Supabase Auth.
+- Completed: verify desktop User A Magic Link, session restoration, shared/personal CRUD, and same-account two-window Realtime in Production.
+- Completed: verify Production manifest/icons and logged-out iPhone Safari add-to-home-screen behavior.
+- Pending: User B Production login and two-account Production Realtime.
+- Pending: authenticated iPhone CRUD.
+- Deferred: authenticated Android CRUD while the device is unavailable.
+- Pending tests are paused to avoid further Supabase Magic Link email-rate consumption.
+
 ## v0.2
 
 - Add reminders.

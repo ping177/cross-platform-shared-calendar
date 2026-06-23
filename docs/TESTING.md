@@ -10,9 +10,35 @@
 - Passed: third-user capacity rejection and non-member RLS read/write isolation.
 - Passed: iOS Safari layout and add-to-home-screen behavior.
 - Passed: Android Chrome layout and creation of a home-screen shortcut.
+- Passed: v0.1.2 Vercel Production deployment and first-round HTTPS smoke testing.
+- Passed: desktop User A Production Magic Link, session restoration, shared/personal CRUD, and same-account two-window Realtime.
+- Passed: iPhone Production page, logged-out layout, manifest/icons, add-to-home-screen, and home-screen launch.
+- Pending: User B Production login and two-account Production Realtime.
+- Pending: authenticated iPhone CRUD.
 - Pending: Android Magic Link login.
 - Pending: viewing, creating, editing, and deleting events after login on Android.
-- Pending reason: the Android device is temporarily unavailable. Earlier attempts were also interrupted by Supabase's default email frequency limit and a Site URL that had incorrectly remained set to `http://localhost:3000`.
+- Pending reason: further Magic Link tests are deferred to avoid consuming the Supabase default email-rate allowance, and the Android device is temporarily unavailable.
+
+## v0.1.2 HTTPS Production
+
+- Production URL: https://cross-platform-shared-calendar.vercel.app/
+- Vercel deployment completed successfully.
+- Confirm the Production page loads without a Supabase configuration error.
+- Confirm `VITE_SUPABASE_URL` uses only the Supabase project base URL ending in `.supabase.co`; it must not contain `/rest/v1/`.
+- Supabase Auth Site URL is configured to the Production URL.
+- Redirect URLs include the Production URL with and without a trailing slash.
+- Local redirects currently include `http://localhost:5175`.
+- `http://192.168.10.6:5175` is retained only as a temporary LAN phone-test redirect, not as a stable deployment address.
+- Verified desktop User A Magic Link login, logout, repeat login, and session restoration.
+- Verified the post-login URL remains on the Production domain; an empty `/#` is acceptable.
+- Verified User A shared event create, update, and delete operations, including correct state after refresh.
+- Verified User A personal event create, update, and delete operations.
+- Verified Realtime create, update, and delete propagation between two browser windows using User A.
+- Verified `/manifest.webmanifest`, `/icons/icon-192.svg`, and `/icons/icon-512.svg` are accessible.
+- Verified iPhone Safari can open the Production URL.
+- Verified the app can be added to and launched from the iPhone home screen.
+- Verified the logged-out iPhone layout displays the email login entry point correctly.
+- Pending: User B Production login, two-account Production Realtime, authenticated iPhone CRUD, and authenticated Android CRUD.
 
 ## Local Build
 

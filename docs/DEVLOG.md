@@ -1,5 +1,22 @@
 # Development Log
 
+## 2026-06-23 - v0.1.2
+
+- Deployed the current Vite app to Vercel at https://cross-platform-shared-calendar.vercel.app/.
+- Configured the Supabase Auth Site URL and Redirect URLs for the Production URL while retaining local test redirects.
+- Diagnosed the first Production Magic Link failure, `Invalid path specified in request URL`: the Vercel environment variable value was empty, and the Supabase URL had also previously been copied from the REST endpoint.
+- Corrected `VITE_SUPABASE_URL` to the project base URL ending in `.supabase.co`, without `/rest/v1/`, and redeployed successfully.
+- Verified the Production page loads without a Supabase configuration error.
+- Verified desktop User A Magic Link login, logout and repeat login, Production-domain redirect, and session restoration. An empty `/#` after login is accepted.
+- Verified User A shared and personal event create, update, and delete flows, including persistence after refresh.
+- Verified Realtime create, update, and delete propagation between two windows for User A.
+- Verified the manifest and both SVG icons are accessible.
+- Verified iPhone Safari can open the Production URL, add the app to the home screen, and launch it from the home screen.
+- Verified the logged-out iPhone layout and email login entry point.
+- Pending: User B Production login, two-account Production Realtime, iPhone authenticated CRUD, and Android authenticated CRUD.
+- Pending tests are deferred to avoid further Supabase Magic Link email-rate consumption; the Android device is also temporarily unavailable.
+- No application business logic changed for this deployment.
+
 ## 2026-06-20 - v0.1.1
 
 - Implemented owner-only update/delete policies for personal events while keeping them visible to both members.

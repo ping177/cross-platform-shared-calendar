@@ -2,6 +2,8 @@
 
 一个两人共享日历 Web App。v0.1 面向“一个人用 iPhone/iOS Safari，另一个人用 Android/Chrome”的场景，优先做移动端友好的 Web/PWA。
 
+Production URL: https://cross-platform-shared-calendar.vercel.app/
+
 ## v0.1 功能范围
 
 - Supabase Magic Link 登录/注册
@@ -42,6 +44,7 @@
    VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
    ```
 
+   `VITE_SUPABASE_URL` 必须止于 `.supabase.co`，不能包含 `/rest/v1/` 或其他 API 路径。
    `.env` 已加入 `.gitignore`，不要提交真实环境变量。
 
 4. 启动开发服务器：
@@ -88,14 +91,16 @@ v0.1 默认使用 Supabase Magic Link。需要在 Supabase Dashboard 配置 Auth
 3. 将本地开发地址加入 Redirect URLs，例如：
 
    ```text
-   http://localhost:5173
+   http://localhost:5175
    ```
 
-4. 部署后也要加入生产域名，例如：
+4. 部署后将 Site URL 配置为稳定 Production URL，并将该地址加入 Redirect URLs：
 
    ```text
-   https://your-app.example.com
+   https://cross-platform-shared-calendar.vercel.app/
    ```
+
+当前还保留 `http://192.168.10.6:5175` 作为临时局域网手机测试 Redirect URL；它不是长期稳定地址，也不应替代 HTTPS Production URL。
 
 iOS / Android 上邮件 App 可能用 Safari、Chrome 或内置浏览器打开登录链接。测试 Magic Link 时，最终回跳的域名必须在 Supabase 允许列表中。
 
