@@ -20,10 +20,17 @@
 - Completed: configure the Production Site URL and allowed Redirect URLs in Supabase Auth.
 - Completed: verify desktop User A Magic Link, session restoration, shared/personal CRUD, and same-account two-window Realtime in Production.
 - Completed: verify Production manifest/icons and logged-out iPhone Safari add-to-home-screen behavior.
-- Pending: User B Production login and two-account Production Realtime.
-- Pending: authenticated iPhone CRUD.
+- Completed: verify User B Production Magic Link login.
+- Completed: verify two-account Production shared Realtime create/update/delete.
+- Completed: verify two-account Production personal-event owner/read-only permissions and Realtime propagation.
+- Completed: verify authenticated iPhone User B Production login, mobile layout, shared CRUD, and desktop Realtime propagation.
 - Deferred: authenticated Android CRUD while the device is unavailable.
-- Pending tests are paused to avoid further Supabase Magic Link email-rate consumption.
+
+## UX backlog
+
+- Members: add nicknames, display names, and a shared-space member list so the UI can feel warmer than only showing "我的" / "对方的".
+- Personal event labels: show the specific member name for personal events instead of only "对方的" when display names are available.
+- New event defaults: prefill the end time as start time plus 1 hour. For example, if the start time is 10:00 on the selected day, default the end time to 11:00.
 
 ## v0.2
 

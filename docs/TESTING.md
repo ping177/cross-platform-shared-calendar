@@ -13,11 +13,13 @@
 - Passed: v0.1.2 Vercel Production deployment and first-round HTTPS smoke testing.
 - Passed: desktop User A Production Magic Link, session restoration, shared/personal CRUD, and same-account two-window Realtime.
 - Passed: iPhone Production page, logged-out layout, manifest/icons, add-to-home-screen, and home-screen launch.
-- Pending: User B Production login and two-account Production Realtime.
-- Pending: authenticated iPhone CRUD.
+- Passed: User B Production Magic Link login.
+- Passed: two-account Production shared Realtime create/update/delete.
+- Passed: two-account Production personal-event owner/read-only permissions and Realtime propagation.
+- Passed: authenticated iPhone User B Production login, mobile layout, shared CRUD, and desktop Realtime propagation.
 - Pending: Android Magic Link login.
 - Pending: viewing, creating, editing, and deleting events after login on Android.
-- Pending reason: further Magic Link tests are deferred to avoid consuming the Supabase default email-rate allowance, and the Android device is temporarily unavailable.
+- Pending reason: the Android device is temporarily unavailable.
 
 ## v0.1.2 HTTPS Production
 
@@ -38,7 +40,29 @@
 - Verified iPhone Safari can open the Production URL.
 - Verified the app can be added to and launched from the iPhone home screen.
 - Verified the logged-out iPhone layout displays the email login entry point correctly.
-- Pending: User B Production login, two-account Production Realtime, authenticated iPhone CRUD, and authenticated Android CRUD.
+- Verified User B can log in to the Production URL via Magic Link from an incognito window and reach the calendar page.
+- Verified A and B pages both remain normal after B login and show the same invite code, confirming they are in the same shared space.
+- Verified two-account shared Realtime:
+  - A creates `ab realtime create test`; B sees it without refreshing.
+  - B edits it to `ab realtime edit test`; A sees the update without refreshing.
+  - B deletes it; A sees it disappear without refreshing.
+- Verified A-owned personal permissions and Realtime:
+  - A creates `a personal readonly test`; B sees it without refreshing and it is labeled as the other person's event.
+  - B opens it read-only, with no save button, no delete button, and non-editable title/time fields.
+  - A edits it to `a personal owner edit test`; B sees the update without refreshing.
+  - A deletes it; B sees it disappear without refreshing.
+- Verified B-owned personal event creation from A's session:
+  - A creates `b personal ownership test` as a personal event belonging to B.
+  - B sees it without refreshing and it is labeled as mine.
+  - A sees it as the other person's event and can only open it read-only, with no save/delete controls.
+  - B can edit and delete it as owner.
+  - After B deletes it, A sees it disappear automatically.
+- Verified authenticated iPhone Production flow:
+  - iPhone logs in with User B and ends on the Production domain.
+  - iPhone reaches the calendar page with normal mobile layout.
+  - iPhone B creates `iphone shared test`; desktop A sees it without refreshing.
+  - iPhone B deletes it; desktop A sees it disappear without refreshing.
+- Pending: authenticated Android CRUD because the Android device is temporarily unavailable.
 
 ## Local Build
 

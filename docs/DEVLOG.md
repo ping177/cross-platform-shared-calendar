@@ -13,8 +13,12 @@
 - Verified the manifest and both SVG icons are accessible.
 - Verified iPhone Safari can open the Production URL, add the app to the home screen, and launch it from the home screen.
 - Verified the logged-out iPhone layout and email login entry point.
-- Pending: User B Production login, two-account Production Realtime, iPhone authenticated CRUD, and Android authenticated CRUD.
-- Pending tests are deferred to avoid further Supabase Magic Link email-rate consumption; the Android device is also temporarily unavailable.
+- Follow-up smoke test: verified User B Production Magic Link login in an incognito window, with both A and B reaching the calendar page and seeing the same invite code for the shared space.
+- Verified two-account Production Realtime for shared events: A created `ab realtime create test`, B received it without refresh, B edited it to `ab realtime edit test`, A received the update without refresh, and B deleted it with A seeing it disappear without refresh.
+- Verified personal-event permissions and Realtime in Production: A-owned personal events are visible to B as read-only, owner edits/deletes propagate without refresh, and A-created B-owned personal events transfer management to B while A remains read-only.
+- Verified iPhone authenticated Production flow with User B: Magic Link login, Production-domain redirect, calendar entry, mobile layout, shared event creation, desktop A Realtime receipt, and deletion propagation.
+- Pending: Android authenticated CRUD.
+- Pending Android testing is deferred because the Android device is temporarily unavailable.
 - No application business logic changed for this deployment.
 
 ## 2026-06-20 - v0.1.1
