@@ -17,9 +17,38 @@
 - Passed: two-account Production shared Realtime create/update/delete.
 - Passed: two-account Production personal-event owner/read-only permissions and Realtime propagation.
 - Passed: authenticated iPhone User B Production login, mobile layout, shared CRUD, and desktop Realtime propagation.
+- Passed: v0.1.3 local production build.
+- Passed: v0.1.3 real-browser shared/personal event form UX smoke test.
+- Passed: v0.1.3 all-day functional regression.
 - Pending: Android Magic Link login.
 - Pending: viewing, creating, editing, and deleting events after login on Android.
 - Pending reason: the Android device is temporarily unavailable.
+
+## v0.1.3 Event Form UX Defaults
+
+- Confirm `npm run build` passes.
+- Create a new shared event and confirm the default end time is the default start time plus 1 hour.
+- Create a new personal event and confirm the default end time is the default start time plus 1 hour.
+- Create a new event, change the start time before touching the end time, and confirm the end time follows the new start time plus 1 hour.
+- Create a new event, manually change the end time, then change the start time, and confirm the manually chosen end time is not overwritten.
+- Create a new all-day event without manually editing the end time and confirm there is no UI or save regression.
+- Create or edit an all-day event after manually editing the end time and confirm the existing behavior of saving the user-entered end value is preserved.
+- Edit an existing shared event and confirm the stored end time loads from the database and is not reset to start plus 1 hour.
+- Edit an existing personal event and confirm the stored end time loads from the database and is not reset to start plus 1 hour.
+- Confirm a non-owner personal event still opens as read-only, without save or delete controls.
+- Confirm Realtime create, update, and delete propagation still works between two authenticated sessions.
+- Confirm desktop local or Production smoke test passes.
+- Confirm iPhone smoke test passes.
+
+Verified in a real browser on 2026-06-24:
+
+- New shared and personal events defaulted the end time to start plus 1 hour.
+- New-event start changes kept the end time at start plus 1 hour until the end time was manually edited.
+- After manually editing the end time, later start changes did not overwrite the end time.
+- Existing shared and personal events kept their original end times when opened for editing.
+- Non-owner personal events remained read-only.
+- Realtime create, update, and delete continued to work.
+- All-day functional regression passed; no UI or save abnormality was observed. Database-field behavior was protected by the save-payload logic, but this manual pass did not separately inspect the stored database field.
 
 ## v0.1.2 HTTPS Production
 
@@ -73,6 +102,20 @@
   ```
 
 - Expected result: TypeScript and Vite production build pass.
+
+## Local Development Server
+
+- Run:
+
+  ```bash
+  npm run dev
+  ```
+
+- Expected result: Vite starts on fixed port `5175`.
+- Browser acceptance testing should open `http://127.0.0.1:5175`.
+- `http://localhost:5175` is also valid for desktop local testing.
+- Do not use Vite's default `5173` port for this project.
+- The dev script uses `--strictPort`, so startup should fail instead of falling back to another port when `5175` is occupied.
 
 ## Supabase Schema
 

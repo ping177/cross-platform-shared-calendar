@@ -26,11 +26,18 @@
 - Completed: verify authenticated iPhone User B Production login, mobile layout, shared CRUD, and desktop Realtime propagation.
 - Deferred: authenticated Android CRUD while the device is unavailable.
 
+## v0.1.3
+
+- Completed: new event drafts prefill the end time as start time plus 1 hour for shared and personal events.
+- Completed: new event end time follows start time changes until the user manually edits the end time.
+- Completed: editing existing events preserves the stored end time instead of resetting it to a default.
+- Completed: all-day compatibility keeps unedited new all-day event `ends_at` values null while preserving manually edited end values.
+
 ## UX backlog
 
 - Members: add nicknames, display names, and a shared-space member list so the UI can feel warmer than only showing "我的" / "对方的".
 - Personal event labels: show the specific member name for personal events instead of only "对方的" when display names are available.
-- New event defaults: prefill the end time as start time plus 1 hour. For example, if the start time is 10:00 on the selected day, default the end time to 11:00.
+- Completed in v0.1.3: New event defaults prefill the end time as start time plus 1 hour. For example, if the start time is 10:00 on the selected day, default the end time to 11:00.
 
 ## v0.2
 

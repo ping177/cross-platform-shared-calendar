@@ -14,6 +14,7 @@ import {
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import {
   addDays,
+  addHours,
   endOfMonth,
   endOfWeek,
   eventFallsOnDay,
@@ -46,14 +47,30 @@ const viewLabels: Record<ViewMode, string> = {
   month: '本月',
 };
 
-const emptyDraft = (date = new Date()): EventDraft => ({
-  title: '',
-  description: '',
-  audience: 'mine',
-  startsAt: toDateInputValue(date),
-  endsAt: '',
-  allDay: false,
-});
+function emptyDraft(date?: Date): EventDraft {
+  const startsAt = date ? new Date(date) : new Date();
+  const endsAt = addHours(startsAt, 1);
+
+  return {
+    title: '',
+    description: '',
+    audience: 'mine',
+    startsAt: toDateInputValue(startsAt),
+    endsAt: toDateInputValue(endsAt),
+    allDay: false,
+  };
+}
+
+function draftFromEvent(event: CalendarEvent, userId: string): EventDraft {
+  return {
+    title: event.title,
+    description: event.description ?? '',
+    audience: audienceFromEvent(event, userId),
+    startsAt: toDateInputValue(new Date(event.starts_at)),
+    endsAt: event.ends_at ? toDateInputValue(new Date(event.ends_at)) : '',
+    allDay: event.all_day,
+  };
+}
 
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) {
@@ -656,20 +673,33 @@ function EventSheet({
       return emptyDraft();
     }
 
-    return {
-      title: event.title,
-      description: event.description ?? '',
-      audience: audienceFromEvent(event, userId),
-      startsAt: toDateInputValue(new Date(event.starts_at)),
-      endsAt: event.ends_at ? toDateInputValue(new Date(event.ends_at)) : '',
-      allDay: event.all_day,
-    };
+    return draftFromEvent(event, userId);
   });
+  const [endManuallyEdited, setEndManuallyEdited] = useState(() => Boolean(event));
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
   const canChoosePartner = Boolean(partnerId);
   const canManage = !event || canManageEvent(event, userId);
+
+  useEffect(() => {
+    setDraft(event ? draftFromEvent(event, userId) : emptyDraft());
+    setEndManuallyEdited(Boolean(event));
+    setError('');
+  }, [event?.id, userId]);
+
+  function updateStart(value: string) {
+    setDraft((currentDraft) => ({
+      ...currentDraft,
+      startsAt: value,
+      endsAt: !event && !endManuallyEdited && value ? toDateInputValue(addHours(new Date(value), 1)) : currentDraft.endsAt,
+    }));
+  }
+
+  function updateEnd(value: string) {
+    setEndManuallyEdited(true);
+    setDraft((currentDraft) => ({ ...currentDraft, endsAt: value }));
+  }
 
   async function save(formEvent: React.FormEvent) {
     formEvent.preventDefault();
@@ -681,11 +711,12 @@ function EventSheet({
     setBusy(true);
     setError('');
 
+    const shouldClearDefaultAllDayEnd = !event && draft.allDay && !endManuallyEdited;
     const contentPayload = {
       title: draft.title.trim(),
       description: draft.description.trim() || null,
       starts_at: fromDateInputValue(draft.startsAt),
-      ends_at: draft.endsAt ? fromDateInputValue(draft.endsAt) : null,
+      ends_at: shouldClearDefaultAllDayEnd ? null : draft.endsAt ? fromDateInputValue(draft.endsAt) : null,
       all_day: draft.allDay,
     };
 
@@ -783,11 +814,11 @@ function EventSheet({
           </Field>
 
           <Field label="开始时间">
-            <input className="w-full rounded-lg border border-ink/15 px-4 py-3 outline-none focus:border-teal" type="datetime-local" required value={draft.startsAt} onChange={(inputEvent) => setDraft({ ...draft, startsAt: inputEvent.target.value })} />
+            <input className="w-full rounded-lg border border-ink/15 px-4 py-3 outline-none focus:border-teal" type="datetime-local" required value={draft.startsAt} onChange={(inputEvent) => updateStart(inputEvent.target.value)} />
           </Field>
 
           <Field label="结束时间">
-            <input className="w-full rounded-lg border border-ink/15 px-4 py-3 outline-none focus:border-teal" type="datetime-local" value={draft.endsAt} onChange={(inputEvent) => setDraft({ ...draft, endsAt: inputEvent.target.value })} />
+            <input className="w-full rounded-lg border border-ink/15 px-4 py-3 outline-none focus:border-teal" type="datetime-local" value={draft.endsAt} onChange={(inputEvent) => updateEnd(inputEvent.target.value)} />
           </Field>
 
           <label className="flex items-center gap-3 rounded-lg bg-mist px-4 py-3 text-sm font-semibold">

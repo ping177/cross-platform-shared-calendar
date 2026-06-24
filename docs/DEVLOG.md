@@ -1,5 +1,16 @@
 # Development Log
 
+## 2026-06-24 - v0.1.3
+
+- Started the event form UX defaults phase.
+- New event drafts now prefill the end time as the start time plus 1 hour, using the same start `Date` as the calculation base.
+- Changing the start time for a new event keeps the end time at start plus 1 hour until the user manually edits the end time.
+- Existing event drafts still load `starts_at` and `ends_at` from the database and do not reset the end time to a new default.
+- Editing existing events continues to update only content fields and does not change the v0.1.1 protected identity fields: `space_id`, `created_by`, `scope`, or `owner_user_id`.
+- All-day compatibility: new all-day events whose end time was not manually edited save `ends_at` as `null`; if a user manually edits the end time, the existing form behavior of saving that value is preserved.
+- Verified v0.1.3 in a real browser: shared and personal default end times, start/end follow behavior, manual end preservation, existing event end preservation, read-only personal events, Realtime create/update/delete, and all-day functional regression passed.
+- No Supabase schema, RLS, Vercel, Supabase configuration, secret, Android pending, member display, anniversary, Todo, or service worker changes were made.
+
 ## 2026-06-23 - v0.1.2
 
 - Deployed the current Vite app to Vercel at https://cross-platform-shared-calendar.vercel.app/.
