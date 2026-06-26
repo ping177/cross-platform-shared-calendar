@@ -16,7 +16,7 @@ Two-person shared calendar Web/PWA using React, Vite, TypeScript, Tailwind, and 
 
 ## Latest completed
 
-v0.1.3 event form UX defaults: new event drafts default end time to start time plus 1 hour, preserve existing event end times, support all-day compatibility, and keep protected identity fields unchanged.
+P1-4 docs-only cleanup: README now points detailed validation content to `docs/TESTING.md`, and `docs/BACKLOG.md` is organized by P0-P3 priority while preserving completed/deferred history.
 
 ## Last verified
 
@@ -34,6 +34,7 @@ Android authenticated CRUD remains deferred because the Android device was unava
 
 - Git branch、latest commit、working tree 由 project-command-center 实时 Git 扫描读取；PROJECT_STATE.md 不作为这些字段的权威来源。
 - Production URL: `https://cross-platform-shared-calendar.vercel.app/`.
+- README is the project entrypoint; detailed smoke checklists and production validation records live in `docs/TESTING.md`.
 - v0.1 is a Web/PWA, not native iOS / Android.
 - Event ownership uses stable `scope + owner_user_id`; UI labels are derived from the current user.
 - Personal events are visible to both members but only editable/deletable by the owner.

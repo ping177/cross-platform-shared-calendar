@@ -1,5 +1,13 @@
 # Development Log
 
+## 2026-06-26
+
+- Completed a docs-only cleanup for project documentation boundaries.
+- Simplified `README.md` testing content so detailed smoke checklists and production validation records live in `docs/TESTING.md`.
+- Reorganized `docs/BACKLOG.md` into P0/P1/P2/P3 priority sections while preserving completed and deferred version history.
+- Updated `docs/PROJECT_STATE.md` with the documentation cleanup as the latest completed handoff-relevant work.
+- No business code, configuration, dependencies, database schema, RLS, deployment settings, or secrets were changed.
+
 ## 2026-06-24 - v0.1.3
 
 - Started the event form UX defaults phase.
