@@ -12,11 +12,11 @@ v0.1.3
 
 ## Current status
 
-Two-person shared calendar Web/PWA using React, Vite, TypeScript, Tailwind, and Supabase Auth/Postgres/RLS/Realtime. Production HTTPS deployment is available, and v0.1.3 event-form default end-time behavior has been verified in a real browser.
+项目已完成共享日历 MVP、权限修正和生产 smoke test 记录。当前开发暂缓，等待 Android 设备返回后继续做跨端真实验收。
 
 ## Latest completed
 
-P1-4 docs-only cleanup: README now points detailed validation content to `docs/TESTING.md`, and `docs/BACKLOG.md` is organized by P0-P3 priority while preserving completed/deferred history.
+P1-4 docs-only cleanup 已完成：README 指向 `docs/TESTING.md`，`docs/BACKLOG.md` 按 P0-P3 优先级整理。
 
 ## Last verified
 
@@ -24,11 +24,11 @@ P1-4 docs-only cleanup: README now points detailed validation content to `docs/T
 
 ## Next Action
 
-Resume deferred authenticated Android CRUD testing when an Android device is available, then consider v0.2 reminder / anniversary / countdown scope.
+Android 设备可用后，继续验证跨端登录、加入空间、事件同步和权限表现。
 
 ## Blockers
 
-Android authenticated CRUD remains deferred because the Android device was unavailable during prior verification.
+等待 Android 设备返回后继续跨端验收。
 
 ## Important Context
 
