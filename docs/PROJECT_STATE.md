@@ -18,6 +18,13 @@ v0.1.3
 
 P1-4 docs-only cleanup 已完成：README 指向 `docs/TESTING.md`，`docs/BACKLOG.md` 按 P0-P3 优先级整理。
 
+## Deployment
+
+Status: public_deployed
+Public URL: https://cross-platform-shared-calendar.vercel.app/
+Provider: Vercel
+Notes: 已完成公网部署，用于真实设备访问和跨端验收。
+
 ## Last verified
 
 2026-06-25
