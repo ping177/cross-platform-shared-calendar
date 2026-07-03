@@ -25,6 +25,14 @@ Public URL: https://cross-platform-shared-calendar.vercel.app/
 Provider: Vercel
 Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 
+## Version Index
+
+- v0.1 — 共享日历 MVP
+- v0.1-smoke-test — Supabase 验收
+- v0.1.1 — 个人事件权限
+- v0.1.2 — 公网部署验收
+- v0.1.3 — 事件表单默认值
+
 ## Last verified
 
 2026-06-25
