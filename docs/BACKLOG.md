@@ -2,7 +2,6 @@
 
 ## P0 - Blocking Verification or Core Use
 
-- Resume authenticated Android CRUD testing when an Android device is available.
 - Investigate any Magic Link, RLS, Realtime, or Production deployment regression that blocks the two-person calendar flow.
 
 ## P1 - Near-Term Product Polish
@@ -10,7 +9,6 @@
 - Members: add nicknames, display names, and a shared-space member list so the UI can feel warmer than only showing "我的" / "对方的".
 - Personal event labels: show the specific member name for personal events instead of only "对方的" when display names are available.
 - Continue event create/edit UX polish after the v0.1.3 default end-time improvement.
-- Re-run Android compatibility checks after authenticated Android testing is available again.
 
 ## P2 - Product Extensions
 
@@ -35,14 +33,14 @@
 
 - Completed: real Supabase integration testing for the available v0.1 scope.
 - Completed: two-user end-to-end flow, RLS/RPC checks, and Realtime checks across browser sessions.
-- Deferred: authenticated Android CRUD testing while the device is unavailable.
+- Completed: authenticated Android CRUD, Realtime, and PWA compatibility testing on Xiaomi 14 / Android 16 / Chrome.
 
 ### v0.1.1
 
 - Completed: restrict personal event updates/deletes to `owner_user_id`.
 - Completed: show non-owner personal events as read-only details.
 - Completed: desktop two-account UI, RLS, direct API, trigger, and Realtime regression tests.
-- Deferred: Android Magic Link and authenticated CRUD testing when the device is available.
+- Completed: deferred Android Magic Link and authenticated CRUD testing in the later Android compatibility smoke pass.
 
 ### v0.1.2
 
@@ -54,7 +52,7 @@
 - Completed: verify two-account Production shared Realtime create/update/delete.
 - Completed: verify two-account Production personal-event owner/read-only permissions and Realtime propagation.
 - Completed: verify authenticated iPhone User B Production login, mobile layout, shared CRUD, and desktop Realtime propagation.
-- Deferred: authenticated Android CRUD while the device is unavailable.
+- Completed: deferred authenticated Android CRUD, Realtime, and PWA compatibility testing in the later Android compatibility smoke pass.
 
 ### v0.1.3
 

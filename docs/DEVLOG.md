@@ -1,5 +1,17 @@
 # Development Log
 
+## 2026-07-06
+
+- Completed Android compatibility smoke testing on Xiaomi 14 / Android 16 / Chrome over a mobile network.
+- Verified the Production URL opens, Android Chrome Magic Link login works, and the session restores after login.
+- Verified today, week, and month views plus mobile layout on Android Chrome.
+- Verified v0.1.3 event form behavior on Android: shared/personal default end time, start-time follow behavior, manual end-time preservation, and existing shared/personal event end-time preservation.
+- Verified shared Realtime create/update/delete, personal read-only permissions, and User A creating a personal event for User B with ownership transfer.
+- Verified Android Chrome add-to-home-screen, home-screen PWA launch, and PWA event create/delete syncing to desktop.
+- Found no project bugs. A temporary Chrome add-to-home-screen state message cleared after restarting Chrome and was treated as a browser state issue.
+- Closed the previously pending Android authenticated CRUD, Realtime, and PWA compatibility verification scope.
+- No business code, Supabase schema, RLS, Vercel configuration, package configuration, dependencies, or secrets were changed.
+
 ## 2026-06-26
 
 - Completed a docs-only cleanup for project documentation boundaries.

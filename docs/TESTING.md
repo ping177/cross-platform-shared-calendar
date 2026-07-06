@@ -20,9 +20,37 @@
 - Passed: v0.1.3 local production build.
 - Passed: v0.1.3 real-browser shared/personal event form UX smoke test.
 - Passed: v0.1.3 all-day functional regression.
-- Pending: Android Magic Link login.
-- Pending: viewing, creating, editing, and deleting events after login on Android.
-- Pending reason: the Android device is temporarily unavailable.
+- Passed: Android Chrome Production compatibility smoke test on Xiaomi 14 / Android 16.
+- Passed: Android Chrome Magic Link login, session restore, event CRUD, Realtime, permissions, and PWA home-screen flow.
+
+## Android Production Compatibility
+
+- Date: 2026-07-06.
+- Device: Xiaomi 14.
+- Android version: 16.
+- Browser: Chrome.
+- URL: https://cross-platform-shared-calendar.vercel.app/.
+- Network: mobile network.
+- Test accounts: User A on desktop, User B on Android.
+- Production page opened successfully.
+- Android Chrome Magic Link login passed.
+- Login session restore passed.
+- Today, week, and month views passed.
+- Mobile layout passed.
+- New shared event default end time equals start time plus 1 hour.
+- New personal event default end time equals start time plus 1 hour.
+- Changing start time updates the end time while the end time has not been manually edited.
+- Manually edited end time is not overwritten by later start-time changes.
+- Editing existing shared and personal events does not reset the stored end time.
+- Shared Realtime create, update, and delete passed.
+- Personal read-only permission behavior passed.
+- User A creating a personal event for User B transferred management permissions to User B as expected.
+- Android Chrome add-to-home-screen passed.
+- Home-screen PWA launch passed.
+- Creating and deleting events from the PWA synced to desktop through Realtime.
+- Issues found: none.
+- Note: Android Chrome initially reported that it was still adding a previous site to the home screen; restarting Chrome resolved it. This was treated as a browser state issue, not a project bug.
+- Conclusion: Android compatibility smoke test passed, including the previously pending authenticated Android CRUD, Realtime, and PWA compatibility scope.
 
 ## v0.1.3 Event Form UX Defaults
 
