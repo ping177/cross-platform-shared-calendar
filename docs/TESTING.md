@@ -52,6 +52,36 @@
 - Note: Android Chrome initially reported that it was still adding a previous site to the home screen; restarting Chrome resolved it. This was treated as a browser state issue, not a project bug.
 - Conclusion: Android compatibility smoke test passed, including the previously pending authenticated Android CRUD, Realtime, and PWA compatibility scope.
 
+## Supabase Restore Minimum Smoke Test
+
+Run this if the Supabase Free project is restored after an inactivity pause:
+
+- Production page opens.
+- Magic Link login works.
+- Session remains available after refresh.
+- Calendar data can be read.
+- Shared event create, edit, and delete work.
+- Basic two-client Realtime sync works.
+
+## Supabase Keep-Alive
+
+- Endpoint: `/api/supabase-keepalive`.
+- Schedule: daily Vercel Cron at `0 3 * * *`.
+- Auth: `Authorization: Bearer <CRON_SECRET>`.
+- Data access: three sequential anon-key, head-only reads from `spaces`.
+- Expected unauthorized result: missing or incorrect bearer token returns `401`.
+- Expected local missing-env result: correct token without required Supabase env vars returns `500` without printing env values.
+- Expected success result after env setup: `200` with `{ "ok": true, "checks": 3 }`.
+- Success response must not include query rows, space IDs, user data, Supabase keys, or `CRON_SECRET`.
+- Vercel Dashboard checks after deploy:
+  - `CRON_SECRET` is configured for Production.
+  - The deployment includes `/api/supabase-keepalive`.
+  - Cron Jobs shows daily invocations for `/api/supabase-keepalive`.
+  - Function logs show success/failure only and do not print secrets or query data.
+- Supabase follow-up:
+  - Confirm the project remains Active after several daily Cron runs.
+  - If the project still pauses, reassess whether a dedicated read-only RPC or Supabase Pro is needed.
+
 ## v0.1.3 Event Form UX Defaults
 
 - Confirm `npm run build` passes.

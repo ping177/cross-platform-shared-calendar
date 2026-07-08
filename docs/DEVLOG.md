@@ -1,5 +1,17 @@
 # Development Log
 
+## 2026-07-08
+
+- Recorded the Supabase Free Tier inactivity pause operational risk.
+- Confirmed the current Supabase project status is Active.
+- Documented that a future pause may affect Auth, Database, RLS, and Realtime until the project is restored.
+- Implemented a minimal keep-alive path using daily Vercel Cron at `/api/supabase-keepalive`.
+- Added a CRON_SECRET-protected Vercel Function that uses the existing Supabase anon key environment variables and performs three sequential head-only read checks against `spaces`.
+- The Function does not use service role, does not write heartbeat data, does not modify business tables, and does not return query data.
+- Current decision remains to continue using Supabase Cloud without upgrading to Pro or migrating the backend.
+- Local checks covered build, type checking for the Function, unauthorized/error-path endpoint behavior, `vercel.json` JSON parsing, and diff hygiene; Production Cron verification is still required after Vercel env/deploy setup.
+- No calendar business logic, database schema, RLS, Supabase/Vercel dashboard configuration, dependencies, or secrets were changed in the repository.
+
 ## 2026-07-06
 
 - Completed Android compatibility smoke testing on Xiaomi 14 / Android 16 / Chrome over a mobile network.

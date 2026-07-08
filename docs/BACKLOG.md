@@ -9,6 +9,7 @@
 - Members: add nicknames, display names, and a shared-space member list so the UI can feel warmer than only showing "我的" / "对方的".
 - Personal event labels: show the specific member name for personal events instead of only "对方的" when display names are available.
 - Continue event create/edit UX polish after the v0.1.3 default end-time improvement.
+- Establish a simple backup and restore flow for Supabase data.
 
 ## P2 - Product Extensions
 
@@ -21,6 +22,7 @@
 
 ## P3 - Long-Term Directions
 
+- Re-evaluate Supabase Pro if the project becomes a formal service that must stay online long term.
 - Native iOS / Android apps.
 - App Store / Play Store distribution.
 - Paid or account-tier model.
@@ -60,3 +62,4 @@
 - Completed: new event end time follows start time changes until the user manually edits the end time.
 - Completed: editing existing events preserves the stored end time instead of resetting it to a default.
 - Completed: all-day compatibility keeps unedited new all-day event `ends_at` values null while preserving manually edited end values.
+- Completed: implemented a minimal Supabase Free keep-alive using daily Vercel Cron and a CRON_SECRET-protected read-only Function; Production verification remains pending.
