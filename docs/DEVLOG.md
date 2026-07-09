@@ -1,5 +1,14 @@
 # Development Log
 
+## 2026-07-09
+
+- Completed the first Production verification of the Supabase Free keep-alive.
+- Confirmed the Vercel Cron Job is registered for `/api/supabase-keepalive` on the daily `0 3 * * *` schedule.
+- Confirmed an unauthenticated browser request returns `401 unauthorized`.
+- Confirmed the first scheduled Production Cron invocation returned HTTP 200, indicating that all three read-only Supabase checks completed successfully under the current Function contract.
+- Supabase remains Active. Continued Cron success and long-term inactivity-pause prevention still require observation.
+- This was a docs-only verification closure; no business code, Function or Cron configuration, environment variables, database schema, RLS, deployment configuration, or secrets were changed or exposed.
+
 ## 2026-07-08
 
 - Recorded the Supabase Free Tier inactivity pause operational risk.
@@ -9,7 +18,7 @@
 - Added a CRON_SECRET-protected Vercel Function that uses the existing Supabase anon key environment variables and performs three sequential head-only read checks against `spaces`.
 - The Function does not use service role, does not write heartbeat data, does not modify business tables, and does not return query data.
 - Current decision remains to continue using Supabase Cloud without upgrading to Pro or migrating the backend.
-- Local checks covered build, type checking for the Function, unauthorized/error-path endpoint behavior, `vercel.json` JSON parsing, and diff hygiene; Production Cron verification is still required after Vercel env/deploy setup.
+- Local checks covered build, type checking for the Function, unauthorized/error-path endpoint behavior, `vercel.json` JSON parsing, and diff hygiene; the first Production Cron verification was completed on 2026-07-09.
 - No calendar business logic, database schema, RLS, Supabase/Vercel dashboard configuration, dependencies, or secrets were changed in the repository.
 
 ## 2026-07-06

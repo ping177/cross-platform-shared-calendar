@@ -22,6 +22,7 @@
 - Passed: v0.1.3 all-day functional regression.
 - Passed: Android Chrome Production compatibility smoke test on Xiaomi 14 / Android 16.
 - Passed: Android Chrome Magic Link login, session restore, event CRUD, Realtime, permissions, and PWA home-screen flow.
+- Passed: Supabase keep-alive Cron registration, unauthorized 401 check, and first scheduled Production invocation with HTTP 200.
 
 ## Android Production Compatibility
 
@@ -73,13 +74,18 @@ Run this if the Supabase Free project is restored after an inactivity pause:
 - Expected local missing-env result: correct token without required Supabase env vars returns `500` without printing env values.
 - Expected success result after env setup: `200` with `{ "ok": true, "checks": 3 }`.
 - Success response must not include query rows, space IDs, user data, Supabase keys, or `CRON_SECRET`.
+- Production verification on 2026-07-09:
+  - Passed: Cron Job registered for `/api/supabase-keepalive` at `0 3 * * *`.
+  - Passed: unauthenticated browser request returned `401 unauthorized`.
+  - Passed: first scheduled Production invocation returned HTTP 200.
 - Vercel Dashboard checks after deploy:
   - `CRON_SECRET` is configured for Production.
   - The deployment includes `/api/supabase-keepalive`.
-  - Cron Jobs shows daily invocations for `/api/supabase-keepalive`.
-  - Function logs show success/failure only and do not print secrets or query data.
+  - Continue checking Cron Jobs and Function logs to confirm later invocations return HTTP 200.
+  - Function logs should show success/failure only and must not print secrets or query data.
 - Supabase follow-up:
-  - Confirm the project remains Active after several daily Cron runs.
+  - Confirm the project remains Active after several daily Cron runs and over longer periods.
+  - The first successful invocation does not prove that the project can never be paused.
   - If the project still pauses, reassess whether a dedicated read-only RPC or Supabase Pro is needed.
 
 ## v0.1.3 Event Form UX Defaults

@@ -12,11 +12,11 @@ v0.1.3
 
 ## Current status
 
-项目已完成共享日历 MVP、权限修正、v0.1.3 event form UX defaults、Production smoke test，以及 Android Chrome 真实设备兼容性验收。Backend 当前使用 Supabase Free，项目状态已确认为 Active；daily Vercel Cron keep-alive 已实施，等待 Production 验证。
+项目已完成共享日历 MVP、权限修正、v0.1.3 event form UX defaults、Production smoke test，以及 Android Chrome 真实设备兼容性验收。Backend 当前使用 Supabase Free，项目状态为 Active；daily Vercel Cron keep-alive 已启用，首次 Production Cron 调用已验证为 HTTP 200。
 
 ## Latest completed
 
-Supabase Free keep-alive implementation added: daily Vercel Cron calls a CRON_SECRET-protected Function that performs three anon-key, head-only read checks against Supabase. Production verification remains pending.
+Supabase Free keep-alive is active: the Cron Job is registered, unauthenticated access returns 401, and the first scheduled Production invocation returned HTTP 200.
 
 ## Deployment
 
@@ -36,7 +36,7 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 
 ## Last verified
 
-2026-07-06
+2026-07-09
 
 ## Next Action
 
@@ -52,7 +52,8 @@ None known.
 - Production URL: `https://cross-platform-shared-calendar.vercel.app/`.
 - Supabase project status is currently Active, but Free Tier inactivity pause remains an operational risk.
 - A Supabase pause may affect Auth, Database, RLS, and Realtime until the project is restored.
-- Daily Vercel Cron keep-alive calls `/api/supabase-keepalive` with `CRON_SECRET` and uses the anon key for head-only read checks; Production verification is still required.
+- Daily Vercel Cron keep-alive calls `/api/supabase-keepalive` with `CRON_SECRET` and uses the anon key for head-only read checks; the first Production Cron invocation returned HTTP 200.
+- Keep-alive is active, but its long-term effectiveness against inactivity pauses still requires observation.
 - Continue using Supabase Cloud for now; do not upgrade to Pro or migrate the backend unless real usage requires it.
 - README is the project entrypoint; detailed smoke checklists and production validation records live in `docs/TESTING.md`.
 - Android compatibility smoke test is complete for Xiaomi 14 / Android 16 / Chrome on mobile network.

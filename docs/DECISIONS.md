@@ -26,3 +26,10 @@
 
 - v0.1 includes basic PWA support with a manifest and mobile meta tags.
 - v0.1 does not add complex service worker offline caching, to avoid stale-cache issues during testing.
+
+## Supabase Free Operations
+
+- Use a daily Vercel Cron keep-alive while the project remains on Supabase Free.
+- The keep-alive uses the Supabase anon key and RLS-protected, head-only reads; it does not use service role or return business data.
+- Do not add a heartbeat table or modify the database schema or RLS solely for keep-alive.
+- Continue observing Cron results and Supabase Active status; reconsider Supabase Pro only if the project becomes a formal service that must remain online long term.
