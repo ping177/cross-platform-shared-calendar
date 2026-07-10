@@ -52,7 +52,7 @@ None known.
 - Production URL: `https://cross-platform-shared-calendar.vercel.app/`.
 - Supabase project status is currently Active, but Free Tier inactivity pause remains an operational risk.
 - A Supabase pause may affect Auth, Database, RLS, and Realtime until the project is restored.
-- Daily Vercel Cron keep-alive calls `/api/supabase-keepalive` with `CRON_SECRET` and uses the anon key for head-only read checks; the first Production Cron invocation returned HTTP 200.
+- Vercel Cron 每天调用 `/api/supabase-keepalive`；每次调用连续执行 3 次极轻量、只读、无业务副作用的数据库检查；首次 Production Cron 已返回 HTTP 200 并完成验证。
 - Keep-alive is active, but its long-term effectiveness against inactivity pauses still requires observation.
 - Continue using Supabase Cloud for now; do not upgrade to Pro or migrate the backend unless real usage requires it.
 - README is the project entrypoint; detailed smoke checklists and production validation records live in `docs/TESTING.md`.
