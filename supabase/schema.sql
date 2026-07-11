@@ -2,7 +2,13 @@ create extension if not exists pgcrypto;
 
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
-  display_name text,
+  display_name text constraint profiles_display_name_format_check check (
+    display_name is null
+    or (
+      char_length(display_name) between 1 and 20
+      and display_name = regexp_replace(display_name, '^[[:space:]]+|[[:space:]]+$', '', 'g')
+    )
+  ),
   created_at timestamptz not null default now()
 );
 
@@ -215,10 +221,7 @@ set search_path = public
 as $$
 begin
   insert into public.profiles (id, display_name)
-  values (
-    new.id,
-    coalesce(new.raw_user_meta_data->>'display_name', split_part(new.email, '@', 1))
-  )
+  values (new.id, null)
   on conflict (id) do nothing;
 
   return new;

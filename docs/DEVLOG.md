@@ -1,5 +1,17 @@
 # Development Log
 
+## 2026-07-11 - v0.1.4 Member Identity & Space Members
+
+- Added a standalone `2026-07-11-v0.1.4-member-display-name.sql` patch. It transactionally locks profile writes during migration, converts blank names to `null`, trims legacy names, deterministically truncates legacy non-empty names to 20 characters, adds the nullable trimmed 1–20-character constraint, and changes `handle_new_user()` to create a null display name.
+- Synced the initial schema with the same profile constraint and privacy-safe new-user behavior. Existing RLS policies, RPCs, indexes, event fields, and Realtime publication were not changed.
+- Added a compact member entry and bottom sheet. It lists the current member with 「（我）」, uses `joined_at` then `user_id` for deterministic member ordering, shows no invented second member in a one-member space, and only permits the current user to edit their own `profiles` row.
+- Personal event cards, owner choices, and read-only details now show the member display name; shared events show 「共同」. Missing, blank, or invalid loaded names safely display 「成员」.
+- A successful name save reloads members on the saving device. No `profiles` or `space_members` Realtime subscription was introduced; another device updates on refresh, re-entry, or session restoration.
+- Initial local implementation verification: `npm run build` and `git diff --check` passed before Supabase SQL or browser smoke was performed.
+- Follow-up verification: the v0.1.4 patch was executed successfully in the current Production Supabase project after a clean preflight. Constraint, normalization, new-user trigger, and unchanged RLS policy checks passed.
+- Local two-account desktop smoke passed: member list and self-only editing, cross-session name refresh, personal/shared labels, same-name owner regression, owner-only personal permissions, shared permissions, and existing events Realtime create/update/delete. Temporary smoke events were removed after verification.
+- Still pending: iPhone Safari/PWA, Android Chrome/PWA, and v0.1.4 frontend deployment plus deployed-frontend Production smoke. The single-member path remains untested to avoid disturbing the real two-member space.
+
 ## 2026-07-09
 
 - Completed the first Production verification of the Supabase Free keep-alive.

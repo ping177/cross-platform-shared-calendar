@@ -23,6 +23,43 @@
 - Passed: Android Chrome Production compatibility smoke test on Xiaomi 14 / Android 16.
 - Passed: Android Chrome Magic Link login, session restore, event CRUD, Realtime, permissions, and PWA home-screen flow.
 - Passed: Supabase keep-alive Cron registration, unauthorized 401 check, and first scheduled Production invocation with HTTP 200.
+- Passed: v0.1.4 local TypeScript/Vite production build and diff hygiene.
+- Passed: v0.1.4 Production Supabase patch, constraint/trigger/RLS verification, and local two-account desktop smoke.
+- Pending: v0.1.4 iPhone Safari/PWA, Android Chrome/PWA, and deployed-frontend Production smoke.
+
+## v0.1.4 Member Identity & Space Members
+
+For an existing environment, do not rerun `supabase/schema.sql`. Execute `supabase/patches/2026-07-11-v0.1.4-member-display-name.sql` only once per environment.
+
+Static SQL review completed locally:
+
+- The patch transactionally blocks concurrent profile writes, converts whitespace-only names to `null`, trims valid legacy values, and truncates legacy non-empty values to 20 characters before the check constraint is added.
+- The constraint permits `null` and otherwise requires a trimmed 1–20-character name.
+- `handle_new_user()` inserts `display_name = null`; it no longer reads Auth metadata, email, or email prefixes.
+- Existing `profiles_select_same_space` and `profiles_update_self` policies are unchanged. No profile/member Realtime publication or subscription is added.
+
+Verified against the current Production Supabase project on 2026-07-11:
+
+- The v0.1.4 patch completed successfully. The three existing profiles needed no whitespace cleanup, trimming, or truncation.
+- `profiles_display_name_format_check` exists; the post-patch data check returned zero edge-whitespace, over-limit, and empty values.
+- `handle_new_user()` now writes `display_name = null`, keeps `SECURITY DEFINER`, `search_path = public`, the trigger return type, and `on conflict (id) do nothing`; it no longer reads Auth metadata or email data.
+- The existing profiles, space-members, and events RLS policies were confirmed unchanged.
+
+Verified in a local two-account desktop smoke test on 2026-07-11:
+
+- A and B entered the same two-member space and each saw the correct 「成员 · 2」 list, current-user marker, and self-only edit control.
+- Name editing, trim behavior, local immediate refresh, and refreshed second-session display passed; A/B name labels remained correct in event cards, owner choices, and details.
+- Today, week, and month labels showed the concrete personal owner name or 「共同」; no deprecated relative event labels appeared.
+- Shared, A-owned personal, and B-owned personal creation passed. Non-owners remained read-only, owners managed their personal events, and either member managed shared events.
+- Shared and personal events propagated through the existing events Realtime create/update/delete flow. Temporary smoke events were deleted successfully after verification.
+- Same-name owner regression also passed: ownership and editability continued to use user IDs, not display names.
+
+Still pending:
+
+- New-user first-login behavior with a newly created Auth account.
+- The single-member-space UI path, which was intentionally not tested by removing a real member.
+- Narrow layouts and PWA behavior on iPhone Safari and Android Chrome.
+- v0.1.4 frontend deployment, then two-account Production browser smoke against the deployed frontend.
 
 ## Android Production Compatibility
 

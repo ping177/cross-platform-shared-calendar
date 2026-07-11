@@ -22,6 +22,16 @@
 - Creating a space, joining by invite code, and rotating invite codes are handled by RPC functions so the operations complete atomically.
 - RLS remains enabled, and RPC functions perform explicit membership and capacity checks.
 
+## v0.1.4 Member Identity
+
+- v0.1.4 only uses the existing global `profiles.display_name`; it does not add `space_members.nickname`.
+- `display_name` is nullable for compatibility. A non-null value is trimmed and limited to 1–20 characters; the UI safely falls back to 「成员」 when it is absent or invalid.
+- New users receive a profile with `display_name = null`. Neither Auth metadata nor email/email prefix is used as a public default, to avoid unintended identity disclosure.
+- A space member may update only their own global display name under the existing `profiles_update_self` RLS policy. No profile, space-member, or event RLS policy is broadened.
+- Personal event labels show the stored owner’s member display name; shared event labels remain 「共同」. Labels never participate in permission checks.
+- Name saves reload the local member list. v0.1.4 does not subscribe to profile or member Realtime changes; other devices see a changed name after refresh, re-entry, or session restoration.
+- Reconsider `space_members.nickname` only if multi-space support and real per-space naming needs are introduced.
+
 ## PWA
 
 - v0.1 includes basic PWA support with a manifest and mobile meta tags.

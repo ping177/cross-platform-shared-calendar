@@ -9,8 +9,11 @@ import {
   Plus,
   RefreshCw,
   Trash2,
+  Users,
   X,
 } from 'lucide-react';
+import { MemberSheet } from './components/MemberSheet';
+import { memberDisplayNameForUser } from './lib/member';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import {
   addDays,
@@ -92,8 +95,17 @@ function canManageEvent(event: CalendarEvent, userId: string) {
   return event.scope === 'shared' || event.owner_user_id === userId;
 }
 
-function audienceLabel(audience: EventAudience) {
-  return audience === 'mine' ? '我的' : audience === 'partner' ? '对方的' : '共同的';
+function audienceLabel(audience: EventAudience, userId: string, members: SpaceMember[]) {
+  if (audience === 'shared') {
+    return '共同';
+  }
+
+  const ownerUserId = audience === 'mine' ? userId : members.find((member) => member.user_id !== userId)?.user_id;
+  return memberDisplayNameForUser(members, ownerUserId);
+}
+
+function eventAudienceLabel(event: CalendarEvent, members: SpaceMember[]) {
+  return event.scope === 'shared' ? '共同' : memberDisplayNameForUser(members, event.owner_user_id);
 }
 
 function audienceClass(audience: EventAudience) {
@@ -234,6 +246,8 @@ function CalendarApp({ session }: { session: Session }) {
   const [error, setError] = useState('');
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
   const [showNewEvent, setShowNewEvent] = useState(false);
+  const [showMembers, setShowMembers] = useState(false);
+  const [memberMessage, setMemberMessage] = useState('');
 
   const partner = members.find((member) => member.user_id !== userId) ?? null;
 
@@ -260,7 +274,8 @@ function CalendarApp({ session }: { session: Session }) {
       .from('space_members')
       .select('space_id,user_id,role,joined_at,profiles(display_name)')
       .eq('space_id', spaceId)
-      .order('joined_at', { ascending: true });
+      .order('joined_at', { ascending: true })
+      .order('user_id', { ascending: true });
 
     if (memberError) {
       setError(memberError.message);
@@ -340,6 +355,10 @@ function CalendarApp({ session }: { session: Session }) {
             <div className="min-w-0">
               <p className="truncate text-sm text-ink/60">{space.name}</p>
               <h1 className="text-2xl font-bold">{formatMonth(selectedDate)}</h1>
+              <button className="mt-1 inline-flex items-center gap-1 text-sm font-semibold text-teal" type="button" onClick={() => setShowMembers(true)}>
+                <Users size={15} />
+                成员 · {members.length}
+              </button>
             </div>
             <div className="flex items-center gap-2">
               <button className="grid h-10 w-10 place-items-center rounded-lg bg-white text-ink shadow-sm" type="button" onClick={signOut} aria-label="退出登录">
@@ -379,9 +398,11 @@ function CalendarApp({ session }: { session: Session }) {
 
         <section className="flex-1 px-4 py-4 safe-bottom">
           {error && <Notice tone="error" message={error} />}
+          {memberMessage && <Notice tone="success" message={memberMessage} />}
           <InvitePanel space={space} onSpaceChange={setSpace} />
           <CalendarViews
             events={events}
+            members={members}
             selectedDate={selectedDate}
             viewMode={viewMode}
             userId={userId}
@@ -396,12 +417,25 @@ function CalendarApp({ session }: { session: Session }) {
           event={editingEvent}
           space={space}
           userId={userId}
+          members={members}
           partnerId={partner?.user_id ?? null}
           onClose={() => {
             setShowNewEvent(false);
             setEditingEvent(null);
           }}
           onSaved={() => void loadEvents(space.id)}
+        />
+      )}
+
+      {showMembers && (
+        <MemberSheet
+          members={members}
+          userId={userId}
+          onClose={() => setShowMembers(false)}
+          onSaved={async () => {
+            await loadMembers(space.id);
+            setMemberMessage('名称已更新。');
+          }}
         />
       )}
     </main>
@@ -537,6 +571,7 @@ function InvitePanel({ space, onSpaceChange }: { space: Space; onSpaceChange: (s
 
 function CalendarViews({
   events,
+  members,
   selectedDate,
   viewMode,
   userId,
@@ -544,6 +579,7 @@ function CalendarViews({
   onSelectDate,
 }: {
   events: CalendarEvent[];
+  members: SpaceMember[];
   selectedDate: Date;
   viewMode: ViewMode;
   userId: string;
@@ -551,7 +587,7 @@ function CalendarViews({
   onSelectDate: (date: Date) => void;
 }) {
   if (viewMode === 'month') {
-    return <MonthView events={events} selectedDate={selectedDate} userId={userId} onEdit={onEdit} onSelectDate={onSelectDate} />;
+    return <MonthView events={events} members={members} selectedDate={selectedDate} userId={userId} onEdit={onEdit} onSelectDate={onSelectDate} />;
   }
 
   const days = viewMode === 'today' ? [selectedDate] : Array.from({ length: 7 }, (_, index) => addDays(startOfWeek(selectedDate), index));
@@ -561,7 +597,7 @@ function CalendarViews({
       {days.map((day) => {
         const dayEvents = sortEvents(events.filter((event) => eventFallsOnDay(event, day)));
         return (
-          <DaySection key={day.toISOString()} day={day} events={dayEvents} userId={userId} onEdit={onEdit} />
+          <DaySection key={day.toISOString()} day={day} events={dayEvents} members={members} userId={userId} onEdit={onEdit} />
         );
       })}
     </div>
@@ -570,12 +606,14 @@ function CalendarViews({
 
 function MonthView({
   events,
+  members,
   selectedDate,
   userId,
   onEdit,
   onSelectDate,
 }: {
   events: CalendarEvent[];
+  members: SpaceMember[];
   selectedDate: Date;
   userId: string;
   onEdit: (event: CalendarEvent) => void;
@@ -611,12 +649,12 @@ function MonthView({
           })}
         </div>
       </section>
-      <DaySection day={selectedDate} events={selectedEvents} userId={userId} onEdit={onEdit} />
+      <DaySection day={selectedDate} events={selectedEvents} members={members} userId={userId} onEdit={onEdit} />
     </div>
   );
 }
 
-function DaySection({ day, events, userId, onEdit }: { day: Date; events: CalendarEvent[]; userId: string; onEdit: (event: CalendarEvent) => void }) {
+function DaySection({ day, events, members, userId, onEdit }: { day: Date; events: CalendarEvent[]; members: SpaceMember[]; userId: string; onEdit: (event: CalendarEvent) => void }) {
   return (
     <section>
       <h2 className="mb-2 text-sm font-bold text-ink/60">{formatDay(day)}</h2>
@@ -625,7 +663,7 @@ function DaySection({ day, events, userId, onEdit }: { day: Date; events: Calend
       ) : (
         <div className="space-y-2">
           {events.map((event) => (
-            <EventCard key={event.id} event={event} userId={userId} onEdit={() => onEdit(event)} />
+            <EventCard key={event.id} event={event} members={members} userId={userId} onEdit={() => onEdit(event)} />
           ))}
         </div>
       )}
@@ -633,7 +671,7 @@ function DaySection({ day, events, userId, onEdit }: { day: Date; events: Calend
   );
 }
 
-function EventCard({ event, userId, onEdit }: { event: CalendarEvent; userId: string; onEdit: () => void }) {
+function EventCard({ event, members, userId, onEdit }: { event: CalendarEvent; members: SpaceMember[]; userId: string; onEdit: () => void }) {
   const audience = audienceFromEvent(event, userId);
 
   return (
@@ -643,7 +681,7 @@ function EventCard({ event, userId, onEdit }: { event: CalendarEvent; userId: st
           <p className="truncate font-bold text-ink">{event.title}</p>
           {event.description && <p className="mt-1 line-clamp-2 text-sm text-ink/55">{event.description}</p>}
         </div>
-        <span className="shrink-0 rounded-full bg-current/10 px-2 py-1 text-xs font-semibold">{audienceLabel(audience)}</span>
+        <span className="shrink-0 rounded-full bg-current/10 px-2 py-1 text-xs font-semibold">{eventAudienceLabel(event, members)}</span>
       </div>
       <p className="mt-3 text-sm text-ink/55">
         {formatTime(event.starts_at, event.all_day)}
@@ -657,6 +695,7 @@ function EventSheet({
   event,
   space,
   userId,
+  members,
   partnerId,
   onClose,
   onSaved,
@@ -664,6 +703,7 @@ function EventSheet({
   event: CalendarEvent | null;
   space: Space;
   userId: string;
+  members: SpaceMember[];
   partnerId: string | null;
   onClose: () => void;
   onSaved: () => void;
@@ -729,7 +769,7 @@ function EventSheet({
 
       if (draft.audience === 'partner' && !partnerId) {
         setBusy(false);
-        setError('对方加入空间后，才能创建对方的个人日程。');
+        setError('另一位成员加入空间后，才能创建其个人日程。');
         return;
       }
 
@@ -785,7 +825,7 @@ function EventSheet({
         {event && !canManage ? (
           <div className="mt-5 space-y-4">
             <ReadOnlyField label="标题" value={event.title} />
-            <ReadOnlyField label="归属" value={audienceLabel(audienceFromEvent(event, userId))} />
+            <ReadOnlyField label="归属" value={eventAudienceLabel(event, members)} />
             <ReadOnlyField label="开始时间" value={new Date(event.starts_at).toLocaleString('zh-CN')} />
             <ReadOnlyField label="结束时间" value={event.ends_at ? new Date(event.ends_at).toLocaleString('zh-CN') : '未设置'} />
             <ReadOnlyField label="全天" value={event.all_day ? '是' : '否'} />
@@ -807,7 +847,7 @@ function EventSheet({
                   className={`h-11 rounded-lg text-sm font-semibold disabled:opacity-40 ${draft.audience === audience ? 'bg-teal text-white' : 'bg-mist text-ink/70'}`}
                   onClick={() => setDraft({ ...draft, audience })}
                 >
-                  {audienceLabel(audience)}
+                  {audienceLabel(audience, userId, members)}
                 </button>
               ))}
             </div>

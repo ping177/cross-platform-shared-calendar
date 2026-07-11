@@ -12,7 +12,7 @@ Production URL: https://cross-platform-shared-calendar.vercel.app/
 - 轮换邀请码
 - 创建、查看、编辑、删除日程
 - 今日、本周、本月视图
-- 用标签区分「我的 / 对方的 / 共同的」
+- 成员显示名称与空间成员列表；个人日程显示成员名称，shared 日程显示「共同」
 - 基础 PWA：manifest、mobile meta、可添加到主屏幕
 
 ## 暂不做
@@ -76,7 +76,7 @@ Production URL: https://cross-platform-shared-calendar.vercel.app/
 
 - 共同日程：`scope = 'shared'` 且 `owner_user_id is null`
 - 个人日程：`scope = 'personal'` 且 `owner_user_id` 是空间成员
-- UI 中的「我的 / 对方的 / 共同的」根据当前登录用户动态计算
+- personal 日程标签显示 owner 的 `profiles.display_name`；名称缺失时安全显示「成员」，shared 日程显示「共同」
 - 两位成员都可查看 personal 日程，但只有 `owner_user_id` 本人可编辑或删除。
 - shared 日程允许两位空间成员编辑或删除。
 

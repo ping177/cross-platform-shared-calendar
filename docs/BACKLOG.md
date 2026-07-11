@@ -6,8 +6,6 @@
 
 ## P1 - Near-Term Product Polish
 
-- Members: add nicknames, display names, and a shared-space member list so the UI can feel warmer than only showing "我的" / "对方的".
-- Personal event labels: show the specific member name for personal events instead of only "对方的" when display names are available.
 - Continue event create/edit UX polish after the v0.1.3 default end-time improvement.
 - Establish a simple backup and restore flow for Supabase data.
 - Occasionally check that Vercel Cron invocations continue to return HTTP 200 and that Supabase remains Active.
@@ -16,6 +14,7 @@
 
 - Space member management and invitation experience improvements.
 - Evaluate multi-member or multi-space expansion beyond the current two-person v0.1 model.
+- Reconsider `space_members.nickname` only after multi-space support creates a real per-space naming need.
 - Add lightweight reminders.
 - Add anniversaries.
 - Add countdowns.
@@ -65,3 +64,9 @@
 - Completed: all-day compatibility keeps unedited new all-day event `ends_at` values null while preserving manually edited end values.
 - Completed: implemented a minimal Supabase Free keep-alive using daily Vercel Cron and a CRON_SECRET-protected read-only Function.
 - Completed: verified the Cron Job registration, unauthorized 401 response, and first scheduled Production invocation returning HTTP 200.
+
+### v0.1.4
+
+- Implemented locally: global `profiles.display_name`, a compact member list, self-service name editing, and concrete personal-event owner labels.
+- Completed: current Production Supabase patch plus constraint, trigger, and unchanged-RLS verification; local two-account desktop member/permission/Realtime smoke.
+- Deferred: v0.1.4 frontend deployment, deployed-frontend Production smoke, iPhone Safari/PWA, Android Chrome/PWA, and the safe single-member-space scenario.
