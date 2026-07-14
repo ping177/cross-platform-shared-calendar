@@ -12,11 +12,11 @@ v0.1.4
 
 ## Current status
 
-v0.1.4 Member Identity & Space Members 已完成仓库实现、当前 Production Supabase patch 与 SQL/RLS 验证，以及本地双账户 desktop smoke。iPhone/Android PWA 验收、v0.1.4 前端部署与 deployed-frontend Production smoke 尚待执行。Backend 当前使用 Supabase Free，项目状态为 Active；daily Vercel Cron keep-alive 已启用。
+v0.1.4 Member Identity & Space Members 已完成仓库实现、Production Supabase patch 与 SQL/RLS 验证、本地双账户 desktop smoke，以及已部署前端的 Production desktop、iPhone Safari、Android Chrome/PWA 验收。iOS standalone PWA 的 Magic Link 仍受 Safari 与 standalone 存储隔离及回跳目标限制；Android 从 Gmail 原生 App 打开链接也不会回跳 PWA。单成员空间与新账号首次登录仍未验证。Backend 当前使用 Supabase Free，项目状态为 Active；daily Vercel Cron keep-alive 已启用。
 
 ## Latest completed
 
-v0.1.4 database and desktop validation completed: the Production Supabase patch is applied, names use `profiles.display_name`, new users no longer receive an email-derived public name, and no member-name Realtime subscription was added.
+v0.1.4 Production acceptance completed for the two-member flow: names use `profiles.display_name`, new users no longer receive an email-derived public name, and member, owner-permission, and events Realtime behavior passed on deployed desktop and Android Chrome/PWA. No member-name Realtime subscription was added.
 
 ## Deployment
 
@@ -37,11 +37,11 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 
 ## Last verified
 
-2026-07-11
+2026-07-14
 
 ## Next Action
 
-Deploy the v0.1.4 frontend, then complete the documented two-account deployed-frontend desktop smoke plus iPhone Safari/PWA and Android Chrome/PWA verification. Do not rerun the already-applied Production database patch.
+Review this docs-only acceptance closeout, then create a separate documentation commit when approved. Do not rerun the already-applied Production database patch. Keep Email OTP and the iOS standalone/Android email-app Magic Link return behavior as a separate Auth/PWA UX decision.
 
 ## Blockers
 
@@ -66,8 +66,11 @@ None known.
 - v0.1.4 uses only `profiles.display_name`, which is nullable and constrained to trimmed 1–20-character values. UI fallback is 「成员」; shared remains 「共同」.
 - New profiles default to a null display name, never an Auth metadata or email-derived public name.
 - No `space_members.nickname`, no profile/member Realtime subscription, and no RLS policy changes were added. A name change updates the saving device immediately; other sessions refresh/re-enter to see it.
-- The current Production Supabase patch and SQL/RLS verification passed on 2026-07-11. Local two-account desktop smoke also passed; mobile/PWA and deployed-frontend Production smoke remain pending.
+- The current Production Supabase patch and SQL/RLS verification passed on 2026-07-11. Local two-account desktop smoke and deployed-frontend Production desktop smoke passed.
+- iPhone Safari browser smoke passed. In iOS standalone PWA, Safari and standalone storage are isolated and the Magic Link normally returns to Safari, so standalone authenticated login was not completed in this version.
+- Android Chrome and home-screen PWA smoke passed, including existing-session use, browser-Gmail Magic Link completion, narrow layout, keyboard, and events Realtime. A Magic Link opened from the Gmail native App does not return to the PWA.
+- The single-member-space path and new-user first-login behavior remain intentionally unverified.
 
 ## Handoff Prompt
 
-Continue 跨系统共享日历 by deploying the already-implemented v0.1.4 frontend and completing deployed-frontend desktop plus iPhone/Android PWA smoke. Do not rerun `supabase/patches/2026-07-11-v0.1.4-member-display-name.sql`, loosen RLS, modify protected event identity fields, or add nickname/Realtime scope without a separate decision.
+Continue 跨系统共享日历 by reviewing the v0.1.4 docs-only acceptance closeout and, when approved, committing it separately. Keep Email OTP and standalone-PWA Magic Link handoff limitations as future Auth/PWA UX decisions; do not rerun `supabase/patches/2026-07-11-v0.1.4-member-display-name.sql`, loosen RLS, modify protected event identity fields, or add nickname/Realtime scope without a separate decision.

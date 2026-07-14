@@ -10,7 +10,10 @@
 - Initial local implementation verification: `npm run build` and `git diff --check` passed before Supabase SQL or browser smoke was performed.
 - Follow-up verification: the v0.1.4 patch was executed successfully in the current Production Supabase project after a clean preflight. Constraint, normalization, new-user trigger, and unchanged RLS policy checks passed.
 - Local two-account desktop smoke passed: member list and self-only editing, cross-session name refresh, personal/shared labels, same-name owner regression, owner-only personal permissions, shared permissions, and existing events Realtime create/update/delete. Temporary smoke events were removed after verification.
-- Still pending: iPhone Safari/PWA, Android Chrome/PWA, and v0.1.4 frontend deployment plus deployed-frontend Production smoke. The single-member path remains untested to avoid disturbing the real two-member space.
+- Production acceptance follow-up on 2026-07-14: deployed two-account desktop smoke passed, including member sheet, self-only name editing, concrete owner labels, shared/personal CRUD, owner-only personal access, same-name owner regression, and events Realtime.
+- Production iPhone Safari browser smoke passed. The standalone PWA requires its own session; Magic Links normally return to Safari rather than the standalone app because their storage is isolated. This known Auth/PWA UX limitation is out of v0.1.4 scope.
+- Production Android Chrome and home-screen PWA smoke passed: existing session, browser-Gmail Magic Link completion, narrow layout, keyboard, member UI, shared/personal ownership flow, and events Realtime. A Magic Link opened from the Gmail native App does not return to the PWA; this is recorded as a cross-app handoff limitation rather than an application bug.
+- No business code, Auth configuration, Supabase schema/RLS, Vercel configuration, dependencies, or secrets were changed during Production acceptance. The single-member path and a newly created-account first login remain untested.
 
 ## 2026-07-09
 

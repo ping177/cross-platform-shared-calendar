@@ -25,7 +25,9 @@
 - Passed: Supabase keep-alive Cron registration, unauthorized 401 check, and first scheduled Production invocation with HTTP 200.
 - Passed: v0.1.4 local TypeScript/Vite production build and diff hygiene.
 - Passed: v0.1.4 Production Supabase patch, constraint/trigger/RLS verification, and local two-account desktop smoke.
-- Pending: v0.1.4 iPhone Safari/PWA, Android Chrome/PWA, and deployed-frontend Production smoke.
+- Passed: v0.1.4 deployed-frontend two-account Production desktop smoke, including member identity, owner permissions, CRUD, and events Realtime.
+- Passed: v0.1.4 Production iPhone Safari browser smoke and Android Chrome/PWA smoke.
+- Pending: v0.1.4 new-user first-login behavior and the safe single-member-space scenario.
 
 ## v0.1.4 Member Identity & Space Members
 
@@ -54,12 +56,18 @@ Verified in a local two-account desktop smoke test on 2026-07-11:
 - Shared and personal events propagated through the existing events Realtime create/update/delete flow. Temporary smoke events were deleted successfully after verification.
 - Same-name owner regression also passed: ownership and editability continued to use user IDs, not display names.
 
+Verified against the deployed Production frontend on 2026-07-14:
+
+- Two-account desktop smoke passed: header member count, member sheet, current-user marker, self-only name editing, local immediate update, refreshed second-session update, today/week/month labels, shared/personal CRUD, owner-only personal access, same-name owner regression, and events Realtime create/update/delete.
+- iPhone Safari browser smoke passed. The standalone PWA can be added to the home screen and its non-login UI checks passed, but it keeps a separate session and Magic Links normally open Safari rather than returning to the standalone app. Standalone authenticated login is therefore not verified and remains an iOS platform/Auth UX limitation outside v0.1.4.
+- Android Chrome smoke passed. Android home-screen PWA existing-session use, browser-Gmail Magic Link completion, narrow layout, keyboard, member UI, shared/personal flow, and events Realtime passed.
+- Android Gmail native-App limitation: its Magic Link does not return to the PWA. This is a cross-app handoff limitation, not a v0.1.4 application failure.
+- Non-blocking browser observation: native `datetime-local` controls follow browser/system locale (Chrome 24-hour vs Safari 12-hour presentation); stored and rendered event times were correct.
+
 Still pending:
 
 - New-user first-login behavior with a newly created Auth account.
 - The single-member-space UI path, which was intentionally not tested by removing a real member.
-- Narrow layouts and PWA behavior on iPhone Safari and Android Chrome.
-- v0.1.4 frontend deployment, then two-account Production browser smoke against the deployed frontend.
 
 ## Android Production Compatibility
 

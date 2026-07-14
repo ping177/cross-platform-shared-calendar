@@ -15,6 +15,7 @@
 - Space member management and invitation experience improvements.
 - Evaluate multi-member or multi-space expansion beyond the current two-person v0.1 model.
 - Reconsider `space_members.nickname` only after multi-space support creates a real per-space naming need.
+- Evaluate Email OTP or a dedicated standalone-PWA Magic Link return experience only as a separately scoped Auth/PWA UX change, outside v0.1.4. iOS returns links to Safari rather than the standalone app; Android succeeds from browser Gmail but not from the Gmail native App.
 - Add lightweight reminders.
 - Add anniversaries.
 - Add countdowns.
@@ -67,6 +68,8 @@
 
 ### v0.1.4
 
-- Implemented locally: global `profiles.display_name`, a compact member list, self-service name editing, and concrete personal-event owner labels.
-- Completed: current Production Supabase patch plus constraint, trigger, and unchanged-RLS verification; local two-account desktop member/permission/Realtime smoke.
-- Deferred: v0.1.4 frontend deployment, deployed-frontend Production smoke, iPhone Safari/PWA, Android Chrome/PWA, and the safe single-member-space scenario.
+- Completed: global `profiles.display_name`, a compact member list, self-service name editing, and concrete personal-event owner labels.
+- Completed: Production Supabase patch plus constraint, trigger, and unchanged-RLS verification; local and deployed two-account desktop member/permission/Realtime smoke.
+- Completed: Production iPhone Safari browser smoke and Android Chrome/PWA smoke, including member labels, owner permissions, shared/personal CRUD, narrow layout, keyboard behavior, and events Realtime.
+- Deferred: safe single-member-space and newly created-account first-login verification.
+- Known limitation: iOS standalone PWA Magic Links return to Safari because storage is isolated; Android PWA Magic Links complete from browser Gmail but not from the Gmail native App. This is not addressed by v0.1.4.
