@@ -6,6 +6,9 @@
 - The existing `getSession()` and `onAuthStateChange()` flow remains the sole session state mechanism; successful OTP verification does not manually set session state.
 - No dependencies, environment variables, database schema, SQL patches, RLS policies, event/space/member behavior, Realtime subscriptions, or secrets changed.
 - Supabase SMTP and passwordless email template are configured to send `{{ .Token }}` as an OTP. Local acceptance passed for existing-user and new-user login, new-user space creation, member display-name update, and existing-session regression.
+- Production acceptance completed on 2026-07-15: Resend SMTP + Supabase Auth Email OTP passed on Desktop, iPhone Safari, iPhone standalone PWA, Android Chrome, and Android PWA. Existing/new-user login, new-space creation, and profiles/display_name behavior passed.
+- The iOS standalone PWA Magic Link return limitation is resolved for login UX: users authenticate by entering the code directly in the standalone PWA. Safari and standalone storage remain separate by platform design.
+- Future work is observation only: monitor email delivery, resend/cooldown/error UX, and session restoration before considering further Auth UX changes.
 
 ## 2026-07-11 - v0.1.4 Member Identity & Space Members
 

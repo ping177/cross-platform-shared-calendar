@@ -29,18 +29,21 @@
 - Passed: v0.1.4 Production iPhone Safari browser smoke and Android Chrome/PWA smoke.
 - Pending: v0.1.4 new-user first-login behavior and the safe single-member-space scenario.
 - Passed: v0.1.5 local Email OTP acceptance for existing/new users, new-user space creation, member display-name update, and existing-session regression.
-- Pending: v0.1.5 human multi-device acceptance.
+- Passed: v0.1.5 Production acceptance on Desktop, iPhone Safari, iPhone standalone PWA, Android Chrome, and Android PWA.
 
 ## v0.1.5 Email OTP
 
 Supabase SMTP and the passwordless email template are configured to deliver `{{ .Token }}` as 8-digit Email OTP codes.
 
-- Desktop: existing user sends, enters, rejects an invalid code, resends after cooldown, verifies a valid code, refreshes, and signs out/re-enters.
-- New user: first OTP login creates `auth.users` and the existing null-display-name profile, then can create or join a space.
-- iPhone Safari: enter the code in Safari and verify session restoration, mobile layout, and calendar access.
-- iPhone standalone PWA: enter the code inside the standalone app; verify session restoration after relaunch and shared-event Realtime with desktop.
-- Android Chrome and standalone PWA: enter the code in the active container, including after reading it in Gmail; verify session restoration and shared/personal event permission regressions.
-- Confirm no Magic Link callback is required and that existing authenticated users retain calendar access after refresh.
+Production acceptance completed on 2026-07-15:
+
+- Desktop, iPhone Safari, iPhone standalone PWA, Android Chrome, and Android PWA Email OTP login passed.
+- Existing-user and new-user OTP login passed; a new user created a shared space successfully.
+- The existing `profiles` trigger and display-name editing behavior passed after OTP login.
+- Existing-session restoration/regression passed.
+- iOS standalone PWA login now completes in the standalone container through OTP input, removing the previous Magic Link return limitation.
+
+Future observation: monitor Production email delivery, resend/cooldown/error UX, and session restoration during normal use.
 
 ## v0.1.4 Member Identity & Space Members
 

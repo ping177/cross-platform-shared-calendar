@@ -12,11 +12,11 @@ v0.1.5
 
 ## Current status
 
-v0.1.5 Email OTP 登录 UX 已完成仓库实现、SMTP/邮件模板配置与本地登录回归，等待人工多端验收。用户可在当前浏览器或 PWA 中输入 8 位验证码，不再依赖 Magic Link 的邮件客户端回跳。数据库、RLS、日程与成员逻辑保持不变。
+v0.1.5 Email OTP 登录 UX 已完成仓库实现、Resend SMTP + Supabase Auth OTP Production 验证，以及 Desktop、iPhone Safari、iPhone standalone PWA、Android Chrome、Android PWA 全端验收。用户可在当前浏览器或 PWA 中输入 8 位验证码，不再依赖 Magic Link 的邮件客户端回跳。数据库、RLS、日程与成员逻辑保持不变。
 
 ## Latest completed
 
-v0.1.5 AuthPage now supports send/verify Email OTP, numeric 8-digit input, autofocus, change-email, and a 60-second resend cooldown while retaining the existing Supabase session listener.
+v0.1.5 Email OTP migration completed: existing/new-user login, new-space creation, and profiles/display_name behavior passed in Production across all supported browser and PWA containers.
 
 ## Deployment
 
@@ -38,11 +38,11 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 
 ## Last verified
 
-2026-07-14
+2026-07-15
 
 ## Next Action
 
-Deploy when approved, and complete the v0.1.5 desktop/iPhone/Android browser and PWA acceptance checklist.
+Observe Email OTP delivery, cooldown/error UX, and session restoration in normal use; revisit Auth UX only if real cross-container or delivery friction emerges.
 
 ## Blockers
 
@@ -68,9 +68,9 @@ None known.
 - New profiles default to a null display name, never an Auth metadata or email-derived public name.
 - No `space_members.nickname`, no profile/member Realtime subscription, and no RLS policy changes were added. A name change updates the saving device immediately; other sessions refresh/re-enter to see it.
 - The current Production Supabase patch and SQL/RLS verification passed on 2026-07-11. Local two-account desktop smoke and deployed-frontend Production desktop smoke passed.
-- v0.1.5 requires the Supabase passwordless email template to use `{{ .Token }}`. Email OTP removes Magic Link return handling, but Safari and standalone PWA still keep separate session storage and must each be logged in directly.
-- The single-member-space path and new-user first-login behavior remain intentionally unverified.
+- Resend SMTP + Supabase Auth passwordless template deliver 8-digit Email OTP in Production. Email OTP removes Magic Link return handling; Safari and standalone PWA retain separate session storage and each complete login directly with the code.
+- New-user first-login, new-space creation, and profiles/display_name behavior passed in v0.1.5 Production acceptance. The single-member-space path remains intentionally unverified.
 
 ## Handoff Prompt
 
-Continue 跨系统共享日历 by configuring and manually accepting v0.1.5 Email OTP. Do not rerun `supabase/patches/2026-07-11-v0.1.4-member-display-name.sql`, loosen RLS, modify protected event identity fields, or add nickname/Realtime scope without a separate decision.
+Continue 跨系统共享日历 by observing v0.1.5 Email OTP delivery and cross-container session UX in normal use. Do not rerun `supabase/patches/2026-07-11-v0.1.4-member-display-name.sql`, loosen RLS, modify protected event identity fields, or add nickname/Realtime scope without a separate decision.
