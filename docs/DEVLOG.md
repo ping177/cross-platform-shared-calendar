@@ -1,5 +1,12 @@
 # Development Log
 
+## 2026-07-14 - v0.1.5 Email OTP Auth UX Improvement
+
+- Replaced the AuthPage Magic Link UX with a two-step Email OTP UX: send code, enter an 8-digit numeric code, verify, change email, and resend after a 60-second cooldown.
+- The existing `getSession()` and `onAuthStateChange()` flow remains the sole session state mechanism; successful OTP verification does not manually set session state.
+- No dependencies, environment variables, database schema, SQL patches, RLS policies, event/space/member behavior, Realtime subscriptions, or secrets changed.
+- Supabase SMTP and passwordless email template are configured to send `{{ .Token }}` as an OTP. Local acceptance passed for existing-user and new-user login, new-user space creation, member display-name update, and existing-session regression.
+
 ## 2026-07-11 - v0.1.4 Member Identity & Space Members
 
 - Added a standalone `2026-07-11-v0.1.4-member-display-name.sql` patch. It transactionally locks profile writes during migration, converts blank names to `null`, trims legacy names, deterministically truncates legacy non-empty names to 20 characters, adds the nullable trimmed 1–20-character constraint, and changes `handle_new_user()` to create a null display name.

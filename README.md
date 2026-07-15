@@ -6,7 +6,7 @@ Production URL: https://cross-platform-shared-calendar.vercel.app/
 
 ## v0.1 功能范围
 
-- Supabase Magic Link 登录/注册
+- Supabase Email OTP 登录/注册
 - 创建两人共享空间
 - 通过邀请码加入空间
 - 轮换邀请码
@@ -82,29 +82,13 @@ Production URL: https://cross-platform-shared-calendar.vercel.app/
 
 已有 Supabase 环境不要重新执行整份 schema。按版本执行 `supabase/patches/` 中对应的增量 SQL，并先完成该版本文档要求的 preflight 检查。
 
-## Magic Link Redirect URL
+## Email OTP 登录
 
-v0.1 默认使用 Supabase Magic Link。需要在 Supabase Dashboard 配置 Auth URL：
+v0.1.5 使用 Supabase Email OTP。用户在当前浏览器或 PWA 中输入邮箱，收到 8 位验证码后直接完成登录，不再依赖邮件 App 回跳。
 
-1. 打开 Supabase Dashboard。
-2. 进入 Authentication -> URL Configuration。
-3. 将本地开发地址加入 Redirect URLs，例如：
+在 Supabase Dashboard 的 Authentication -> Email Templates 中，将密码less 登录邮件模板配置为包含 `{{ .Token }}` 的验证码邮件，而不是仅包含 `{{ .ConfirmationURL }}` 的 Magic Link。确认 Email Provider 已启用。
 
-   ```text
-   http://localhost:5175
-   ```
-
-4. 部署后将 Site URL 配置为稳定 Production URL，并将该地址加入 Redirect URLs：
-
-   ```text
-   https://cross-platform-shared-calendar.vercel.app/
-   ```
-
-当前还保留 `http://192.168.10.6:5175` 作为临时局域网手机测试 Redirect URL；它不是长期稳定地址，也不应替代 HTTPS Production URL。
-
-iOS / Android 上邮件 App 可能用 Safari、Chrome 或内置浏览器打开登录链接。测试 Magic Link 时，最终回跳的域名必须在 Supabase 允许列表中。
-
-如果 Magic Link 明显影响本地测试效率，再评估是否临时加入 email/password；v0.1 默认不启用多种登录方式。
+保留现有 Site URL 与 Redirect URLs 配置，供其他可能使用邮件链接的 Auth 功能与既有环境配置使用；Email OTP 登录本身不依赖回跳。
 
 ## 验证与测试
 

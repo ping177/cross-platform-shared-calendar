@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import {
   CalendarDays,
@@ -174,23 +174,76 @@ function FullScreenMessage({ title, body }: { title: string; body: string }) {
 
 function AuthPage() {
   const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [step, setStep] = useState<'email' | 'otp'>('email');
   const [status, setStatus] = useState('');
-  const [busy, setBusy] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [sending, setSending] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
+  const otpInputRef = useRef<HTMLInputElement>(null);
 
-  async function submit(event: React.FormEvent) {
-    event.preventDefault();
-    setBusy(true);
+  useEffect(() => {
+    if (step === 'otp') {
+      otpInputRef.current?.focus();
+    }
+  }, [step]);
+
+  useEffect(() => {
+    if (cooldownSeconds === 0) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => setCooldownSeconds((seconds) => seconds - 1), 1_000);
+    return () => window.clearTimeout(timer);
+  }, [cooldownSeconds]);
+
+  async function requestOtp() {
+    setSending(true);
     setStatus('');
+    setErrorMessage('');
 
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: {
-        emailRedirectTo: window.location.origin,
-      },
     });
 
-    setBusy(false);
-    setStatus(error ? error.message : '登录链接已发送，请在手机或电脑邮箱中打开。');
+    setSending(false);
+
+    if (error) {
+      setErrorMessage(error.message);
+      return;
+    }
+
+    setOtp('');
+    setStep('otp');
+    setCooldownSeconds(60);
+    setStatus('验证码已发送，请输入邮件中的 8 位数字验证码。');
+  }
+
+  async function verifyOtp(event: React.FormEvent) {
+    event.preventDefault();
+    setStatus('');
+    setErrorMessage('');
+
+    if (otp.length !== 8) {
+      setErrorMessage('请输入 8 位数字验证码。');
+      return;
+    }
+
+    setVerifying(true);
+    const { error } = await supabase.auth.verifyOtp({ email, token: otp, type: 'email' });
+    setVerifying(false);
+
+    if (error) {
+      setErrorMessage(error.message);
+    }
+  }
+
+  function changeEmail() {
+    setStep('email');
+    setOtp('');
+    setStatus('');
+    setErrorMessage('');
   }
 
   return (
@@ -206,30 +259,80 @@ function AuthPage() {
           </div>
         </div>
 
-        <form onSubmit={submit} className="rounded-lg bg-white p-5 shadow-soft">
-          <label className="text-sm font-semibold text-ink" htmlFor="email">
-            邮箱
-          </label>
-          <input
-            id="email"
-            className="mt-2 w-full rounded-lg border border-ink/15 px-4 py-3 outline-none focus:border-teal"
-            type="email"
-            inputMode="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="you@example.com"
-          />
-          <button
-            className="mt-4 h-12 w-full rounded-lg bg-teal font-semibold text-white disabled:opacity-60"
-            type="submit"
-            disabled={busy}
+        {step === 'email' ? (
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              void requestOtp();
+            }}
+            className="rounded-lg bg-white p-5 shadow-soft"
           >
-            {busy ? '发送中' : '发送 Magic Link'}
-          </button>
-          {status && <p className="mt-4 text-sm leading-6 text-ink/70">{status}</p>}
-        </form>
+            <label className="text-sm font-semibold text-ink" htmlFor="email">
+              邮箱
+            </label>
+            <input
+              id="email"
+              className="mt-2 w-full rounded-lg border border-ink/15 px-4 py-3 outline-none focus:border-teal"
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="you@example.com"
+            />
+            <button
+              className="mt-4 h-12 w-full rounded-lg bg-teal font-semibold text-white disabled:opacity-60"
+              type="submit"
+              disabled={sending}
+            >
+              {sending ? '发送中' : '发送验证码'}
+            </button>
+            {errorMessage && <p className="mt-4 text-sm leading-6 text-coral">{errorMessage}</p>}
+          </form>
+        ) : (
+          <form onSubmit={verifyOtp} className="rounded-lg bg-white p-5 shadow-soft">
+            <p className="text-sm leading-6 text-ink/70">验证码已发送至 {email}</p>
+            <label className="mt-4 block text-sm font-semibold text-ink" htmlFor="otp">
+              8 位验证码
+            </label>
+            <input
+              ref={otpInputRef}
+              id="otp"
+              className="mt-2 w-full rounded-lg border border-ink/15 px-4 py-3 text-center text-lg tracking-[0.35em] outline-none focus:border-teal"
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              pattern="[0-9]*"
+              maxLength={8}
+              required
+              value={otp}
+              onChange={(event) => setOtp(event.target.value.replace(/\D/g, '').slice(0, 8))}
+              aria-describedby="otp-help"
+              aria-invalid={Boolean(errorMessage)}
+            />
+            <p id="otp-help" className="mt-2 text-sm leading-6 text-ink/60">
+              请在当前浏览器或 PWA 中输入邮件里的验证码。
+            </p>
+            <button
+              className="mt-4 h-12 w-full rounded-lg bg-teal font-semibold text-white disabled:opacity-60"
+              type="submit"
+              disabled={verifying || otp.length !== 8}
+            >
+              {verifying ? '验证中' : '验证并登录'}
+            </button>
+            <div className="mt-4 flex items-center justify-between gap-3 text-sm font-semibold">
+              <button className="text-teal disabled:opacity-50" type="button" onClick={changeEmail} disabled={sending || verifying}>
+                修改邮箱
+              </button>
+              <button className="text-teal disabled:opacity-50" type="button" onClick={() => void requestOtp()} disabled={cooldownSeconds > 0 || sending || verifying}>
+                {cooldownSeconds > 0 ? `${cooldownSeconds} 秒后可重发` : sending ? '发送中' : '重新发送'}
+              </button>
+            </div>
+            {status && <p className="mt-4 text-sm leading-6 text-ink/70">{status}</p>}
+            {errorMessage && <p className="mt-4 text-sm leading-6 text-coral">{errorMessage}</p>}
+          </form>
+        )}
       </section>
     </main>
   );

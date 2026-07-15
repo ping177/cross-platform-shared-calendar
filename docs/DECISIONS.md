@@ -32,6 +32,12 @@
 - Name saves reload the local member list. v0.1.4 does not subscribe to profile or member Realtime changes; other devices see a changed name after refresh, re-entry, or session restoration.
 - Reconsider `space_members.nickname` only if multi-space support and real per-space naming needs are introduced.
 
+## v0.1.5 Email OTP
+
+- Passwordless login uses Email OTP instead of Magic Link. Users enter the 8-digit code in the active browser or PWA container.
+- This removes the Magic Link dependency on mail-client, browser, and standalone-PWA return handling. It does not merge Safari and standalone PWA session storage.
+- The existing Supabase client, `getSession()`, and `onAuthStateChange()` remain the session architecture. No database, schema, RLS, event, or membership behavior changes.
+
 ## PWA
 
 - v0.1 includes basic PWA support with a manifest and mobile meta tags.

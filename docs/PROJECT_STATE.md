@@ -8,15 +8,15 @@
 
 ## Current version
 
-v0.1.4
+v0.1.5
 
 ## Current status
 
-v0.1.4 Member Identity & Space Members 已完成仓库实现、Production Supabase patch 与 SQL/RLS 验证、本地双账户 desktop smoke，以及已部署前端的 Production desktop、iPhone Safari、Android Chrome/PWA 验收。iOS standalone PWA 的 Magic Link 仍受 Safari 与 standalone 存储隔离及回跳目标限制；Android 从 Gmail 原生 App 打开链接也不会回跳 PWA。单成员空间与新账号首次登录仍未验证。Backend 当前使用 Supabase Free，项目状态为 Active；daily Vercel Cron keep-alive 已启用。
+v0.1.5 Email OTP 登录 UX 已完成仓库实现、SMTP/邮件模板配置与本地登录回归，等待人工多端验收。用户可在当前浏览器或 PWA 中输入 8 位验证码，不再依赖 Magic Link 的邮件客户端回跳。数据库、RLS、日程与成员逻辑保持不变。
 
 ## Latest completed
 
-v0.1.4 Production acceptance completed for the two-member flow: names use `profiles.display_name`, new users no longer receive an email-derived public name, and member, owner-permission, and events Realtime behavior passed on deployed desktop and Android Chrome/PWA. No member-name Realtime subscription was added.
+v0.1.5 AuthPage now supports send/verify Email OTP, numeric 8-digit input, autofocus, change-email, and a 60-second resend cooldown while retaining the existing Supabase session listener.
 
 ## Deployment
 
@@ -34,6 +34,7 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 - v0.1.2 — 公网部署验收
 - v0.1.3 — 事件表单默认值
 - v0.1.4 — 成员身份与空间成员
+- v0.1.5 — Email OTP 登录 UX
 
 ## Last verified
 
@@ -41,7 +42,7 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 
 ## Next Action
 
-Review this docs-only acceptance closeout, then create a separate documentation commit when approved. Do not rerun the already-applied Production database patch. Keep Email OTP and the iOS standalone/Android email-app Magic Link return behavior as a separate Auth/PWA UX decision.
+Deploy when approved, and complete the v0.1.5 desktop/iPhone/Android browser and PWA acceptance checklist.
 
 ## Blockers
 
@@ -67,10 +68,9 @@ None known.
 - New profiles default to a null display name, never an Auth metadata or email-derived public name.
 - No `space_members.nickname`, no profile/member Realtime subscription, and no RLS policy changes were added. A name change updates the saving device immediately; other sessions refresh/re-enter to see it.
 - The current Production Supabase patch and SQL/RLS verification passed on 2026-07-11. Local two-account desktop smoke and deployed-frontend Production desktop smoke passed.
-- iPhone Safari browser smoke passed. In iOS standalone PWA, Safari and standalone storage are isolated and the Magic Link normally returns to Safari, so standalone authenticated login was not completed in this version.
-- Android Chrome and home-screen PWA smoke passed, including existing-session use, browser-Gmail Magic Link completion, narrow layout, keyboard, and events Realtime. A Magic Link opened from the Gmail native App does not return to the PWA.
+- v0.1.5 requires the Supabase passwordless email template to use `{{ .Token }}`. Email OTP removes Magic Link return handling, but Safari and standalone PWA still keep separate session storage and must each be logged in directly.
 - The single-member-space path and new-user first-login behavior remain intentionally unverified.
 
 ## Handoff Prompt
 
-Continue 跨系统共享日历 by reviewing the v0.1.4 docs-only acceptance closeout and, when approved, committing it separately. Keep Email OTP and standalone-PWA Magic Link handoff limitations as future Auth/PWA UX decisions; do not rerun `supabase/patches/2026-07-11-v0.1.4-member-display-name.sql`, loosen RLS, modify protected event identity fields, or add nickname/Realtime scope without a separate decision.
+Continue 跨系统共享日历 by configuring and manually accepting v0.1.5 Email OTP. Do not rerun `supabase/patches/2026-07-11-v0.1.4-member-display-name.sql`, loosen RLS, modify protected event identity fields, or add nickname/Realtime scope without a separate decision.
