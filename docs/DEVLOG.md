@@ -1,5 +1,42 @@
 # Development Log
 
+## 2026-07-17 - v0.1.6.3 Recurrence UI Implementation
+
+- Extended the existing source-event sheet with simple user-facing recurrence controls: 不重复, daily, weekly, monthly, and yearly; every recurring option has an interval, weekly selects weekdays, monthly selects a numeric day or month-end, and yearly selects month/day. No RRULE or JSON is exposed.
+- The form derives a v1 `recurrence_rule` with the browser `Intl` timezone, validates it through the existing recurrence parser before a source-row insert/update, and writes `null` for a non-recurring event. No timezone dependency was added.
+- Opening an occurrence already passes its source event to the sheet. Recurring edits now say “编辑整个重复日程”; save and delete explicitly apply to the whole series, while the delete operation continues to filter only by the source event ID. No exception or occurrence write path exists.
+- Added recurrence-form conversion, validation, source-identity, and user-facing summary tests. `node --test tests/recurrence.test.ts` passed 17 tests, `npm run build` passed, and `git diff --check` passed.
+
+## 2026-07-17 - v0.1.6.2 Calendar Integration
+
+- Connected the existing read-only recurrence projection to calendar rendering. `CalendarViews` retains `events` as source-row state, derives the active Today/Week/42-cell Month range, then projects only that range into non-persisted occurrences before filtering and rendering.
+- Event cards now use an occurrence ID for React keys and occurrence start/end values for displayed time. Card labels, permissions, and edit entry points retain the source event; a generated occurrence ID is never passed to an `events` write.
+- Existing source-event Realtime reload behavior is unchanged. A source INSERT/UPDATE/DELETE replaces `events` state as before and automatically recomputes the visible occurrence projection; no subscription, RLS, schema, migration, or dependency change was made.
+- Added projection/range tests. `node --test tests/recurrence.test.ts` passed 12 tests, `npm run build` passed, and `git diff --check` passed.
+
+## 2026-07-17 - v0.1.6.1 Realtime Acceptance Attempt
+
+- Started an end-to-end Realtime transport acceptance using two isolated temporary email/password accounts, a temporary shared space, and a shared event. The intended flow was: account B subscribes to `public.events` UPDATEs, account A updates `recurrence_rule`, then the received payload is checked for the event ID and rule value.
+- The linked Production project requires email confirmation for password sign-up. Neither new account received an authenticated session, so no shared space, event, channel subscription, or UPDATE payload was created. This is an Auth-session prerequisite, not a migration, RLS, publication, or recurrence-rule validation failure.
+- Deleted the two temporary unconfirmed Auth accounts and verified that zero temporary users and zero temporary spaces remain. No application source, database schema, RLS, Realtime configuration, or Auth configuration was changed.
+- The live two-client Realtime acceptance remains pending. Complete it using two existing, independently authenticated sessions (for example, two Email OTP browser sessions) without changing the current Auth settings.
+
+## 2026-07-17 - v0.1.6.1 Database Acceptance
+
+- Linked the local Supabase CLI to the existing `cross-platform-shared-calendar` project and completed the documented preflight. Before migration, `events.recurrence_rule` was absent; the two original event triggers, four event RLS policies, `supabase_realtime` publication, and `FULL` replica identity were recorded as the baseline.
+- Applied `2026-07-17-v0.1.6.1-recurring-events-foundation.sql` successfully through the Supabase Management API. Post-apply verification confirmed nullable `events.recurrence_rule jsonb`, the original two triggers plus only `events_validate_recurrence_rule`, unchanged event RLS policy definitions, and unchanged Realtime publication/identity.
+- All four existing events remain legacy one-off rows with `recurrence_rule = null`; the temporary two-account acceptance transaction was rolled back and the final event count remained four.
+- Two-account RLS simulation passed in a rollback-only transaction: both members could read/update a shared recurring event; the owner could update a personal recurring event; the non-owner update affected zero rows. No test events persisted.
+- Functional Realtime delivery to a second subscribed authenticated client is still pending. Publication metadata is correct, but no claim is made until a real two-client subscription observes a `recurrence_rule` update.
+
+## 2026-07-17 - v0.1.6.1 Recurring Events Foundation
+
+- Added the additive `2026-07-17-v0.1.6.1-recurring-events-foundation.sql` patch and matching fresh-install schema support for nullable `events.recurrence_rule jsonb`. `null` preserves existing events as one-off events; no existing data backfill is required.
+- Added a separate database trigger that validates the supported v1 daily, weekly, monthly, and yearly JSON shapes, including IANA timezone, bounded interval, strict weekly weekday ordering, monthly `last_day`, and valid yearly month/day combinations. Existing owner trigger, event identity fields, RLS policies, Realtime publication, and replica identity are unchanged.
+- Added recurrence rule and display-occurrence TypeScript types plus a pure, read-only frontend expansion engine. It never writes Supabase rows, bounds each source event to 500 candidates, and returns an explicit error instead of partial occurrences.
+- Added ten Node built-in unit tests for non-recurring events, all supported frequencies, monthly/yearly edge cases, invalid input, and the candidate limit. `node --test tests/recurrence.test.ts`, `npm run build`, and `git diff --check` passed locally.
+- No dependency, environment variable, Auth, UI, event-form, reminder, notification, RLS, or Realtime change was made. The Supabase patch has not been executed; database/RLS/Realtime verification against an environment remains pending before UI integration.
+
 ## 2026-07-14 - v0.1.5 Email OTP Auth UX Improvement
 
 - Replaced the AuthPage Magic Link UX with a two-step Email OTP UX: send code, enter an 8-digit numeric code, verify, change email, and resend after a 60-second cooldown.

@@ -1,4 +1,4 @@
-import type { CalendarEvent } from '../types';
+import type { CalendarEvent, CalendarOccurrence } from '../types';
 
 const dayFormatter = new Intl.DateTimeFormat('zh-CN', {
   month: 'short',
@@ -99,6 +99,18 @@ export function eventFallsOnDay(event: CalendarEvent, date: Date) {
   return eventStart <= dayEnd && eventEnd >= dayStart;
 }
 
+export function occurrenceFallsOnDay(occurrence: CalendarOccurrence, date: Date) {
+  const occurrenceStart = new Date(occurrence.occurrence_starts_at);
+  const occurrenceEnd = occurrence.occurrence_ends_at ? new Date(occurrence.occurrence_ends_at) : occurrenceStart;
+  const dayStart = startOfDay(date);
+  const dayEnd = endOfDay(date);
+  return occurrenceStart <= dayEnd && occurrenceEnd >= dayStart;
+}
+
 export function sortEvents(events: CalendarEvent[]) {
   return [...events].sort((left, right) => new Date(left.starts_at).getTime() - new Date(right.starts_at).getTime());
+}
+
+export function sortOccurrences(occurrences: CalendarOccurrence[]) {
+  return [...occurrences].sort((left, right) => new Date(left.occurrence_starts_at).getTime() - new Date(right.occurrence_starts_at).getTime());
 }
