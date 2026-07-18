@@ -12,11 +12,11 @@ v0.1.7.2 (Exception Expansion Engine)
 
 ## Current status
 
-v0.1.7.2 的纯前端 exception expansion 已在仓库实现：读取 source events 与 `event_occurrence_exceptions`，以 source rule timezone 的 scheduled local date 匹配异常，投影 deleted/override 结果，并支持 moved override 跨 Today、Week、Month 可见范围。当地 Supabase schema 已包含 v0.1.7.1 foundation，且 pgTAP 通过；本次未修改或向 Production 应用 SQL。Local Supabase Email OTP 已恢复并完成 authenticated Calendar 登录；exception 的 Today/Week/Month 可视验收仍待执行。
+v0.1.7.2 Exception Expansion Engine 已完成并通过 Production 验证。v0.1.7.3.1 Database RPC Foundation 已在仓库与 local Supabase 实现/验证：only-this override/delete、atomic split 和 logical-series delete 均通过函数内权限复核与 optional `updated_at` concurrency 检查；React/UI integration 尚未开始。
 
 ## Latest completed
 
-v0.1.7.2 exception expansion completed locally: occurrence IDs now use `event_id:occurrence_date`; deleted exceptions suppress scheduled candidates; whitelisted override fields update display values while starts-only changes preserve duration; and overrides moved into/out of the active range are reprojected correctly. Local integration confirmed the exception-table contract and passed the v0.1.7.1 pgTAP suite (18 tests); isolated deleted/override rows were inserted and read back successfully. Local Auth now sends Mailpit-delivered 8-digit OTPs compatible with the existing UI, and browser OTP verification reaches the Calendar page.
+v0.1.7.3.1 database foundation completed locally: `2026-07-18-v0.1.7.3-series-editing.sql` adds fixed-`search_path`, permission-checked RPCs for occurrence override/delete, series split, and logical-series deletion. The local 15-test pgTAP suite plus the v0.1.7.1 18-test regression suite pass. The patch is not applied to Production.
 
 ## Deployment
 
@@ -40,7 +40,9 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 - v0.1.6.3 — Recurring Events UI Implementation（source-series form，待最终浏览器/Realtime 验收）
 - v0.1.7 — Recurrence Exceptions & Series Editing（设计完成，待人工 review）
 - v0.1.7.1 — Recurrence Exceptions Database Foundation（local schema/pgTAP 已验证；Production 待单独审批）
-- v0.1.7.2 — Exception Expansion Engine（纯 projection + reader integration；local Authenticated Calendar 登录已验证，exception 可视验收待执行）
+- v0.1.7.2 — Exception Expansion Engine（Production 已验证）
+- v0.1.7.3 — Recurrence Editing Semantics Design（设计完成，待人工 review/implementation approval）
+- v0.1.7.3.1 — Database RPC Foundation（local patch + pgTAP 已验证；Production 待单独审批）
 
 ## Last verified
 
@@ -48,11 +50,11 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 
 ## Next Action
 
-Use the existing isolated local exception rows to complete Today/Week/Month browser verification: deleted occurrence absent, override time changed, and stable occurrence identity. Local Email OTP can use the Mailpit-delivered 8-digit code at `http://127.0.0.1:5175`. Do not apply a patch to Production without a separate preflight/approval.
+Review the local RPC contract and perform a separate Production patch preflight/approval before applying it. Only after database deployment/verification may a new task add occurrence-aware React/UI scope selection and RPC integration.
 
 ## Blockers
 
-Final acceptance is blocked on two existing Email OTP sessions for real Realtime transport verification and supported-device browser smoke. Local v0.1.7.2 exception Calendar verification is pending but no longer Auth-blocked. Native `Intl` is used without a new dependency; DST-zone behavior still needs supported-browser verification before it is claimed.
+Production application of the v0.1.7.3.1 patch is pending separate preflight/approval. React/UI scope selection and Realtime reload/subscription work are intentionally out of this database-only task. Final two-session Realtime/device coverage remains a separate product-quality checkpoint. Native `Intl` DST behavior still needs supported-browser verification before it is claimed.
 
 ## Important Context
 
@@ -79,9 +81,11 @@ Final acceptance is blocked on two existing Email OTP sessions for real Realtime
 - v0.1.6 recurrence rules are source-event metadata only. Existing event identity fields remain immutable; no recurrence table, occurrence materialization, exception model, RLS change, Realtime configuration change, reminder, or notification work is included. v0.1.6.2 projects only the current Today/Week/Month visible range and uses occurrence IDs only as display keys; v0.1.6.3 writes recurrence rules only on source events and labels all recurring edits/deletes as whole-series actions.
 - v0.1.7 is design-only. The proposed design is in `docs/RECURRENCE_EXCEPTIONS_DESIGN.md`; it has not added `event_occurrence_exceptions`, source lineage/cutoff fields, RPCs, RLS, Realtime publication, or UI behavior.
 - v0.1.7.1 foundation is present in the local schema and its 18-test pgTAP suite passes. v0.1.7.2 now has a compatible reader/projection implementation, but it must not deploy before a target environment contains the exception table. Both versions intentionally omit mutation UI, split/end-from-here RPCs, and Realtime publication/subscriptions.
+- v0.1.7.3 design treats `series_id` as the logical root and `parent_event_id` as the immediate predecessor. Exceptions stay attached to their original source segment; a split count-confirms and removes only old-segment exceptions made unreachable by the new cutoff. The actual exception schema uses `event_id`, `occurrence_date`, `exception_type`, and `override_data`.
+- v0.1.7.3.1 split currently retains all exceptions on the old segment and never migrates them; unreachable future exceptions are not cleaned in this foundation slice because no user count-confirmation UI/contract exists yet. Split also requires the child to retain the source recurrence timezone and begin on the selected local occurrence date.
 - `supabase/config.toml` uses a stable local `project_id`; the local database/API/Auth/Mailpit stack is reachable. It configures a local 8-digit Mailpit OTP template and port-5175 redirect URL only; the local status currently reports stopped imgproxy and pooler services, which do not block Postgres, Auth, Mailpit, or pgTAP validation.
 - The engine uses native `Intl` IANA timezone formatting/conversion and rejects invalid rule shapes at both client and database boundaries. It returns an explicit error instead of a partial result after 500 candidates.
 
 ## Handoff Prompt
 
-Continue 跨系统共享日历 by signing in to the local Vite app with a Mailpit-delivered 8-digit OTP and verifying the existing isolated v0.1.7.2 deleted/override rows in Today, Week, and Month. Apply no patch to Production without explicit preflight/approval. Do not add mutation UI, split/end-from-here behavior, Realtime, reminders, or materialized occurrences without a new approved task. Also preserve the pending v0.1.6 two-client/device recurrence acceptance.
+Continue 跨系统共享日历 by performing an approved Production preflight for `2026-07-18-v0.1.7.3-series-editing.sql`, then applying and verifying it once. After that, a separate approved UI task can pass occurrence context into these RPCs. Do not add reminders, materialized occurrences, or unapproved Realtime behavior. Also preserve the pending v0.1.6 two-client/device recurrence acceptance.

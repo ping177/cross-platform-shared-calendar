@@ -1,5 +1,18 @@
 # Development Log
 
+## 2026-07-18 - v0.1.7.3.1 Database RPC Foundation
+
+- Added the additive `2026-07-18-v0.1.7.3-series-editing.sql` patch. It provides permission-checked `SECURITY DEFINER` RPCs with fixed `search_path` for only-this override/delete, atomic split, and logical-series deletion. The RPCs validate scheduled occurrence dates in the source rule timezone, whitelist override fields, lock source rows, support optional `updated_at` optimistic concurrency, and retain exceptions on the original segment during a split.
+- RPCs: `upsert_occurrence_override`, `delete_occurrence`, `split_recurring_event`, and `delete_logical_series`. Frontend scope selection and frontend RPC integration are not included.
+- Added a 15-assertion pgTAP suite covering RPC availability, override/delete behavior, candidate and permission rejection, split lineage/cutoff/no-migration behavior, stale concurrency rejection, and root/child/exception logical-series deletion. Local verification passed this suite and the existing 18-assertion v0.1.7.1 foundation suite.
+- The additive patch was applied only to the local Supabase test database for verification. No React/UI/frontend/Auth configuration, RLS policy, Production database, commit, or push changed.
+
+## 2026-07-18 - v0.1.7.3 Recurrence Editing Semantics Design
+
+- Added a design-only contract for recurring occurrence edit/delete scopes: only this event, this and following, current-segment editing, and logical-lineage deletion. It defines occurrence-context handoff, segment-local exception ownership, atomic split/end-from-here operations, RLS/RPC/Realtime requirements, and later test slices.
+- Added deployment guidance: apply one reviewed incremental patch, verify database behavior, deploy a compatible frontend, then perform authenticated production smoke testing. `supabase/schema.sql` is explicitly documented as bootstrap/reference only, never as an existing-production migration.
+- No application code, database schema, RLS, Auth, dependency, production service, commit, or push changed.
+
 ## 2026-07-18 - Local Supabase Email OTP Recovery
 
 - Confirmed local Auth and Mailpit are healthy at the local API and Mailpit endpoints. The local stack reports only `imgproxy` and `pooler` as stopped; neither is required for Email OTP, Postgres, or the Vite calendar flow.
@@ -40,7 +53,7 @@
 ## 2026-07-18 - v0.1.7 Recurrence Exceptions & Series Editing Design Started
 
 - Added `docs/RECURRENCE_EXCEPTIONS_DESIGN.md` as the implementation-ready design for sparse occurrence overrides/deletions and source-series splitting. It defines all six edit/delete scopes, stable local-date occurrence keys, the proposed `event_occurrence_exceptions` table, lineage/cutoff additions, RLS/Realtime implications, atomic split semantics, exception-aware projection, mobile-first dialogs, migration sequencing, and future test/acceptance coverage.
-- Key safety decisions are documented for human review: a split preserves historical source projection, “entire series” applies to the selected current segment after a split, and exception cleanup must be count-confirmed rather than silent.
+- Key safety decisions are documented for human review: a split preserves historical source projection, exceptions remain segment-local, and deleting all recurring events removes the complete logical lineage.
 - Human-review revision: the lineage fields are `series_id + parent_event_id`; exceptions always remain with their creating event segment and are never migrated to a split child. Editing/deleting this-and-following count-confirms and atomically clears only exceptions made unreachable by the old segment cutoff.
 - This was a documentation-only design task. No `src/`, tests, SQL migration, Supabase configuration, frontend behavior, dependency, environment, commit, or push was changed.
 

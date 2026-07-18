@@ -1,5 +1,13 @@
 # Testing
 
+## v0.1.7.3.1 Series Editing Database RPC Foundation
+
+Verified locally on 2026-07-18 after applying the additive patch to the local Supabase test database only:
+
+- Passed: `supabase test db --local supabase/tests/2026-07-18-v0.1.7.3-series-editing.test.sql` (15 pgTAP assertions). Coverage includes only-this override/delete, source-timezone candidate validation, non-member denial, split cutoff/child lineage/no exception migration, stale `updated_at` rejection, and logical-series deletion of root, child, and exceptions.
+- Passed regression: `supabase test db --local supabase/tests/2026-07-18-v0.1.7.1-database-foundation.test.sql` (18 pgTAP assertions).
+- Pending: Production preflight, one-time patch application, RLS/RPC verification, and authenticated Production smoke. No frontend/UI/Realtime integration is included in this database-only slice.
+
 ## v0.1.7.1 Recurrence Exceptions Database Foundation
 
 Implemented locally on 2026-07-18, pending database execution:
