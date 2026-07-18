@@ -1,11 +1,12 @@
 begin;
 
-select plan(15);
+select plan(30);
 
 select has_function('public', 'upsert_occurrence_override', 'only-this override RPC exists');
 select has_function('public', 'delete_occurrence', 'only-this delete RPC exists');
 select has_function('public', 'split_recurring_event', 'split RPC exists');
 select has_function('public', 'delete_logical_series', 'logical-series delete RPC exists');
+select has_function('public', 'delete_occurrence_and_future', 'future-delete RPC exists');
 
 insert into auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
@@ -33,6 +34,29 @@ values (
   '{"version": 1, "frequency": "weekly", "interval": 1, "time_zone": "UTC", "days_of_week": [1]}'::jsonb,
   '00000000-0000-0000-0000-000000001751'
 );
+
+insert into public.events (
+  id, space_id, created_by, scope, owner_user_id, title, starts_at, ends_at, recurrence_rule, series_id, recurrence_until
+)
+values
+  (
+    '00000000-0000-0000-0000-000000001752',
+    '00000000-0000-0000-0000-000000001741',
+    '00000000-0000-0000-0000-000000001731',
+    'shared', null, 'v0.1.7.3 finite middle source',
+    '2026-09-07T12:00:00Z', '2026-09-07T13:00:00Z',
+    '{"version": 1, "frequency": "weekly", "interval": 1, "time_zone": "UTC", "days_of_week": [1]}'::jsonb,
+    '00000000-0000-0000-0000-000000001752', '2026-09-28T12:00:00Z'
+  ),
+  (
+    '00000000-0000-0000-0000-000000001753',
+    '00000000-0000-0000-0000-000000001741',
+    '00000000-0000-0000-0000-000000001731',
+    'shared', null, 'v0.1.7.3 finite final source',
+    '2026-10-05T12:00:00Z', '2026-10-05T13:00:00Z',
+    '{"version": 1, "frequency": "weekly", "interval": 1, "time_zone": "UTC", "days_of_week": [1]}'::jsonb,
+    '00000000-0000-0000-0000-000000001753', '2026-10-26T12:00:00Z'
+  );
 
 set local role authenticated;
 select set_config('request.jwt.claim.role', 'authenticated', true);
@@ -79,6 +103,10 @@ select public.upsert_occurrence_override(
   '00000000-0000-0000-0000-000000001751', '2026-08-17', '{"title":"stays on old segment"}'::jsonb, null
 );
 
+select public.upsert_occurrence_override(
+  '00000000-0000-0000-0000-000000001751', '2026-08-24', '{"title":"moves to child","description":"preserved"}'::jsonb, null
+);
+
 select public.split_recurring_event(
     '00000000-0000-0000-0000-000000001751', '2026-08-17',
     'split child', null, '2026-08-17T13:00:00Z', '2026-08-17T14:00:00Z', false,
@@ -99,9 +127,21 @@ select is(
 );
 
 select is(
-  (select count(*) from public.event_occurrence_exceptions where event_id = '00000000-0000-0000-0000-000000001751' and occurrence_date = '2026-08-17'),
-  1::bigint,
-  'split leaves exceptions attached to the original segment'
+  (select count(*) from public.event_occurrence_exceptions where event_id = '00000000-0000-0000-0000-000000001751' and occurrence_date >= '2026-08-17'),
+  0::bigint,
+  'split clears the consumed split-day exception and moves future exceptions'
+);
+
+select is(
+  (select override_data ->> 'description' from public.event_occurrence_exceptions where occurrence_date = '2026-08-24'),
+  'preserved',
+  'split preserves complete future override data on the child'
+);
+
+select is(
+  (select recurrence_until from public.events where parent_event_id = '00000000-0000-0000-0000-000000001751'),
+  null::timestamptz,
+  'infinite child inherits the source recurrence boundary'
 );
 
 select throws_ok(
@@ -114,6 +154,14 @@ select throws_ok(
   'P0001',
   'Event was modified concurrently',
   'split rejects a stale optimistic-concurrency token'
+);
+
+select public.delete_occurrence_and_future('00000000-0000-0000-0000-000000001751', '2026-08-10', null);
+
+select is(
+  (select recurrence_until from public.events where id = '00000000-0000-0000-0000-000000001751'),
+  '2026-08-10 12:00:00+00'::timestamptz,
+  'future deletion uses the selected scheduled instant as exclusive cutoff'
 );
 
 select public.delete_logical_series('00000000-0000-0000-0000-000000001751', null);
@@ -130,6 +178,85 @@ select is(
   'logical-series delete removes exceptions'
 );
 
+select public.split_recurring_event(
+  '00000000-0000-0000-0000-000000001752', '2026-09-14',
+  'finite middle child', null, '2026-09-14T13:00:00Z', '2026-09-14T14:00:00Z', false,
+  '{"version": 1, "frequency": "weekly", "interval": 1, "time_zone": "UTC", "days_of_week": [1]}'::jsonb,
+  null
+);
+
+select is(
+  (select count(*) from public.events where parent_event_id = '00000000-0000-0000-0000-000000001752'),
+  1::bigint,
+  'middle split creates a finite-series child'
+);
+
+select ok(
+  (select recurrence_until is not null from public.events where parent_event_id = '00000000-0000-0000-0000-000000001752'),
+  'middle split child retains a non-null recurrence_until'
+);
+
+select is(
+  (select recurrence_until from public.events where parent_event_id = '00000000-0000-0000-0000-000000001752'),
+  '2026-09-28 12:00:00+00'::timestamptz,
+  'middle split child inherits the source original recurrence_until'
+);
+
+select is(
+  (select recurrence_until from public.events where id = '00000000-0000-0000-0000-000000001752'),
+  '2026-09-14 12:00:00+00'::timestamptz,
+  'middle split source ends at the selected scheduled instant'
+);
+
+select public.split_recurring_event(
+  '00000000-0000-0000-0000-000000001753', '2026-10-19',
+  'finite final child', null, '2026-10-19T13:00:00Z', '2026-10-19T14:00:00Z', false,
+  '{"version": 1, "frequency": "weekly", "interval": 1, "time_zone": "UTC", "days_of_week": [1]}'::jsonb,
+  null
+);
+
+select is(
+  (select count(*) from public.events where parent_event_id = '00000000-0000-0000-0000-000000001753'),
+  1::bigint,
+  'final-occurrence split creates a child'
+);
+
+select ok(
+  (select recurrence_until is not null from public.events where parent_event_id = '00000000-0000-0000-0000-000000001753'),
+  'final-occurrence split child remains finite'
+);
+
+select is(
+  (select recurrence_until from public.events where parent_event_id = '00000000-0000-0000-0000-000000001753'),
+  '2026-10-26 12:00:00+00'::timestamptz,
+  'final-occurrence split child inherits the source original recurrence_until'
+);
+
+select is(
+  (select recurrence_until from public.events where id = '00000000-0000-0000-0000-000000001753'),
+  '2026-10-19 12:00:00+00'::timestamptz,
+  'final-occurrence split source no longer generates the final occurrence'
+);
+
 reset role;
+
+select is(
+  (select public.recurring_occurrence_instant(event, '2026-10-19') from public.events as event where id = '00000000-0000-0000-0000-000000001753'),
+  null::timestamptz,
+  'final-occurrence split source excludes its former final occurrence'
+);
+
+select is(
+  (select public.recurring_occurrence_instant(event, '2026-10-19') from public.events as event where parent_event_id = '00000000-0000-0000-0000-000000001753'),
+  '2026-10-19 13:00:00+00'::timestamptz,
+  'final-occurrence split child carries the final occurrence'
+);
+
+select is(
+  (select public.recurring_occurrence_instant(event, '2026-10-26') from public.events as event where parent_event_id = '00000000-0000-0000-0000-000000001753'),
+  null::timestamptz,
+  'final-occurrence split child excludes the original finite cutoff'
+);
+
 select * from finish();
 rollback;

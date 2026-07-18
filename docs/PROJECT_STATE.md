@@ -8,11 +8,11 @@
 
 ## Current version
 
-v0.1.7.3.2 (Frontend RPC Integration)
+v0.1.7.3.3.1 (Split RPC Correctness Patch)
 
 ## Current status
 
-v0.1.7.3.2 Frontend RPC Integration 已完成并通过 localhost:5175 + Production Supabase authenticated smoke。当前仅实现 recurring occurrence 的 only-this 编辑/删除；普通 event 路径保持原有 `events.update/delete`。
+v0.1.7.3.3.1 database foundation 已在本地 Supabase 验证；前端 scope integration 尚未开始，Production patch 与部署仍保持 e7decd1 状态。
 
 ## Latest completed
 

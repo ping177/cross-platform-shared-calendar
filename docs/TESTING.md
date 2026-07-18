@@ -1,5 +1,14 @@
 # Testing
 
+## v0.1.7.3.3.1 Split RPC Correctness Patch
+
+Passed locally on 2026-07-18. `supabase db reset --local --yes` resets the local Supabase instance but does not load this repository's `supabase/schema.sql`; the validated fresh bootstrap explicitly loaded that file through the local Postgres container. `schema.sql` is the latest complete bootstrap artifact, while `supabase/patches/*.sql` are ordered upgrades from an older database state.
+
+- Standalone bootstrap: v0.1.7.1 foundation pgTAP 18/18; v0.1.7.3 series-editing pgTAP 30/30; total 48/48.
+- Ordered upgrade from `e7decd1` bootstrap through v0.1.7.1, v0.1.7.3.1, and v0.1.7.3.3.1 patches: 48/48.
+- Node recurrence/edit regressions: 34/34; `tests/supabase-schema-recurrence.test.ts`: 1/1; total 35/35. The schema test guards recurrence lineage, exception foundation, helpers, final RPCs, SECURITY DEFINER/search_path, and child `recurrence_until` inheritance.
+- Passed: `npm run build` and `git diff --check`.
+
 ## v0.1.7.3.2 Frontend RPC Integration
 
 Verified on 2026-07-18 with localhost:5175 connected to Production Supabase project `ximazjhxvmktpcdbypka` after the v0.1.7.3.1 patch and PostgREST schema-cache reload:

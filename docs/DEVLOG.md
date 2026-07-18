@@ -1,5 +1,10 @@
 # Development Log
 
+## 2026-07-18 - v0.1.7.3.3.1 Split RPC Correctness Patch
+
+- Added a targeted local-only database patch for Scheme A split correctness: exclusive scheduled-instant cutoff, finite `recurrence_until` inheritance, source recurrence-rule/all-day preservation, future exception migration, split-day override consumption, split-day deleted rejection, and selected-segment future deletion.
+- Recurrence exception mutations now advance the source event revision for optimistic concurrency. Local bootstrap plus ordered-patch validation, 48 pgTAP assertions, 34 Node tests, and the production build passed. No Production patch, frontend scope UI, commit, or push was performed.
+
 ## 2026-07-18 - v0.1.7.3.2 Frontend RPC Integration
 
 - Added an explicit `EventEditTarget` boundary so `CalendarOccurrence → EventEditTarget → EventSheet` preserves recurring occurrence identity, scheduled `occurrence_date`, and display metadata without making the sheet depend on the rendering projection.

@@ -32,7 +32,7 @@ EventCard(occurrence)
 - `recurrence_until` is an exclusive scheduled-start instant: the segment emits only candidates earlier than it.
 - `series_id` identifies the root of a split lineage. A root has `series_id = id`; every child copies the root ID.
 - `parent_event_id` points to the immediately preceding segment; it is lineage, not an exception owner.
-- An exception is permanently segment-local through `event_occurrence_exceptions.event_id`. It is never moved to a child segment.
+- Exceptions are segment-local, but a split atomically moves future exceptions to its child segment as specified below.
 - Existing schema names are authoritative: `event_id`, `occurrence_date`, `exception_type`, and `override_data`. Do not use field names from the older design draft such as `source_event_id`, `occurrence_key`, or `kind`.
 
 ## Product semantics
@@ -91,7 +91,7 @@ Before
 After
   A (id=A, series_id=A, parent_event_id=null,
      recurrence_until=scheduled instant for 2026-08-03 20:00)
-  B (id=B, series_id=A, parent_event_id=A, recurrence_until=null)
+  B (id=B, series_id=A, parent_event_id=A, recurrence_until=inherited from A)
   weekly Monday 21:00, starts_at=2026-08-03 21:00
 ```
 
@@ -101,14 +101,9 @@ The client must submit the original source occurrence key and scheduled instant,
 
 ### Exception handling at a split
 
-Exceptions never migrate or copy:
+The v0.1.7.3.3.1 correctness patch supersedes the earlier no-migration decision. Keys before the split remain on A; future exceptions atomically move to B with their scheduled dates and complete override data. A split-day override is absorbed by B's edited baseline and deleted rather than moved. A split-day deleted exception rejects the split and rolls back the transaction.
 
-- Keys before the split remain on A and continue to apply.
-- The selected key and future keys attached to A become unreachable after A's cutoff.
-- The RPC returns their count before confirmation, then deletes precisely those unreachable A exceptions in the same transaction as the split.
-- B begins with no exceptions. If the user wants a later exception such as an existing 2026-08-10 override, they recreate it for B after the split.
-
-This avoids assigning an old override to a changed baseline without explicit user intent. It also prevents duplicate exceptions on A and B for the same logical future date.
+B uses the edited split occurrence as its recurrence anchor, retains the root `series_id` and direct parent link, and inherits A's recurrence rule, all-day value, and finite `recurrence_until`. This slice permits only title, description, starts_at, and ends_at changes; recurrence-rule, all-day, cancellation, and frequency changes remain out of scope.
 
 ### Delete this and following
 
@@ -151,5 +146,5 @@ Before release, test shared and personal-owner cases, non-owner/non-member denia
 
 ## Out of scope
 
-- Materialized occurrence rows, series merge, this-and-following exception migration, undo history, reminders, external calendar sync, and new timezone dependencies.
+- Materialized occurrence rows, series merge, undo history, reminders, external calendar sync, and new timezone dependencies.
 - Schema/RLS changes or deployment from this design task.
