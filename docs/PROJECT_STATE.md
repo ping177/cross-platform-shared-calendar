@@ -8,15 +8,15 @@
 
 ## Current version
 
-v0.1.6.3 (Recurring Events UI Implementation)
+v0.1.7.1 (Recurrence Exceptions — Database Foundation)
 
 ## Current status
 
-v0.1.6.3 已完成 recurring source event 的创建/编辑 UI。表单支持不重复、daily、weekly、monthly、yearly 及其最小选择器，以浏览器 `Intl` timezone 生成受限 v1 `recurrence_rule`；所有 occurrence 操作都回到 source event，编辑/删除明确作用于整个系列。无 exception、单次 occurrence 操作或数据库/RLS 变更。最终真实浏览器与双客户端 Realtime 验收尚待执行。
+v0.1.7.1 数据库基础层已在仓库中实现，尚未应用到任何 Supabase 环境：新增 additive patch、`events` lineage/cutoff 设计的 SQL 基础、exception table、继承 event 权限的 RLS，以及 pgTAP CRUD/RLS 测试。`schema.sql` 已补充 authenticated 基础 table GRANT，使请求可进入既有 RLS 判断；未放宽 policy。未修改 recurrence expansion、frontend、UI、Realtime、依赖或现有 patch。v0.1.6 最终真实浏览器与双客户端 Realtime 验收仍待执行。
 
 ## Latest completed
 
-v0.1.6.3 Recurrence UI completed locally: existing EventSheet now saves valid v1 recurrence rules or null to the source event, renders user-facing whole-series controls, and has no occurrence persistence path. 17 Node tests, the production build, and diff hygiene pass; Supabase/RLS/Realtime configuration remains untouched.
+v0.1.7.1 database foundation completed locally: `2026-07-18-v0.1.7.1-database-foundation.sql` adds nullable event lineage/cutoff fields, backfills recurring roots, creates `event_occurrence_exceptions`, applies segment-local validation and inherited RLS, and adds a pgTAP test. `schema.sql` now grants only policy-matched base operations to `authenticated`, so RLS can evaluate them. No patch was applied to Production; pgTAP execution is pending local Docker/Postgres.
 
 ## Deployment
 
@@ -38,6 +38,8 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 - v0.1.6.1 — Recurring Events Foundation（migration + engine，Production patch 已执行）
 - v0.1.6.2 — Recurring Events Calendar Integration（occurrence projection，未实现 recurrence UI）
 - v0.1.6.3 — Recurring Events UI Implementation（source-series form，待最终浏览器/Realtime 验收）
+- v0.1.7 — Recurrence Exceptions & Series Editing（设计完成，待人工 review）
+- v0.1.7.1 — Recurrence Exceptions Database Foundation（migration + RLS + pgTAP，待数据库执行与人工 review）
 
 ## Last verified
 
@@ -45,11 +47,11 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 
 ## Next Action
 
-Run final recurrence acceptance with two existing independently authenticated Email OTP browser sessions: create, edit, and delete daily/weekly/monthly/yearly source series; confirm Today/Week/Month reproject correctly and observe the second client receive the source-row Realtime update. Then smoke the recurrence form on iPhone Safari and Android Chrome/PWA.
+Install and start Docker Desktop locally, then run `supabase start` and `supabase test db --local supabase/tests/2026-07-18-v0.1.7.1-database-foundation.test.sql`. The `schema.sql` authenticated GRANT prerequisite is now present; verify that RLS, not table privilege denial, controls the test cases. `supabase/config.toml` was initialized on 2026-07-18 with `project_id = "cross-platform-shared-calendar"`; its prior absence caused the CLI configuration failure. Do not apply the patch to Production without a separate preflight/approval. After database verification, continue the documented pure-expansion slice; separately retain the pending v0.1.6 two-client Realtime and device acceptance.
 
 ## Blockers
 
-Final acceptance is blocked on two existing Email OTP sessions for real Realtime transport verification and supported-device browser smoke. Do not alter Auth settings to bypass it. Native `Intl` is used without a new dependency; DST-zone behavior still needs supported-browser verification before it is claimed.
+Final acceptance is blocked on two existing Email OTP sessions for real Realtime transport verification and supported-device browser smoke. Local Supabase start/pgTAP is additionally blocked because Docker Desktop and the Docker CLI are not installed on this machine; the repaired `config.toml` has passed CLI configuration parsing. Do not alter Auth settings to bypass it. Native `Intl` is used without a new dependency; DST-zone behavior still needs supported-browser verification before it is claimed.
 
 ## Important Context
 
@@ -74,8 +76,11 @@ Final acceptance is blocked on two existing Email OTP sessions for real Realtime
 - Resend SMTP + Supabase Auth passwordless template deliver 8-digit Email OTP in Production. Email OTP removes Magic Link return handling; Safari and standalone PWA retain separate session storage and each complete login directly with the code.
 - New-user first-login, new-space creation, and profiles/display_name behavior passed in v0.1.5 Production acceptance. The single-member-space path remains intentionally unverified.
 - v0.1.6 recurrence rules are source-event metadata only. Existing event identity fields remain immutable; no recurrence table, occurrence materialization, exception model, RLS change, Realtime configuration change, reminder, or notification work is included. v0.1.6.2 projects only the current Today/Week/Month visible range and uses occurrence IDs only as display keys; v0.1.6.3 writes recurrence rules only on source events and labels all recurring edits/deletes as whole-series actions.
+- v0.1.7 is design-only. The proposed design is in `docs/RECURRENCE_EXCEPTIONS_DESIGN.md`; it has not added `event_occurrence_exceptions`, source lineage/cutoff fields, RPCs, RLS, Realtime publication, or UI behavior.
+- v0.1.7.1 has a local, un-applied database patch and pgTAP test only. It intentionally omits exception projection, split/end-from-here RPCs, frontend/UI changes, and Realtime publication/subscriptions. Local Supabase CLI testing is currently blocked because the local Postgres instance is unavailable; no linked/Production fallback was attempted.
+- `supabase/config.toml` was absent and is now initialized with a stable local `project_id`; `supabase start` now reaches Docker startup instead of failing configuration validation. Docker Desktop/CLI are absent, so no local containers can start until the user installs and starts Docker.
 - The engine uses native `Intl` IANA timezone formatting/conversion and rejects invalid rule shapes at both client and database boundaries. It returns an explicit error instead of a partial result after 500 candidates.
 
 ## Handoff Prompt
 
-Continue 跨系统共享日历 by performing final v0.1.6 recurrence acceptance with two existing Email OTP browser sessions. Verify source-series create/edit/delete and occurrence re-projection in Today/Week/Month, then observe the second client receive the source-row Realtime update. Also smoke iPhone Safari and Android Chrome/PWA recurrence forms. Do not rerun the already-applied v0.1.4 or v0.1.6.1 patches, loosen RLS, alter Auth settings, add exceptions/single-occurrence operations, materialize occurrences, add a recurrence table, or expand into reminders, notifications, colors, or multi-space.
+Continue 跨系统共享日历 by installing/starting Docker Desktop, then using the repaired local `supabase/config.toml` to run `supabase start` and the un-applied v0.1.7.1 pgTAP suite locally. Apply no patch to Production without explicit preflight/approval. Then implement the approved pure-expansion slice; later work must preserve `series_id + parent_event_id`, segment-local exceptions, and count-confirmed invalid-future-exception cleanup. Do not loosen RLS, alter Auth settings, materialize occurrences, or expand into reminders, notifications, colors, or multi-space. Also preserve the pending v0.1.6 two-client/device recurrence acceptance.

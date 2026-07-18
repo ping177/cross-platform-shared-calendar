@@ -1,5 +1,28 @@
 # Development Log
 
+## 2026-07-18 - Local Supabase Authenticated Table Grants
+
+- Added only the baseline table privileges required for `authenticated` requests to reach existing RLS policies: `profiles` (`SELECT, UPDATE`), `spaces` (`SELECT, UPDATE`), `space_members` (`SELECT`), and `events` (`SELECT, INSERT, UPDATE, DELETE`). The grants match the operations already covered by policies; no policy, business logic, public privilege, patch, or schema-design change was made.
+- This fixes the local pgTAP prerequisite that previously failed with `permission denied for table events`. RLS and the existing owner/membership checks remain the final authorization boundary. Local verification remains pending Docker Desktop installation/startup.
+
+## 2026-07-18 - Local Supabase CLI Configuration Repair
+
+- Diagnosed the `Missing required field in config: project_id` failure: `supabase/config.toml` did not exist. Ran the local CLI initializer and set the generated project's stable local identifier to `cross-platform-shared-calendar`; the generated `supabase/.gitignore` ignores only Supabase transient files and local dotenv variants.
+- `supabase start` no longer fails configuration parsing. It now stops at the environment prerequisite: Docker Desktop and the Docker CLI are not installed/running on this machine, so no local containers, patch, or database test were started. No `.env`, secret, access token, service key, linked project, or Production service was accessed.
+
+## 2026-07-18 - v0.1.7.1 Recurrence Exceptions Database Foundation
+
+- Added the additive, un-applied `supabase/patches/2026-07-18-v0.1.7.1-database-foundation.sql`. It adds nullable `events.series_id`, `parent_event_id`, and `recurrence_until`; backfills only existing recurring roots; creates `event_occurrence_exceptions`; validates recurring-source/immutable event ownership; and grants inherited event RLS access without a new permission model.
+- Added `supabase/tests/2026-07-18-v0.1.7.1-database-foundation.test.sql` for schema, exception insert/update/delete, shape constraint, and member/non-member RLS coverage. `supabase test db --local` could not connect because no local Postgres was available, so the patch was not applied to a local or Production environment.
+- Passed: `node --test tests/recurrence.test.ts` (17 tests), `npm run build`, and `git diff --check`. No recurrence expansion, frontend/UI, Realtime, dependency, environment, legacy migration, commit, or push change was made.
+
+## 2026-07-18 - v0.1.7 Recurrence Exceptions & Series Editing Design Started
+
+- Added `docs/RECURRENCE_EXCEPTIONS_DESIGN.md` as the implementation-ready design for sparse occurrence overrides/deletions and source-series splitting. It defines all six edit/delete scopes, stable local-date occurrence keys, the proposed `event_occurrence_exceptions` table, lineage/cutoff additions, RLS/Realtime implications, atomic split semantics, exception-aware projection, mobile-first dialogs, migration sequencing, and future test/acceptance coverage.
+- Key safety decisions are documented for human review: a split preserves historical source projection, “entire series” applies to the selected current segment after a split, and exception cleanup must be count-confirmed rather than silent.
+- Human-review revision: the lineage fields are `series_id + parent_event_id`; exceptions always remain with their creating event segment and are never migrated to a split child. Editing/deleting this-and-following count-confirms and atomically clears only exceptions made unreachable by the old segment cutoff.
+- This was a documentation-only design task. No `src/`, tests, SQL migration, Supabase configuration, frontend behavior, dependency, environment, commit, or push was changed.
+
 ## 2026-07-17 - v0.1.6.3 Recurrence UI Implementation
 
 - Extended the existing source-event sheet with simple user-facing recurrence controls: 不重复, daily, weekly, monthly, and yearly; every recurring option has an interval, weekly selects weekdays, monthly selects a numeric day or month-end, and yearly selects month/day. No RRULE or JSON is exposed.

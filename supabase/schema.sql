@@ -542,6 +542,13 @@ create policy "events_delete_member"
 on public.events for delete
 using (public.can_manage_event(space_id, scope, owner_user_id));
 
+-- Table privileges let authenticated requests reach the RLS policies above.
+-- RLS remains the final row-level access control boundary.
+grant select, update on table public.profiles to authenticated;
+grant select, update on table public.spaces to authenticated;
+grant select on table public.space_members to authenticated;
+grant select, insert, update, delete on table public.events to authenticated;
+
 grant execute on function public.create_space_with_invite(text) to authenticated;
 grant execute on function public.join_space_by_invite_code(text) to authenticated;
 grant execute on function public.rotate_invite_code(uuid) to authenticated;

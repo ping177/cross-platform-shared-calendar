@@ -1,5 +1,14 @@
 # Testing
 
+## v0.1.7.1 Recurrence Exceptions Database Foundation
+
+Implemented locally on 2026-07-18, pending database execution:
+
+- Added pgTAP coverage for migration structure, deleted/override exception insert and update, exception delete, and member/non-member RLS behavior in `supabase/tests/2026-07-18-v0.1.7.1-database-foundation.test.sql`.
+- Pending: run `supabase test db --local supabase/tests/2026-07-18-v0.1.7.1-database-foundation.test.sql` after a local Supabase/Postgres instance is configured and the additive v0.1.7.1 patch has been applied there. The 2026-07-18 attempt failed to connect to local Postgres; no linked or Production test was attempted.
+- The pgTAP prerequisite `permission denied for table events` is addressed in `supabase/schema.sql` by policy-matched `authenticated` table grants. Re-run locally to verify that existing RLS policies, rather than missing base privileges, control access.
+- Passed: `node --test tests/recurrence.test.ts` (17 tests), `npm run build`, and `git diff --check`.
+
 ## Current Smoke-Test Status
 
 - Passed: local production build.

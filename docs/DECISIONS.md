@@ -38,6 +38,16 @@
 - This removes the Magic Link dependency on mail-client, browser, and standalone-PWA return handling. It does not merge Safari and standalone PWA session storage.
 - The existing Supabase client, `getSession()`, and `onAuthStateChange()` remain the session architecture. No database, schema, RLS, event, or membership behavior changes.
 
+## v0.1.7 Recurrence Exceptions & Series Editing (Design, Pending Review)
+
+- Recurring source events remain the baseline; occurrence records are not materialized. A new sparse exception table will persist either a complete one-off override snapshot or a deletion keyed by source event and scheduled local date in the source rule timezone.
+- A recurring source uses `series_id` for its root lineage and `parent_event_id` for its immediate preceding segment. A future-only edit/delete ends the old source segment with an exclusive recurrence cutoff; a future edit creates a linked child source and never rewrites historical source data.
+- After a split, “entire series” means the selected current source segment. Logical lineage is retained for traceability, not as an instruction to rewrite historical/future segments together.
+- An exception always belongs to the event segment that created it. A split never migrates or copies exceptions to the child: historical exceptions remain on the old segment, and the child begins without inherited exceptions.
+- A future-only delete removes the selected/future portion of the current segment and atomically clears that segment's now-invalid exceptions at or after the cutoff. A future-only edit applies the same count-confirmed cleanup to unreachable old-segment exceptions; no exception is silently removed.
+- Split and exception mutation require an atomic permission-checked database mutation boundary.
+- These are design decisions only until `docs/RECURRENCE_EXCEPTIONS_DESIGN.md` receives human review and a subsequent implementation task is approved.
+
 ## PWA
 
 - v0.1 includes basic PWA support with a manifest and mobile meta tags.
