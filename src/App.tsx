@@ -15,6 +15,10 @@ import {
 import { MemberSheet } from './components/MemberSheet';
 import { RecurrenceControls } from './components/RecurrenceControls';
 import { calendarVisibleRange } from './lib/calendar-display';
+import { draftFromEditTarget, type EventDraft } from './lib/event-edit-draft';
+import { deleteMutationRoute, occurrenceOverrideRpcArgs, saveMutationRoute } from './lib/event-edit-mutation';
+import { eventEditTargetForEvent, eventEditTargetForOccurrence } from './lib/event-edit-target';
+import { eventEditUiState } from './lib/event-edit-ui';
 import { memberDisplayNameForUser } from './lib/member';
 import { browserTimeZone, defaultRecurrenceDraft, expandRecurringEvents, recurrenceDraftFromRule, recurrenceRuleFromDraft, recurrenceSummary, type RecurrenceDraft } from './lib/recurrence';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
@@ -33,19 +37,9 @@ import {
   startOfWeek,
   toDateInputValue,
 } from './lib/date';
-import type { CalendarEvent, CalendarOccurrence, EventAudience, EventOccurrenceException, Space, SpaceMember } from './types';
+import type { CalendarEvent, CalendarOccurrence, EventAudience, EventEditTarget, EventOccurrenceException, Space, SpaceMember } from './types';
 
 type ViewMode = 'today' | 'week' | 'month';
-type EventDraft = {
-  title: string;
-  description: string;
-  audience: EventAudience;
-  startsAt: string;
-  endsAt: string;
-  allDay: boolean;
-  recurrence: RecurrenceDraft;
-};
-
 const viewLabels: Record<ViewMode, string> = {
   today: '今日',
   week: '本周',
@@ -355,7 +349,7 @@ function CalendarApp({ session }: { session: Session }) {
   const [viewMode, setViewMode] = useState<ViewMode>('today');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
+  const [editingTarget, setEditingTarget] = useState<EventEditTarget | null>(null);
   const [showNewEvent, setShowNewEvent] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
   const [memberMessage, setMemberMessage] = useState('');
@@ -539,22 +533,26 @@ function CalendarApp({ session }: { session: Session }) {
             selectedDate={selectedDate}
             viewMode={viewMode}
             userId={userId}
-            onEdit={setEditingEvent}
+            onEdit={(occurrence) => setEditingTarget(
+              occurrence.source_event.recurrence_rule === null
+                ? eventEditTargetForEvent(occurrence.source_event)
+                : eventEditTargetForOccurrence(occurrence),
+            )}
             onSelectDate={setSelectedDate}
           />
         </section>
       </div>
 
-      {(showNewEvent || editingEvent) && (
+      {(showNewEvent || editingTarget) && (
         <EventSheet
-          event={editingEvent}
+          target={editingTarget}
           space={space}
           userId={userId}
           members={members}
           partnerId={partner?.user_id ?? null}
           onClose={() => {
             setShowNewEvent(false);
-            setEditingEvent(null);
+            setEditingTarget(null);
           }}
           onSaved={() => void loadEvents(space.id)}
         />
@@ -718,7 +716,7 @@ function CalendarViews({
   selectedDate: Date;
   viewMode: ViewMode;
   userId: string;
-  onEdit: (event: CalendarEvent) => void;
+  onEdit: (occurrence: CalendarOccurrence) => void;
   onSelectDate: (date: Date) => void;
 }) {
   const expansion = useMemo(
@@ -764,7 +762,7 @@ function MonthView({
   members: SpaceMember[];
   selectedDate: Date;
   userId: string;
-  onEdit: (event: CalendarEvent) => void;
+  onEdit: (occurrence: CalendarOccurrence) => void;
   onSelectDate: (date: Date) => void;
 }) {
   const monthStart = startOfMonth(selectedDate);
@@ -802,7 +800,7 @@ function MonthView({
   );
 }
 
-function DaySection({ day, occurrences, members, userId, onEdit }: { day: Date; occurrences: CalendarOccurrence[]; members: SpaceMember[]; userId: string; onEdit: (event: CalendarEvent) => void }) {
+function DaySection({ day, occurrences, members, userId, onEdit }: { day: Date; occurrences: CalendarOccurrence[]; members: SpaceMember[]; userId: string; onEdit: (occurrence: CalendarOccurrence) => void }) {
   return (
     <section>
       <h2 className="mb-2 text-sm font-bold text-ink/60">{formatDay(day)}</h2>
@@ -811,7 +809,7 @@ function DaySection({ day, occurrences, members, userId, onEdit }: { day: Date; 
       ) : (
         <div className="space-y-2">
           {occurrences.map((occurrence) => (
-            <EventCard key={occurrence.occurrence_id} occurrence={occurrence} members={members} userId={userId} onEdit={() => onEdit(occurrence.source_event)} />
+            <EventCard key={occurrence.occurrence_id} occurrence={occurrence} members={members} userId={userId} onEdit={onEdit} />
           ))}
         </div>
       )}
@@ -819,12 +817,12 @@ function DaySection({ day, occurrences, members, userId, onEdit }: { day: Date; 
   );
 }
 
-function EventCard({ occurrence, members, userId, onEdit }: { occurrence: CalendarOccurrence; members: SpaceMember[]; userId: string; onEdit: () => void }) {
+function EventCard({ occurrence, members, userId, onEdit }: { occurrence: CalendarOccurrence; members: SpaceMember[]; userId: string; onEdit: (occurrence: CalendarOccurrence) => void }) {
   const event = occurrence.source_event;
   const audience = audienceFromEvent(event, userId);
 
   return (
-    <button type="button" className={`w-full rounded-lg border-l-4 bg-white p-4 text-left shadow-sm ${audienceClass(audience)}`} onClick={onEdit}>
+    <button type="button" className={`w-full rounded-lg border-l-4 bg-white p-4 text-left shadow-sm ${audienceClass(audience)}`} onClick={() => onEdit(occurrence)}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate font-bold text-ink">{occurrence.title}</p>
@@ -841,7 +839,7 @@ function EventCard({ occurrence, members, userId, onEdit }: { occurrence: Calend
 }
 
 function EventSheet({
-  event,
+  target,
   space,
   userId,
   members,
@@ -849,7 +847,7 @@ function EventSheet({
   onClose,
   onSaved,
 }: {
-  event: CalendarEvent | null;
+  target: EventEditTarget | null;
   space: Space;
   userId: string;
   members: SpaceMember[];
@@ -857,12 +855,14 @@ function EventSheet({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const event = target?.event ?? null;
+  const occurrenceId = target?.kind === 'occurrence' ? target.occurrence.occurrence_id : null;
   const [draft, setDraft] = useState<EventDraft>(() => {
-    if (!event) {
+    if (!target) {
       return emptyDraft();
     }
 
-    return draftFromEvent(event, userId);
+    return draftFromEditTarget(target, draftFromEvent(target.event, userId), toDateInputValue);
   });
   const [endManuallyEdited, setEndManuallyEdited] = useState(() => Boolean(event));
   const [error, setError] = useState('');
@@ -870,12 +870,13 @@ function EventSheet({
 
   const canChoosePartner = Boolean(partnerId);
   const canManage = !event || canManageEvent(event, userId);
+  const editUi = eventEditUiState(target);
 
   useEffect(() => {
-    setDraft(event ? draftFromEvent(event, userId) : emptyDraft());
+    setDraft(target ? draftFromEditTarget(target, draftFromEvent(target.event, userId), toDateInputValue) : emptyDraft());
     setEndManuallyEdited(Boolean(event));
     setError('');
-  }, [event?.id, userId]);
+  }, [event?.id, occurrenceId, userId]);
 
   function updateStart(value: string) {
     setDraft((currentDraft) => ({
@@ -909,6 +910,21 @@ function EventSheet({
     }
 
     setError('');
+
+    if (target?.kind === 'occurrence' && saveMutationRoute(target) === 'occurrence-override') {
+      setBusy(true);
+      const { error: overrideError } = await supabase.rpc('upsert_occurrence_override', occurrenceOverrideRpcArgs(target, draft, fromDateInputValue));
+      setBusy(false);
+
+      if (overrideError) {
+        setError(overrideError.message);
+        return;
+      }
+
+      onSaved();
+      onClose();
+      return;
+    }
 
     const recurrenceResult = recurrenceRuleFromDraft(draft.recurrence, browserTimeZone());
     if (!recurrenceResult.ok) {
@@ -966,11 +982,17 @@ function EventSheet({
     }
 
     setBusy(true);
-    const { error: deleteError } = await supabase.from('events').delete().eq('id', event.id);
+    const deleteResult = target?.kind === 'occurrence' && deleteMutationRoute(target) === 'occurrence-delete'
+      ? await supabase.rpc('delete_occurrence', {
+        p_event_id: target.event.id,
+        p_occurrence_date: target.occurrence.occurrence_date,
+        p_expected_updated_at: target.event.updated_at,
+      })
+      : await supabase.from('events').delete().eq('id', event.id);
     setBusy(false);
 
-    if (deleteError) {
-      setError(deleteError.message);
+    if (deleteResult.error) {
+      setError(deleteResult.error.message);
       return;
     }
 
@@ -982,7 +1004,7 @@ function EventSheet({
     <div className="fixed inset-0 z-20 flex items-end bg-ink/35 md:items-center md:px-4 md:py-6">
       <div className="mx-auto max-h-[92dvh] w-full max-w-3xl overflow-y-auto overscroll-contain rounded-t-2xl bg-white p-5 shadow-soft safe-bottom md:max-h-[calc(100dvh-3rem)] md:rounded-lg">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold">{event ? canManage ? event.recurrence_rule ? '编辑整个重复日程' : '编辑日程' : '日程详情' : '新建日程'}</h2>
+          <h2 className="text-xl font-bold">{event ? canManage ? editUi.isRecurringOccurrenceEdit ? '编辑此重复事件' : event.recurrence_rule ? '编辑整个重复日程' : '编辑日程' : '日程详情' : '新建日程'}</h2>
           <button className="grid h-10 w-10 place-items-center rounded-lg bg-mist" type="button" onClick={onClose} aria-label="关闭">
             <X size={20} />
           </button>
@@ -1002,7 +1024,9 @@ function EventSheet({
           </div>
         ) : (
           <form className="mt-5 space-y-4" onSubmit={save}>
-          {event?.recurrence_rule && <p className="rounded-lg bg-teal/10 px-4 py-3 text-sm font-semibold text-teal">保存或删除将应用于整个重复系列。</p>}
+          {editUi.isRecurringOccurrenceEdit ? (
+            <p className="rounded-lg bg-teal/10 px-4 py-3 text-sm font-semibold text-teal">修改只影响当前这一日期。其他重复事件不会改变。</p>
+          ) : event?.recurrence_rule && <p className="rounded-lg bg-teal/10 px-4 py-3 text-sm font-semibold text-teal">保存或删除将应用于整个重复系列。</p>}
           <Field label="标题">
             <input className="w-full rounded-lg border border-ink/15 px-4 py-3 outline-none focus:border-teal" required value={draft.title} onChange={(inputEvent) => setDraft({ ...draft, title: inputEvent.target.value })} />
           </Field>
@@ -1032,12 +1056,16 @@ function EventSheet({
           </Field>
 
           <label className="flex items-center gap-3 rounded-lg bg-mist px-4 py-3 text-sm font-semibold">
-            <input type="checkbox" checked={draft.allDay} onChange={(inputEvent) => setDraft({ ...draft, allDay: inputEvent.target.checked })} />
-            全天
+            <input type="checkbox" checked={draft.allDay} onChange={(inputEvent) => setDraft({ ...draft, allDay: inputEvent.target.checked })} disabled={!editUi.canEditAllDay} />
+            {editUi.isRecurringOccurrenceEdit ? '全天（当前仅此事件不支持修改）' : '全天'}
           </label>
 
           <Field label="重复">
-            <RecurrenceControls recurrence={draft.recurrence} onChange={updateRecurrence} onFrequencyChange={updateRecurrenceFrequency} />
+            {editUi.canEditRecurrence ? (
+              <RecurrenceControls recurrence={draft.recurrence} onChange={updateRecurrence} onFrequencyChange={updateRecurrenceFrequency} />
+            ) : (
+              <p className="rounded-lg bg-mist px-4 py-3 text-ink/60">当前仅支持修改本次事件，不可修改重复规则。</p>
+            )}
           </Field>
 
           <Field label="描述">
@@ -1046,8 +1074,8 @@ function EventSheet({
 
           <div className="flex gap-3 pt-2">
             {event && (
-              <button className={`${event.recurrence_rule ? 'h-12 rounded-lg bg-coral/10 px-4 text-sm font-semibold' : 'grid h-12 w-12 place-items-center rounded-lg bg-coral/10'} text-coral`} type="button" onClick={deleteEvent} disabled={busy} aria-label={event.recurrence_rule ? '删除整个重复系列' : '删除日程'}>
-                {event.recurrence_rule ? '删除整个系列' : <Trash2 size={20} />}
+              <button className={`${event.recurrence_rule ? 'h-12 rounded-lg bg-coral/10 px-4 text-sm font-semibold' : 'grid h-12 w-12 place-items-center rounded-lg bg-coral/10'} text-coral`} type="button" onClick={deleteEvent} disabled={busy} aria-label={editUi.isRecurringOccurrenceEdit ? '删除此事件' : event.recurrence_rule ? '删除整个重复系列' : '删除日程'}>
+                {editUi.isRecurringOccurrenceEdit ? '删除此事件' : event.recurrence_rule ? '删除整个系列' : <Trash2 size={20} />}
               </button>
             )}
             <button className="h-12 flex-1 rounded-lg bg-teal font-semibold text-white disabled:opacity-60" type="submit" disabled={busy}>

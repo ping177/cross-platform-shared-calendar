@@ -1,5 +1,13 @@
 # Development Log
 
+## 2026-07-18 - v0.1.7.3.2 Frontend RPC Integration
+
+- Added an explicit `EventEditTarget` boundary so `CalendarOccurrence → EventEditTarget → EventSheet` preserves recurring occurrence identity, scheduled `occurrence_date`, and display metadata without making the sheet depend on the rendering projection.
+- Occurrence drafts now hydrate title, description, `occurrence_starts_at`, `occurrence_ends_at`, and all-day state from the selected projection. The source event remains responsible for ID, ownership/permissions, recurrence rule, and series metadata. The hydration regression that showed the source event's original date/time for a future occurrence is covered by a 2026-07-18 → 2026-07-25 test; RPC keys, `p_occurrence_date`, and mutation semantics did not change.
+- Only-this save calls `upsert_occurrence_override`; only-this delete calls `delete_occurrence`. Override data is limited to `title`, `description`, `starts_at`, and `ends_at`. Occurrence mode explains its scope and disables all-day and recurrence-rule edits; ordinary events retain their existing `events.update/delete` paths.
+- Production preflight confirmed the v0.1.7.1 prerequisites, then applied `2026-07-18-v0.1.7.3-series-editing.sql` to project `ximazjhxvmktpcdbypka`. PostgREST schema cache was reloaded and `upsert_occurrence_override`, `delete_occurrence`, `split_recurring_event`, and `delete_logical_series` were verified. No Auth, SMTP, Realtime, Vercel, or unrelated database configuration changed.
+- Authenticated localhost:5175 + Production Supabase smoke passed: occurrence hydration, only-this update, only-this delete, ordinary event edit/delete regression, and refreshed exception projection consistency. Local pure-function verification passed 34 tests; the existing 15-assertion v0.1.7.3.1 pgTAP suite passed; production build and diff hygiene passed.
+
 ## 2026-07-18 - v0.1.7.3.1 Database RPC Foundation
 
 - Added the additive `2026-07-18-v0.1.7.3-series-editing.sql` patch. It provides permission-checked `SECURITY DEFINER` RPCs with fixed `search_path` for only-this override/delete, atomic split, and logical-series deletion. The RPCs validate scheduled occurrence dates in the source rule timezone, whitelist override fields, lock source rows, support optional `updated_at` optimistic concurrency, and retain exceptions on the original segment during a split.

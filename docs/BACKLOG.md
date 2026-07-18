@@ -6,7 +6,7 @@
 
 ## P1 - Near-Term Product Polish
 
-- v0.1.7 Recurrence Exceptions & Series Editing is in design review: approve the exception, series-split, migration, RLS/Realtime, and mobile-flow contract in `docs/RECURRENCE_EXCEPTIONS_DESIGN.md` before implementation.
+- v0.1.7.3.3 Split Recurring Event: add the approved “此次及未来事件” flow through `split_recurring_event`. It must cut off the old segment, create a child with `series_id` / `parent_event_id` lineage, use the modified occurrence as the future anchor, rebuild recurrence cadence, and separately verify timezone/DST behavior. Do not include logical-series deletion UI in this slice.
 - Continue event create/edit UX polish after the v0.1.3 default end-time improvement.
 - Establish a simple backup and restore flow for Supabase data.
 - Occasionally check that Vercel Cron invocations continue to return HTTP 200 and that Supabase remains Active.

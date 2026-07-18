@@ -8,15 +8,15 @@
 
 ## Current version
 
-v0.1.7.2 (Exception Expansion Engine)
+v0.1.7.3.2 (Frontend RPC Integration)
 
 ## Current status
 
-v0.1.7.2 Exception Expansion Engine 已完成并通过 Production 验证。v0.1.7.3.1 Database RPC Foundation 已在仓库与 local Supabase 实现/验证：only-this override/delete、atomic split 和 logical-series delete 均通过函数内权限复核与 optional `updated_at` concurrency 检查；React/UI integration 尚未开始。
+v0.1.7.3.2 Frontend RPC Integration 已完成并通过 localhost:5175 + Production Supabase authenticated smoke。当前仅实现 recurring occurrence 的 only-this 编辑/删除；普通 event 路径保持原有 `events.update/delete`。
 
 ## Latest completed
 
-v0.1.7.3.1 database foundation completed locally: `2026-07-18-v0.1.7.3-series-editing.sql` adds fixed-`search_path`, permission-checked RPCs for occurrence override/delete, series split, and logical-series deletion. The local 15-test pgTAP suite plus the v0.1.7.1 18-test regression suite pass. The patch is not applied to Production.
+v0.1.7.3.2 preserves `CalendarOccurrence → EventEditTarget → EventSheet` context. Occurrence drafts hydrate title, description, `occurrence_starts_at`, `occurrence_ends_at`, and all-day display state from the projection while the source event remains responsible for identity, permission, recurrence rule, and series metadata. Only-this save uses `upsert_occurrence_override`; delete uses `delete_occurrence`; override data is limited to `title`, `description`, `starts_at`, and `ends_at`. Occurrence mode does not allow recurrence-rule or all-day changes. The v0.1.7.3.1 Production patch is applied to `ximazjhxvmktpcdbypka`, its PostgREST schema cache is reloaded, and all four RPCs exist.
 
 ## Deployment
 
@@ -39,10 +39,11 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 - v0.1.6.2 — Recurring Events Calendar Integration（occurrence projection，未实现 recurrence UI）
 - v0.1.6.3 — Recurring Events UI Implementation（source-series form，待最终浏览器/Realtime 验收）
 - v0.1.7 — Recurrence Exceptions & Series Editing（设计完成，待人工 review）
-- v0.1.7.1 — Recurrence Exceptions Database Foundation（local schema/pgTAP 已验证；Production 待单独审批）
+- v0.1.7.1 — Recurrence Exceptions Database Foundation（Production prerequisites 已验证）
 - v0.1.7.2 — Exception Expansion Engine（Production 已验证）
 - v0.1.7.3 — Recurrence Editing Semantics Design（设计完成，待人工 review/implementation approval）
-- v0.1.7.3.1 — Database RPC Foundation（local patch + pgTAP 已验证；Production 待单独审批）
+- v0.1.7.3.1 — Database RPC Foundation（Production patch + PostgREST schema cache 已验证）
+- v0.1.7.3.2 — Frontend RPC Integration（only-this authenticated smoke 已通过）
 
 ## Last verified
 
@@ -50,11 +51,11 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 
 ## Next Action
 
-Review the local RPC contract and perform a separate Production patch preflight/approval before applying it. Only after database deployment/verification may a new task add occurrence-aware React/UI scope selection and RPC integration.
+Start v0.1.7.3.3 Split Recurring Event as a separate approved slice: implement “此次及未来事件” with `split_recurring_event`, old-segment cutoff, child segment lineage, a modified occurrence as the future-segment anchor, rebuilt recurrence cadence, and dedicated timezone/DST validation. Do not treat logical-series deletion as completed.
 
 ## Blockers
 
-Production application of the v0.1.7.3.1 patch is pending separate preflight/approval. React/UI scope selection and Realtime reload/subscription work are intentionally out of this database-only task. Final two-session Realtime/device coverage remains a separate product-quality checkpoint. Native `Intl` DST behavior still needs supported-browser verification before it is claimed.
+No blocker for v0.1.7.3.2. v0.1.7.3.3 requires separate UX, split-anchor, cadence, and timezone/DST approval/verification. Final two-session Realtime/device coverage remains a separate product-quality checkpoint.
 
 ## Important Context
 
@@ -79,8 +80,8 @@ Production application of the v0.1.7.3.1 patch is pending separate preflight/app
 - Resend SMTP + Supabase Auth passwordless template deliver 8-digit Email OTP in Production. Email OTP removes Magic Link return handling; Safari and standalone PWA retain separate session storage and each complete login directly with the code.
 - New-user first-login, new-space creation, and profiles/display_name behavior passed in v0.1.5 Production acceptance. The single-member-space path remains intentionally unverified.
 - v0.1.6 recurrence rules are source-event metadata only. Existing event identity fields remain immutable; no recurrence table, occurrence materialization, exception model, RLS change, Realtime configuration change, reminder, or notification work is included. v0.1.6.2 projects only the current Today/Week/Month visible range and uses occurrence IDs only as display keys; v0.1.6.3 writes recurrence rules only on source events and labels all recurring edits/deletes as whole-series actions.
-- v0.1.7 is design-only. The proposed design is in `docs/RECURRENCE_EXCEPTIONS_DESIGN.md`; it has not added `event_occurrence_exceptions`, source lineage/cutoff fields, RPCs, RLS, Realtime publication, or UI behavior.
-- v0.1.7.1 foundation is present in the local schema and its 18-test pgTAP suite passes. v0.1.7.2 now has a compatible reader/projection implementation, but it must not deploy before a target environment contains the exception table. Both versions intentionally omit mutation UI, split/end-from-here RPCs, and Realtime publication/subscriptions.
+- The original v0.1.7 design is in `docs/RECURRENCE_EXCEPTIONS_DESIGN.md`. Its exception foundation, projection, database RPCs, and v0.1.7.3.2 only-this UI are now implemented; split/end-from-here UI, logical-series deletion UI, and exception Realtime publication remain future work.
+- v0.1.7.1 foundation is present in the local schema and its 18-test pgTAP suite passes. v0.1.7.2 has a compatible reader/projection implementation. v0.1.7.3.2 adds only-this mutation UI, but intentionally omits split/end-from-here UI, logical-series deletion UI, and exception Realtime publication/subscriptions.
 - v0.1.7.3 design treats `series_id` as the logical root and `parent_event_id` as the immediate predecessor. Exceptions stay attached to their original source segment; a split count-confirms and removes only old-segment exceptions made unreachable by the new cutoff. The actual exception schema uses `event_id`, `occurrence_date`, `exception_type`, and `override_data`.
 - v0.1.7.3.1 split currently retains all exceptions on the old segment and never migrates them; unreachable future exceptions are not cleaned in this foundation slice because no user count-confirmation UI/contract exists yet. Split also requires the child to retain the source recurrence timezone and begin on the selected local occurrence date.
 - `supabase/config.toml` uses a stable local `project_id`; the local database/API/Auth/Mailpit stack is reachable. It configures a local 8-digit Mailpit OTP template and port-5175 redirect URL only; the local status currently reports stopped imgproxy and pooler services, which do not block Postgres, Auth, Mailpit, or pgTAP validation.
@@ -88,4 +89,4 @@ Production application of the v0.1.7.3.1 patch is pending separate preflight/app
 
 ## Handoff Prompt
 
-Continue 跨系统共享日历 by performing an approved Production preflight for `2026-07-18-v0.1.7.3-series-editing.sql`, then applying and verifying it once. After that, a separate approved UI task can pass occurrence context into these RPCs. Do not add reminders, materialized occurrences, or unapproved Realtime behavior. Also preserve the pending v0.1.6 two-client/device recurrence acceptance.
+Continue 跨系统共享日历 with a separately approved v0.1.7.3.3 Split Recurring Event slice. Preserve the verified only-this flow and use `split_recurring_event` rather than composing source updates in the client. Design the scope UI, child anchor/cadence reconstruction, old-segment cutoff, lineage, and timezone/DST checks before implementation. Do not add logical-series deletion UI, reminders, materialized occurrences, or unapproved Realtime behavior.

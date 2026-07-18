@@ -91,6 +91,27 @@ export type CalendarOccurrence = {
   source_event: CalendarEvent;
 };
 
+export type EventOccurrenceEditContext = {
+  occurrence_id: string;
+  occurrence_date: string;
+  title: string;
+  description: string | null;
+  occurrence_starts_at: string;
+  occurrence_ends_at: string | null;
+  all_day: boolean;
+};
+
+export type EventEditTarget =
+  | {
+      kind: 'event';
+      event: CalendarEvent;
+    }
+  | {
+      kind: 'occurrence';
+      event: CalendarEvent;
+      occurrence: EventOccurrenceEditContext;
+    };
+
 export type CalendarOccurrenceRange = {
   start: Date;
   end: Date;

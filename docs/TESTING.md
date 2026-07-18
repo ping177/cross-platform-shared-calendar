@@ -1,12 +1,24 @@
 # Testing
 
+## v0.1.7.3.2 Frontend RPC Integration
+
+Verified on 2026-07-18 with localhost:5175 connected to Production Supabase project `ximazjhxvmktpcdbypka` after the v0.1.7.3.1 patch and PostgREST schema-cache reload:
+
+- Passed: opening a non-first recurring occurrence hydrates the sheet from the occurrence projection, including its own date and time rather than the source event baseline.
+- Passed: editing title/time for one occurrence writes an only-this override; surrounding occurrences remain unchanged and the projection remains correct after refresh.
+- Passed: deleting one occurrence writes an only-this deletion; surrounding occurrences remain and the projection remains correct after refresh.
+- Passed: ordinary non-recurring event edit/delete regression.
+- Passed: `node --test tests/recurrence.test.ts tests/event-edit-target.test.ts tests/event-edit-draft.test.ts tests/event-edit-mutation.test.ts tests/event-edit-ui.test.ts` (34 tests), `npm run build`, and `git diff --check`.
+- Passed locally: `supabase test db --local supabase/tests/2026-07-18-v0.1.7.3-series-editing.test.sql` (15 pgTAP assertions).
+- Scope: only-this occurrence mutation only. Recurrence-rule and all-day controls are unavailable for an occurrence because the override RPC contract accepts only `title`, `description`, `starts_at`, and `ends_at`.
+
 ## v0.1.7.3.1 Series Editing Database RPC Foundation
 
-Verified locally on 2026-07-18 after applying the additive patch to the local Supabase test database only:
+Verified locally on 2026-07-18, then applied and structurally/RPC-verified on Production project `ximazjhxvmktpcdbypka` before the v0.1.7.3.2 authenticated smoke:
 
 - Passed: `supabase test db --local supabase/tests/2026-07-18-v0.1.7.3-series-editing.test.sql` (15 pgTAP assertions). Coverage includes only-this override/delete, source-timezone candidate validation, non-member denial, split cutoff/child lineage/no exception migration, stale `updated_at` rejection, and logical-series deletion of root, child, and exceptions.
 - Passed regression: `supabase test db --local supabase/tests/2026-07-18-v0.1.7.1-database-foundation.test.sql` (18 pgTAP assertions).
-- Pending: Production preflight, one-time patch application, RLS/RPC verification, and authenticated Production smoke. No frontend/UI/Realtime integration is included in this database-only slice.
+- Passed Production: preflight found the v0.1.7.1 prerequisites and no existing v0.1.7.3.1 RPCs; the reviewed patch was applied once, PostgREST schema cache was reloaded, and all four `SECURITY DEFINER` RPCs were recognized by PostgREST. Frontend only-this integration and authenticated smoke are recorded above; split and logical-series UI remain outside this slice.
 
 ## v0.1.7.1 Recurrence Exceptions Database Foundation
 
