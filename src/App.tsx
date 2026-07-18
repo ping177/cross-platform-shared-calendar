@@ -33,7 +33,7 @@ import {
   startOfWeek,
   toDateInputValue,
 } from './lib/date';
-import type { CalendarEvent, CalendarOccurrence, EventAudience, Space, SpaceMember } from './types';
+import type { CalendarEvent, CalendarOccurrence, EventAudience, EventOccurrenceException, Space, SpaceMember } from './types';
 
 type ViewMode = 'today' | 'week' | 'month';
 type EventDraft = {
@@ -350,6 +350,7 @@ function CalendarApp({ session }: { session: Session }) {
   const [space, setSpace] = useState<Space | null>(null);
   const [members, setMembers] = useState<SpaceMember[]>([]);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [occurrenceExceptions, setOccurrenceExceptions] = useState<EventOccurrenceException[]>([]);
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [viewMode, setViewMode] = useState<ViewMode>('today');
   const [loading, setLoading] = useState(true);
@@ -414,7 +415,27 @@ function CalendarApp({ session }: { session: Session }) {
       return;
     }
 
-    setEvents((data ?? []) as CalendarEvent[]);
+    const loadedEvents = (data ?? []) as CalendarEvent[];
+    const eventIds = loadedEvents.map((event) => event.id);
+
+    if (eventIds.length === 0) {
+      setEvents(loadedEvents);
+      setOccurrenceExceptions([]);
+      return;
+    }
+
+    const { data: exceptionData, error: exceptionError } = await supabase
+      .from('event_occurrence_exceptions')
+      .select('*')
+      .in('event_id', eventIds);
+
+    if (exceptionError) {
+      setError(exceptionError.message);
+      return;
+    }
+
+    setEvents(loadedEvents);
+    setOccurrenceExceptions((exceptionData ?? []) as EventOccurrenceException[]);
   }
 
   useEffect(() => {
@@ -425,6 +446,7 @@ function CalendarApp({ session }: { session: Session }) {
     if (!space) {
       setMembers([]);
       setEvents([]);
+      setOccurrenceExceptions([]);
       return;
     }
 
@@ -512,6 +534,7 @@ function CalendarApp({ session }: { session: Session }) {
           <InvitePanel space={space} onSpaceChange={setSpace} />
           <CalendarViews
             events={events}
+            occurrenceExceptions={occurrenceExceptions}
             members={members}
             selectedDate={selectedDate}
             viewMode={viewMode}
@@ -681,6 +704,7 @@ function InvitePanel({ space, onSpaceChange }: { space: Space; onSpaceChange: (s
 
 function CalendarViews({
   events,
+  occurrenceExceptions,
   members,
   selectedDate,
   viewMode,
@@ -689,6 +713,7 @@ function CalendarViews({
   onSelectDate,
 }: {
   events: CalendarEvent[];
+  occurrenceExceptions: EventOccurrenceException[];
   members: SpaceMember[];
   selectedDate: Date;
   viewMode: ViewMode;
@@ -697,8 +722,8 @@ function CalendarViews({
   onSelectDate: (date: Date) => void;
 }) {
   const expansion = useMemo(
-    () => expandRecurringEvents(events, calendarVisibleRange(viewMode, selectedDate)),
-    [events, selectedDate, viewMode],
+    () => expandRecurringEvents(events, calendarVisibleRange(viewMode, selectedDate), occurrenceExceptions),
+    [events, occurrenceExceptions, selectedDate, viewMode],
   );
 
   const expansionError = expansion.errors.length > 0 ? '部分重复日程无法在当前范围内显示。' : null;
@@ -802,14 +827,14 @@ function EventCard({ occurrence, members, userId, onEdit }: { occurrence: Calend
     <button type="button" className={`w-full rounded-lg border-l-4 bg-white p-4 text-left shadow-sm ${audienceClass(audience)}`} onClick={onEdit}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="truncate font-bold text-ink">{event.title}</p>
-          {event.description && <p className="mt-1 line-clamp-2 text-sm text-ink/55">{event.description}</p>}
+          <p className="truncate font-bold text-ink">{occurrence.title}</p>
+          {occurrence.description && <p className="mt-1 line-clamp-2 text-sm text-ink/55">{occurrence.description}</p>}
         </div>
         <span className="shrink-0 rounded-full bg-current/10 px-2 py-1 text-xs font-semibold">{eventAudienceLabel(event, members)}</span>
       </div>
       <p className="mt-3 text-sm text-ink/55">
-        {formatTime(occurrence.occurrence_starts_at, event.all_day)}
-        {occurrence.occurrence_ends_at && !event.all_day ? ` - ${formatTime(occurrence.occurrence_ends_at, false)}` : ''}
+        {formatTime(occurrence.occurrence_starts_at, occurrence.all_day)}
+        {occurrence.occurrence_ends_at && !occurrence.all_day ? ` - ${formatTime(occurrence.occurrence_ends_at, false)}` : ''}
       </p>
     </button>
   );

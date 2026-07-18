@@ -62,15 +62,32 @@ export type CalendarEvent = {
   ends_at: string | null;
   all_day: boolean;
   recurrence_rule: RecurrenceRule | null;
+  series_id: string | null;
+  parent_event_id: string | null;
+  recurrence_until: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type EventOccurrenceException = {
+  id: string;
+  event_id: string;
+  occurrence_date: string;
+  exception_type: 'deleted' | 'override';
+  override_data: unknown;
   created_at: string;
   updated_at: string;
 };
 
 export type CalendarOccurrence = {
   occurrence_id: string;
+  occurrence_date: string;
   source_event_id: string;
   occurrence_starts_at: string;
   occurrence_ends_at: string | null;
+  title: string;
+  description: string | null;
+  all_day: boolean;
   source_event: CalendarEvent;
 };
 

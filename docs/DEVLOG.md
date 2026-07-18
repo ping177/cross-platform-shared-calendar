@@ -1,5 +1,19 @@
 # Development Log
 
+## 2026-07-18 - Local Supabase Email OTP Recovery
+
+- Confirmed local Auth and Mailpit are healthy at the local API and Mailpit endpoints. The local stack reports only `imgproxy` and `pooler` as stopped; neither is required for Email OTP, Postgres, or the Vite calendar flow.
+- Repaired local-only OTP alignment in `supabase/config.toml`: set the local Vite site/redirect URL to port 5175, configured an 8-digit OTP to match the existing Auth UI, and added a local Mailpit magic-link template that renders `{{ .Token }}` as the numeric code. Restarted the local Supabase stack without resetting the database.
+- Service verification passed with a fake address only: `signInWithOtp` request, Mailpit receipt, 8-digit token extraction, `verifyOtp`, and an authenticated session response. Browser verification then passed at `http://127.0.0.1:5175`: entered the Mailpit code and reached the existing local Calendar space. A fake local test user was added to the existing isolated test space solely to make the Calendar route observable.
+- No recurrence/business code, database schema, RLS, Production configuration, secrets, dependency, commit, or push changed. The earlier UI `{}` symptom was not reproduced after the local OTP template/length mismatch was corrected.
+
+## 2026-07-18 - v0.1.7.2 Local Supabase Integration Verification
+
+- Confirmed the local Supabase database/API stack is reachable. The local schema already contains the v0.1.7.1 exception foundation: all expected exception-table columns, uniqueness/FK/shape constraints, RLS enabled, and four inherited event-access policies.
+- Passed `supabase test db --local supabase/tests/2026-07-18-v0.1.7.1-database-foundation.test.sql` (18 pgTAP tests). Created an isolated local weekly source with one deleted and one starts-at override exception; direct database reads returned both expected records.
+- Started Vite with temporary local Supabase process configuration only; no `.env` file changed. The browser reached the login page, but local Email OTP returned an empty error object, so authenticated Calendar projection was not browser-verified. The Vite test process was stopped after verification.
+- No schema, RLS, Auth configuration, business code, dependency, commit, push, or Production service was changed.
+
 ## 2026-07-18 - Local Supabase Authenticated Table Grants
 
 - Added only the baseline table privileges required for `authenticated` requests to reach existing RLS policies: `profiles` (`SELECT, UPDATE`), `spaces` (`SELECT, UPDATE`), `space_members` (`SELECT`), and `events` (`SELECT, INSERT, UPDATE, DELETE`). The grants match the operations already covered by policies; no policy, business logic, public privilege, patch, or schema-design change was made.
@@ -9,6 +23,13 @@
 
 - Diagnosed the `Missing required field in config: project_id` failure: `supabase/config.toml` did not exist. Ran the local CLI initializer and set the generated project's stable local identifier to `cross-platform-shared-calendar`; the generated `supabase/.gitignore` ignores only Supabase transient files and local dotenv variants.
 - `supabase start` no longer fails configuration parsing. It now stops at the environment prerequisite: Docker Desktop and the Docker CLI are not installed/running on this machine, so no local containers, patch, or database test were started. No `.env`, secret, access token, service key, linked project, or Production service was accessed.
+
+## 2026-07-18 - v0.1.7.2 Exception Expansion Engine
+
+- Added pure, exception-aware projection: recurring occurrences now use stable `${event_id}:${occurrence_date}` IDs, where `occurrence_date` is the scheduled local date in the recurrence rule timezone.
+- `deleted` exceptions suppress their scheduled occurrence. `override` exceptions safely merge only `starts_at`, `ends_at`, `title`, and `description`; a starts-only override preserves the source duration and moved overrides can enter or leave the active range.
+- `CalendarApp` now reads `event_occurrence_exceptions` for the loaded source event IDs and passes them into Today, Week, and Month projection. No mutation UI, Realtime subscription, SQL/RLS/Auth change, dependency, commit, or push was added.
+- Passed: `node --test tests/recurrence.test.ts` (22 tests), `npm run build`, and `git diff --check`.
 
 ## 2026-07-18 - v0.1.7.1 Recurrence Exceptions Database Foundation
 

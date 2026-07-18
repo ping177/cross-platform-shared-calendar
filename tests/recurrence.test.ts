@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { calendarVisibleRange } from '../src/lib/calendar-display.ts';
 import { defaultRecurrenceDraft, expandEventOccurrences, expandRecurringEvents, parseRecurrenceRule, recurrenceDraftFromRule, recurrenceRuleFromDraft, recurrenceSummary } from '../src/lib/recurrence.ts';
-import type { CalendarEvent, RecurrenceRule } from '../src/types.ts';
+import type { CalendarEvent, EventOccurrenceException, RecurrenceRule } from '../src/types.ts';
 
 const timeZone = 'Asia/Shanghai';
 
@@ -20,8 +20,24 @@ function eventWithRule(startsAt: string, recurrenceRule: RecurrenceRule | null):
     ends_at: null,
     all_day: false,
     recurrence_rule: recurrenceRule,
+    series_id: recurrenceRule ? 'event-1' : null,
+    parent_event_id: null,
+    recurrence_until: null,
     created_at: startsAt,
     updated_at: startsAt,
+  };
+}
+
+function exception(overrides: Partial<EventOccurrenceException>): EventOccurrenceException {
+  return {
+    id: 'exception-1',
+    event_id: 'event-1',
+    occurrence_date: '2026-07-27',
+    exception_type: 'override',
+    override_data: {},
+    created_at: '2026-01-01T00:00:00.000Z',
+    updated_at: '2026-01-01T00:00:00.000Z',
+    ...overrides,
   };
 }
 
@@ -139,12 +155,81 @@ test('projects one-off and recurring source events into range-bounded display oc
 
   assert.deepEqual(result.errors, []);
   assert.deepEqual(result.occurrences.map((occurrence) => occurrence.occurrence_id), [
-    'event-1:2026-01-05T01:00:00.000Z',
-    'event-2:2026-01-05T01:00:00.000Z',
-    'event-2:2026-01-07T01:00:00.000Z',
+    'event-1:2026-01-05',
+    'event-2:2026-01-05',
+    'event-2:2026-01-07',
   ]);
   assert.equal(result.occurrences[1].source_event_id, 'event-2');
   assert.equal(result.occurrences[1].source_event.id, result.occurrences[1].source_event_id);
+});
+
+test('removes a scheduled occurrence with a deleted exception', () => {
+  const event = eventWithRule('2026-07-20T11:00:00.000Z', rule({ frequency: 'weekly', interval: 1, days_of_week: [1] }));
+
+  const result = expandRecurringEvents([event], {
+    start: new Date('2026-07-20T00:00:00.000Z'),
+    end: new Date('2026-08-03T23:59:59.999Z'),
+  }, [exception({ exception_type: 'deleted' })]);
+
+  assert.deepEqual(occurrenceDates({ occurrences: result.occurrences, error: null }), ['2026-07-20', '2026-08-03']);
+});
+
+test('applies a starts_at override without changing occurrence identity or duration', () => {
+  const event = { ...eventWithRule('2026-07-27T11:00:00.000Z', rule({ frequency: 'weekly', interval: 1, days_of_week: [1] })), ends_at: '2026-07-27T12:00:00.000Z' };
+
+  const result = expandRecurringEvents([event], {
+    start: new Date('2026-07-27T00:00:00.000Z'),
+    end: new Date('2026-07-27T23:59:59.999Z'),
+  }, [exception({ override_data: { starts_at: '2026-07-27T12:00:00.000Z', title: 'Override title', description: null } })]);
+
+  assert.equal(result.occurrences.length, 1);
+  assert.equal(result.occurrences[0].occurrence_id, 'event-1:2026-07-27');
+  assert.equal(result.occurrences[0].occurrence_date, '2026-07-27');
+  assert.equal(result.occurrences[0].occurrence_starts_at, '2026-07-27T12:00:00.000Z');
+  assert.equal(result.occurrences[0].occurrence_ends_at, '2026-07-27T13:00:00.000Z');
+  assert.equal(result.occurrences[0].title, 'Override title');
+  assert.equal(result.occurrences[0].description, null);
+});
+
+test('matches exceptions by the scheduled date in the source recurrence timezone', () => {
+  const event = eventWithRule('2026-07-26T16:00:00.000Z', rule({ frequency: 'weekly', interval: 1, days_of_week: [1] }));
+
+  const result = expandRecurringEvents([event], {
+    start: new Date('2026-07-26T15:00:00.000Z'),
+    end: new Date('2026-07-26T18:00:00.000Z'),
+  }, [exception({ occurrence_date: '2026-07-27', override_data: { starts_at: '2026-07-26T17:00:00.000Z' } })]);
+
+  assert.equal(result.occurrences[0].occurrence_id, 'event-1:2026-07-27');
+  assert.equal(result.occurrences[0].occurrence_starts_at, '2026-07-26T17:00:00.000Z');
+});
+
+test('includes an override moved into the visible range and excludes it from its scheduled range', () => {
+  const event = eventWithRule('2026-07-20T11:00:00.000Z', rule({ frequency: 'weekly', interval: 1, days_of_week: [1] }));
+  const moved = exception({ occurrence_date: '2026-07-20', override_data: { starts_at: '2026-07-22T11:00:00.000Z' } });
+
+  const movedIntoRange = expandRecurringEvents([event], {
+    start: new Date('2026-07-22T00:00:00.000Z'),
+    end: new Date('2026-07-22T23:59:59.999Z'),
+  }, [moved]);
+  const movedOutOfRange = expandRecurringEvents([event], {
+    start: new Date('2026-07-20T00:00:00.000Z'),
+    end: new Date('2026-07-20T23:59:59.999Z'),
+  }, [moved]);
+
+  assert.deepEqual(movedIntoRange.occurrences.map((occurrence) => occurrence.occurrence_id), ['event-1:2026-07-20']);
+  assert.deepEqual(movedOutOfRange.occurrences, []);
+});
+
+test('ignores invalid exceptions safely', () => {
+  const event = eventWithRule('2026-07-27T11:00:00.000Z', rule({ frequency: 'weekly', interval: 1, days_of_week: [1] }));
+
+  const result = expandRecurringEvents([event], {
+    start: new Date('2026-07-27T00:00:00.000Z'),
+    end: new Date('2026-07-27T23:59:59.999Z'),
+  }, [exception({ override_data: { starts_at: 'not-a-date', owner_user_id: 'not-allowed' } })]);
+
+  assert.equal(result.occurrences.length, 1);
+  assert.equal(result.occurrences[0].occurrence_starts_at, '2026-07-27T11:00:00.000Z');
 });
 
 test('builds exact Today, Week, and 42-cell Month visible ranges', () => {

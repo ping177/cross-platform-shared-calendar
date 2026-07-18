@@ -1,4 +1,4 @@
-import type { CalendarEvent, CalendarOccurrence, CalendarOccurrenceRange, RecurrenceRule } from '../types';
+import type { CalendarEvent, CalendarOccurrence, CalendarOccurrenceRange, EventOccurrenceException, RecurrenceRule } from '../types';
 
 export const MAX_OCCURRENCE_CANDIDATES = 500;
 
@@ -10,6 +10,13 @@ type LocalDateTime = {
   minute: number;
   second: number;
   millisecond: number;
+};
+
+type OccurrenceOverride = {
+  starts_at?: string;
+  ends_at?: string | null;
+  title?: string;
+  description?: string | null;
 };
 
 export type RecurrenceRuleParseResult =
@@ -43,6 +50,10 @@ const formatterCache = new Map<string, Intl.DateTimeFormat>();
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function hasOwn(value: object, key: string) {
+  return Object.prototype.hasOwnProperty.call(value, key);
 }
 
 function isIntegerInRange(value: unknown, minimum: number, maximum: number): value is number {
@@ -314,13 +325,80 @@ function zonedDateTimeToInstant(local: LocalDateTime, timeZone: string) {
   return firstAfterGap ?? candidate;
 }
 
-function occurrenceFor(event: CalendarEvent, start: Date, duration: number | null): CalendarOccurrence {
-  const occurrenceStart = start.toISOString();
+function localDateString(date: Date, timeZone: string) {
+  const local = localParts(date, timeZone);
+  return `${local.year.toString().padStart(4, '0')}-${local.month.toString().padStart(2, '0')}-${local.day.toString().padStart(2, '0')}`;
+}
+
+function validDate(value: unknown): value is string {
+  return typeof value === 'string' && !Number.isNaN(new Date(value).getTime());
+}
+
+function parseOccurrenceOverride(exception: EventOccurrenceException): OccurrenceOverride | null {
+  if (exception.exception_type !== 'override' || !isRecord(exception.override_data)) {
+    return null;
+  }
+
+  const data = exception.override_data;
+  const override: OccurrenceOverride = {};
+
+  if (hasOwn(data, 'starts_at')) {
+    if (!validDate(data.starts_at)) {
+      return null;
+    }
+    override.starts_at = data.starts_at;
+  }
+
+  if (hasOwn(data, 'ends_at')) {
+    if (data.ends_at !== null && !validDate(data.ends_at)) {
+      return null;
+    }
+    override.ends_at = data.ends_at;
+  }
+
+  if (hasOwn(data, 'title')) {
+    if (typeof data.title !== 'string') {
+      return null;
+    }
+    override.title = data.title;
+  }
+
+  if (hasOwn(data, 'description')) {
+    if (data.description !== null && typeof data.description !== 'string') {
+      return null;
+    }
+    override.description = data.description;
+  }
+
+  return override;
+}
+
+function occurrenceFor(
+  event: CalendarEvent,
+  scheduledStart: Date,
+  duration: number | null,
+  occurrenceDate: string,
+  override: OccurrenceOverride | null = null,
+): CalendarOccurrence | null {
+  const occurrenceStart = override?.starts_at ?? scheduledStart.toISOString();
+  const start = new Date(occurrenceStart);
+  const occurrenceEnd: string | null = override && hasOwn(override, 'ends_at')
+    ? override.ends_at ?? null
+    : duration === null ? null : new Date(start.getTime() + duration).toISOString();
+
+  if (occurrenceEnd !== null && new Date(occurrenceEnd).getTime() < start.getTime()) {
+    return null;
+  }
+
   return {
-    occurrence_id: `${event.id}:${occurrenceStart}`,
+    occurrence_id: `${event.id}:${occurrenceDate}`,
+    occurrence_date: occurrenceDate,
     source_event_id: event.id,
     occurrence_starts_at: occurrenceStart,
-    occurrence_ends_at: duration === null ? null : new Date(start.getTime() + duration).toISOString(),
+    occurrence_ends_at: occurrenceEnd,
+    title: override?.title ?? event.title,
+    description: override && hasOwn(override, 'description') ? override.description ?? null : event.description,
+    all_day: event.all_day,
     source_event: event,
   };
 }
@@ -334,7 +412,56 @@ function ceilToInterval(value: number, interval: number) {
   return Math.max(0, Math.ceil(value / interval));
 }
 
-export function expandEventOccurrences(event: CalendarEvent, range: CalendarOccurrenceRange): OccurrenceExpansionResult {
+function isScheduledOccurrence(
+  event: CalendarEvent,
+  rule: RecurrenceRule,
+  anchor: LocalDateTime,
+  local: LocalDateTime,
+  scheduledStart: Date,
+) {
+  if (compareLocalDate(local, anchor) < 0 || (event.recurrence_until !== null && scheduledStart >= new Date(event.recurrence_until))) {
+    return false;
+  }
+
+  if (compareLocalDate(local, anchor) === 0) {
+    return true;
+  }
+
+  if (rule.frequency === 'daily') {
+    return daysBetween(anchor, local) % rule.interval === 0;
+  }
+
+  if (rule.frequency === 'weekly') {
+    const weekDifference = Math.floor(daysBetween(startOfWeek(anchor), startOfWeek(local)) / 7);
+    return weekDifference >= 0 && weekDifference % rule.interval === 0 && rule.days_of_week.includes(weekdayForDate(new Date(Date.UTC(local.year, local.month - 1, local.day))));
+  }
+
+  if (rule.frequency === 'monthly') {
+    const monthDifference = (local.year - anchor.year) * 12 + local.month - anchor.month;
+    const expectedDay = rule.day_of_month === 'last_day' ? daysInMonth(local.year, local.month) : rule.day_of_month;
+    return monthDifference >= 0 && monthDifference % rule.interval === 0 && local.day === expectedDay;
+  }
+
+  const yearDifference = local.year - anchor.year;
+  return yearDifference >= 0 && yearDifference % rule.interval === 0 && local.month === rule.month && local.day === rule.day;
+}
+
+function scheduledStartForException(event: CalendarEvent, rule: RecurrenceRule, anchor: LocalDateTime, exception: EventOccurrenceException) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(exception.occurrence_date)) {
+    return null;
+  }
+
+  const [year, month, day] = exception.occurrence_date.split('-').map(Number);
+  if (month < 1 || month > 12 || day < 1 || day > daysInMonth(year, month)) {
+    return null;
+  }
+
+  const local = { year, month, day, hour: anchor.hour, minute: anchor.minute, second: anchor.second, millisecond: anchor.millisecond };
+  const scheduledStart = zonedDateTimeToInstant(local, rule.time_zone);
+  return isScheduledOccurrence(event, rule, anchor, local, scheduledStart) ? scheduledStart : null;
+}
+
+export function expandEventOccurrences(event: CalendarEvent, range: CalendarOccurrenceRange, exceptions: EventOccurrenceException[] = []): OccurrenceExpansionResult {
   const sourceStart = new Date(event.starts_at);
   const sourceEnd = event.ends_at ? new Date(event.ends_at) : null;
   if (Number.isNaN(sourceStart.getTime()) || Number.isNaN(range.start.getTime()) || Number.isNaN(range.end.getTime()) || range.start > range.end) {
@@ -348,7 +475,7 @@ export function expandEventOccurrences(event: CalendarEvent, range: CalendarOccu
 
   if (event.recurrence_rule === null) {
     return intersectsRange(sourceStart, duration, range)
-      ? { occurrences: [occurrenceFor(event, sourceStart, duration)], error: null }
+      ? { occurrences: [occurrenceFor(event, sourceStart, duration, sourceStart.toISOString().slice(0, 10))].filter((occurrence): occurrence is CalendarOccurrence => occurrence !== null), error: null }
       : { occurrences: [], error: null };
   }
 
@@ -370,6 +497,9 @@ export function expandEventOccurrences(event: CalendarEvent, range: CalendarOccu
     }
 
     const instant = zonedDateTimeToInstant(local, rule.time_zone);
+    if (event.recurrence_until !== null && instant >= new Date(event.recurrence_until)) {
+      return;
+    }
     const key = instant.toISOString();
     if (candidates.has(key)) {
       return;
@@ -459,21 +589,43 @@ export function expandEventOccurrences(event: CalendarEvent, range: CalendarOccu
     return { occurrences: [], error: `重复日程在当前范围内超过 ${MAX_OCCURRENCE_CANDIDATES} 个候选。` };
   }
 
-  return {
-    occurrences: [...candidates.values()]
-      .filter((candidate) => intersectsRange(candidate, duration, range))
-      .sort((left, right) => left.getTime() - right.getTime())
-      .map((candidate) => occurrenceFor(event, candidate, duration)),
-    error: null,
-  };
+  const eventExceptions = exceptions.filter((exception) => exception.event_id === event.id);
+  const exceptionsByDate = new Map(eventExceptions.map((exception) => [exception.occurrence_date, exception]));
+
+  for (const exception of eventExceptions) {
+    const override = parseOccurrenceOverride(exception);
+    if (!override) {
+      continue;
+    }
+
+    const scheduledStart = scheduledStartForException(event, rule, anchor, exception);
+    if (scheduledStart) {
+      candidates.set(scheduledStart.toISOString(), scheduledStart);
+    }
+  }
+
+  const occurrences = [...candidates.values()]
+    .map((scheduledStart) => {
+      const occurrenceDate = localDateString(scheduledStart, rule.time_zone);
+      const exception = exceptionsByDate.get(occurrenceDate);
+      if (exception?.exception_type === 'deleted') {
+        return null;
+      }
+      return occurrenceFor(event, scheduledStart, duration, occurrenceDate, exception ? parseOccurrenceOverride(exception) : null);
+    })
+    .filter((occurrence): occurrence is CalendarOccurrence => occurrence !== null)
+    .filter((occurrence) => intersectsRange(new Date(occurrence.occurrence_starts_at), occurrence.occurrence_ends_at === null ? null : new Date(occurrence.occurrence_ends_at).getTime() - new Date(occurrence.occurrence_starts_at).getTime(), range))
+    .sort((left, right) => left.occurrence_starts_at.localeCompare(right.occurrence_starts_at));
+
+  return { occurrences, error: null };
 }
 
-export function expandRecurringEvents(events: CalendarEvent[], range: CalendarOccurrenceRange): RecurringEventsExpansionResult {
+export function expandRecurringEvents(events: CalendarEvent[], range: CalendarOccurrenceRange, exceptions: EventOccurrenceException[] = []): RecurringEventsExpansionResult {
   const occurrences: CalendarOccurrence[] = [];
   const errors: RecurringEventsExpansionResult['errors'] = [];
 
   for (const event of events) {
-    const result = expandEventOccurrences(event, range);
+    const result = expandEventOccurrences(event, range, exceptions);
     if (result.error) {
       errors.push({ source_event_id: event.id, error: result.error });
       continue;

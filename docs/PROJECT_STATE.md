@@ -8,15 +8,15 @@
 
 ## Current version
 
-v0.1.7.1 (Recurrence Exceptions — Database Foundation)
+v0.1.7.2 (Exception Expansion Engine)
 
 ## Current status
 
-v0.1.7.1 数据库基础层已在仓库中实现，尚未应用到任何 Supabase 环境：新增 additive patch、`events` lineage/cutoff 设计的 SQL 基础、exception table、继承 event 权限的 RLS，以及 pgTAP CRUD/RLS 测试。`schema.sql` 已补充 authenticated 基础 table GRANT，使请求可进入既有 RLS 判断；未放宽 policy。未修改 recurrence expansion、frontend、UI、Realtime、依赖或现有 patch。v0.1.6 最终真实浏览器与双客户端 Realtime 验收仍待执行。
+v0.1.7.2 的纯前端 exception expansion 已在仓库实现：读取 source events 与 `event_occurrence_exceptions`，以 source rule timezone 的 scheduled local date 匹配异常，投影 deleted/override 结果，并支持 moved override 跨 Today、Week、Month 可见范围。当地 Supabase schema 已包含 v0.1.7.1 foundation，且 pgTAP 通过；本次未修改或向 Production 应用 SQL。Local Supabase Email OTP 已恢复并完成 authenticated Calendar 登录；exception 的 Today/Week/Month 可视验收仍待执行。
 
 ## Latest completed
 
-v0.1.7.1 database foundation completed locally: `2026-07-18-v0.1.7.1-database-foundation.sql` adds nullable event lineage/cutoff fields, backfills recurring roots, creates `event_occurrence_exceptions`, applies segment-local validation and inherited RLS, and adds a pgTAP test. `schema.sql` now grants only policy-matched base operations to `authenticated`, so RLS can evaluate them. No patch was applied to Production; pgTAP execution is pending local Docker/Postgres.
+v0.1.7.2 exception expansion completed locally: occurrence IDs now use `event_id:occurrence_date`; deleted exceptions suppress scheduled candidates; whitelisted override fields update display values while starts-only changes preserve duration; and overrides moved into/out of the active range are reprojected correctly. Local integration confirmed the exception-table contract and passed the v0.1.7.1 pgTAP suite (18 tests); isolated deleted/override rows were inserted and read back successfully. Local Auth now sends Mailpit-delivered 8-digit OTPs compatible with the existing UI, and browser OTP verification reaches the Calendar page.
 
 ## Deployment
 
@@ -39,19 +39,20 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 - v0.1.6.2 — Recurring Events Calendar Integration（occurrence projection，未实现 recurrence UI）
 - v0.1.6.3 — Recurring Events UI Implementation（source-series form，待最终浏览器/Realtime 验收）
 - v0.1.7 — Recurrence Exceptions & Series Editing（设计完成，待人工 review）
-- v0.1.7.1 — Recurrence Exceptions Database Foundation（migration + RLS + pgTAP，待数据库执行与人工 review）
+- v0.1.7.1 — Recurrence Exceptions Database Foundation（local schema/pgTAP 已验证；Production 待单独审批）
+- v0.1.7.2 — Exception Expansion Engine（纯 projection + reader integration；local Authenticated Calendar 登录已验证，exception 可视验收待执行）
 
 ## Last verified
 
-2026-07-17
+2026-07-18
 
 ## Next Action
 
-Install and start Docker Desktop locally, then run `supabase start` and `supabase test db --local supabase/tests/2026-07-18-v0.1.7.1-database-foundation.test.sql`. The `schema.sql` authenticated GRANT prerequisite is now present; verify that RLS, not table privilege denial, controls the test cases. `supabase/config.toml` was initialized on 2026-07-18 with `project_id = "cross-platform-shared-calendar"`; its prior absence caused the CLI configuration failure. Do not apply the patch to Production without a separate preflight/approval. After database verification, continue the documented pure-expansion slice; separately retain the pending v0.1.6 two-client Realtime and device acceptance.
+Use the existing isolated local exception rows to complete Today/Week/Month browser verification: deleted occurrence absent, override time changed, and stable occurrence identity. Local Email OTP can use the Mailpit-delivered 8-digit code at `http://127.0.0.1:5175`. Do not apply a patch to Production without a separate preflight/approval.
 
 ## Blockers
 
-Final acceptance is blocked on two existing Email OTP sessions for real Realtime transport verification and supported-device browser smoke. Local Supabase start/pgTAP is additionally blocked because Docker Desktop and the Docker CLI are not installed on this machine; the repaired `config.toml` has passed CLI configuration parsing. Do not alter Auth settings to bypass it. Native `Intl` is used without a new dependency; DST-zone behavior still needs supported-browser verification before it is claimed.
+Final acceptance is blocked on two existing Email OTP sessions for real Realtime transport verification and supported-device browser smoke. Local v0.1.7.2 exception Calendar verification is pending but no longer Auth-blocked. Native `Intl` is used without a new dependency; DST-zone behavior still needs supported-browser verification before it is claimed.
 
 ## Important Context
 
@@ -77,10 +78,10 @@ Final acceptance is blocked on two existing Email OTP sessions for real Realtime
 - New-user first-login, new-space creation, and profiles/display_name behavior passed in v0.1.5 Production acceptance. The single-member-space path remains intentionally unverified.
 - v0.1.6 recurrence rules are source-event metadata only. Existing event identity fields remain immutable; no recurrence table, occurrence materialization, exception model, RLS change, Realtime configuration change, reminder, or notification work is included. v0.1.6.2 projects only the current Today/Week/Month visible range and uses occurrence IDs only as display keys; v0.1.6.3 writes recurrence rules only on source events and labels all recurring edits/deletes as whole-series actions.
 - v0.1.7 is design-only. The proposed design is in `docs/RECURRENCE_EXCEPTIONS_DESIGN.md`; it has not added `event_occurrence_exceptions`, source lineage/cutoff fields, RPCs, RLS, Realtime publication, or UI behavior.
-- v0.1.7.1 has a local, un-applied database patch and pgTAP test only. It intentionally omits exception projection, split/end-from-here RPCs, frontend/UI changes, and Realtime publication/subscriptions. Local Supabase CLI testing is currently blocked because the local Postgres instance is unavailable; no linked/Production fallback was attempted.
-- `supabase/config.toml` was absent and is now initialized with a stable local `project_id`; `supabase start` now reaches Docker startup instead of failing configuration validation. Docker Desktop/CLI are absent, so no local containers can start until the user installs and starts Docker.
+- v0.1.7.1 foundation is present in the local schema and its 18-test pgTAP suite passes. v0.1.7.2 now has a compatible reader/projection implementation, but it must not deploy before a target environment contains the exception table. Both versions intentionally omit mutation UI, split/end-from-here RPCs, and Realtime publication/subscriptions.
+- `supabase/config.toml` uses a stable local `project_id`; the local database/API/Auth/Mailpit stack is reachable. It configures a local 8-digit Mailpit OTP template and port-5175 redirect URL only; the local status currently reports stopped imgproxy and pooler services, which do not block Postgres, Auth, Mailpit, or pgTAP validation.
 - The engine uses native `Intl` IANA timezone formatting/conversion and rejects invalid rule shapes at both client and database boundaries. It returns an explicit error instead of a partial result after 500 candidates.
 
 ## Handoff Prompt
 
-Continue 跨系统共享日历 by installing/starting Docker Desktop, then using the repaired local `supabase/config.toml` to run `supabase start` and the un-applied v0.1.7.1 pgTAP suite locally. Apply no patch to Production without explicit preflight/approval. Then implement the approved pure-expansion slice; later work must preserve `series_id + parent_event_id`, segment-local exceptions, and count-confirmed invalid-future-exception cleanup. Do not loosen RLS, alter Auth settings, materialize occurrences, or expand into reminders, notifications, colors, or multi-space. Also preserve the pending v0.1.6 two-client/device recurrence acceptance.
+Continue 跨系统共享日历 by signing in to the local Vite app with a Mailpit-delivered 8-digit OTP and verifying the existing isolated v0.1.7.2 deleted/override rows in Today, Week, and Month. Apply no patch to Production without explicit preflight/approval. Do not add mutation UI, split/end-from-here behavior, Realtime, reminders, or materialized occurrences without a new approved task. Also preserve the pending v0.1.6 two-client/device recurrence acceptance.
