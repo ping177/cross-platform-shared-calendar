@@ -12,7 +12,13 @@ Passed locally on 2026-07-19:
 - Authenticated local UI smoke passed: only-this edit, this-and-future edit, only-this delete, this-and-future delete, and the save/delete action chooser.
 - Local PostgREST cache recovery: database inspection confirmed `delete_occurrence_and_future(uuid, date, timestamptz)` already exists; a local `NOTIFY pgrst, 'reload schema'` completed and PostgREST logged a 15-function schema cache. The existing v0.1.7.3.3.1 patch was subsequently applied once to Production, its cache was reloaded, and the final RPC signatures/permissions were verified. No SQL file changed.
 
-The current frontend remains uncommitted, unpushed, and undeployed. Production frontend acceptance is therefore not claimed. Two-session Realtime and narrow iPhone Safari / Android Chrome layout checks remain pending. `delete_logical_series`, entire-series UI, recurrence-rule changes, and all-day changes remain out of scope; v0.1.7.3.4 owns entire-series UI.
+Production acceptance completed on 2026-07-19:
+
+- Passed on Production Desktop and iPhone Standalone PWA: 「仅修改当前事件」、「修改当前及未来事件」、「仅删除当前事件」and「删除当前及未来事件」.
+- Passed: the Production alias serves the v0.1.7.3.3.2 build and the recurrence action chooser retains the sheet until the selected mutation succeeds and refresh completes.
+- iOS Standalone PWA cannot actively refresh itself. This is an iOS system limitation, not an application defect; the smoke scope verified the supported manual interaction flow.
+- Deferred by product decision: `delete_logical_series` remains an available backend RPC but has no frontend entry point. Whole-logical-lineage deletion requires a separately approved UX and safeguard slice.
+- Two-session Realtime and DST-zone behavior remain separate verification work. Recurrence-rule and all-day changes remain out of scope for occurrence edits.
 
 ## v0.1.7.3.3.1 Split RPC Correctness Patch
 

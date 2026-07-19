@@ -6,13 +6,13 @@
 
 ## P1 - Near-Term Product Polish
 
-- v0.1.7.3.3 Split Recurring Event: add the approved “此次及未来事件” flow through `split_recurring_event`. It must cut off the old segment, create a child with `series_id` / `parent_event_id` lineage, use the modified occurrence as the future anchor, rebuild recurrence cadence, and separately verify timezone/DST behavior. Do not include logical-series deletion UI in this slice.
 - Continue event create/edit UX polish after the v0.1.3 default end-time improvement.
 - Establish a simple backup and restore flow for Supabase data.
 - Occasionally check that Vercel Cron invocations continue to return HTTP 200 and that Supabase remains Active.
 
 ## P2 - Product Extensions
 
+- Deferred: do not add a `delete_logical_series` frontend entry point. The permission-checked backend RPC remains available for controlled operational use, but deleting an entire logical lineage is high-impact and needs a separately approved product/UX scope, including explicit copy and safeguards.
 - Space member management and invitation experience improvements.
 - Evaluate multi-member or multi-space expansion beyond the current two-person v0.1 model.
 - Reconsider `space_members.nickname` only after multi-space support creates a real per-space naming need.
@@ -31,6 +31,13 @@
 - External calendar sync options such as Apple Calendar, Google Calendar, or CalDAV.
 
 ## Completed and Deferred History
+
+### v0.1.7.3.3.2
+
+- Completed: Production recurrence scope UI supports 「仅修改当前事件 / 修改当前及未来事件 / 仅删除当前事件 / 删除当前及未来事件」.
+- Completed: final Production recurrence smoke passed on Desktop and iPhone Standalone PWA.
+- Deferred by product decision: `delete_logical_series` remains a backend RPC with no UI entry point, because whole-lineage deletion is high-impact and needs a separately approved safeguard/UX slice.
+- Known platform behavior: iOS Standalone PWA cannot actively refresh itself; this iOS system limitation is not a project defect.
 
 ### v0.1-smoke-test
 
