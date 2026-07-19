@@ -1,6 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { deleteMutationRoute, occurrenceOverrideRpcArgs, saveMutationRoute } from '../src/lib/event-edit-mutation.ts';
+import {
+  deleteMutationRoute,
+  deleteOccurrenceAndFutureRpcArgs,
+  occurrenceDeleteRpcArgs,
+  occurrenceOverrideRpcArgs,
+  saveMutationRoute,
+  splitRecurringEventRpcArgs,
+} from '../src/lib/event-edit-mutation.ts';
 import { eventEditTargetForEvent, eventEditTargetForOccurrence } from '../src/lib/event-edit-target.ts';
 import type { CalendarEvent, CalendarOccurrence } from '../src/types.ts';
 
@@ -46,7 +53,11 @@ const draft = {
 };
 
 test('routes an occurrence save to the override RPC', () => {
-  assert.equal(saveMutationRoute(eventEditTargetForOccurrence(occurrence)), 'occurrence-override');
+  assert.equal(saveMutationRoute(eventEditTargetForOccurrence(occurrence), 'only-this'), 'occurrence-override');
+});
+
+test('routes an occurrence future save to the split RPC', () => {
+  assert.equal(saveMutationRoute(eventEditTargetForOccurrence(occurrence), 'this-and-future'), 'recurring-split');
 });
 
 test('routes a normal event save to events.update', () => {
@@ -54,7 +65,11 @@ test('routes a normal event save to events.update', () => {
 });
 
 test('routes an occurrence delete to the delete_occurrence RPC', () => {
-  assert.equal(deleteMutationRoute(eventEditTargetForOccurrence(occurrence)), 'occurrence-delete');
+  assert.equal(deleteMutationRoute(eventEditTargetForOccurrence(occurrence), 'only-this'), 'occurrence-delete');
+});
+
+test('routes an occurrence future delete to the delete_occurrence_and_future RPC', () => {
+  assert.equal(deleteMutationRoute(eventEditTargetForOccurrence(occurrence), 'this-and-future'), 'occurrence-future-delete');
 });
 
 test('routes a normal event delete to events.delete', () => {
@@ -82,4 +97,41 @@ test('builds an override RPC payload without all_day or recurrence_rule', () => 
   });
   assert.equal('all_day' in args.p_override_data, false);
   assert.equal('recurrence_rule' in args.p_override_data, false);
+});
+
+test('builds a split RPC payload from the hydrated draft and source-only recurrence fields', () => {
+  const target = eventEditTargetForOccurrence(occurrence);
+  if (target.kind !== 'occurrence') {
+    throw new Error('Expected occurrence target');
+  }
+
+  assert.deepEqual(splitRecurringEventRpcArgs(target, draft, (value) => `iso:${value}`), {
+    p_source_event_id: 'event-1',
+    p_split_occurrence_date: '2026-07-27',
+    p_new_title: 'Edited occurrence',
+    p_new_description: 'Edited description',
+    p_new_starts_at: 'iso:2026-07-27T19:00',
+    p_new_ends_at: 'iso:2026-07-27T20:30',
+    p_new_all_day: false,
+    p_new_recurrence_rule: event.recurrence_rule,
+    p_expected_updated_at: '2026-07-02T00:00:00.000Z',
+  });
+});
+
+test('builds both occurrence delete payloads with the source revision', () => {
+  const target = eventEditTargetForOccurrence(occurrence);
+  if (target.kind !== 'occurrence') {
+    throw new Error('Expected occurrence target');
+  }
+
+  assert.deepEqual(occurrenceDeleteRpcArgs(target), {
+    p_event_id: 'event-1',
+    p_occurrence_date: '2026-07-27',
+    p_expected_updated_at: '2026-07-02T00:00:00.000Z',
+  });
+  assert.deepEqual(deleteOccurrenceAndFutureRpcArgs(target), {
+    p_event_id: 'event-1',
+    p_occurrence_date: '2026-07-27',
+    p_expected_updated_at: '2026-07-02T00:00:00.000Z',
+  });
 });

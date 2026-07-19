@@ -16,9 +16,17 @@ import { MemberSheet } from './components/MemberSheet';
 import { RecurrenceControls } from './components/RecurrenceControls';
 import { calendarVisibleRange } from './lib/calendar-display';
 import { draftFromEditTarget, type EventDraft } from './lib/event-edit-draft';
-import { deleteMutationRoute, occurrenceOverrideRpcArgs, saveMutationRoute } from './lib/event-edit-mutation';
+import {
+  deleteMutationRoute,
+  deleteOccurrenceAndFutureRpcArgs,
+  occurrenceDeleteRpcArgs,
+  occurrenceOverrideRpcArgs,
+  saveMutationRoute,
+  splitRecurringEventRpcArgs,
+  type OccurrenceScope,
+} from './lib/event-edit-mutation';
 import { eventEditTargetForEvent, eventEditTargetForOccurrence } from './lib/event-edit-target';
-import { eventEditUiState } from './lib/event-edit-ui';
+import { eventEditUiState, occurrenceActionCopy, type OccurrenceAction } from './lib/event-edit-ui';
 import { memberDisplayNameForUser } from './lib/member';
 import { browserTimeZone, defaultRecurrenceDraft, expandRecurringEvents, recurrenceDraftFromRule, recurrenceRuleFromDraft, recurrenceSummary, type RecurrenceDraft } from './lib/recurrence';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
@@ -78,6 +86,10 @@ function draftFromEvent(event: CalendarEvent, userId: string): EventDraft {
 
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === 'object' && error !== null && 'message' in error && typeof error.message === 'string') {
     return error.message;
   }
 
@@ -406,7 +418,7 @@ function CalendarApp({ session }: { session: Session }) {
 
     if (eventError) {
       setError(eventError.message);
-      return;
+      throw eventError;
     }
 
     const loadedEvents = (data ?? []) as CalendarEvent[];
@@ -425,7 +437,7 @@ function CalendarApp({ session }: { session: Session }) {
 
     if (exceptionError) {
       setError(exceptionError.message);
-      return;
+      throw exceptionError;
     }
 
     setEvents(loadedEvents);
@@ -445,14 +457,14 @@ function CalendarApp({ session }: { session: Session }) {
     }
 
     void loadMembers(space.id);
-    void loadEvents(space.id);
+    void loadEvents(space.id).catch(() => undefined);
 
     const channel = supabase
       .channel(`events:${space.id}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'events', filter: `space_id=eq.${space.id}` },
-        () => void loadEvents(space.id),
+        () => void loadEvents(space.id).catch(() => undefined),
       )
       .subscribe();
 
@@ -554,7 +566,7 @@ function CalendarApp({ session }: { session: Session }) {
             setShowNewEvent(false);
             setEditingTarget(null);
           }}
-          onSaved={() => void loadEvents(space.id)}
+          onSaved={() => loadEvents(space.id)}
         />
       )}
 
@@ -853,7 +865,7 @@ function EventSheet({
   members: SpaceMember[];
   partnerId: string | null;
   onClose: () => void;
-  onSaved: () => void;
+  onSaved: () => Promise<void> | void;
 }) {
   const event = target?.event ?? null;
   const occurrenceId = target?.kind === 'occurrence' ? target.occurrence.occurrence_id : null;
@@ -867,16 +879,28 @@ function EventSheet({
   const [endManuallyEdited, setEndManuallyEdited] = useState(() => Boolean(event));
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-
   const canChoosePartner = Boolean(partnerId);
   const canManage = !event || canManageEvent(event, userId);
   const editUi = eventEditUiState(target);
+  const [pendingOccurrenceAction, setPendingOccurrenceAction] = useState<OccurrenceAction | null>(null);
 
   useEffect(() => {
     setDraft(target ? draftFromEditTarget(target, draftFromEvent(target.event, userId), toDateInputValue) : emptyDraft());
     setEndManuallyEdited(Boolean(event));
     setError('');
+    setBusy(false);
+    setPendingOccurrenceAction(null);
   }, [event?.id, occurrenceId, userId]);
+
+  async function completeSuccessfulMutation() {
+    try {
+      await onSaved();
+      onClose();
+    } catch (refreshError) {
+      setBusy(false);
+      setError(getErrorMessage(refreshError));
+    }
+  }
 
   function updateStart(value: string) {
     setDraft((currentDraft) => ({
@@ -902,6 +926,36 @@ function EventSheet({
     setDraft((currentDraft) => ({ ...currentDraft, recurrence }));
   }
 
+  async function executeOccurrenceAction(scope: OccurrenceScope) {
+    if (target?.kind !== 'occurrence' || !pendingOccurrenceAction) {
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const result = pendingOccurrenceAction === 'save'
+        ? saveMutationRoute(target, scope) === 'recurring-split'
+          ? await supabase.rpc('split_recurring_event', splitRecurringEventRpcArgs(target, draft, fromDateInputValue))
+          : await supabase.rpc('upsert_occurrence_override', occurrenceOverrideRpcArgs(target, draft, fromDateInputValue))
+        : deleteMutationRoute(target, scope) === 'occurrence-future-delete'
+          ? await supabase.rpc('delete_occurrence_and_future', deleteOccurrenceAndFutureRpcArgs(target))
+          : await supabase.rpc('delete_occurrence', occurrenceDeleteRpcArgs(target));
+
+      if (result.error) {
+        setBusy(false);
+        setPendingOccurrenceAction(null);
+        setError(result.error.message);
+        return;
+      }
+
+      await completeSuccessfulMutation();
+    } catch (mutationError) {
+      setBusy(false);
+      setPendingOccurrenceAction(null);
+      setError(getErrorMessage(mutationError));
+    }
+  }
+
   async function save(formEvent: React.FormEvent) {
     formEvent.preventDefault();
 
@@ -911,18 +965,8 @@ function EventSheet({
 
     setError('');
 
-    if (target?.kind === 'occurrence' && saveMutationRoute(target) === 'occurrence-override') {
-      setBusy(true);
-      const { error: overrideError } = await supabase.rpc('upsert_occurrence_override', occurrenceOverrideRpcArgs(target, draft, fromDateInputValue));
-      setBusy(false);
-
-      if (overrideError) {
-        setError(overrideError.message);
-        return;
-      }
-
-      onSaved();
-      onClose();
+    if (target?.kind === 'occurrence') {
+      setPendingOccurrenceAction('save');
       return;
     }
 
@@ -965,15 +1009,13 @@ function EventSheet({
       });
     }
 
-    setBusy(false);
-
     if (result.error) {
+      setBusy(false);
       setError(result.error.message);
       return;
     }
 
-    onSaved();
-    onClose();
+    await completeSuccessfulMutation();
   }
 
   async function deleteEvent() {
@@ -981,31 +1023,30 @@ function EventSheet({
       return;
     }
 
+    if (target?.kind === 'occurrence') {
+      setError('');
+      setPendingOccurrenceAction('delete');
+      return;
+    }
+
     setBusy(true);
-    const deleteResult = target?.kind === 'occurrence' && deleteMutationRoute(target) === 'occurrence-delete'
-      ? await supabase.rpc('delete_occurrence', {
-        p_event_id: target.event.id,
-        p_occurrence_date: target.occurrence.occurrence_date,
-        p_expected_updated_at: target.event.updated_at,
-      })
-      : await supabase.from('events').delete().eq('id', event.id);
-    setBusy(false);
+    const deleteResult = await supabase.from('events').delete().eq('id', event.id);
 
     if (deleteResult.error) {
+      setBusy(false);
       setError(deleteResult.error.message);
       return;
     }
 
-    onSaved();
-    onClose();
+    await completeSuccessfulMutation();
   }
 
   return (
     <div className="fixed inset-0 z-20 flex items-end bg-ink/35 md:items-center md:px-4 md:py-6">
       <div className="mx-auto max-h-[92dvh] w-full max-w-3xl overflow-y-auto overscroll-contain rounded-t-2xl bg-white p-5 shadow-soft safe-bottom md:max-h-[calc(100dvh-3rem)] md:rounded-lg">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold">{event ? canManage ? editUi.isRecurringOccurrenceEdit ? '编辑此重复事件' : event.recurrence_rule ? '编辑整个重复日程' : '编辑日程' : '日程详情' : '新建日程'}</h2>
-          <button className="grid h-10 w-10 place-items-center rounded-lg bg-mist" type="button" onClick={onClose} aria-label="关闭">
+          <h2 className="text-xl font-bold">{event ? canManage ? editUi.isRecurringOccurrenceEdit ? '编辑此重复事件' : '编辑日程' : '日程详情' : '新建日程'}</h2>
+          <button className="grid h-10 w-10 place-items-center rounded-lg bg-mist disabled:opacity-60" type="button" onClick={onClose} disabled={busy} aria-label="关闭">
             <X size={20} />
           </button>
         </div>
@@ -1025,8 +1066,10 @@ function EventSheet({
         ) : (
           <form className="mt-5 space-y-4" onSubmit={save}>
           {editUi.isRecurringOccurrenceEdit ? (
-            <p className="rounded-lg bg-teal/10 px-4 py-3 text-sm font-semibold text-teal">修改只影响当前这一日期。其他重复事件不会改变。</p>
-          ) : event?.recurrence_rule && <p className="rounded-lg bg-teal/10 px-4 py-3 text-sm font-semibold text-teal">保存或删除将应用于整个重复系列。</p>}
+            <p className="rounded-lg bg-teal/10 px-4 py-3 text-sm font-semibold text-teal">
+              修改或删除时，可选择仅影响当前事件，或影响当前及未来事件。
+            </p>
+          ) : null}
           <Field label="标题">
             <input className="w-full rounded-lg border border-ink/15 px-4 py-3 outline-none focus:border-teal" required value={draft.title} onChange={(inputEvent) => setDraft({ ...draft, title: inputEvent.target.value })} />
           </Field>
@@ -1074,8 +1117,8 @@ function EventSheet({
 
           <div className="flex gap-3 pt-2">
             {event && (
-              <button className={`${event.recurrence_rule ? 'h-12 rounded-lg bg-coral/10 px-4 text-sm font-semibold' : 'grid h-12 w-12 place-items-center rounded-lg bg-coral/10'} text-coral`} type="button" onClick={deleteEvent} disabled={busy} aria-label={editUi.isRecurringOccurrenceEdit ? '删除此事件' : event.recurrence_rule ? '删除整个重复系列' : '删除日程'}>
-                {editUi.isRecurringOccurrenceEdit ? '删除此事件' : event.recurrence_rule ? '删除整个系列' : <Trash2 size={20} />}
+              <button className={`${editUi.isRecurringOccurrenceEdit ? 'h-12 rounded-lg bg-coral/10 px-4 text-sm font-semibold' : 'grid h-12 w-12 place-items-center rounded-lg bg-coral/10'} text-coral`} type="button" onClick={() => void deleteEvent()} disabled={busy} aria-label={editUi.isRecurringOccurrenceEdit ? '删除此事件' : '删除日程'}>
+                {editUi.isRecurringOccurrenceEdit ? '删除此事件' : <Trash2 size={20} />}
               </button>
             )}
             <button className="h-12 flex-1 rounded-lg bg-teal font-semibold text-white disabled:opacity-60" type="submit" disabled={busy}>
@@ -1085,6 +1128,15 @@ function EventSheet({
           </form>
         )}
       </div>
+      {pendingOccurrenceAction && (
+        <OccurrenceActionChooser
+          action={pendingOccurrenceAction}
+          scopes={editUi.occurrenceScopes}
+          busy={busy}
+          onCancel={() => setPendingOccurrenceAction(null)}
+          onSelect={(scope) => void executeOccurrenceAction(scope)}
+        />
+      )}
     </div>
   );
 }
@@ -1094,6 +1146,26 @@ function ReadOnlyField({ label, value }: { label: string; value: string }) {
     <div>
       <p className="text-sm font-semibold text-ink/55">{label}</p>
       <p className="mt-1 whitespace-pre-wrap rounded-lg bg-mist px-4 py-3 text-ink">{value}</p>
+    </div>
+  );
+}
+
+function OccurrenceActionChooser({ action, scopes, busy, onCancel, onSelect }: { action: OccurrenceAction; scopes: OccurrenceScope[]; busy: boolean; onCancel: () => void; onSelect: (scope: OccurrenceScope) => void }) {
+  return (
+    <div className="fixed inset-0 z-30 flex items-end bg-ink/35 md:items-center md:px-4" role="dialog" aria-modal="true" aria-label={occurrenceActionCopy(action, 'only-this').title}>
+      <section className="w-full rounded-t-2xl bg-white p-5 shadow-soft safe-bottom md:mx-auto md:max-w-md md:rounded-lg">
+        <h3 className="text-lg font-bold text-ink">{occurrenceActionCopy(action, 'only-this').title}</h3>
+        <div className="mt-4 space-y-2">
+          {scopes.map((scope) => (
+            <button key={scope} className={`h-12 w-full rounded-lg text-sm font-semibold disabled:opacity-60 ${action === 'delete' ? 'bg-coral/10 text-coral' : 'bg-teal/10 text-teal'}`} type="button" onClick={() => onSelect(scope)} disabled={busy}>
+              {occurrenceActionCopy(action, scope).label}
+            </button>
+          ))}
+        </div>
+        <button className="mt-3 h-12 w-full rounded-lg bg-mist text-sm font-semibold text-ink disabled:opacity-60" type="button" onClick={onCancel} disabled={busy}>
+          取消
+        </button>
+      </section>
     </div>
   );
 }

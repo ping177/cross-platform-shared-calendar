@@ -163,6 +163,33 @@ test('projects one-off and recurring source events into range-bounded display oc
   assert.equal(result.occurrences[1].source_event.id, result.occurrences[1].source_event_id);
 });
 
+test('projects a split series as one old occurrence followed by the child baseline', () => {
+  const oldSegment = {
+    ...eventWithRule('2026-07-20T11:00:00.000Z', rule({ frequency: 'weekly', interval: 1, days_of_week: [1] })),
+    id: 'event-old',
+    title: '旧基线',
+    recurrence_until: '2026-07-27T11:00:00.000Z',
+  };
+  const childSegment = {
+    ...eventWithRule('2026-07-27T12:00:00.000Z', rule({ frequency: 'weekly', interval: 1, days_of_week: [1] })),
+    id: 'event-child',
+    title: '新基线',
+    series_id: 'event-old',
+    parent_event_id: 'event-old',
+  };
+
+  const result = expandRecurringEvents([oldSegment, childSegment], {
+    start: new Date('2026-07-20T00:00:00.000Z'),
+    end: new Date('2026-08-03T23:59:59.999Z'),
+  });
+
+  assert.deepEqual(result.occurrences.map((occurrence) => [occurrence.occurrence_date, occurrence.source_event_id, occurrence.title]), [
+    ['2026-07-20', 'event-old', '旧基线'],
+    ['2026-07-27', 'event-child', '新基线'],
+    ['2026-08-03', 'event-child', '新基线'],
+  ]);
+});
+
 test('removes a scheduled occurrence with a deleted exception', () => {
   const event = eventWithRule('2026-07-20T11:00:00.000Z', rule({ frequency: 'weekly', interval: 1, days_of_week: [1] }));
 

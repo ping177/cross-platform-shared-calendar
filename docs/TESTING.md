@@ -1,5 +1,19 @@
 # Testing
 
+## v0.1.7.3.3.2 Frontend Scope Integration
+
+Passed locally on 2026-07-19:
+
+- `node --test tests/recurrence.test.ts tests/event-edit-target.test.ts tests/event-edit-draft.test.ts tests/event-edit-mutation.test.ts tests/event-edit-ui.test.ts` (41 tests).
+- Coverage includes ordinary-event route regression; occurrence only-this and this-and-future routes; final split/future-delete RPC parameter payloads; source all-day/rule/revision preservation; exactly two occurrence scopes and their copy; and projection of old/child split segments without a duplicate split date.
+- The UI helper coverage now asserts save/delete action-chooser copy for both scopes; the sheet no longer renders a persistent scope control.
+- `npm run build` and `git diff --check` passed.
+- Refresh error propagation is implemented so EventSheet's awaited `onSaved()` path retains the sheet when either events or exceptions reload fails; initial-load and Realtime fire-and-forget callers handle the resulting rejection after the page error is set.
+- Authenticated local UI smoke passed: only-this edit, this-and-future edit, only-this delete, this-and-future delete, and the save/delete action chooser.
+- Local PostgREST cache recovery: database inspection confirmed `delete_occurrence_and_future(uuid, date, timestamptz)` already exists; a local `NOTIFY pgrst, 'reload schema'` completed and PostgREST logged a 15-function schema cache. The existing v0.1.7.3.3.1 patch was subsequently applied once to Production, its cache was reloaded, and the final RPC signatures/permissions were verified. No SQL file changed.
+
+The current frontend remains uncommitted, unpushed, and undeployed. Production frontend acceptance is therefore not claimed. Two-session Realtime and narrow iPhone Safari / Android Chrome layout checks remain pending. `delete_logical_series`, entire-series UI, recurrence-rule changes, and all-day changes remain out of scope; v0.1.7.3.4 owns entire-series UI.
+
 ## v0.1.7.3.3.1 Split RPC Correctness Patch
 
 Passed locally on 2026-07-18. `supabase db reset --local --yes` resets the local Supabase instance but does not load this repository's `supabase/schema.sql`; the validated fresh bootstrap explicitly loaded that file through the local Postgres container. `schema.sql` is the latest complete bootstrap artifact, while `supabase/patches/*.sql` are ordered upgrades from an older database state.

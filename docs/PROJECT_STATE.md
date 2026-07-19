@@ -8,15 +8,15 @@
 
 ## Current version
 
-v0.1.7.3.3.1 (Split RPC Correctness Patch)
+v0.1.7.3.3.2 (Frontend Scope Integration)
 
 ## Current status
 
-v0.1.7.3.3.1 database foundation 已在本地 Supabase 验证；前端 scope integration 尚未开始，Production patch 与部署仍保持 e7decd1 状态。
+重复 occurrence 的「仅此事件 / 此次及未来事件」前端接入已通过 Node 回归、production build 与 authenticated 本地 UI smoke；Production 已部署 v0.1.7.3.3.1 数据库 patch，但当前 frontend 尚未 commit/push/部署。
 
 ## Latest completed
 
-v0.1.7.3.2 preserves `CalendarOccurrence → EventEditTarget → EventSheet` context. Occurrence drafts hydrate title, description, `occurrence_starts_at`, `occurrence_ends_at`, and all-day display state from the projection while the source event remains responsible for identity, permission, recurrence rule, and series metadata. Only-this save uses `upsert_occurrence_override`; delete uses `delete_occurrence`; override data is limited to `title`, `description`, `starts_at`, and `ends_at`. Occurrence mode does not allow recurrence-rule or all-day changes. The v0.1.7.3.1 Production patch is applied to `ximazjhxvmktpcdbypka`, its PostgREST schema cache is reloaded, and all four RPCs exist.
+v0.1.7.3.3.2 opens a compact EventSheet action chooser only after a recurring occurrence save/delete is requested; it offers only-this or this-and-future, then calls the approved RPC with source `all_day`, `recurrence_rule`, and `updated_at`. Authenticated local smoke passed for both edit/delete scopes and the chooser. Successful mutations await the full `loadEvents()` refresh, which reloads events and exceptions before projection; refresh or RPC errors retain the sheet. Production now has the v0.1.7.3.3.1 correctness patch and reloaded PostgREST cache, while this frontend remains uncommitted, unpushed, and undeployed. Entire-series UI remains v0.1.7.3.4 work.
 
 ## Deployment
 
@@ -44,6 +44,7 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 - v0.1.7.3 — Recurrence Editing Semantics Design（设计完成，待人工 review/implementation approval）
 - v0.1.7.3.1 — Database RPC Foundation（Production patch + PostgREST schema cache 已验证）
 - v0.1.7.3.2 — Frontend RPC Integration（only-this authenticated smoke 已通过）
+- v0.1.7.3.3.2 — Frontend Scope Integration（authenticated 本地 smoke、单测与 build 已通过；frontend 未部署）
 
 ## Last verified
 
@@ -51,11 +52,11 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 
 ## Next Action
 
-Start v0.1.7.3.3 Split Recurring Event as a separate approved slice: implement “此次及未来事件” with `split_recurring_event`, old-segment cutoff, child segment lineage, a modified occurrence as the future-segment anchor, rebuilt recurrence cadence, and dedicated timezone/DST validation. Do not treat logical-series deletion as completed.
+Review and commit the verified frontend scope integration when ready, then obtain explicit approval before any Production frontend deployment. Keep `delete_logical_series` and any entire-series UI deferred to v0.1.7.3.4.
 
 ## Blockers
 
-No blocker for v0.1.7.3.2. v0.1.7.3.3 requires separate UX, split-anchor, cadence, and timezone/DST approval/verification. Final two-session Realtime/device coverage remains a separate product-quality checkpoint.
+No code blocker. Two-session Realtime and mobile acceptance for the new scope UI remain unverified; Production frontend deployment requires separate explicit approval.
 
 ## Important Context
 
@@ -83,10 +84,10 @@ No blocker for v0.1.7.3.2. v0.1.7.3.3 requires separate UX, split-anchor, cadenc
 - The original v0.1.7 design is in `docs/RECURRENCE_EXCEPTIONS_DESIGN.md`. Its exception foundation, projection, database RPCs, and v0.1.7.3.2 only-this UI are now implemented; split/end-from-here UI, logical-series deletion UI, and exception Realtime publication remain future work.
 - v0.1.7.1 foundation is present in the local schema and its 18-test pgTAP suite passes. v0.1.7.2 has a compatible reader/projection implementation. v0.1.7.3.2 adds only-this mutation UI, but intentionally omits split/end-from-here UI, logical-series deletion UI, and exception Realtime publication/subscriptions.
 - v0.1.7.3 design treats `series_id` as the logical root and `parent_event_id` as the immediate predecessor. Exceptions stay attached to their original source segment; a split count-confirms and removes only old-segment exceptions made unreachable by the new cutoff. The actual exception schema uses `event_id`, `occurrence_date`, `exception_type`, and `override_data`.
-- v0.1.7.3.1 split currently retains all exceptions on the old segment and never migrates them; unreachable future exceptions are not cleaned in this foundation slice because no user count-confirmation UI/contract exists yet. Split also requires the child to retain the source recurrence timezone and begin on the selected local occurrence date.
+- The final split RPC moves future exceptions to the child, consumes a split-day override, rejects a split-day deletion, preserves source recurrence rule/all-day, and requires the child to start on the selected occurrence date. The v0.1.7.3.3.2 client passes source rule/all-day unchanged and relies on the RPC for all transaction work.
 - `supabase/config.toml` uses a stable local `project_id`; the local database/API/Auth/Mailpit stack is reachable. It configures a local 8-digit Mailpit OTP template and port-5175 redirect URL only; the local status currently reports stopped imgproxy and pooler services, which do not block Postgres, Auth, Mailpit, or pgTAP validation.
 - The engine uses native `Intl` IANA timezone formatting/conversion and rejects invalid rule shapes at both client and database boundaries. It returns an explicit error instead of a partial result after 500 candidates.
 
 ## Handoff Prompt
 
-Continue 跨系统共享日历 with a separately approved v0.1.7.3.3 Split Recurring Event slice. Preserve the verified only-this flow and use `split_recurring_event` rather than composing source updates in the client. Design the scope UI, child anchor/cadence reconstruction, old-segment cutoff, lineage, and timezone/DST checks before implementation. Do not add logical-series deletion UI, reminders, materialized occurrences, or unapproved Realtime behavior.
+Review and commit v0.1.7.3.3.2 when ready. Before a frontend deployment, obtain explicit approval and complete any desired two-session Realtime/mobile acceptance. Do not add logical-series deletion UI, recurrence/all-day editing, reminders, materialized occurrences, or unapproved Realtime behavior; v0.1.7.3.4 owns entire-series UI.

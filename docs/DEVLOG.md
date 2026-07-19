@@ -1,5 +1,14 @@
 # Development Log
 
+## 2026-07-19 - v0.1.7.3.3.2 Frontend Scope Integration
+
+- Replaced the persistent occurrence scope control and expanded delete confirmation with a compact, mobile-first action chooser. Save offers 「仅修改当前事件 / 修改当前及未来事件 / 取消」; delete offers 「仅删除当前事件 / 删除当前及未来事件 / 取消」. The chooser does not discard the draft and does not expose any entire-series action.
+- Diagnosed the local future-delete browser error without reading secrets: the database already contained `delete_occurrence_and_future(uuid, date, timestamptz)` from the existing correctness patch, but local PostgREST had a stale schema cache. Sent a local `NOTIFY pgrst, 'reload schema'`; logs confirmed a fresh cache with 15 functions. The reviewed v0.1.7.3.3.1 patch was subsequently applied once to Production and its PostgREST cache was reloaded; no SQL file changed.
+- Added EventSheet-local occurrence scope selection with exactly 「仅此事件」and「此次及未来事件」. Ordinary event CRUD has no scope selector; recurrence-rule and all-day controls remain unavailable for occurrence edits.
+- Only-this keeps `upsert_occurrence_override` / `delete_occurrence`. This-and-future now calls `split_recurring_event` / `delete_occurrence_and_future` using the final SQL parameter names, hydrated draft content, and source `all_day`, `recurrence_rule`, and `updated_at` values. The client does not compose split transactions locally.
+- Recurring occurrence deletion now opens an in-sheet scope confirmation; busy controls prevent repeat submissions, and RPC or refresh errors retain the sheet and confirmation. `loadEvents()` now rejects after setting the page error; initial-load and Realtime callers explicitly handle that rejection, while successful mutations await the events-plus-exceptions refresh before closing.
+- Added scope, payload, route, and split-projection Node regression coverage. Passed authenticated local UI smoke for only-this / this-and-future edit and delete, plus the action chooser. The current frontend remains uncommitted, unpushed, and undeployed; Production frontend acceptance is not claimed. `delete_logical_series` and any entire-series UI remain deferred to v0.1.7.3.4.
+
 ## 2026-07-18 - v0.1.7.3.3.1 Split RPC Correctness Patch
 
 - Added a targeted local-only database patch for Scheme A split correctness: exclusive scheduled-instant cutoff, finite `recurrence_until` inheritance, source recurrence-rule/all-day preservation, future exception migration, split-day override consumption, split-day deleted rejection, and selected-segment future deletion.

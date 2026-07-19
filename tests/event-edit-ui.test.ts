@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { eventEditUiState } from '../src/lib/event-edit-ui.ts';
+import { eventEditUiState, occurrenceActionCopy } from '../src/lib/event-edit-ui.ts';
 import { eventEditTargetForEvent, eventEditTargetForOccurrence } from '../src/lib/event-edit-target.ts';
 import type { CalendarEvent, CalendarOccurrence } from '../src/types.ts';
 
@@ -45,6 +45,8 @@ test('keeps a normal event target outside the only-this edit state', () => {
   const state = eventEditUiState(eventEditTargetForEvent(recurringEvent));
 
   assert.equal(state.isRecurringOccurrenceEdit, false);
+  assert.equal(state.showOccurrenceScope, false);
+  assert.deepEqual(state.occurrenceScopes, []);
 });
 
 test('restricts recurrence and all-day edits for an occurrence target', () => {
@@ -52,4 +54,31 @@ test('restricts recurrence and all-day edits for an occurrence target', () => {
 
   assert.equal(state.canEditRecurrence, false);
   assert.equal(state.canEditAllDay, false);
+});
+
+test('offers exactly only-this and this-and-future scopes for an occurrence', () => {
+  const state = eventEditUiState(eventEditTargetForOccurrence(occurrence));
+
+  assert.equal(state.showOccurrenceScope, true);
+  assert.deepEqual(state.occurrenceScopes, ['only-this', 'this-and-future']);
+  assert.equal(state.occurrenceScopes.includes('all-series' as never), false);
+});
+
+test('uses action-specific chooser copy for both occurrence scopes', () => {
+  assert.deepEqual(occurrenceActionCopy('save', 'only-this'), {
+    title: '选择修改范围',
+    label: '仅修改当前事件',
+  });
+  assert.deepEqual(occurrenceActionCopy('save', 'this-and-future'), {
+    title: '选择修改范围',
+    label: '修改当前及未来事件',
+  });
+  assert.deepEqual(occurrenceActionCopy('delete', 'only-this'), {
+    title: '选择删除范围',
+    label: '仅删除当前事件',
+  });
+  assert.deepEqual(occurrenceActionCopy('delete', 'this-and-future'), {
+    title: '选择删除范围',
+    label: '删除当前及未来事件',
+  });
 });
