@@ -103,6 +103,38 @@ npm run dev
 npm run build
 ```
 
+## Project State Push Gate
+
+本仓库提供可选的本地 `pre-push` gate。它要求在已经取得用户明确 commit / push
+授权后，人工复核 `docs/PROJECT_STATE.md` 的 `Current version`、`Current status`、
+`Next Action`、`Blockers`、`Version Index`，以及受影响时的 `Deployment`。最终 branch
+commit 只能保留一个 trailer：最终 tree 相对远端 branch tree 的
+`docs/PROJECT_STATE.md` 有净差异时使用 `Project-State-Review: updated`；无净差异时
+使用 `Project-State-Review: verified-current`。
+
+安装（仅在需要启用本地 hook 时执行）：
+
+```bash
+sh scripts/install-git-hooks.sh
+```
+
+可在 Git work tree 中把 Git 传入的 ref 行交给检查脚本手动检查：
+
+```bash
+printf '%s\n' "refs/heads/main <local-commit> refs/heads/main <remote-commit>" | sh scripts/check-project-state-push.sh
+```
+
+Tag 不做远端 tree 分类：lightweight 或 annotated tag 都只要求最终指向的 commit 有一个
+合法 trailer。`git push --no-verify` 可绕过客户端 hook，hook 也可被本地修改或删除；
+这是本地治理 gate，不是不可绕过的安全边界。它不判断 PROJECT_STATE 内容真实性，不会
+自动 commit 或 push，也绝不替代用户明确授权。
+
+Gate 集成测试使用临时本地 Git 仓库和 bare remote，不访问网络：
+
+```bash
+node --test tests/project-state-push-gate.test.js
+```
+
 ## Development docs
 
 - [AI/Codex collaboration rules](./AGENTS.md)

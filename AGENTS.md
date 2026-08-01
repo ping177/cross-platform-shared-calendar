@@ -59,6 +59,8 @@ Do not update `PROJECT_STATE.md` for trivial formatting-only changes unless the 
 - Latest completed
 - Next Action
 - Blockers
+- Version Index
+- Deployment
 - Important Context
 - Handoff Prompt
 
@@ -73,6 +75,14 @@ When relevant, update the right documentation:
 - `docs/TESTING.md` for test strategy or smoke checklist changes, if present
 
 Do not duplicate large amounts of content across docs. Keep `PROJECT_STATE.md` concise and dashboard-oriented.
+
+## Git Push Authorization and Project State Gate
+
+- Never commit or push without the user's explicit confirmation. A passing Project State Push Gate does not grant that authorization.
+- After push authorization and before every `git push`, review `Current version`, `Current status`, `Next Action`, `Blockers`, `Version Index`, and `Deployment` when the push affects it.
+- Correct outdated facts only in the project's own development context; replace completed Next Action entries and remove resolved blockers. When there is no clear blocker, use exactly `暂无明确阻塞。`.
+- Add a Version Index entry only for a new version or formal milestone. If review requires no `PROJECT_STATE.md` change, do not create a meaningless edit; use `Project-State-Review: verified-current`.
+- When installed, the gate requires exactly one `Project-State-Review: updated` or `Project-State-Review: verified-current` trailer on each pushed branch tip. It compares only `docs/PROJECT_STATE.md` final trees and does not validate the document's factual content; tags require only a valid trailer on their target commit.
 
 ## Verification and Final Reporting
 

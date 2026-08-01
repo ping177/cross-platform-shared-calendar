@@ -1,5 +1,32 @@
 # Testing
 
+## Project State Push Gate
+
+运行独立 gate 集成测试：
+
+```bash
+node --test tests/project-state-push-gate.test.js
+```
+
+测试使用临时 Git repository、bare remote、临时 Git identity 与临时
+`GIT_CONFIG_GLOBAL`（并设置 `GIT_CONFIG_NOSYSTEM=1`），只用本地路径且不访问网络。
+覆盖 branch 的 `updated` / `verified-current` 分类、PROJECT_STATE 增改删、trailer
+边界、首次与 force push、branch/tag 删除、lightweight / annotated / non-commit tag、
+多 ref、tip 冲突、remote OID 缺失、真实 bare remote pre-push 接线、安装脚本首次安装/
+幂等/冲突拒绝，以及含空格或非 ASCII 的路径。
+
+Gate 语法检查：
+
+```bash
+sh -n .githooks/pre-push
+sh -n scripts/check-project-state-push.sh
+sh -n scripts/install-git-hooks.sh
+```
+
+Gate 只检查最终 branch tip 的 trailer 是否与 PROJECT_STATE tree diff 一致；tag 只验证
+目标 commit 的合法 trailer。`git push --no-verify` 可以绕过本地 hook；gate 不判断状态
+内容真实性，不会自动 commit 或 push，也不替代用户明确授权。
+
 ## v0.1.7.3.3.2 Frontend Scope Integration
 
 Passed locally on 2026-07-19:

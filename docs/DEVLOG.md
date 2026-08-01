@@ -1,5 +1,10 @@
 # Development Log
 
+## 2026-08-01
+
+- 跨系统共享日历正在接入 Project State Push Gate；实现与测试已开始。
+- 当前尚未安装、提交或推送，且未修改项目业务状态。
+
 ## 2026-07-19 - v0.1.7.3.3.2 Frontend Scope Integration
 
 - Replaced the persistent occurrence scope control and expanded delete confirmation with a compact, mobile-first action chooser. Save offers 「仅修改当前事件 / 修改当前及未来事件 / 取消」; delete offers 「仅删除当前事件 / 删除当前及未来事件 / 取消」. The chooser does not discard the draft and does not expose any entire-series action.
