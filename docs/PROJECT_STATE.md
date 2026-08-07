@@ -52,11 +52,11 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 
 ## Next Action
 
-Commit the completed v0.1.7.3.3.2 implementation and documentation when ready. Keep `delete_logical_series` without a frontend entry point until a separately approved product slice.
+完成两套独立 Email OTP 会话的 recurrence Realtime 验证和支持浏览器的 DST-zone 行为验证；继续不开放 `delete_logical_series` 前端入口，直到单独批准新的产品切片。
 
 ## Blockers
 
-No code blocker. Production Desktop and iPhone Standalone PWA recurrence acceptance is complete. Two-session Realtime and DST-zone behavior remain separate verification work.
+暂无明确阻塞。
 
 ## Important Context
 
