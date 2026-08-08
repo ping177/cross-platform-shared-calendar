@@ -76,6 +76,16 @@ When relevant, update the right documentation:
 
 Do not duplicate large amounts of content across docs. Keep `PROJECT_STATE.md` concise and dashboard-oriented.
 
+## Filesystem Data Governance
+
+- Stable projectId: `cross-system-shared-calendar`.
+- The current audit found no filesystem-level persistent project data. Do not create an empty `/Users/wp/Projects/_project-data/cross-system-shared-calendar/` root.
+- If filesystem-level persistent runtime or user data is added in the future, its canonical root must be `/Users/wp/Projects/_project-data/cross-system-shared-calendar/`.
+- Do not add long-lived data by default under repo-local `output/`, `data/`, `uploads/`, `storage/`, or similar paths without a governance review.
+- Tests must use temporary or injected paths and must not write the real `_project-data` root.
+- Supabase remains the canonical cloud business persistence; do not mirror Supabase data locally for filesystem governance.
+- The project owns business schema, recurrence, and Realtime semantics. Project Command Center governance standardizes only filesystem-level data location and governance.
+
 ## Git Push Authorization and Project State Gate
 
 - Never commit or push without the user's explicit confirmation. A passing Project State Push Gate does not grant that authorization.

@@ -1,5 +1,11 @@
 # Testing
 
+## Filesystem Persistence Boundary
+
+- Tests that exercise filesystem persistence must use temporary directories or injected paths.
+- Ordinary tests must not write the real `/Users/wp/Projects/_project-data/cross-system-shared-calendar/` root.
+- This project currently has no filesystem-level persistent business data; Supabase remains the canonical cloud persistence and is not mirrored locally for filesystem governance.
+
 ## Project State Push Gate
 
 运行独立 gate 集成测试：

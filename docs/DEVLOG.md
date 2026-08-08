@@ -1,5 +1,12 @@
 # Development Log
 
+## 2026-08-08 - Local Filesystem Data Governance Audit
+
+- Completed the repo-local filesystem persistence audit for stable projectId `cross-system-shared-calendar`; the conclusion is `A. no persistent filesystem-local project data`.
+- No migration is required, and `/Users/wp/Projects/_project-data/cross-system-shared-calendar/` was not created. Supabase remains the canonical cloud business persistence.
+- Added the long-term governance rule to `AGENTS.md` and the filesystem test boundary to `docs/TESTING.md`; no business code, SQL, dependencies, or product state changed.
+- No public internet, Supabase, or secrets were accessed during this audit.
+
 ## 2026-08-01
 
 - 跨系统共享日历正在接入 Project State Push Gate；实现与测试已开始。

@@ -61,3 +61,10 @@
 - The keep-alive uses the Supabase anon key and RLS-protected, head-only reads; it does not use service role or return business data.
 - Do not add a heartbeat table or modify the database schema or RLS solely for keep-alive.
 - Continue observing Cron results and Supabase Active status; reconsider Supabase Pro only if the project becomes a formal service that must remain online long term.
+
+## Project Command Center Filesystem Data Governance
+
+- Stable projectId is `cross-system-shared-calendar`.
+- The 2026-08-08 filesystem persistence audit found no filesystem-level persistent project data, so the canonical `/Users/wp/Projects/_project-data/cross-system-shared-calendar/` directory is not currently required and no migration is required.
+- Supabase remains the canonical cloud business persistence. Supabase data must not be mirrored locally for this filesystem governance boundary.
+- If true filesystem-level persistent runtime or user data is introduced later, it must use `/Users/wp/Projects/_project-data/cross-system-shared-calendar/` as its canonical root after governance review.
