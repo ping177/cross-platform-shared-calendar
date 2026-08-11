@@ -76,6 +76,13 @@ When relevant, update the right documentation:
 
 Do not duplicate large amounts of content across docs. Keep `PROJECT_STATE.md` concise and dashboard-oriented.
 
+## Version Governance
+
+- New formal version tokens must be pure numeric canonical versions such as `v0.8`, `v0.8.2`, or a numeric corrective version such as `v0.6.6.1`.
+- `Phase A`, `Phase B`, and `Phase C` are development-organization labels only; they never enter a version token or create a separate `Version Index` entry.
+- `Version Index` records numeric versions / milestones only. Existing legacy pseudo-version entries are historical facts and must not be rewritten.
+- Use the existing PCC canonicalization and validation contract; do not copy a parser into this repository or use an LLM to repair versions.
+
 ## Filesystem Data Governance
 
 - Stable projectId: `cross-system-shared-calendar`.
