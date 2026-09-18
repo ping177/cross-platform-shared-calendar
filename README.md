@@ -4,6 +4,13 @@
 
 Production URL: https://cross-platform-shared-calendar.vercel.app/
 
+## 当前阶段
+
+- 当前完成版本：`v0.1.7.3.3.2`，Calendar Core 与 Recurring Events 已完成并通过 Production 验收。
+- 下一 approved slice：`v0.1.8 — Mobile Push Reminder`。
+- v0.1.8 architecture 已冻结，implementation pending；尚未创建 Service Worker、Push Subscription persistence、reminder scheduler、Edge Function 或 Cron。
+- 第一实现切片是 Push Infrastructure Foundation，只建立 Push-only Service Worker、明确用户操作触发的 notification permission flow，以及 `user + installation` subscription persistence/lifecycle。完整冻结决策和分片见 [Decisions](./docs/DECISIONS.md) 与 [Backlog](./docs/BACKLOG.md)。
+
 ## v0.1 功能范围
 
 - Supabase Email OTP 登录/注册
@@ -11,6 +18,7 @@ Production URL: https://cross-platform-shared-calendar.vercel.app/
 - 通过邀请码加入空间
 - 轮换邀请码
 - 创建、查看、编辑、删除日程
+- 重复日程 projection、only-this override/delete、current-and-future split/delete
 - 今日、本周、本月视图
 - 成员显示名称与空间成员列表；个人日程显示成员名称，shared 日程显示「共同」
 - 基础 PWA：manifest、mobile meta、可添加到主屏幕
@@ -112,6 +120,12 @@ commit 只能保留一个 trailer：最终 tree 相对远端 branch tree 的
 `docs/PROJECT_STATE.md` 有净差异时使用 `Project-State-Review: updated`；无净差异时
 使用 `Project-State-Review: verified-current`。
 
+Gate 还执行 forward-only version governance：只检查本次相对远端新增到 `Current version`
+或 `Version Index` 的正式版本 token，并要求使用 `v0.8`、`v0.8.2`、`v0.6.6.1`
+这类纯数字 canonical version。仓库已有的 legacy token 保持 grandfathered，不会被回溯
+重写或重新判错。Gate 不判断版本对应的业务状态是否真实，人工 Project State Review 仍是
+必需步骤。
+
 安装（仅在需要启用本地 hook 时执行）：
 
 ```bash
@@ -124,10 +138,10 @@ sh scripts/install-git-hooks.sh
 printf '%s\n' "refs/heads/main <local-commit> refs/heads/main <remote-commit>" | sh scripts/check-project-state-push.sh
 ```
 
-Tag 不做远端 tree 分类：lightweight 或 annotated tag 都只要求最终指向的 commit 有一个
-合法 trailer。`git push --no-verify` 可绕过客户端 hook，hook 也可被本地修改或删除；
-这是本地治理 gate，不是不可绕过的安全边界。它不判断 PROJECT_STATE 内容真实性，不会
-自动 commit 或 push，也绝不替代用户明确授权。
+Tag 不做远端 tree 分类或 version-diff 分类：lightweight 或 annotated tag 都只要求最终
+指向的 commit 有一个合法 trailer。`git push --no-verify` 可绕过客户端 hook，hook 也可
+被本地修改或删除；这是本地治理 gate，不是不可绕过的安全边界。它不判断
+PROJECT_STATE 内容真实性，不会自动 commit 或 push，也绝不替代用户明确授权。
 
 Gate 集成测试使用临时本地 Git 仓库和 bare remote，不访问网络：
 

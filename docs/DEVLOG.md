@@ -1,5 +1,18 @@
 # Development Log
 
+## 2026-09-18 - v0.1.8 Mobile Push Reminder Architecture Freeze
+
+- Completed the docs-only Product Re-entry, Architecture Freeze, and canonical-state correction. Calendar Core and Recurring Events remain completed and Production validated; the current completed product version remains v0.1.7.3.3.2.
+- Froze `v0.1.8 — Mobile Push Reminder` as the next approved product slice without implementing it. Delivery uses standards-based Web Push through a Push-only Service Worker; Email reminder delivery is not part of v0.1.8, while existing Email OTP authentication remains unchanged.
+- Selected Option A: one nullable event-level `events.reminder_offset_minutes` with allowed values `0`, `10`, `30`, `60`, and `1440`; `null` means no reminder. Multiple reminders, arbitrary custom minutes, and per-user reminder preferences remain out of scope.
+- Froze `push_subscriptions` as a `user + installation` model that supports multiple devices and does not bind subscriptions to a Space. This preserves compatibility with a future multi-space model without implementing multi-space now.
+- Froze recipients as current active Space members for shared events and only the current `owner_user_id` for personal events, resolved dynamically at send time.
+- Froze one-minute Supabase Cron + Edge Function sending, canonical dynamic recurrence projection, `reminder_deliveries`, roughly ten-minute late-delivery grace, and best-effort Web Push semantics.
+- Corrected delivery idempotency to include canonical `due_at`: recurring `(logical_series_id, occurrence_key, subscription_id, due_at)` and one-off `(event_id, "once", subscription_id, due_at)`. Moving an event or changing its offset may produce a new legitimate delivery; unchanged due time cannot duplicate, including across a future split.
+- Split implementation into Push Infrastructure Foundation, Reminder Persistence + Ordinary Event Delivery, Recurrence Integration, and Production Validation + Canonical Closeout. v0.1.9–v0.1.12 remain directional roadmap entries rather than frozen architecture.
+- Corrected the canonical recurrence split semantics: future exceptions migrate to the child, a split-day override is consumed, and a split-day deletion is rejected.
+- No business code, SQL, migration, patch, dependency, Vercel/Supabase configuration, secret, commit, or push changed.
+
 ## 2026-08-08 - Local Filesystem Data Governance Audit
 
 - Completed the repo-local filesystem persistence audit for stable projectId `cross-system-shared-calendar`; the conclusion is `A. no persistent filesystem-local project data`.

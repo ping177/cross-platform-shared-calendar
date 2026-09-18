@@ -4,6 +4,67 @@
 
 - Investigate any Magic Link, RLS, Realtime, or Production deployment regression that blocks the two-person calendar flow.
 
+## Non-Blocking Validation Follow-up
+
+- Complete two-session Email OTP recurrence Realtime and supported-browser DST-zone coverage; this is not a v0.1.8 product-line blocker.
+
+## Next Approved Product Slice
+
+### v0.1.8 — Mobile Push Reminder
+
+Status: architecture frozen; implementation pending.
+
+In scope:
+
+- One event-level optional reminder stored as nullable `events.reminder_offset_minutes`.
+- Preset offsets: `0`, `10`, `30`, `60`, and `1440` minutes; `null` means no reminder.
+- Standards-based Web Push system notifications for Desktop and installed iPhone/Android PWAs.
+- `push_subscriptions` bound to `user + installation`, with multiple simultaneous device/browser subscriptions and no Space binding.
+- `reminder_deliveries` with due-time-aware idempotency and delivery lifecycle state.
+- shared event recipients resolved from current active Space membership at send time; personal event recipients limited to `owner_user_id`.
+- Supabase Cron every minute, an Edge Function sender, and dynamic ordinary/recurring occurrence projection through the canonical recurrence semantics.
+- Push-only Service Worker with no offline cache.
+- Best-effort delivery with approximately one-minute normal target precision and a simple configurable late-delivery grace window of roughly ten minutes.
+
+Explicitly out of scope:
+
+- Email reminder delivery, SMS, and Bark.
+- Multiple reminders or arbitrary custom-minute offsets.
+- Per-user reminder preferences for the same shared event.
+- Snooze, sound customization, and notification inbox/history.
+- Native AlarmKit, AlarmManager, or other native alarm behavior.
+- Queue, message broker, Redis, worker cluster, or another complex scheduler.
+- Multi-space implementation.
+- Shared Tasks, Shared Lists, Important Dates / Anniversaries, Tags / Color = Who, and UI/UX overhaul.
+- Delete Logical Series UI.
+
+Implementation slices:
+
+1. **Push Infrastructure Foundation:** Push-only Service Worker, explicit permission flow, `user + installation` subscription persistence, multi-device lifecycle, logout/invalid-subscription handling, and Desktop/iPhone/Android test push. Do not implement scheduler, event reminder persistence, or recurrence delivery in this slice.
+2. **Reminder Persistence + Ordinary Event Delivery:** `events.reminder_offset_minutes`, fixed options, current-recipient resolution, Cron + Edge Function sender, delivery ledger, due-time-aware idempotency, and ordinary shared/personal event delivery.
+3. **Recurrence Integration:** canonical dynamic occurrence projection, override/delete/split/current-and-future semantics, reminder inheritance, timezone/DST coverage, stale-delivery cancellation, and no-duplicate regression coverage.
+4. **Production Validation + Canonical Closeout:** Production Desktop, iPhone installed PWA, and Android installed PWA acceptance; late-delivery and subscription lifecycle evidence; final canonical docs closeout.
+
+Idempotency freeze:
+
+- Recurring: `(logical_series_id, occurrence_key, subscription_id, due_at)`.
+- One-off: `(event_id, "once", subscription_id, due_at)`.
+- `due_at` is the canonical projected occurrence start minus reminder offset. A changed start or offset may create a new legitimate delivery; unchanged `due_at` must not duplicate, including across a future split.
+
+Future compatibility:
+
+- Push Subscription persistence intentionally does not contain `space_id`. A future user may reuse one device subscription across Family, Travel, Friends, or other Spaces; deliveries continue to resolve recipients from `event.space_id` and current membership at send time.
+- v0.1.8 does not implement multi-space.
+
+## Directional Roadmap — Architecture Not Frozen
+
+- v0.1.9 — Shared Tasks.
+- v0.1.10 — Shared Lists.
+- v0.1.11 — Important Dates / Anniversaries.
+- v0.1.12 — Tags / Color = Who.
+- UI/UX overhaul remains deferred until a Design System is defined.
+- These versions are roadmap directions only. Their product scope and architecture require separate review and approval.
+
 ## P1 - Near-Term Product Polish
 
 - Continue event create/edit UX polish after the v0.1.3 default end-time improvement.
@@ -14,12 +75,9 @@
 
 - Deferred: do not add a `delete_logical_series` frontend entry point. The permission-checked backend RPC remains available for controlled operational use, but deleting an entire logical lineage is high-impact and needs a separately approved product/UX scope, including explicit copy and safeguards.
 - Space member management and invitation experience improvements.
-- Evaluate multi-member or multi-space expansion beyond the current two-person v0.1 model.
+- Evaluate multi-member or multi-space expansion beyond the current two-person v0.1 model; do not bind Push Subscriptions to a Space if this direction is later approved.
 - Reconsider `space_members.nickname` only after multi-space support creates a real per-space naming need.
-- Add lightweight reminders.
-- Add anniversaries.
 - Add countdowns.
-- Add a shared Todo list.
 
 ## P3 - Long-Term Directions
 
@@ -29,6 +87,7 @@
 - Paid or account-tier model.
 - External calendar import/export.
 - External calendar sync options such as Apple Calendar, Google Calendar, or CalDAV.
+- `Shared Life Space / 共享生活空间` remains the long-term product vision; the directional roadmap above does not by itself approve implementation.
 
 ## Completed and Deferred History
 

@@ -12,11 +12,11 @@ v0.1.7.3.3.2 (Frontend Scope Integration)
 
 ## Current status
 
-v0.1.7.3.3.2 已完成并部署到 Production。重复 occurrence 的「仅修改当前事件 / 修改当前及未来事件 / 仅删除当前事件 / 删除当前及未来事件」已通过 Production Desktop 与 iPhone Standalone PWA recurrence smoke。
+Calendar Core 已完成。Recurring Events 已完成并通过 Production 验收，重复 occurrence 的「仅修改当前事件 / 修改当前及未来事件 / 仅删除当前事件 / 删除当前及未来事件」已通过 Production Desktop 与 iPhone Standalone PWA recurrence smoke。下一正式 approved slice 是 `v0.1.8 — Mobile Push Reminder`；其 architecture 已冻结，implementation pending。
 
 ## Latest completed
 
-v0.1.7.3.3.2 adds a compact EventSheet action chooser only after a recurring occurrence save/delete is requested. It supports only-this and this-and-future edit/delete through the approved RPCs, preserving source `all_day`, `recurrence_rule`, and `updated_at`; successful mutations reload events and exceptions before projection. Node regression, production build, authenticated local smoke, and final Production Desktop plus iPhone Standalone PWA recurrence smoke all passed. `delete_logical_series` remains available only as a backend RPC: its UI is deliberately deferred.
+Completed the docs-only v0.1.8 Mobile Push Reminder Architecture Freeze and canonical-state correction. No Reminder business code, SQL, migration, Edge Function, Cron, Service Worker, dependency, or cloud configuration was implemented. The latest completed product implementation remains v0.1.7.3.3.2: its only-this and this-and-future edit/delete flows passed Node regression, production build, authenticated local smoke, and final Production Desktop plus iPhone Standalone PWA recurrence smoke. `delete_logical_series` remains available only as a backend RPC; its UI is deliberately deferred.
 
 ## Deployment
 
@@ -44,15 +44,17 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 - v0.1.7.3 — Recurrence Editing Semantics Design（设计完成，待人工 review/implementation approval）
 - v0.1.7.3.1 — Database RPC Foundation（Production patch + PostgREST schema cache 已验证）
 - v0.1.7.3.2 — Frontend RPC Integration（only-this authenticated smoke 已通过）
+- v0.1.7.3.3.1 — Split RPC Correctness Patch（final split / future-delete semantics 已验证）
 - v0.1.7.3.3.2 — Frontend Scope Integration（Production Desktop 与 iPhone Standalone PWA recurrence smoke 已通过）
+- v0.1.8 — Mobile Push Reminder（next approved product slice；architecture frozen，implementation pending）
 
 ## Last verified
 
-2026-07-19
+2026-09-18
 
 ## Next Action
 
-完成两套独立 Email OTP 会话的 recurrence Realtime 验证和支持浏览器的 DST-zone 行为验证；继续不开放 `delete_logical_series` 前端入口，直到单独批准新的产品切片。
+开始 v0.1.8 Slice 1 — Push Infrastructure Foundation，建立 Service Worker、notification permission flow、user + installation Push Subscription persistence 与 subscription lifecycle；本 Slice 不实现 reminder scheduler、event reminder persistence 或 recurrence delivery。两套独立 Email OTP 会话的 recurrence Realtime 验证和支持浏览器的 DST-zone coverage 继续作为 non-blocking validation follow-up。
 
 ## Blockers
 
@@ -82,13 +84,21 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 - New-user first-login, new-space creation, and profiles/display_name behavior passed in v0.1.5 Production acceptance. The single-member-space path remains intentionally unverified.
 - v0.1.6 recurrence rules are source-event metadata only. Existing event identity fields remain immutable; no recurrence table, occurrence materialization, exception model, RLS change, Realtime configuration change, reminder, or notification work is included. v0.1.6.2 projects only the current Today/Week/Month visible range and uses occurrence IDs only as display keys; v0.1.6.3 writes recurrence rules only on source events and labels all recurring edits/deletes as whole-series actions.
 - The original v0.1.7 design is in `docs/RECURRENCE_EXCEPTIONS_DESIGN.md`. Its exception foundation, projection, database RPCs, and v0.1.7.3.3.2 only-this / this-and-future UI are implemented. Logical-series deletion UI remains deliberately deferred; exception Realtime publication remains future work.
-- v0.1.7.1 foundation is present in the local schema and its 18-test pgTAP suite passes. v0.1.7.2 has a compatible reader/projection implementation. v0.1.7.3.2 adds only-this mutation UI, but intentionally omits split/end-from-here UI, logical-series deletion UI, and exception Realtime publication/subscriptions.
-- v0.1.7.3 design treats `series_id` as the logical root and `parent_event_id` as the immediate predecessor. Exceptions stay attached to their original source segment; a split count-confirms and removes only old-segment exceptions made unreachable by the new cutoff. The actual exception schema uses `event_id`, `occurrence_date`, `exception_type`, and `override_data`.
-- The final split RPC moves future exceptions to the child, consumes a split-day override, rejects a split-day deletion, preserves source recurrence rule/all-day, and requires the child to start on the selected occurrence date. The v0.1.7.3.3.2 client passes source rule/all-day unchanged and relies on the RPC for all transaction work.
+- v0.1.7.1 foundation is present in the local schema and its 18-test pgTAP suite passes. v0.1.7.2 has a compatible reader/projection implementation. v0.1.7.3.3.2 supports only-this and this-and-future mutation UI; logical-series deletion UI and exception Realtime publication/subscriptions remain deliberately deferred.
+- v0.1.7.3 treats `series_id` as the logical root and `parent_event_id` as the immediate predecessor. The final split RPC moves future exceptions to the child, consumes a split-day override, rejects a split-day deletion, preserves source recurrence rule/all-day, and requires the child to start on the selected occurrence date. The actual exception schema uses `event_id`, `occurrence_date`, `exception_type`, and `override_data`; the v0.1.7.3.3.2 client relies on the RPC for all transaction work.
 - Final Production recurrence smoke passed on Desktop and iPhone Standalone PWA for all four supported occurrence actions. iOS Standalone PWA cannot actively refresh itself due to an iOS system limitation; this is not an application defect.
 - `supabase/config.toml` uses a stable local `project_id`; the local database/API/Auth/Mailpit stack is reachable. It configures a local 8-digit Mailpit OTP template and port-5175 redirect URL only; the local status currently reports stopped imgproxy and pooler services, which do not block Postgres, Auth, Mailpit, or pgTAP validation.
 - The engine uses native `Intl` IANA timezone formatting/conversion and rejects invalid rule shapes at both client and database boundaries. It returns an explicit error instead of a partial result after 500 candidates.
+- v0.1.8 uses one event-level reminder stored as nullable `events.reminder_offset_minutes`; allowed values are `0`, `10`, `30`, `60`, and `1440`, with `null` meaning no reminder. Multiple reminders, arbitrary custom minutes, and per-user reminder preferences are outside this version.
+- Standard Web Push is the delivery channel. The Push Service Worker handles Push only and must not introduce offline caching. iPhone and Android installed PWAs are the primary mobile targets; Desktop is also part of acceptance coverage.
+- Push subscriptions bind to `user + installation`, never to a Space, and one user may retain multiple active device/browser subscriptions. This persistence model remains compatible with a future multi-space schema without implementing multi-space in v0.1.8.
+- shared event reminders resolve current active Space members at send time; personal event reminders resolve only the current `owner_user_id`. A former member must not receive a delivery.
+- Supabase Cron runs every minute and invokes an Edge Function sender. The sender dynamically projects due ordinary and recurring occurrences through the canonical recurrence/exception semantics; it does not materialize a long horizon of future reminders.
+- Delivery idempotency is due-time aware: recurring `(logical_series_id, occurrence_key, subscription_id, due_at)` and one-off `(event_id, "once", subscription_id, due_at)`. A changed start or reminder offset may create a new legitimate delivery; unchanged `due_at` must not duplicate, including across a future split.
+- Normal target precision is about one minute. A simple configurable grace window may compensate reminders missed within roughly ten minutes; older reminders are not sent late. Web Push remains best-effort and is not an Alarm Clock.
+- v0.1.8 excludes Email reminder delivery, SMS, Bark, multiple reminders, arbitrary custom minutes, snooze, sound customization, notification inbox/history, native alarms, and per-user reminder preferences. Email OTP authentication remains unchanged.
+- `v0.1.9 Shared Tasks`, `v0.1.10 Shared Lists`, `v0.1.11 Important Dates / Anniversaries`, and `v0.1.12 Tags / Color = Who` are roadmap directions only, not frozen architectures. UI/UX overhaul remains deferred pending a Design System.
 
 ## Handoff Prompt
 
-Commit the completed v0.1.7.3.3.2 work when ready. Do not add a `delete_logical_series` UI entry point without separate product approval; retain the backend RPC only. Continue any desired two-session Realtime and DST-zone verification separately.
+Begin v0.1.8 Slice 1 — Push Infrastructure Foundation only: add a Push-only Service Worker, explicit notification permission flow, user + installation Push Subscription persistence, and subscription lifecycle coverage. Do not implement the reminder scheduler, `events.reminder_offset_minutes`, recurrence delivery, offline caching, or any excluded delivery channel in Slice 1. Keep two-session recurrence Realtime and DST-zone coverage as non-blocking validation follow-up, and do not add a `delete_logical_series` UI entry point without separate product approval.

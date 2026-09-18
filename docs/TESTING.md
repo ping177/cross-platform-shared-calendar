@@ -21,6 +21,11 @@ node --test tests/project-state-push-gate.test.js
 多 ref、tip 冲突、remote OID 缺失、真实 bare remote pre-push 接线、安装脚本首次安装/
 幂等/冲突拒绝，以及含空格或非 ASCII 的路径。
 
+Gate 实现还包含 forward-only version governance：对 branch push，只检查相对远端新增到
+`Current version` 或 `Version Index` 的正式版本 token，并要求其为纯数字 canonical
+version（例如 `v0.8`、`v0.8.2`、`v0.6.6.1`）。既有 legacy token 不做回溯验证；tag
+不做 PROJECT_STATE tree 或 version-diff 分类。
+
 Gate 语法检查：
 
 ```bash
@@ -29,9 +34,35 @@ sh -n scripts/check-project-state-push.sh
 sh -n scripts/install-git-hooks.sh
 ```
 
-Gate 只检查最终 branch tip 的 trailer 是否与 PROJECT_STATE tree diff 一致；tag 只验证
-目标 commit 的合法 trailer。`git push --no-verify` 可以绕过本地 hook；gate 不判断状态
-内容真实性，不会自动 commit 或 push，也不替代用户明确授权。
+Gate 检查新正式版本 token 的 forward-only canonical 格式，并检查最终 branch tip 的
+trailer 是否与 PROJECT_STATE tree diff 一致；tag 只验证目标 commit 的合法 trailer。
+`git push --no-verify` 可以绕过本地 hook；gate 不判断状态内容真实性，不会自动 commit
+或 push，也不替代用户明确授权。
+
+## v0.1.8 Mobile Push Reminder Acceptance Plan
+
+Status: architecture frozen; implementation pending. The checks below are planned acceptance criteria, not passed results.
+
+### Slice 1 — Push Infrastructure Foundation
+
+- Register a root-scope Service Worker that handles Push and notification clicks only; verify that it adds no offline cache or `fetch` caching behavior.
+- Request notification permission only after an explicit user action. Cover granted, dismissed/default, denied, unsupported-browser, and iPhone-not-installed guidance.
+- Persist subscriptions by `user + installation`, not by Space. Verify one user can retain active Desktop, iPhone PWA, and Android PWA subscriptions concurrently.
+- Verify current-installation logout disables/unsubscribes that installation without disabling another device, and invalid/expired endpoints are retired safely.
+- Pass a diagnostic system-notification smoke on Desktop, iPhone installed PWA, and Android installed PWA before adding event reminder scheduling.
+- Confirm this slice does not add `events.reminder_offset_minutes`, reminder scheduling, recurrence delivery, Email reminder delivery, SQL beyond subscription persistence, or offline caching.
+
+### Slices 2–4 — Reminder Delivery
+
+- Verify `events.reminder_offset_minutes` accepts only `null`, `0`, `10`, `30`, `60`, and `1440`; `null` means no reminder.
+- Verify shared events resolve all current active Space members at send time, personal events resolve only `owner_user_id`, former members receive nothing, and members without active subscriptions naturally receive no device notification.
+- Verify ordinary event delivery and canonical recurring occurrence delivery, including only-this time override, only-this delete, future split inheritance, current-and-future delete, source timezone, and DST behavior.
+- Verify recurring delivery uniqueness on `(logical_series_id, occurrence_key, subscription_id, due_at)` and one-off uniqueness on `(event_id, "once", subscription_id, due_at)`.
+- Verify title/description changes with unchanged `due_at` do not create another notification; changing event start or reminder offset to a new canonical `due_at` permits a new legitimate notification.
+- Verify a future split does not duplicate an unchanged logical occurrence/due time, and stale pending/processing deliveries are cancelled when their event is moved or deleted.
+- Verify normal scheduler target precision is approximately one minute, reminders missed within the configured roughly ten-minute grace window may be sent late, and older reminders are not backfilled.
+- Verify Production best-effort delivery on Desktop, iPhone installed PWA, and Android installed PWA, including repeated Cron, Edge Function retry, multi-device delivery, and no duplicate notification on the same subscription/due time.
+- Confirm Email, SMS, Bark, multiple reminders, arbitrary custom minutes, per-user reminder preferences, snooze, sound customization, notification inbox/history, native alarms, multi-space implementation, and UI overhaul remain outside v0.1.8.
 
 ## v0.1.7.3.3.2 Frontend Scope Integration
 
