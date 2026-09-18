@@ -1,5 +1,13 @@
 # Development Log
 
+## 2026-09-18 - v0.1.8.1 Push Infrastructure Foundation
+
+- Implemented Slice 1 locally with status `IMPLEMENTED / VALIDATION PENDING`: a root-scope Push-only Service Worker, non-fatal registration, explicit notification-permission UI, stable random installation UUID, standard PushManager subscription lifecycle, current-installation test push, disable, and logout cleanup. No offline cache, reminder field, scheduler, Cron, recurrence delivery, or visual redesign was added.
+- Added canonical `push_subscriptions` bootstrap SQL plus the additive `2026-09-18-v0.1.8.1-push-infrastructure.sql` patch. The table is unique by endpoint and by `(user_id, installation_id)`; authenticated clients have no direct table privileges and use `SECURITY DEFINER` register/disable RPCs bound to `auth.uid()`.
+- Added `send-test-push`, with `@mmmike/web-push@1.3.0` pinned exactly as a function-only dependency. The function verifies the caller, accepts only `installation_id`, performs user-scoped lookup, sends a fixed non-sensitive payload using server-only VAPID secrets, allowlists known push-service hosts, and disables only a 404/410-gone subscription.
+- Added deterministic client, Service Worker, SQL contract, and Edge logic/source tests. Twenty-one new Node tests and the production build passed. The 22-assertion pgTAP suite was added but could not run because the local Supabase database was not reachable; no Production database or business data was accessed.
+- Pending manual work: apply the Supabase patch, configure VAPID secrets, deploy the Edge Function, configure `VITE_VAPID_PUBLIC_KEY` in Vercel and redeploy, then complete Desktop, iPhone installed-PWA, and Android installed-PWA notification smoke. No commit or push was created.
+
 ## 2026-09-18 - v0.1.8 Mobile Push Reminder Architecture Freeze
 
 - Completed the docs-only Product Re-entry, Architecture Freeze, and canonical-state correction. Calendar Core and Recurring Events remain completed and Production validated; the current completed product version remains v0.1.7.3.3.2.

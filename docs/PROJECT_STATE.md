@@ -8,15 +8,15 @@
 
 ## Current version
 
-v0.1.7.3.3.2 (Frontend Scope Integration)
+v0.1.8.1 (Push Infrastructure Foundation)
 
 ## Current status
 
-Calendar Core 已完成。Recurring Events 已完成并通过 Production 验收，重复 occurrence 的「仅修改当前事件 / 修改当前及未来事件 / 仅删除当前事件 / 删除当前及未来事件」已通过 Production Desktop 与 iPhone Standalone PWA recurrence smoke。下一正式 approved slice 是 `v0.1.8 — Mobile Push Reminder`；其 architecture 已冻结，implementation pending。
+Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.8.1 — Push Infrastructure Foundation` 已在仓库实现，状态为 `IMPLEMENTED / VALIDATION PENDING`：自动测试和 production build 已通过，但 Supabase patch、VAPID secrets、Edge Function/Vercel deployment 与 Desktop/iPhone/Android 真机 Push 验收尚未执行。Production 当前仍运行已验收的 v0.1.7.3.3.2。
 
 ## Latest completed
 
-Completed the docs-only v0.1.8 Mobile Push Reminder Architecture Freeze and canonical-state correction. No Reminder business code, SQL, migration, Edge Function, Cron, Service Worker, dependency, or cloud configuration was implemented. The latest completed product implementation remains v0.1.7.3.3.2: its only-this and this-and-future edit/delete flows passed Node regression, production build, authenticated local smoke, and final Production Desktop plus iPhone Standalone PWA recurrence smoke. `delete_logical_series` remains available only as a backend RPC; its UI is deliberately deferred.
+Implemented v0.1.8 Slice 1 in the repository: Push-only Service Worker, explicit notification settings and permission flow, stable installation identity, `push_subscriptions` canonical/patch SQL, authenticated lifecycle RPCs, function-only `@mmmike/web-push@1.3.0`, current-installation test-push Edge Function, and logout cleanup. Twenty-one Node tests and the production build passed. The 22-assertion pgTAP suite exists but remains unexecuted because local Supabase was unavailable. No cloud configuration, Production database mutation, deploy, commit, or push occurred.
 
 ## Deployment
 
@@ -46,7 +46,8 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 - v0.1.7.3.2 — Frontend RPC Integration（only-this authenticated smoke 已通过）
 - v0.1.7.3.3.1 — Split RPC Correctness Patch（final split / future-delete semantics 已验证）
 - v0.1.7.3.3.2 — Frontend Scope Integration（Production Desktop 与 iPhone Standalone PWA recurrence smoke 已通过）
-- v0.1.8 — Mobile Push Reminder（next approved product slice；architecture frozen，implementation pending）
+- v0.1.8 — Mobile Push Reminder（current approved product line；architecture frozen）
+- v0.1.8.1 — Push Infrastructure Foundation（repository implemented；cloud / real-device validation pending）
 
 ## Last verified
 
@@ -54,7 +55,7 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 
 ## Next Action
 
-开始 v0.1.8 Slice 1 — Push Infrastructure Foundation，建立 Service Worker、notification permission flow、user + installation Push Subscription persistence 与 subscription lifecycle；本 Slice 不实现 reminder scheduler、event reminder persistence 或 recurrence delivery。两套独立 Email OTP 会话的 recurrence Realtime 验证和支持浏览器的 DST-zone coverage 继续作为 non-blocking validation follow-up。
+执行 v0.1.8.1 人工验证：应用 `2026-09-18-v0.1.8.1-push-infrastructure.sql`，配置 Supabase VAPID secrets 并部署 `send-test-push`，在 Vercel 配置同一 public key 后重新部署，再完成 Desktop、iPhone installed PWA 与 Android installed PWA 的 permission / subscribe / foreground-background-closed test push。验证通过并单独批准后，才进入 Slice 2 reminder persistence；recurrence Realtime 与 DST-zone coverage 仍是 non-blocking follow-up。
 
 ## Blockers
 
@@ -90,6 +91,7 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 - `supabase/config.toml` uses a stable local `project_id`; the local database/API/Auth/Mailpit stack is reachable. It configures a local 8-digit Mailpit OTP template and port-5175 redirect URL only; the local status currently reports stopped imgproxy and pooler services, which do not block Postgres, Auth, Mailpit, or pgTAP validation.
 - The engine uses native `Intl` IANA timezone formatting/conversion and rejects invalid rule shapes at both client and database boundaries. It returns an explicit error instead of a partial result after 500 candidates.
 - v0.1.8 uses one event-level reminder stored as nullable `events.reminder_offset_minutes`; allowed values are `0`, `10`, `30`, `60`, and `1440`, with `null` meaning no reminder. Multiple reminders, arbitrary custom minutes, and per-user reminder preferences are outside this version.
+- v0.1.8.1 repository implementation is complete but not deployed: `push_subscriptions` uses RPC-only authenticated browser writes, `send-test-push` owns server-side VAPID delivery, and the private key must remain only in Supabase secrets. `@mmmike/web-push@1.3.0` is an exact function-level dependency; no root/browser dependency was added.
 - Standard Web Push is the delivery channel. The Push Service Worker handles Push only and must not introduce offline caching. iPhone and Android installed PWAs are the primary mobile targets; Desktop is also part of acceptance coverage.
 - Push subscriptions bind to `user + installation`, never to a Space, and one user may retain multiple active device/browser subscriptions. This persistence model remains compatible with a future multi-space schema without implementing multi-space in v0.1.8.
 - shared event reminders resolve current active Space members at send time; personal event reminders resolve only the current `owner_user_id`. A former member must not receive a delivery.
@@ -101,4 +103,4 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 
 ## Handoff Prompt
 
-Begin v0.1.8 Slice 1 — Push Infrastructure Foundation only: add a Push-only Service Worker, explicit notification permission flow, user + installation Push Subscription persistence, and subscription lifecycle coverage. Do not implement the reminder scheduler, `events.reminder_offset_minutes`, recurrence delivery, offline caching, or any excluded delivery channel in Slice 1. Keep two-session recurrence Realtime and DST-zone coverage as non-blocking validation follow-up, and do not add a `delete_logical_series` UI entry point without separate product approval.
+Validate v0.1.8.1 without expanding scope: apply the reviewed additive patch, configure Supabase VAPID secrets, deploy `send-test-push`, configure the matching Vercel public key, and perform Desktop/iPhone installed-PWA/Android installed-PWA test-push acceptance. Keep status `IMPLEMENTED / VALIDATION PENDING` until those checks pass. Do not start Slice 2, add `events.reminder_offset_minutes`, Cron, scheduler, recurrence delivery, offline caching, or another delivery channel without separate approval. Keep recurrence Realtime/DST coverage non-blocking and do not expose `delete_logical_series` UI.

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import {
   CalendarDays,
+  Bell,
   ChevronLeft,
   ChevronRight,
   Copy,
@@ -13,6 +14,7 @@ import {
   X,
 } from 'lucide-react';
 import { MemberSheet } from './components/MemberSheet';
+import { NotificationSettings } from './components/NotificationSettings';
 import { RecurrenceControls } from './components/RecurrenceControls';
 import { calendarVisibleRange } from './lib/calendar-display';
 import { draftFromEditTarget, type EventDraft } from './lib/event-edit-draft';
@@ -30,6 +32,12 @@ import { eventEditUiState, occurrenceActionCopy, type OccurrenceAction } from '.
 import { memberDisplayNameForUser } from './lib/member';
 import { browserTimeZone, defaultRecurrenceDraft, expandRecurringEvents, recurrenceDraftFromRule, recurrenceRuleFromDraft, recurrenceSummary, type RecurrenceDraft } from './lib/recurrence';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
+import {
+  cleanupPushAndSignOut,
+  disableCurrentPushInstallation,
+  registerPushServiceWorker,
+  unsubscribeCurrentPushSubscription,
+} from './lib/push-notifications';
 import {
   addDays,
   addHours,
@@ -364,6 +372,7 @@ function CalendarApp({ session }: { session: Session }) {
   const [editingTarget, setEditingTarget] = useState<EventEditTarget | null>(null);
   const [showNewEvent, setShowNewEvent] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const [memberMessage, setMemberMessage] = useState('');
 
   const partner = members.find((member) => member.user_id !== userId) ?? null;
@@ -446,6 +455,9 @@ function CalendarApp({ session }: { session: Session }) {
 
   useEffect(() => {
     void loadSpace();
+    void registerPushServiceWorker().catch((registrationError) => {
+      console.warn('Push service worker registration failed.', getErrorMessage(registrationError));
+    });
   }, []);
 
   useEffect(() => {
@@ -474,7 +486,24 @@ function CalendarApp({ session }: { session: Session }) {
   }, [space?.id]);
 
   async function signOut() {
-    await supabase.auth.signOut();
+    setError('');
+    try {
+      await cleanupPushAndSignOut({
+        disableRemote: async () => {
+          await disableCurrentPushInstallation(supabase);
+        },
+        unsubscribe: unsubscribeCurrentPushSubscription,
+        signOut: async () => {
+          const { error: signOutError } = await supabase.auth.signOut();
+          if (signOutError) throw signOutError;
+        },
+        onCleanupError: (stage, cleanupError) => {
+          console.warn(`Push cleanup failed during ${stage}.`, getErrorMessage(cleanupError));
+        },
+      });
+    } catch (signOutError) {
+      setError(getErrorMessage(signOutError));
+    }
   }
 
   if (loading) {
@@ -499,6 +528,9 @@ function CalendarApp({ session }: { session: Session }) {
               </button>
             </div>
             <div className="flex items-center gap-2">
+              <button className="grid h-10 w-10 place-items-center rounded-lg bg-white text-ink shadow-sm" type="button" onClick={() => setShowNotifications(true)} aria-label="通知设置">
+                <Bell size={18} />
+              </button>
               <button className="grid h-10 w-10 place-items-center rounded-lg bg-white text-ink shadow-sm" type="button" onClick={signOut} aria-label="退出登录">
                 <LogOut size={18} />
               </button>
@@ -581,6 +613,8 @@ function CalendarApp({ session }: { session: Session }) {
           }}
         />
       )}
+
+      {showNotifications && <NotificationSettings onClose={() => setShowNotifications(false)} />}
     </main>
   );
 }

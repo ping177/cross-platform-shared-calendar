@@ -51,7 +51,7 @@
 
 ## v0.1.8 Mobile Push Reminder Architecture Freeze
 
-- `v0.1.8 — Mobile Push Reminder` is the next approved product slice. Its architecture is frozen, but implementation has not started and the current completed product version remains v0.1.7.3.3.2.
+- `v0.1.8 — Mobile Push Reminder` is the current approved product line. Slice 1 (`v0.1.8.1 — Push Infrastructure Foundation`) is implemented in the repository but remains validation pending; the deployed, Production-accepted product remains v0.1.7.3.3.2 until cloud and real-device validation completes.
 - **Reminder persistence:** use Option A, one nullable event-level `events.reminder_offset_minutes` value. `null` means no reminder; allowed non-null values are `0`, `10`, `30`, `60`, and `1440`. v0.1.8 does not create `event_reminders` or support multiple, arbitrary-minute, or per-user reminders.
 - **Delivery channel:** use standards-based Web Push to system notifications. Email reminder delivery, SMS, Bark, notification inbox/history, snooze, sound customization, and native alarms are excluded. Existing Email OTP authentication is unrelated and remains unchanged.
 - **Push client:** add a Service Worker that handles Push and notification clicks only. It must not add offline caching. Permission is requested only after an explicit user action; iPhone and Android installed PWAs are the primary mobile targets.
@@ -63,6 +63,8 @@
 - **Delivery ledger:** `reminder_deliveries` records pending/processing/sent/failed/cancelled delivery attempts and revalidates current event, occurrence, membership, subscription, and `due_at` before sending. Stale pending/processing rows are cancelled after an event is moved or deleted.
 - **Idempotency:** recurring deliveries are unique by `(logical_series_id, occurrence_key, subscription_id, due_at)`; one-off deliveries are unique by `(event_id, "once", subscription_id, due_at)`. `due_at` is the stable `timestamptz` produced by canonical projected occurrence start minus reminder offset. The same occurrence/device/due time succeeds at most once; title or description changes do not create a new reminder; a changed start or offset may create a new legitimate delivery. A future split does not duplicate a reminder when logical occurrence and `due_at` are unchanged.
 - **Implementation slices:** deliver Push Infrastructure Foundation, Reminder Persistence + Ordinary Event Delivery, Recurrence Integration, then Production Validation + Canonical Closeout. Later roadmap versions remain directional and do not imply frozen architecture.
+- **Slice 1 server dependency:** `@mmmike/web-push@1.3.0` is pinned exactly in `supabase/functions/send-test-push/deno.json` and is used only by that Edge Function. No browser Web Push package or root npm dependency is added; the client uses the platform Service Worker, PushManager, Notification, and PushSubscription APIs directly.
+- **Slice 1 security boundary:** authenticated clients register/disable only through `SECURITY DEFINER` RPCs whose identity comes from `auth.uid()`; clients receive no direct subscription-table privileges. The test sender accepts only an installation UUID, re-authenticates the JWT, scopes lookup and invalid-subscription retirement to that user, and allowlists current Chromium, Mozilla, and Apple push-service hosts before outbound delivery.
 
 ## PWA
 

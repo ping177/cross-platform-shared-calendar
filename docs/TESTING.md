@@ -41,9 +41,16 @@ trailer 是否与 PROJECT_STATE tree diff 一致；tag 只验证目标 commit �
 
 ## v0.1.8 Mobile Push Reminder Acceptance Plan
 
-Status: architecture frozen; implementation pending. The checks below are planned acceptance criteria, not passed results.
+Status: Slice 1 is `IMPLEMENTED / VALIDATION PENDING`. Automated repository checks listed below passed; cloud configuration and all Desktop/iPhone/Android checks remain planned acceptance criteria, not passed results.
 
 ### Slice 1 — Push Infrastructure Foundation
+
+Local automated verification on 2026-09-18:
+
+- Passed 21/21 Node tests across `tests/push-notifications.test.ts`, `tests/send-test-push.test.ts`, `tests/send-test-push-source.test.ts`, `tests/service-worker.test.ts`, and `tests/supabase-schema-push.test.ts`.
+- Passed `npm run build` (TypeScript project build plus Vite production bundle).
+- Added `supabase/tests/2026-09-18-v0.1.8.1-push-infrastructure.test.sql` with 22 assertions for table/RPC structure, privileges, authenticated registration/upsert, endpoint ownership, current-installation disable, and isolation. Its local run is pending because the local Supabase database was unavailable; Production was not used as a substitute.
+- Pending: Edge Function runtime bundle/serve validation with configured local secrets, Supabase patch execution, cloud deploy, Vercel redeploy, and every real-device smoke below.
 
 - Register a root-scope Service Worker that handles Push and notification clicks only; verify that it adds no offline cache or `fetch` caching behavior.
 - Request notification permission only after an explicit user action. Cover granted, dismissed/default, denied, unsupported-browser, and iPhone-not-installed guidance.

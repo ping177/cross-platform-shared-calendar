@@ -6,10 +6,10 @@ Production URL: https://cross-platform-shared-calendar.vercel.app/
 
 ## 当前阶段
 
-- 当前完成版本：`v0.1.7.3.3.2`，Calendar Core 与 Recurring Events 已完成并通过 Production 验收。
-- 下一 approved slice：`v0.1.8 — Mobile Push Reminder`。
-- v0.1.8 architecture 已冻结，implementation pending；尚未创建 Service Worker、Push Subscription persistence、reminder scheduler、Edge Function 或 Cron。
-- 第一实现切片是 Push Infrastructure Foundation，只建立 Push-only Service Worker、明确用户操作触发的 notification permission flow，以及 `user + installation` subscription persistence/lifecycle。完整冻结决策和分片见 [Decisions](./docs/DECISIONS.md) 与 [Backlog](./docs/BACKLOG.md)。
+- 当前实现版本：`v0.1.8.1 — Push Infrastructure Foundation`，状态为 `IMPLEMENTED / VALIDATION PENDING`。
+- Slice 1 已在仓库实现 Push-only Service Worker、明确用户操作触发的 notification permission flow、`user + installation` subscription persistence/lifecycle，以及 authenticated test-push Edge Function。
+- Slice 1 尚未执行 Supabase patch、配置云端 VAPID secrets、部署 Edge Function/Vercel 或完成 Desktop、iPhone、Android 真机验收；Production 仍是已验收的 v0.1.7.3.3.2。
+- 本切片没有加入 reminder scheduler、`events.reminder_offset_minutes`、Cron、recurrence delivery 或 offline cache。完整冻结决策和分片见 [Decisions](./docs/DECISIONS.md) 与 [Backlog](./docs/BACKLOG.md)。
 
 ## v0.1 功能范围
 
@@ -50,6 +50,7 @@ Production URL: https://cross-platform-shared-calendar.vercel.app/
    ```bash
    VITE_SUPABASE_URL=https://your-project-ref.supabase.co
    VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+   VITE_VAPID_PUBLIC_KEY=your-public-vapid-key
    ```
 
    `VITE_SUPABASE_URL` 必须止于 `.supabase.co`，不能包含 `/rest/v1/` 或其他 API 路径。
@@ -79,6 +80,7 @@ Production URL: https://cross-platform-shared-calendar.vercel.app/
 - `rotate_invite_code(space_id uuid)`
 - `updated_at` trigger
 - event owner 校验 trigger
+- `push_subscriptions`、subscription lifecycle RPC 与最小权限边界
 
 `events` 使用稳定归属模型：
 
@@ -89,6 +91,19 @@ Production URL: https://cross-platform-shared-calendar.vercel.app/
 - shared 日程允许两位空间成员编辑或删除。
 
 已有 Supabase 环境不要重新执行整份 schema。按版本执行 `supabase/patches/` 中对应的增量 SQL，并先完成该版本文档要求的 preflight 检查。
+
+## v0.1.8.1 Push Infrastructure 手动配置
+
+仓库实现不代表云端已经启用。已有 Supabase 环境应执行
+`supabase/patches/2026-09-18-v0.1.8.1-push-infrastructure.sql`，为
+`send-test-push` 配置 `VAPID_SUBJECT`、`VAPID_PUBLIC_KEY`、`VAPID_PRIVATE_KEY`
+secrets，再部署该 Edge Function。`VAPID_PRIVATE_KEY` 只能存在于 Supabase secret 中，不能
+进入 Git、浏览器环境变量或日志。
+
+Vercel 只配置与服务端同一 key pair 对应的 `VITE_VAPID_PUBLIC_KEY`，然后重新部署。完成后
+按 [Testing](./docs/TESTING.md) 分别执行 Desktop、iPhone installed PWA 与 Android installed
+PWA 的 permission、subscribe、test push 和 background/closed-app 验收。在这些步骤完成前，
+Slice 1 保持 `IMPLEMENTED / VALIDATION PENDING`。
 
 ## Email OTP 登录
 

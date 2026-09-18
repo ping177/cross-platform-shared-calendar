@@ -12,7 +12,7 @@
 
 ### v0.1.8 — Mobile Push Reminder
 
-Status: architecture frozen; implementation pending.
+Status: Slice 1 implemented in the repository; cloud and real-device validation pending.
 
 In scope:
 
@@ -40,7 +40,7 @@ Explicitly out of scope:
 
 Implementation slices:
 
-1. **Push Infrastructure Foundation:** Push-only Service Worker, explicit permission flow, `user + installation` subscription persistence, multi-device lifecycle, logout/invalid-subscription handling, and Desktop/iPhone/Android test push. Do not implement scheduler, event reminder persistence, or recurrence delivery in this slice.
+1. **Push Infrastructure Foundation — IMPLEMENTED / VALIDATION PENDING:** Push-only Service Worker, explicit permission flow, `user + installation` subscription persistence, multi-device lifecycle, logout/invalid-subscription handling, and an authenticated current-installation test-push path are implemented. Supabase patch/secrets/function deployment, Vercel public-key deployment, and Desktop/iPhone/Android acceptance remain manual and pending. This slice does not implement scheduler, event reminder persistence, or recurrence delivery.
 2. **Reminder Persistence + Ordinary Event Delivery:** `events.reminder_offset_minutes`, fixed options, current-recipient resolution, Cron + Edge Function sender, delivery ledger, due-time-aware idempotency, and ordinary shared/personal event delivery.
 3. **Recurrence Integration:** canonical dynamic occurrence projection, override/delete/split/current-and-future semantics, reminder inheritance, timezone/DST coverage, stale-delivery cancellation, and no-duplicate regression coverage.
 4. **Production Validation + Canonical Closeout:** Production Desktop, iPhone installed PWA, and Android installed PWA acceptance; late-delivery and subscription lifecycle evidence; final canonical docs closeout.
