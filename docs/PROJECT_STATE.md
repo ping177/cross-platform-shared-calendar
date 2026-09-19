@@ -8,15 +8,15 @@
 
 ## Current version
 
-v0.1.8.1 (Push Infrastructure Foundation)
+v0.1.8.2 (Reminder Persistence + Ordinary Event Delivery — Architecture Frozen)
 
 ## Current status
 
-Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.8.1 — Push Infrastructure Foundation` 状态为 `CLOSED / PASS — Android final acceptance deferred`：Desktop Chrome/macOS 与 iPhone installed PWA 的真实 Push Infrastructure 验收已通过；Android installed PWA 的完整 Push 生命周期由产品决策统一延后到整个 v0.1.8 的最终 cross-platform acceptance，不阻塞 Slice 2。v0.1.8 Slice 2 尚未开始。
+Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.8.1 — Push Infrastructure Foundation` 保持 `CLOSED / PASS — Android final acceptance deferred`。`v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery` 已完成 architecture / semantics freeze，但业务代码、SQL、migration、Cron 与 ordinary reminder delivery 实现均尚未开始。Android installed PWA 的完整 Push 生命周期仍延后到整个 v0.1.8 的最终 cross-platform acceptance，不阻塞 Slice 2。
 
 ## Latest completed
 
-Closed v0.1.8 Slice 1 after real-device validation. iPhone installed PWA passed permission, subscription, test push, home-screen/background, and lock-screen delivery. Desktop Chrome/macOS passed permission, local notification, Service Worker notification, FCM acceptance, and final test push after an abnormal/stale browser subscription was unsubscribed and recreated. Safe sender diagnostics retain upstream `status`, `delivered`, hostname-only `provider`, and `gone`; the full 90-test Node suite, production build, diff check, and Edge static/type check passed. Android Push lifecycle acceptance is deferred to final v0.1.8 cross-platform acceptance by validation strategy, not by a technical blocker.
+Completed the docs-only v0.1.8.2 architecture / semantics freeze. The superseded `events.reminder_offset_minutes` proposal is replaced by nullable `events.reminder_kind` plus nullable canonical IANA `events.time_zone`; new UI-created timed events default to `timed_10m_before`, new UI-created all-day events default to `all_day_same_day_08`, while all historical events remain `reminder_kind = null` and retain unknown `time_zone = null` unless a later explicit reminder/time edit establishes one. Timed/all-day conversion, start-only multi-day behavior, past-due skip, roughly ten-minute infrastructure grace, event-level recipients, due-aware idempotency, and Slice 3 recurrence inheritance were frozen without implementing business code, SQL, migration, Cron, or delivery.
 
 ## Deployment
 
@@ -48,6 +48,7 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 - v0.1.7.3.3.2 — Frontend Scope Integration（Production Desktop 与 iPhone Standalone PWA recurrence smoke 已通过）
 - v0.1.8 — Mobile Push Reminder（current approved product line；architecture frozen）
 - v0.1.8.1 — Push Infrastructure Foundation（CLOSED / PASS；Desktop + iPhone verified；Android final acceptance deferred）
+- v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（architecture / semantics frozen；implementation not started）
 
 ## Last verified
 
@@ -55,7 +56,7 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 
 ## Next Action
 
-进入 v0.1.8 Slice 2 reminder semantics / persistence：先冻结 timed、all-day、multi-day event reminder 规则，再实现 ordinary event reminder scheduling。Android installed PWA 的完整 Push 生命周期验收留到整个 v0.1.8 最终 cross-platform acceptance；recurrence Realtime 与 DST-zone coverage 继续作为 non-blocking follow-up。
+进入 v0.1.8.2 implementation planning：按已冻结的 `reminder_kind + time_zone`、new-event defaults、historical-null migration、ordinary due calculation、delivery ledger、recipient resolution、Cron/sender、stale cancellation 与 grace 规则拆分可验证任务。Android installed PWA 的完整 Push 生命周期验收留到整个 v0.1.8 最终 cross-platform acceptance；recurring delivery 保留给 Slice 3。
 
 ## Blockers
 
@@ -90,18 +91,21 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 - Final Production recurrence smoke passed on Desktop and iPhone Standalone PWA for all four supported occurrence actions. iOS Standalone PWA cannot actively refresh itself due to an iOS system limitation; this is not an application defect.
 - `supabase/config.toml` uses a stable local `project_id`; the local database/API/Auth/Mailpit stack is reachable. It configures a local 8-digit Mailpit OTP template and port-5175 redirect URL only; the local status currently reports stopped imgproxy and pooler services, which do not block Postgres, Auth, Mailpit, or pgTAP validation.
 - The engine uses native `Intl` IANA timezone formatting/conversion and rejects invalid rule shapes at both client and database boundaries. It returns an explicit error instead of a partial result after 500 candidates.
-- v0.1.8 uses one event-level reminder stored as nullable `events.reminder_offset_minutes`; allowed values are `0`, `10`, `30`, `60`, and `1440`, with `null` meaning no reminder. Multiple reminders, arbitrary custom minutes, and per-user reminder preferences are outside this version.
+- v0.1.8.2 supersedes the earlier `events.reminder_offset_minutes` proposal. One event-level nullable `events.reminder_kind` supports `timed_at_start`, `timed_10m_before`, `timed_30m_before`, `timed_1h_before`, `timed_previous_day_same_time`, `all_day_same_day_08`, and `all_day_previous_day_20`; `null` means no reminder. Multiple reminders, JSON reminder config, arbitrary custom minutes, and per-user reminder preferences remain outside this version.
+- `events.time_zone` is the nullable canonical IANA timezone of the Event. New events detect it from the creating browser/PWA with standard `Intl` capability; later device timezone changes never silently rewrite an existing Event. Historical ordinary timezone remains null rather than guessed, while historical recurring sources may initialize it from their already-authoritative rule timezone. Recurring Event `time_zone` must equal `recurrence_rule.time_zone`, so there is only one authoritative timezone.
+- New UI-created timed events default to `timed_10m_before`; new UI-created all-day events default to `all_day_same_day_08`. Database defaults and all historical events remain `reminder_kind = null`; historical ordinary Event timezone is not guessed or bulk-backfilled.
+- Timed-to-all-day conversion maps a non-null timed reminder to `all_day_same_day_08`; all-day-to-timed maps a non-null all-day reminder to `timed_10m_before`; null remains null and the UI must show the resulting option. Multi-day reminders anchor only to the start and ignore `ends_at`.
 - v0.1.8.1 Push Infrastructure is closed and passed on Desktop Chrome/macOS and iPhone installed PWA. `push_subscriptions` uses RPC-only authenticated browser writes, `send-test-push` owns server-side VAPID delivery, and the private key remains only in Supabase secrets. Safe diagnostics expose only upstream `status`, `delivered`, hostname-only `provider`, and `gone`. `@mmmike/web-push@1.3.0` remains an exact function-level dependency; no root/browser dependency was added.
 - The initial Desktop Chrome subscription was abnormal/stale: FCM accepted the send (`201`, `delivered = true`) but no notification appeared. Closing notifications, unsubscribing, and creating a fresh subscription restored Desktop test-push delivery. For similar Push symptoms, try retry, unsubscribe/resubscribe, and browser/PWA restart before deeper RCA.
 - Standard Web Push is the delivery channel. The Push Service Worker handles Push only and must not introduce offline caching. Desktop and iPhone Slice 1 acceptance passed; Android permission, subscription, foreground/background/closed-app delivery, notification click, and logout lifecycle are deferred together to final v0.1.8 cross-platform acceptance. This is a validation strategy, not a blocker.
 - Push subscriptions bind to `user + installation`, never to a Space, and one user may retain multiple active device/browser subscriptions. This persistence model remains compatible with a future multi-space schema without implementing multi-space in v0.1.8.
 - shared event reminders resolve current active Space members at send time; personal event reminders resolve only the current `owner_user_id`. A former member must not receive a delivery.
-- Supabase Cron runs every minute and invokes an Edge Function sender. The sender dynamically projects due ordinary and recurring occurrences through the canonical recurrence/exception semantics; it does not materialize a long horizon of future reminders.
-- Delivery idempotency is due-time aware: recurring `(logical_series_id, occurrence_key, subscription_id, due_at)` and one-off `(event_id, "once", subscription_id, due_at)`. A changed start or reminder offset may create a new legitimate delivery; unchanged `due_at` must not duplicate, including across a future split.
-- Normal target precision is about one minute. A simple configurable grace window may compensate reminders missed within roughly ten minutes; older reminders are not sent late. Web Push remains best-effort and is not an Alarm Clock.
+- v0.1.8 freezes a one-minute Supabase Cron + Edge Function sender architecture. Slice 2 will implement ordinary events; Slice 3 will dynamically project recurring occurrences through canonical recurrence/exception semantics without materializing a long horizon.
+- Delivery idempotency is due-time aware: recurring `(logical_series_id, occurrence_key, subscription_id, due_at)` and one-off `(event_id, "once", subscription_id, due_at)`. A changed effective start/date or reminder preset may create a new legitimate delivery; unchanged `due_at` must not duplicate, including across a future split.
+- A newly created/edited/enabled reminder whose derived `due_at` is already past is skipped without immediate Push or compensation. Normal target precision is about one minute; a roughly ten-minute grace window applies only to infrastructure delay. Web Push remains best-effort and is not an Alarm Clock.
 - v0.1.8 excludes Email reminder delivery, SMS, Bark, multiple reminders, arbitrary custom minutes, snooze, sound customization, notification inbox/history, native alarms, and per-user reminder preferences. Email OTP authentication remains unchanged.
 - `v0.1.9 Shared Tasks`, `v0.1.10 Shared Lists`, `v0.1.11 Important Dates / Anniversaries`, and `v0.1.12 Tags / Color = Who` are roadmap directions only, not frozen architectures. UI/UX overhaul remains deferred pending a Design System.
 
 ## Handoff Prompt
 
-Begin v0.1.8 Slice 2 with a reminder-semantics freeze: define timed, all-day, and multi-day event reminder behavior before implementing persistence or ordinary-event scheduling. Slice 1 is closed/pass; do not reopen it solely for Android, whose full Push lifecycle acceptance is deferred to final v0.1.8 cross-platform acceptance. Preserve the safe sender diagnostics and existing Push architecture. Do not implement recurrence reminder delivery, multi-space, Tasks/Lists, offline caching, or another delivery channel without separate approval.
+Begin v0.1.8.2 implementation planning from the approved reminder freeze. Plan nullable `reminder_kind`, nullable canonical IANA `time_zone`, UI-only new-event defaults (`timed_10m_before` / `all_day_same_day_08`), historical-null migration, ordinary-event due calculation, ledger, recipient resolution, Cron/sender, stale cancellation, and infrastructure-only grace. Review the safest minimal explicit-time-edit timezone behavior so an edit cannot accidentally reinterpret a timed event's absolute instant. Stop if the existing all-day presentation model cannot safely derive 08:00 from effective date plus canonical timezone. Keep recurring delivery for Slice 3 and keep Android final Push acceptance deferred to final v0.1.8 acceptance.

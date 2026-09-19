@@ -1,5 +1,16 @@
 # Development Log
 
+## 2026-09-19 - v0.1.8.2 Reminder Persistence + Ordinary Event Delivery Architecture Freeze
+
+- Completed a docs-only architecture / semantics freeze for v0.1.8.2; business code, SQL, migration, Cron, sender, delivery ledger, commit, and push remain untouched. Implementation planning is the next action.
+- Superseded the earlier nullable `events.reminder_offset_minutes` proposal with one nullable event-level `events.reminder_kind`: timed at-start/10m/30m/1h/previous-local-day presets and all-day same-day 08:00 / previous-day 20:00 presets. No JSON reminder config, multiple-reminder table, custom minutes, or per-user reminder preference was approved.
+- Froze new UI-created Event defaults as `timed_10m_before` for timed events and `all_day_same_day_08` for all-day events. The database default and all historical Events remain `reminder_kind = null`; rollout does not silently enable notifications.
+- Froze nullable canonical IANA `events.time_zone`, automatically detected from the creating browser/PWA without a manual selector. Existing Events are never silently rewritten when a device timezone changes, and historical ordinary Event timezone remains null rather than guessed; historical recurring sources may initialize it from their already-authoritative recurrence-rule timezone. Recurring Event timezone must agree with `recurrence_rule.time_zone`.
+- Froze timed previous-day semantics as the prior Event-local calendar day at the same wall-clock time, reusing canonical recurrence DST behavior rather than subtracting 1440 minutes. All-day due time uses effective date plus Event timezone; multi-day reminders use only the range start.
+- Froze visible timed/all-day reminder conversion, stale pending cancellation, due-aware idempotency, no re-send for title/description edits, legitimate new delivery after a moved future due, past-due skip without immediate Push, and a roughly ten-minute grace used only for infrastructure delay.
+- Kept Slice 2 limited to ordinary non-recurring delivery and kept recurrence projection/override/delete/split/cutoff/all-day/DST delivery for Slice 3. The current all-day representation is accepted without date-only or exclusive-end redesign; implementation must stop and report if it cannot safely derive canonical 08:00.
+- Android installed PWA Push lifecycle acceptance remains deferred to final v0.1.8 cross-platform acceptance and is not a blocker. `git diff --check` is the only required verification for this docs-only change.
+
 ## 2026-09-19 - v0.1.8.1 Push Infrastructure Validation Closeout
 
 - Closed Slice 1 as `CLOSED / PASS — Android final acceptance deferred`. iPhone installed PWA passed notification permission, subscription, test push, home-screen/background delivery, and lock-screen delivery. Desktop Chrome/macOS passed permission, local `Notification`, Service Worker `showNotification`, FCM acceptance, and final test-push delivery.

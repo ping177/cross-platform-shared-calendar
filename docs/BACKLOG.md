@@ -12,16 +12,20 @@
 
 ### v0.1.8 — Mobile Push Reminder
 
-Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`. Desktop Chrome/macOS and iPhone installed PWA Push Infrastructure validation passed. Slice 2 reminder semantics / persistence is next but has not started.
+Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`. Desktop Chrome/macOS and iPhone installed PWA Push Infrastructure validation passed. Slice 2 architecture / semantics are frozen; implementation planning is next and implementation has not started.
 
 In scope:
 
-- One event-level optional reminder stored as nullable `events.reminder_offset_minutes`.
-- Preset offsets: `0`, `10`, `30`, `60`, and `1440` minutes; `null` means no reminder.
+- One event-level optional reminder stored as nullable `events.reminder_kind`; the earlier `events.reminder_offset_minutes` proposal is superseded.
+- Fixed kinds: `timed_at_start`, `timed_10m_before`, `timed_30m_before`, `timed_1h_before`, `timed_previous_day_same_time`, `all_day_same_day_08`, and `all_day_previous_day_20`; `null` means no reminder.
+- Nullable canonical IANA `events.time_zone`, automatically detected for new events from the creating browser/PWA and never silently changed merely because a device later changes timezone.
+- UI-only new-event defaults: timed `timed_10m_before`; all-day `all_day_same_day_08`. Database default and every historical Event remain `null`; historical ordinary timezone is not guessed or bulk-backfilled.
+- Timed previous-day reminders preserve Event-local wall-clock time through the canonical recurrence DST semantics. All-day reminders use effective Event date plus canonical timezone; multi-day reminders anchor only to the start.
 - Standards-based Web Push system notifications for Desktop and installed iPhone/Android PWAs.
 - `push_subscriptions` bound to `user + installation`, with multiple simultaneous device/browser subscriptions and no Space binding.
 - `reminder_deliveries` with due-time-aware idempotency and delivery lifecycle state.
 - shared event recipients resolved from current active Space membership at send time; personal event recipients limited to `owner_user_id`.
+- Reminder UI copy states that a shared Event reminder notifies current Space members.
 - Supabase Cron every minute, an Edge Function sender, and dynamic ordinary/recurring occurrence projection through the canonical recurrence semantics.
 - Push-only Service Worker with no offline cache.
 - Best-effort delivery with approximately one-minute normal target precision and a simple configurable late-delivery grace window of roughly ten minutes.
@@ -41,7 +45,7 @@ Explicitly out of scope:
 Implementation slices:
 
 1. **Push Infrastructure Foundation — CLOSED / PASS; Android final acceptance deferred:** Push-only Service Worker, explicit permission flow, `user + installation` subscription persistence, multi-device lifecycle, logout/invalid-subscription handling, and an authenticated current-installation test-push path are implemented. Desktop Chrome/macOS and iPhone installed PWA validation passed. The initial Desktop subscription was abnormal/stale despite FCM `201`; unsubscribe/resubscribe restored delivery. Android Push lifecycle acceptance is deferred to final v0.1.8 cross-platform acceptance and does not block Slice 2. This slice does not implement scheduler, event reminder persistence, or recurrence delivery.
-2. **Reminder Persistence + Ordinary Event Delivery — NEXT:** first freeze reminder semantics for timed, all-day, and multi-day events; then implement `events.reminder_offset_minutes`, fixed options, current-recipient resolution, Cron + Edge Function sender, delivery ledger, due-time-aware idempotency, and ordinary shared/personal event delivery.
+2. **Reminder Persistence + Ordinary Event Delivery — ARCHITECTURE / SEMANTICS FROZEN; IMPLEMENTATION NEXT:** plan and implement `events.reminder_kind`, canonical `events.time_zone`, new-event defaults, historical-null migration, visible timed/all-day conversion, ordinary due calculation, current-recipient resolution, Cron + Edge Function sender, delivery ledger, due-time-aware idempotency, stale cancellation, past-due skip, and infrastructure-only grace. Stop and report rather than expanding all-day architecture if the existing effective-date model cannot safely produce canonical 08:00.
 3. **Recurrence Integration:** canonical dynamic occurrence projection, override/delete/split/current-and-future semantics, reminder inheritance, timezone/DST coverage, stale-delivery cancellation, and no-duplicate regression coverage.
 4. **Production Validation + Canonical Closeout:** Production Desktop, iPhone installed PWA, and Android installed PWA acceptance; Android permission, subscription, foreground/background/closed-app delivery, notification click, and logout lifecycle; late-delivery and subscription lifecycle evidence; final canonical docs closeout.
 
@@ -49,7 +53,7 @@ Idempotency freeze:
 
 - Recurring: `(logical_series_id, occurrence_key, subscription_id, due_at)`.
 - One-off: `(event_id, "once", subscription_id, due_at)`.
-- `due_at` is the canonical projected occurrence start minus reminder offset. A changed start or offset may create a new legitimate delivery; unchanged `due_at` must not duplicate, including across a future split.
+- `due_at` is derived from effective start/date, `reminder_kind`, and canonical Event timezone. A changed effective start/date or preset may create a new legitimate delivery; unchanged `due_at` must not duplicate, including across a future split.
 
 Future compatibility:
 

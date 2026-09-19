@@ -41,7 +41,7 @@ trailer 是否与 PROJECT_STATE tree diff 一致；tag 只验证目标 commit �
 
 ## v0.1.8 Mobile Push Reminder Acceptance Plan
 
-Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`. Automated verification plus real Desktop Chrome/macOS and iPhone installed PWA Push Infrastructure acceptance passed. Android Push lifecycle acceptance is intentionally deferred to final v0.1.8 cross-platform acceptance and does not block Slice 2.
+Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`. Automated verification plus real Desktop Chrome/macOS and iPhone installed PWA Push Infrastructure acceptance passed. Slice 2 architecture / semantics are frozen and implementation has not started. Android Push lifecycle acceptance is intentionally deferred to final v0.1.8 cross-platform acceptance and does not block Slice 2.
 
 ### Slice 1 — Push Infrastructure Foundation
 
@@ -66,19 +66,32 @@ Real Push Infrastructure acceptance on 2026-09-19:
 - Persist subscriptions by `user + installation`, not by Space. Desktop and iPhone used independent installations; final Android multi-device coverage remains part of final v0.1.8 acceptance.
 - Verify current-installation logout disables/unsubscribes that installation without disabling another device, and invalid/expired endpoints are retired safely.
 - Desktop and iPhone diagnostic system-notification smoke passed. Android system-notification and lifecycle smoke is deferred to final v0.1.8 acceptance and does not block reminder-semantics work.
-- Confirm this slice does not add `events.reminder_offset_minutes`, reminder scheduling, recurrence delivery, Email reminder delivery, SQL beyond subscription persistence, or offline caching.
+- Confirm this slice does not add Event reminder persistence, reminder scheduling, recurrence delivery, Email reminder delivery, SQL beyond subscription persistence, or offline caching.
 
-### Slices 2–4 — Reminder Delivery
+### Slice 2 — Reminder Persistence + Ordinary Event Delivery
 
-- Verify `events.reminder_offset_minutes` accepts only `null`, `0`, `10`, `30`, `60`, and `1440`; `null` means no reminder.
+- Verify nullable `events.reminder_kind` accepts only `timed_at_start`, `timed_10m_before`, `timed_30m_before`, `timed_1h_before`, `timed_previous_day_same_time`, `all_day_same_day_08`, and `all_day_previous_day_20`; `null` means no reminder. Reject timed kinds on all-day Events and all-day kinds on timed Events after the visible conversion step.
+- Verify nullable `events.time_zone` accepts canonical IANA timezone names rather than fixed offsets. New Events capture `Intl.DateTimeFormat().resolvedOptions().timeZone`; later device timezone changes do not silently rewrite existing Events. Recurring Events require equality with `recurrence_rule.time_zone`.
+- Verify the database default and every historical Event remain `reminder_kind = null`, with historical ordinary `time_zone = null`; no migration guesses a timezone or enables notifications. Historical recurring sources may initialize `time_zone` only from their existing authoritative `recurrence_rule.time_zone`. Enabling a timezone-dependent reminder on a historical null-timezone Event captures the current device IANA timezone explicitly as part of that mutation.
+- Verify new UI-created timed Events default to `timed_10m_before` and new UI-created all-day Events default to `all_day_same_day_08`; these are UI defaults, not database defaults.
+- Verify at-start/10m/30m/1h use the effective absolute start and real-minute subtraction. Verify `timed_previous_day_same_time` preserves the same wall-clock time on the prior Event-local calendar day and reuses the existing recurrence gap/overlap policy rather than subtracting 1440 minutes.
+- Verify all-day same-day 08:00 and previous-day 20:00 derive one canonical instant from effective Event date plus Event timezone, independent of receiving-device timezone. Confirm the current all-day representation safely supports this calculation before proceeding; do not add date-only storage or exclusive-end behavior in Slice 2.
+- Verify timed-to-all-day keeps null or maps any non-null timed reminder to `all_day_same_day_08`; all-day-to-timed keeps null or maps any non-null all-day reminder to `timed_10m_before`. The final option must be visible before save.
+- Verify multi-day timed/all-day Events use only their effective range start/first date; `ends_at` never creates daily, end, journey, or intermediate reminders.
+- Verify start/date and preset edits invalidate stale pending deliveries and derive a new due; title/description edits keep the due and never duplicate. An already-sent reminder is not withdrawn, while moving an Event to a future due may create one new legitimate delivery.
+- Verify create/edit/enable/preset changes whose newly derived due is past do not immediately Push or compensate. Verify approximately ten-minute grace applies only when an already-valid due was missed by infrastructure: 10:00 → 10:07 may send, while 10:00 → 10:30 skips; apply the same rule to all-day 08:00.
 - Verify shared events resolve all current active Space members at send time, personal events resolve only `owner_user_id`, former members receive nothing, and members without active subscriptions naturally receive no device notification.
-- Verify ordinary event delivery and canonical recurring occurrence delivery, including only-this time override, only-this delete, future split inheritance, current-and-future delete, source timezone, and DST behavior.
-- Verify recurring delivery uniqueness on `(logical_series_id, occurrence_key, subscription_id, due_at)` and one-off uniqueness on `(event_id, "once", subscription_id, due_at)`.
-- Verify title/description changes with unchanged `due_at` do not create another notification; changing event start or reminder offset to a new canonical `due_at` permits a new legitimate notification.
-- Verify a future split does not duplicate an unchanged logical occurrence/due time, and stale pending/processing deliveries are cancelled when their event is moved or deleted.
-- Verify normal scheduler target precision is approximately one minute, reminders missed within the configured roughly ten-minute grace window may be sent late, and older reminders are not backfilled.
+- Verify Reminder UI copy tells the editor that a shared Event reminder notifies current Space members.
+- Verify ordinary one-off uniqueness on `(event_id, "once", subscription_id, due_at)`, current-state revalidation before send, stale pending/processing cancellation, and approximately one-minute normal scheduler precision.
 - Verify Production best-effort delivery on Desktop, iPhone installed PWA, and Android installed PWA, including repeated Cron, Edge Function retry, multi-device delivery, and no duplicate notification on the same subscription/due time.
 - Confirm Email, SMS, Bark, multiple reminders, arbitrary custom minutes, per-user reminder preferences, snooze, sound customization, notification inbox/history, native alarms, multi-space implementation, and UI overhaul remain outside v0.1.8.
+
+### Slice 3 — Recurrence Reminder Integration
+
+- Verify normal occurrences inherit source `reminder_kind` and canonical timezone; only-this overrides recalculate from effective start/date; only-this deletes send nothing.
+- Verify future split children inherit `reminder_kind` and `time_zone`; current-and-future delete suppresses future reminders; all-day recurrence calculates 08:00 / previous-day 20:00 from effective occurrence date.
+- Verify recurrence reminder calculation reuses the canonical recurrence timezone/DST implementation and does not introduce a second DST algorithm.
+- Verify recurring uniqueness on `(logical_series_id, occurrence_key, subscription_id, due_at)` and no duplicate when a future split leaves logical occurrence and due unchanged.
 
 ## v0.1.7.3.3.2 Frontend Scope Integration
 
