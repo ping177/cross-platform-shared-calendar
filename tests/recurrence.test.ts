@@ -75,6 +75,42 @@ test('expands a daily rule every N days', () => {
   assert.deepEqual(occurrenceDates(result), ['2026-01-01', '2026-01-03', '2026-01-05', '2026-01-07']);
 });
 
+test('moves a nonexistent recurrence wall clock to the first instant after the DST gap', () => {
+  const event = eventWithRule('2026-03-07T07:30:00.000Z', {
+    version: 1,
+    frequency: 'daily',
+    interval: 1,
+    time_zone: 'America/New_York',
+  });
+
+  const result = expand(event, '2026-03-07T00:00:00.000Z', '2026-03-09T23:59:59.999Z');
+
+  assert.equal(result.error, null);
+  assert.deepEqual(result.occurrences.map((occurrence) => occurrence.occurrence_starts_at), [
+    '2026-03-07T07:30:00.000Z',
+    '2026-03-08T07:00:00.000Z',
+    '2026-03-09T06:30:00.000Z',
+  ]);
+});
+
+test('chooses the earlier instant for a recurrence wall clock repeated by the DST overlap', () => {
+  const event = eventWithRule('2026-10-31T05:30:00.000Z', {
+    version: 1,
+    frequency: 'daily',
+    interval: 1,
+    time_zone: 'America/New_York',
+  });
+
+  const result = expand(event, '2026-10-31T00:00:00.000Z', '2026-11-02T23:59:59.999Z');
+
+  assert.equal(result.error, null);
+  assert.deepEqual(result.occurrences.map((occurrence) => occurrence.occurrence_starts_at), [
+    '2026-10-31T05:30:00.000Z',
+    '2026-11-01T05:30:00.000Z',
+    '2026-11-02T06:30:00.000Z',
+  ]);
+});
+
 test('expands weekly rules on selected weekdays', () => {
   const event = eventWithRule('2026-01-05T01:00:00.000Z', rule({ frequency: 'weekly', interval: 1, days_of_week: [1, 3, 5] }));
 

@@ -41,7 +41,18 @@ trailer 是否与 PROJECT_STATE tree diff 一致；tag 只验证目标 commit �
 
 ## v0.1.8 Mobile Push Reminder Acceptance Plan
 
-Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`. Automated verification plus real Desktop Chrome/macOS and iPhone installed PWA Push Infrastructure acceptance passed. Slice 2 architecture / semantics are frozen and implementation has not started. Android Push lifecycle acceptance is intentionally deferred to final v0.1.8 cross-platform acceptance and does not block Slice 2.
+Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`. Automated verification plus real Desktop Chrome/macOS and iPhone installed PWA Push Infrastructure acceptance passed. Slice 2 architecture / semantics are frozen. Slice A (timezone primitives + due calculator) implementation and cross-runtime verification are complete and awaiting final human review plus commit/push governance closeout; Slice B and Slice C have not started. Android Push lifecycle acceptance is intentionally deferred to final v0.1.8 cross-platform acceptance and does not block Slice 2.
+
+### Slice 2A — Timezone Primitives + Reminder Due Calculator
+
+Local verification on 2026-09-20:
+
+- Passed `node --test tests/recurrence.test.ts tests/reminder-due.test.ts` (34/34). Coverage includes null/invalid inputs, all seven frozen reminder kinds, timed/all-day mismatch, real-minute offsets, Event-local previous-day arithmetic, all-day 08:00/previous-day 20:00, DST gap/overlap policy, and the absence of `ends_at` from the calculator contract.
+- Passed the full repository Node suite: `node --test tests/*.test.ts tests/*.test.js` (101/101).
+- Passed `npm run build`, proving the Vite/browser TypeScript project imports the shared runtime-neutral timezone implementation.
+- Node imports passed through both recurrence and Reminder tests. Existing recurrence behavior is locked by new DST characterization tests: a nonexistent wall clock advances to the first instant after the spring gap, while an overlapped wall clock selects the earlier instant.
+- Passed with system Deno 2.9.7: `deno check supabase/functions/_shared/time-zone.ts` and `deno check supabase/functions/_shared/reminder-due.ts`. Deno remains a system verification tool rather than a project dependency.
+- Scope audit passed: no database/schema/migration, Event UI, sender, Cron, Service Worker, Push Subscription, Supabase/Vercel configuration, dependency, deployment, commit, or push change.
 
 ### Slice 1 — Push Infrastructure Foundation
 
@@ -78,12 +89,12 @@ Real Push Infrastructure acceptance on 2026-09-19:
 - Verify all-day same-day 08:00 and previous-day 20:00 derive one canonical instant from effective Event date plus Event timezone, independent of receiving-device timezone. Confirm the current all-day representation safely supports this calculation before proceeding; do not add date-only storage or exclusive-end behavior in Slice 2.
 - Verify timed-to-all-day keeps null or maps any non-null timed reminder to `all_day_same_day_08`; all-day-to-timed keeps null or maps any non-null all-day reminder to `timed_10m_before`. The final option must be visible before save.
 - Verify multi-day timed/all-day Events use only their effective range start/first date; `ends_at` never creates daily, end, journey, or intermediate reminders.
-- Verify start/date and preset edits invalidate stale pending deliveries and derive a new due; title/description edits keep the due and never duplicate. An already-sent reminder is not withdrawn, while moving an Event to a future due may create one new legitimate delivery.
+- Verify start/date and preset edits update `reminder_schedule_changed_at` and derive a new current due; the old due naturally leaves the candidate path without mutation-time ledger maintenance. Title/description edits keep the marker and due unchanged. An already-sent reminder is not withdrawn, while moving an Event to a future due may create one new legitimate delivery.
 - Verify create/edit/enable/preset changes whose newly derived due is past do not immediately Push or compensate. Verify approximately ten-minute grace applies only when an already-valid due was missed by infrastructure: 10:00 → 10:07 may send, while 10:00 → 10:30 skips; apply the same rule to all-day 08:00.
 - Verify shared events resolve all current active Space members at send time, personal events resolve only `owner_user_id`, former members receive nothing, and members without active subscriptions naturally receive no device notification.
 - Verify Reminder UI copy tells the editor that a shared Event reminder notifies current Space members.
-- Verify ordinary one-off uniqueness on `(event_id, "once", subscription_id, due_at)`, current-state revalidation before send, stale pending/processing cancellation, and approximately one-minute normal scheduler precision.
-- Verify Production best-effort delivery on Desktop, iPhone installed PWA, and Android installed PWA, including repeated Cron, Edge Function retry, multi-device delivery, and no duplicate notification on the same subscription/due time.
+- Verify ordinary one-off uniqueness on `(event_id, subscription_id, due_at)`, atomic current-state revalidation/claim, `reminder_schedule_changed_at` snapshot matching, and approximately one-minute normal scheduler precision. Do not pre-generate pending rows or mutate the ledger when an Event schedule changes.
+- Verify Production best-effort delivery on Desktop, iPhone installed PWA, and Android installed PWA, including repeated Cron/Edge Function invocation, multi-device delivery, and no duplicate notification on the same subscription/due time. Provider failures and ambiguous timeouts are terminal failed results in this slice and do not enter an automatic retry framework.
 - Confirm Email, SMS, Bark, multiple reminders, arbitrary custom minutes, per-user reminder preferences, snooze, sound customization, notification inbox/history, native alarms, multi-space implementation, and UI overhaul remain outside v0.1.8.
 
 ### Slice 3 — Recurrence Reminder Integration

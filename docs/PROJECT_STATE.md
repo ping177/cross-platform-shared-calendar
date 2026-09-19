@@ -8,15 +8,15 @@
 
 ## Current version
 
-v0.1.8.2 (Reminder Persistence + Ordinary Event Delivery — Architecture Frozen)
+v0.1.8.2 (Reminder Persistence + Ordinary Event Delivery — Slice A Cross-Runtime Verified)
 
 ## Current status
 
-Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.8.1 — Push Infrastructure Foundation` 保持 `CLOSED / PASS — Android final acceptance deferred`。`v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery` 已完成 architecture / semantics freeze，但业务代码、SQL、migration、Cron 与 ordinary reminder delivery 实现均尚未开始。Android installed PWA 的完整 Push 生命周期仍延后到整个 v0.1.8 的最终 cross-platform acceptance，不阻塞 Slice 2。
+Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.8.1 — Push Infrastructure Foundation` 保持 `CLOSED / PASS — Android final acceptance deferred`。`v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery` 的 Slice A timezone primitives + due calculator 已在本地实现并完成 Node、Vite 与 Deno 跨 runtime 验证，等待最终人工 review 与 commit/push governance closeout。Slice B persistence/UI 和 Slice C delivery pipeline 尚未开始。Android installed PWA 的完整 Push 生命周期仍延后到整个 v0.1.8 的最终 cross-platform acceptance，不阻塞 Slice 2。
 
 ## Latest completed
 
-Completed and pushed to `origin/main` the docs-only v0.1.8.2 architecture / semantics freeze. The superseded `events.reminder_offset_minutes` proposal is replaced by nullable `events.reminder_kind` plus nullable canonical IANA `events.time_zone`; new UI-created timed events default to `timed_10m_before`, new UI-created all-day events default to `all_day_same_day_08`, while all historical events remain `reminder_kind = null` and retain unknown `time_zone = null` unless a later explicit reminder/time edit establishes one. Timed/all-day conversion, start-only multi-day behavior, past-due skip, roughly ten-minute infrastructure grace, event-level recipients, due-aware idempotency, and Slice 3 recurrence inheritance were frozen without implementing business code, SQL, migration, Cron, or delivery.
+Implemented and cross-runtime verified v0.1.8.2 Slice A locally: the existing recurrence timezone/DST primitives now have one runtime-neutral TypeScript source, recurrence behavior is protected by spring-gap and fall-overlap characterization tests, and the pure Reminder due calculator covers all seven frozen kinds without accepting `ends_at`. Targeted tests passed 34/34, the full Node suite passed 101/101, both Deno 2.9.7 checks passed, `npm run build` passed, and `git diff --check` passed. No database, migration, Event UI, delivery ledger, sender, Cron, deployment, commit, or push changed.
 
 ## Deployment
 
@@ -48,15 +48,15 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 - v0.1.7.3.3.2 — Frontend Scope Integration（Production Desktop 与 iPhone Standalone PWA recurrence smoke 已通过）
 - v0.1.8 — Mobile Push Reminder（current approved product line；architecture frozen）
 - v0.1.8.1 — Push Infrastructure Foundation（CLOSED / PASS；Desktop + iPhone verified；Android final acceptance deferred）
-- v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（architecture / semantics frozen；implementation not started）
+- v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（Slice A implementation + cross-runtime verification complete；final review / governance closeout pending；Slice B/C not started）
 
 ## Last verified
 
-2026-09-19
+2026-09-20
 
 ## Next Action
 
-进入 v0.1.8.2 implementation planning：按已冻结的 `reminder_kind + time_zone`、new-event defaults、historical-null migration、ordinary due calculation、delivery ledger、recipient resolution、Cron/sender、stale cancellation 与 grace 规则拆分可验证任务。Android installed PWA 的完整 Push 生命周期验收留到整个 v0.1.8 最终 cross-platform acceptance；recurring delivery 保留给 Slice 3。
+完成 v0.1.8.2 Slice A 最终人工 review，然后按 Project State Push Gate 要求完成 commit/push governance closeout。在 Slice A closeout 完成并获得新授权前，不进入 Slice B persistence + Event mutation/UI；Slice C 仍不启动。
 
 ## Blockers
 
@@ -101,11 +101,11 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 - Push subscriptions bind to `user + installation`, never to a Space, and one user may retain multiple active device/browser subscriptions. This persistence model remains compatible with a future multi-space schema without implementing multi-space in v0.1.8.
 - shared event reminders resolve current active Space members at send time; personal event reminders resolve only the current `owner_user_id`. A former member must not receive a delivery.
 - v0.1.8 freezes a one-minute Supabase Cron + Edge Function sender architecture. Slice 2 will implement ordinary events; Slice 3 will dynamically project recurring occurrences through canonical recurrence/exception semantics without materializing a long horizon.
-- Delivery idempotency is due-time aware: recurring `(logical_series_id, occurrence_key, subscription_id, due_at)` and one-off `(event_id, "once", subscription_id, due_at)`. A changed effective start/date or reminder preset may create a new legitimate delivery; unchanged `due_at` must not duplicate, including across a future split.
+- Slice 2 ordinary-delivery idempotency is `(event_id, subscription_id, due_at)`. It does not add `occurrence_key`, pre-generate pending rows, mutate ledger rows when an Event schedule changes, or automatically retry provider failures. Recurring occurrence identity remains a Slice 3 decision.
 - A newly created/edited/enabled reminder whose derived `due_at` is already past is skipped without immediate Push or compensation. Normal target precision is about one minute; a roughly ten-minute grace window applies only to infrastructure delay. Web Push remains best-effort and is not an Alarm Clock.
 - v0.1.8 excludes Email reminder delivery, SMS, Bark, multiple reminders, arbitrary custom minutes, snooze, sound customization, notification inbox/history, native alarms, and per-user reminder preferences. Email OTP authentication remains unchanged.
 - `v0.1.9 Shared Tasks`, `v0.1.10 Shared Lists`, `v0.1.11 Important Dates / Anniversaries`, and `v0.1.12 Tags / Color = Who` are roadmap directions only, not frozen architectures. UI/UX overhaul remains deferred pending a Design System.
 
 ## Handoff Prompt
 
-Begin v0.1.8.2 implementation planning from the approved reminder freeze. Plan nullable `reminder_kind`, nullable canonical IANA `time_zone`, UI-only new-event defaults (`timed_10m_before` / `all_day_same_day_08`), historical-null migration, ordinary-event due calculation, ledger, recipient resolution, Cron/sender, stale cancellation, and infrastructure-only grace. Review the safest minimal explicit-time-edit timezone behavior so an edit cannot accidentally reinterpret a timed event's absolute instant. Stop if the existing all-day presentation model cannot safely derive 08:00 from effective date plus canonical timezone. Keep recurring delivery for Slice 3 and keep Android final Push acceptance deferred to final v0.1.8 acceptance.
+Complete final human review for v0.1.8.2 Slice A, whose runtime-neutral timezone/DST primitives and pure seven-kind Reminder due calculator now pass Node, Vite, and Deno verification. Then complete the Slice A commit/push governance closeout with `Project-State-Review: updated`. Do not begin Slice B without separate authorization. Slice B will own persistence and Event mutation/UI; Slice C will own the minimal ledger, sender, Cron, and acceptance. Keep recurring delivery for Slice 3 and Android final Push acceptance deferred to final v0.1.8 acceptance.

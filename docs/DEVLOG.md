@@ -1,5 +1,14 @@
 # Development Log
 
+# 2026-09-20 - v0.1.8.2 Slice A Timezone Primitives + Reminder Due Calculator
+
+- Extracted the existing recurrence timezone conversion and DST gap/overlap policy into runtime-neutral pure TypeScript under `supabase/functions/_shared/`; recurrence now imports the same implementation without changing its public behavior.
+- Added the frozen `ReminderKind` type and one deterministic due calculator for all five timed and both all-day reminder kinds. The calculator rejects missing/invalid timezones and timed/all-day mismatches, treats null as disabled, uses Event-local calendar arithmetic for previous-day reminders, and has no `ends_at` input.
+- Added DST characterization coverage for recurrence plus focused Reminder due tests. Targeted recurrence/Reminder verification passed 34/34 tests; the full repository Node suite passed 101/101; `npm run build` passed.
+- Installed Deno 2.9.7 as a system verification tool through Homebrew; no project dependency or lockfile changed. `deno check` passed for both shared modules. The explicit `tsconfig.app.json` include now names only `time-zone.ts` and `reminder-due.ts`, preventing future server-only `_shared` modules from entering the frontend app typecheck.
+- Final verification passed: targeted recurrence/Reminder tests 34/34, full Node suite 101/101, both Deno checks, `npm run build`, and `git diff --check`. Slice A implementation and cross-runtime verification are complete and awaiting final human review plus commit/push governance closeout; Slice B and Slice C have not started.
+- No database schema, migration, Event UI, sender, Cron, Service Worker, Push Subscription, Supabase/Vercel configuration, dependency, deployment, commit, or push changed.
+
 ## 2026-09-19 - v0.1.8.2 Reminder Persistence + Ordinary Event Delivery Architecture Freeze
 
 - Completed a docs-only architecture / semantics freeze for v0.1.8.2; business code, SQL, migration, Cron, sender, delivery ledger, commit, and push remain untouched. Implementation planning is the next action.

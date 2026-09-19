@@ -1,16 +1,14 @@
 import type { CalendarEvent, CalendarOccurrence, CalendarOccurrenceRange, EventOccurrenceException, RecurrenceRule } from '../types';
+import {
+  addLocalDays,
+  canonicalTimeZone,
+  localDateString,
+  localParts,
+  zonedDateTimeToInstant,
+} from '../../supabase/functions/_shared/time-zone.ts';
+import type { LocalDateTime } from '../../supabase/functions/_shared/time-zone.ts';
 
 export const MAX_OCCURRENCE_CANDIDATES = 500;
-
-type LocalDateTime = {
-  year: number;
-  month: number;
-  day: number;
-  hour: number;
-  minute: number;
-  second: number;
-  millisecond: number;
-};
 
 type OccurrenceOverride = {
   starts_at?: string;
@@ -46,8 +44,6 @@ export type RecurrenceRuleDraftResult =
   | { ok: true; rule: RecurrenceRule | null }
   | { ok: false; error: string };
 
-const formatterCache = new Map<string, Intl.DateTimeFormat>();
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -66,19 +62,6 @@ function hasExactKeys(value: Record<string, unknown>, keys: string[]) {
   return actualKeys.length === expectedKeys.length && actualKeys.every((key, index) => key === expectedKeys[index]);
 }
 
-function isValidTimeZone(value: unknown): value is string {
-  if (typeof value !== 'string' || value.length === 0) {
-    return false;
-  }
-
-  try {
-    new Intl.DateTimeFormat('en-US', { timeZone: value }).format();
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 function isValidMonthDay(month: number, day: number) {
   if (month === 2) {
     return day <= 29;
@@ -88,11 +71,14 @@ function isValidMonthDay(month: number, day: number) {
 }
 
 export function parseRecurrenceRule(value: unknown): RecurrenceRuleParseResult {
-  if (!isRecord(value) || value.version !== 1 || !isIntegerInRange(value.interval, 1, 365) || !isValidTimeZone(value.time_zone)) {
+  if (!isRecord(value) || value.version !== 1 || !isIntegerInRange(value.interval, 1, 365)) {
     return { ok: false, error: '重复规则格式无效。' };
   }
 
-  const timeZone = new Intl.DateTimeFormat('en-US', { timeZone: value.time_zone }).resolvedOptions().timeZone;
+  const timeZone = canonicalTimeZone(value.time_zone);
+  if (timeZone === null) {
+    return { ok: false, error: '重复规则格式无效。' };
+  }
 
   if (value.frequency === 'daily' && hasExactKeys(value, ['version', 'frequency', 'interval', 'time_zone'])) {
     return { ok: true, rule: { version: 1, frequency: 'daily', interval: value.interval, time_zone: timeZone } };
@@ -224,55 +210,8 @@ export function recurrenceSummary(rule: RecurrenceRule | null) {
   return `每 ${rule.interval} 年 · ${rule.month} 月 ${rule.day} 日`;
 }
 
-function formatterFor(timeZone: string) {
-  const cached = formatterCache.get(timeZone);
-  if (cached) {
-    return cached;
-  }
-
-  const formatter = new Intl.DateTimeFormat('en-CA', {
-    timeZone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hourCycle: 'h23',
-  });
-  formatterCache.set(timeZone, formatter);
-  return formatter;
-}
-
-function localParts(date: Date, timeZone: string): LocalDateTime {
-  const values = Object.fromEntries(formatterFor(timeZone).formatToParts(date)
-    .filter((part) => part.type !== 'literal')
-    .map((part) => [part.type, Number(part.value)]));
-
-  return {
-    year: values.year,
-    month: values.month,
-    day: values.day,
-    hour: values.hour,
-    minute: values.minute,
-    second: values.second,
-    millisecond: date.getMilliseconds(),
-  };
-}
-
 function compareLocalDate(left: Pick<LocalDateTime, 'year' | 'month' | 'day'>, right: Pick<LocalDateTime, 'year' | 'month' | 'day'>) {
   return Date.UTC(left.year, left.month - 1, left.day) - Date.UTC(right.year, right.month - 1, right.day);
-}
-
-function compareLocalDateTime(left: LocalDateTime, right: LocalDateTime) {
-  const leftValue = Date.UTC(left.year, left.month - 1, left.day, left.hour, left.minute, left.second, left.millisecond);
-  const rightValue = Date.UTC(right.year, right.month - 1, right.day, right.hour, right.minute, right.second, right.millisecond);
-  return leftValue - rightValue;
-}
-
-function addDays(date: Pick<LocalDateTime, 'year' | 'month' | 'day'>, days: number) {
-  const next = new Date(Date.UTC(date.year, date.month - 1, date.day + days));
-  return { year: next.getUTCFullYear(), month: next.getUTCMonth() + 1, day: next.getUTCDate() };
 }
 
 function daysBetween(from: Pick<LocalDateTime, 'year' | 'month' | 'day'>, to: Pick<LocalDateTime, 'year' | 'month' | 'day'>) {
@@ -281,53 +220,11 @@ function daysBetween(from: Pick<LocalDateTime, 'year' | 'month' | 'day'>, to: Pi
 
 function startOfWeek(date: Pick<LocalDateTime, 'year' | 'month' | 'day'>) {
   const utcDay = new Date(Date.UTC(date.year, date.month - 1, date.day)).getUTCDay();
-  return addDays(date, utcDay === 0 ? -6 : 1 - utcDay);
+  return addLocalDays(date, utcDay === 0 ? -6 : 1 - utcDay);
 }
 
 function daysInMonth(year: number, month: number) {
   return new Date(Date.UTC(year, month, 0)).getUTCDate();
-}
-
-function timeZoneOffsetMilliseconds(date: Date, timeZone: string) {
-  const local = localParts(date, timeZone);
-  return Date.UTC(local.year, local.month - 1, local.day, local.hour, local.minute, local.second) - Math.floor(date.getTime() / 1000) * 1000;
-}
-
-function zonedDateTimeToInstant(local: LocalDateTime, timeZone: string) {
-  const naive = Date.UTC(local.year, local.month - 1, local.day, local.hour, local.minute, local.second, local.millisecond);
-  let timestamp = naive;
-
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    timestamp = naive - timeZoneOffsetMilliseconds(new Date(timestamp), timeZone);
-  }
-
-  const candidate = new Date(timestamp);
-  if (compareLocalDateTime(localParts(candidate, timeZone), local) === 0) {
-    return candidate;
-  }
-
-  const scanStart = naive - 18 * 60 * 60 * 1000;
-  const scanEnd = naive + 18 * 60 * 60 * 1000;
-  let firstAfterGap: Date | null = null;
-
-  for (let current = scanStart; current <= scanEnd; current += 60_000) {
-    const scanned = new Date(current + local.millisecond);
-    const scannedParts = localParts(scanned, timeZone);
-    const comparison = compareLocalDateTime(scannedParts, local);
-    if (comparison === 0) {
-      return scanned;
-    }
-    if (comparison > 0 && firstAfterGap === null) {
-      firstAfterGap = scanned;
-    }
-  }
-
-  return firstAfterGap ?? candidate;
-}
-
-function localDateString(date: Date, timeZone: string) {
-  const local = localParts(date, timeZone);
-  return `${local.year.toString().padStart(4, '0')}-${local.month.toString().padStart(2, '0')}-${local.day.toString().padStart(2, '0')}`;
 }
 
 function validDate(value: unknown): value is string {
@@ -518,7 +415,7 @@ export function expandEventOccurrences(event: CalendarEvent, range: CalendarOccu
   if (rule.frequency === 'daily') {
     const firstIndex = ceilToInterval(daysBetween(anchor, threshold), rule.interval);
     for (let index = firstIndex; ; index += 1) {
-      const date = addDays(anchor, index * rule.interval);
+      const date = addLocalDays(anchor, index * rule.interval);
       if (compareLocalDate(date, rangeEnd) > 0 || limitReached) {
         break;
       }
@@ -531,12 +428,12 @@ export function expandEventOccurrences(event: CalendarEvent, range: CalendarOccu
     const thresholdWeek = startOfWeek(threshold);
     const firstIndex = ceilToInterval(Math.floor(daysBetween(anchorWeek, thresholdWeek) / 7), rule.interval);
     for (let index = firstIndex; !limitReached; index += 1) {
-      const week = addDays(anchorWeek, index * rule.interval * 7);
+      const week = addLocalDays(anchorWeek, index * rule.interval * 7);
       if (compareLocalDate(week, rangeEnd) > 0) {
         break;
       }
       for (const weekday of rule.days_of_week) {
-        const date = addDays(week, weekday - 1);
+        const date = addLocalDays(week, weekday - 1);
         if (compareLocalDate(date, anchor) < 0 || compareLocalDate(date, rangeEnd) > 0) {
           continue;
         }
