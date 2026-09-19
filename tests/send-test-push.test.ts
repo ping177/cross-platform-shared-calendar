@@ -3,6 +3,8 @@ import test from 'node:test';
 import {
   installationIdFromRequestBody,
   isAllowedPushEndpoint,
+  pushServiceErrorDiagnostic,
+  pushStatusFromLoggerData,
   sendTestPushForInstallation,
   type StoredPushSubscription,
 } from '../supabase/functions/send-test-push/logic.ts';
@@ -49,7 +51,7 @@ test('rejects unauthenticated sends before looking up a subscription', async () 
       userId: null,
       installationId: subscription.installation_id,
       lookup: async () => subscription,
-      send: async () => true,
+      send: async () => ({ status: 201, delivered: true }),
       disable: async () => undefined,
     }),
     /Authentication required/,
@@ -62,14 +64,14 @@ test('does not send a row that is not owned by the authenticated user', async ()
       userId: '44444444-4444-4444-8444-444444444444',
       installationId: subscription.installation_id,
       lookup: async () => subscription,
-      send: async () => true,
+      send: async () => ({ status: 201, delivered: true }),
       disable: async () => undefined,
     }),
     /Subscription not found/,
   );
 });
 
-test('looks up and sends only the current user and installation', async () => {
+test('returns the accepted upstream status and hostname-only provider', async () => {
   const lookups: Array<[string, string]> = [];
   const endpoints: string[] = [];
 
@@ -82,29 +84,91 @@ test('looks up and sends only the current user and installation', async () => {
     },
     send: async (current) => {
       endpoints.push(current.endpoint);
-      return true;
+      return { status: 201, delivered: true };
     },
     disable: async () => undefined,
   });
 
   assert.deepEqual(lookups, [[subscription.user_id, subscription.installation_id]]);
   assert.deepEqual(endpoints, [subscription.endpoint]);
-  assert.deepEqual(result, { delivered: true, disabled: false });
+  assert.deepEqual(result, {
+    status: 201,
+    delivered: true,
+    provider: 'fcm.googleapis.com',
+    gone: false,
+  });
+  assert.ok(JSON.stringify(result).length > 0);
+  assert.doesNotMatch(JSON.stringify(result), /fcm\/send|public-key|auth-secret/);
 });
 
-test('disables only the gone subscription when the push service returns 404 or 410', async () => {
-  const disabledIds: string[] = [];
+for (const status of [404, 410]) {
+  test(`disables only the gone subscription when the push service returns ${status}`, async () => {
+    const disabledIds: string[] = [];
 
-  const result = await sendTestPushForInstallation({
-    userId: subscription.user_id,
-    installationId: subscription.installation_id,
-    lookup: async () => subscription,
-    send: async () => false,
-    disable: async (subscriptionId) => {
-      disabledIds.push(subscriptionId);
-    },
+    const result = await sendTestPushForInstallation({
+      userId: subscription.user_id,
+      installationId: subscription.installation_id,
+      lookup: async () => subscription,
+      send: async () => ({ status, delivered: false }),
+      disable: async (subscriptionId) => {
+        disabledIds.push(subscriptionId);
+      },
+    });
+
+    assert.deepEqual(disabledIds, [subscription.id]);
+    assert.deepEqual(result, {
+      status,
+      delivered: false,
+      provider: 'fcm.googleapis.com',
+      gone: true,
+    });
   });
+}
 
-  assert.deepEqual(disabledIds, [subscription.id]);
-  assert.deepEqual(result, { delivered: false, disabled: true });
+test('extracts only a valid numeric status from library logger data', () => {
+  const loggerData = {
+    status: 201,
+    endpoint: subscription.endpoint,
+    body: 'upstream response body',
+    p256dh: subscription.p256dh,
+    auth: subscription.auth,
+    privateKey: 'private-vapid-material',
+  };
+
+  assert.equal(pushStatusFromLoggerData(loggerData), 201);
+  assert.equal(pushStatusFromLoggerData({ status: '201' }), null);
+  assert.equal(pushStatusFromLoggerData({ status: 99 }), null);
+  assert.equal(pushStatusFromLoggerData({ status: 600 }), null);
+  assert.equal(pushStatusFromLoggerData(null), null);
+});
+
+for (const status of [401, 403, 429, 503]) {
+  test(`builds a non-sensitive diagnostic for upstream ${status}`, () => {
+    const result = pushServiceErrorDiagnostic(status, subscription.endpoint);
+    const serialized = JSON.stringify(result);
+
+    assert.deepEqual(result, {
+      status,
+      delivered: false,
+      provider: 'fcm.googleapis.com',
+      gone: false,
+      error: 'push_service_rejected',
+    });
+    assert.doesNotMatch(serialized, /fcm\/send|public-key|auth-secret|private-vapid-material/);
+  });
+}
+
+test('propagates network and runtime failures for the Edge handler to map to 500', async () => {
+  await assert.rejects(
+    () => sendTestPushForInstallation({
+      userId: subscription.user_id,
+      installationId: subscription.installation_id,
+      lookup: async () => subscription,
+      send: async () => {
+        throw new TypeError('network unavailable');
+      },
+      disable: async () => undefined,
+    }),
+    /network unavailable/,
+  );
 });

@@ -12,11 +12,11 @@ v0.1.8.1 (Push Infrastructure Foundation)
 
 ## Current status
 
-Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.8.1 — Push Infrastructure Foundation` 已在仓库实现，状态为 `IMPLEMENTED / VALIDATION PENDING`：自动测试和 production build 已通过，但 Supabase patch、VAPID secrets、Edge Function/Vercel deployment 与 Desktop/iPhone/Android 真机 Push 验收尚未执行。Production 当前仍运行已验收的 v0.1.7.3.3.2。
+Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.8.1 — Push Infrastructure Foundation` 状态为 `CLOSED / PASS — Android final acceptance deferred`：Desktop Chrome/macOS 与 iPhone installed PWA 的真实 Push Infrastructure 验收已通过；Android installed PWA 的完整 Push 生命周期由产品决策统一延后到整个 v0.1.8 的最终 cross-platform acceptance，不阻塞 Slice 2。v0.1.8 Slice 2 尚未开始。
 
 ## Latest completed
 
-Implemented v0.1.8 Slice 1 in the repository: Push-only Service Worker, explicit notification settings and permission flow, stable installation identity, `push_subscriptions` canonical/patch SQL, authenticated lifecycle RPCs, function-only `@mmmike/web-push@1.3.0`, current-installation test-push Edge Function, and logout cleanup. Twenty-one Node tests and the production build passed. The 22-assertion pgTAP suite exists but remains unexecuted because local Supabase was unavailable. No cloud configuration, Production database mutation, deploy, commit, or push occurred.
+Closed v0.1.8 Slice 1 after real-device validation. iPhone installed PWA passed permission, subscription, test push, home-screen/background, and lock-screen delivery. Desktop Chrome/macOS passed permission, local notification, Service Worker notification, FCM acceptance, and final test push after an abnormal/stale browser subscription was unsubscribed and recreated. Safe sender diagnostics retain upstream `status`, `delivered`, hostname-only `provider`, and `gone`; the full 90-test Node suite, production build, diff check, and Edge static/type check passed. Android Push lifecycle acceptance is deferred to final v0.1.8 cross-platform acceptance by validation strategy, not by a technical blocker.
 
 ## Deployment
 
@@ -47,15 +47,15 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 - v0.1.7.3.3.1 — Split RPC Correctness Patch（final split / future-delete semantics 已验证）
 - v0.1.7.3.3.2 — Frontend Scope Integration（Production Desktop 与 iPhone Standalone PWA recurrence smoke 已通过）
 - v0.1.8 — Mobile Push Reminder（current approved product line；architecture frozen）
-- v0.1.8.1 — Push Infrastructure Foundation（repository implemented；cloud / real-device validation pending）
+- v0.1.8.1 — Push Infrastructure Foundation（CLOSED / PASS；Desktop + iPhone verified；Android final acceptance deferred）
 
 ## Last verified
 
-2026-09-18
+2026-09-19
 
 ## Next Action
 
-执行 v0.1.8.1 人工验证：应用 `2026-09-18-v0.1.8.1-push-infrastructure.sql`，配置 Supabase VAPID secrets 并部署 `send-test-push`，在 Vercel 配置同一 public key 后重新部署，再完成 Desktop、iPhone installed PWA 与 Android installed PWA 的 permission / subscribe / foreground-background-closed test push。验证通过并单独批准后，才进入 Slice 2 reminder persistence；recurrence Realtime 与 DST-zone coverage 仍是 non-blocking follow-up。
+进入 v0.1.8 Slice 2 reminder semantics / persistence：先冻结 timed、all-day、multi-day event reminder 规则，再实现 ordinary event reminder scheduling。Android installed PWA 的完整 Push 生命周期验收留到整个 v0.1.8 最终 cross-platform acceptance；recurrence Realtime 与 DST-zone coverage 继续作为 non-blocking follow-up。
 
 ## Blockers
 
@@ -91,8 +91,9 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 - `supabase/config.toml` uses a stable local `project_id`; the local database/API/Auth/Mailpit stack is reachable. It configures a local 8-digit Mailpit OTP template and port-5175 redirect URL only; the local status currently reports stopped imgproxy and pooler services, which do not block Postgres, Auth, Mailpit, or pgTAP validation.
 - The engine uses native `Intl` IANA timezone formatting/conversion and rejects invalid rule shapes at both client and database boundaries. It returns an explicit error instead of a partial result after 500 candidates.
 - v0.1.8 uses one event-level reminder stored as nullable `events.reminder_offset_minutes`; allowed values are `0`, `10`, `30`, `60`, and `1440`, with `null` meaning no reminder. Multiple reminders, arbitrary custom minutes, and per-user reminder preferences are outside this version.
-- v0.1.8.1 repository implementation is complete but not deployed: `push_subscriptions` uses RPC-only authenticated browser writes, `send-test-push` owns server-side VAPID delivery, and the private key must remain only in Supabase secrets. `@mmmike/web-push@1.3.0` is an exact function-level dependency; no root/browser dependency was added.
-- Standard Web Push is the delivery channel. The Push Service Worker handles Push only and must not introduce offline caching. iPhone and Android installed PWAs are the primary mobile targets; Desktop is also part of acceptance coverage.
+- v0.1.8.1 Push Infrastructure is closed and passed on Desktop Chrome/macOS and iPhone installed PWA. `push_subscriptions` uses RPC-only authenticated browser writes, `send-test-push` owns server-side VAPID delivery, and the private key remains only in Supabase secrets. Safe diagnostics expose only upstream `status`, `delivered`, hostname-only `provider`, and `gone`. `@mmmike/web-push@1.3.0` remains an exact function-level dependency; no root/browser dependency was added.
+- The initial Desktop Chrome subscription was abnormal/stale: FCM accepted the send (`201`, `delivered = true`) but no notification appeared. Closing notifications, unsubscribing, and creating a fresh subscription restored Desktop test-push delivery. For similar Push symptoms, try retry, unsubscribe/resubscribe, and browser/PWA restart before deeper RCA.
+- Standard Web Push is the delivery channel. The Push Service Worker handles Push only and must not introduce offline caching. Desktop and iPhone Slice 1 acceptance passed; Android permission, subscription, foreground/background/closed-app delivery, notification click, and logout lifecycle are deferred together to final v0.1.8 cross-platform acceptance. This is a validation strategy, not a blocker.
 - Push subscriptions bind to `user + installation`, never to a Space, and one user may retain multiple active device/browser subscriptions. This persistence model remains compatible with a future multi-space schema without implementing multi-space in v0.1.8.
 - shared event reminders resolve current active Space members at send time; personal event reminders resolve only the current `owner_user_id`. A former member must not receive a delivery.
 - Supabase Cron runs every minute and invokes an Edge Function sender. The sender dynamically projects due ordinary and recurring occurrences through the canonical recurrence/exception semantics; it does not materialize a long horizon of future reminders.
@@ -103,4 +104,4 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 
 ## Handoff Prompt
 
-Validate v0.1.8.1 without expanding scope: apply the reviewed additive patch, configure Supabase VAPID secrets, deploy `send-test-push`, configure the matching Vercel public key, and perform Desktop/iPhone installed-PWA/Android installed-PWA test-push acceptance. Keep status `IMPLEMENTED / VALIDATION PENDING` until those checks pass. Do not start Slice 2, add `events.reminder_offset_minutes`, Cron, scheduler, recurrence delivery, offline caching, or another delivery channel without separate approval. Keep recurrence Realtime/DST coverage non-blocking and do not expose `delete_logical_series` UI.
+Begin v0.1.8 Slice 2 with a reminder-semantics freeze: define timed, all-day, and multi-day event reminder behavior before implementing persistence or ordinary-event scheduling. Slice 1 is closed/pass; do not reopen it solely for Android, whose full Push lifecycle acceptance is deferred to final v0.1.8 cross-platform acceptance. Preserve the safe sender diagnostics and existing Push architecture. Do not implement recurrence reminder delivery, multi-space, Tasks/Lists, offline caching, or another delivery channel without separate approval.

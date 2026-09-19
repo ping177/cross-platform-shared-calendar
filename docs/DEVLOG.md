@@ -1,5 +1,18 @@
 # Development Log
 
+## 2026-09-19 - v0.1.8.1 Push Infrastructure Validation Closeout
+
+- Closed Slice 1 as `CLOSED / PASS — Android final acceptance deferred`. iPhone installed PWA passed notification permission, subscription, test push, home-screen/background delivery, and lock-screen delivery. Desktop Chrome/macOS passed permission, local `Notification`, Service Worker `showNotification`, FCM acceptance, and final test-push delivery.
+- Desktop initially had an abnormal/stale Push Subscription: FCM returned `201` with `delivered = true`, hostname-only provider `fcm.googleapis.com`, and `gone = false`, but Chrome displayed no Push notification. 「关闭通知 → 重新开启通知 → 重新订阅」restored delivery, with no evidence of a Push architecture, VAPID, Edge Function, or Service Worker blocker.
+- Established first-line recovery for similar Push symptoms: retry, unsubscribe/resubscribe, then restart the browser/PWA before deeper RCA. Retained the safe sender diagnostic fields `status`, `delivered`, hostname-only `provider`, and `gone` because they distinguish provider acceptance from downstream browser delivery without exposing subscription or secret material.
+- By product decision, Android installed PWA permission, subscription, foreground/background/closed-app delivery, notification click, and logout lifecycle are deferred together to final v0.1.8 cross-platform acceptance. This is a validation strategy, not a blocker, and Slice 2 may proceed only after its timed/all-day/multi-day reminder semantics are frozen. No Slice 2 implementation, commit, or push was performed.
+
+## 2026-09-19 - v0.1.8.1 Sender Diagnostic Enhancement
+
+- Added a minimal, non-sensitive `send-test-push` diagnostic contract without changing Push architecture, subscription persistence, VAPID configuration, payload, or client behavior. Accepted sends now return the actual upstream HTTP status, `delivered: true`, the provider hostname only, and `gone: false`; 404/410 retains current-installation disable behavior and returns `gone: true`.
+- Other upstream non-2xx responses retain Edge HTTP 502 and return only status, provider hostname, delivery flags, and the stable `push_service_rejected` code. Network, crypto, and runtime failures retain the existing generic 500 response. The library logger callback extracts only a validated numeric status and never logs or returns its raw endpoint/body data.
+- Added coverage for accepted 2xx, 404, 410, 401, 403, 429, 503, network/runtime failure, hostname-only providers, non-empty success JSON, and response secrecy. The full 90-test Node suite, production build, diff check, and Edge static/type check against the exact `@mmmike/web-push@1.3.0` declarations passed. No deploy, commit, push, cloud configuration, or Slice 2 work was performed.
+
 ## 2026-09-18 - v0.1.8.1 Push Infrastructure Foundation
 
 - Implemented Slice 1 locally with status `IMPLEMENTED / VALIDATION PENDING`: a root-scope Push-only Service Worker, non-fatal registration, explicit notification-permission UI, stable random installation UUID, standard PushManager subscription lifecycle, current-installation test push, disable, and logout cleanup. No offline cache, reminder field, scheduler, Cron, recurrence delivery, or visual redesign was added.

@@ -12,7 +12,7 @@
 
 ### v0.1.8 — Mobile Push Reminder
 
-Status: Slice 1 implemented in the repository; cloud and real-device validation pending.
+Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`. Desktop Chrome/macOS and iPhone installed PWA Push Infrastructure validation passed. Slice 2 reminder semantics / persistence is next but has not started.
 
 In scope:
 
@@ -40,10 +40,10 @@ Explicitly out of scope:
 
 Implementation slices:
 
-1. **Push Infrastructure Foundation — IMPLEMENTED / VALIDATION PENDING:** Push-only Service Worker, explicit permission flow, `user + installation` subscription persistence, multi-device lifecycle, logout/invalid-subscription handling, and an authenticated current-installation test-push path are implemented. Supabase patch/secrets/function deployment, Vercel public-key deployment, and Desktop/iPhone/Android acceptance remain manual and pending. This slice does not implement scheduler, event reminder persistence, or recurrence delivery.
-2. **Reminder Persistence + Ordinary Event Delivery:** `events.reminder_offset_minutes`, fixed options, current-recipient resolution, Cron + Edge Function sender, delivery ledger, due-time-aware idempotency, and ordinary shared/personal event delivery.
+1. **Push Infrastructure Foundation — CLOSED / PASS; Android final acceptance deferred:** Push-only Service Worker, explicit permission flow, `user + installation` subscription persistence, multi-device lifecycle, logout/invalid-subscription handling, and an authenticated current-installation test-push path are implemented. Desktop Chrome/macOS and iPhone installed PWA validation passed. The initial Desktop subscription was abnormal/stale despite FCM `201`; unsubscribe/resubscribe restored delivery. Android Push lifecycle acceptance is deferred to final v0.1.8 cross-platform acceptance and does not block Slice 2. This slice does not implement scheduler, event reminder persistence, or recurrence delivery.
+2. **Reminder Persistence + Ordinary Event Delivery — NEXT:** first freeze reminder semantics for timed, all-day, and multi-day events; then implement `events.reminder_offset_minutes`, fixed options, current-recipient resolution, Cron + Edge Function sender, delivery ledger, due-time-aware idempotency, and ordinary shared/personal event delivery.
 3. **Recurrence Integration:** canonical dynamic occurrence projection, override/delete/split/current-and-future semantics, reminder inheritance, timezone/DST coverage, stale-delivery cancellation, and no-duplicate regression coverage.
-4. **Production Validation + Canonical Closeout:** Production Desktop, iPhone installed PWA, and Android installed PWA acceptance; late-delivery and subscription lifecycle evidence; final canonical docs closeout.
+4. **Production Validation + Canonical Closeout:** Production Desktop, iPhone installed PWA, and Android installed PWA acceptance; Android permission, subscription, foreground/background/closed-app delivery, notification click, and logout lifecycle; late-delivery and subscription lifecycle evidence; final canonical docs closeout.
 
 Idempotency freeze:
 
@@ -90,6 +90,13 @@ Future compatibility:
 - `Shared Life Space / 共享生活空间` remains the long-term product vision; the directional roadmap above does not by itself approve implementation.
 
 ## Completed and Deferred History
+
+### v0.1.8.1
+
+- Completed: Desktop Chrome/macOS permission, local notification, Service Worker notification, FCM acceptance, and final test push passed.
+- Completed: iPhone installed PWA permission, subscription, test push, home-screen/background, and lock-screen delivery passed.
+- Recovered browser state: the initial Desktop subscription accepted upstream delivery but did not display; unsubscribe/resubscribe restored delivery. Retry, unsubscribe/resubscribe, and browser/PWA restart are the first-line recovery steps for similar Push symptoms before deeper RCA.
+- Deferred by validation strategy: Android installed PWA permission, subscription, foreground/background/closed-app delivery, notification click, and logout lifecycle move to final v0.1.8 cross-platform acceptance and do not block Slice 2.
 
 ### v0.1.7.3.3.2
 

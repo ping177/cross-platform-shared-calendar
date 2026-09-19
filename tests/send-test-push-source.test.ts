@@ -41,3 +41,19 @@ test('keeps VAPID private material server-only and uses a fixed test payload', a
   assert.doesNotMatch(clientSource, /VAPID_PRIVATE_KEY/);
   assert.doesNotMatch(envExample, /VAPID_PRIVATE_KEY/);
 });
+
+test('returns non-empty diagnostics without logging raw library response data', async () => {
+  const [source, logic] = await Promise.all([
+    readFile(new URL('index.ts', functionRoot), 'utf8'),
+    readFile(new URL('logic.ts', functionRoot), 'utf8'),
+  ]);
+
+  assert.match(source, /logger:\s*\{[\s\S]*pushStatusFromLoggerData/);
+  assert.match(source, /return jsonResponse\(origin, result\)/);
+  assert.match(source, /pushServiceErrorDiagnostic\(error\.statusCode, error\.endpoint\)/);
+  assert.match(source, /return jsonResponse\(origin, diagnostic, 502\)/);
+  assert.match(logic, /push_service_rejected/);
+  assert.match(source, /Unable to send test notification\.' }, 500/);
+  assert.doesNotMatch(source, /console\.(?:log|error|warn|debug)\([^)]*loggerData/);
+  assert.doesNotMatch(source, /error\.body/);
+});

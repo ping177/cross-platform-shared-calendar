@@ -8,11 +8,16 @@ export type StoredPushSubscription = {
   expiration_time: string | null;
 };
 
+type PushServiceSendResult = {
+  status: number;
+  delivered: boolean;
+};
+
 type SendTestPushDependencies = {
   userId: string | null;
   installationId: string;
   lookup: (userId: string, installationId: string) => Promise<StoredPushSubscription | null>;
-  send: (subscription: StoredPushSubscription) => Promise<boolean>;
+  send: (subscription: StoredPushSubscription) => Promise<PushServiceSendResult>;
   disable: (subscriptionId: string) => Promise<void>;
 };
 
@@ -25,6 +30,31 @@ export function installationIdFromRequestBody(body: unknown) {
 
   const installationId = (body as Record<string, unknown>).installation_id;
   return typeof installationId === 'string' ? installationId : '';
+}
+
+export function pushProviderHostname(endpoint: string) {
+  return new URL(endpoint).hostname.toLowerCase();
+}
+
+export function pushStatusFromLoggerData(data: unknown) {
+  if (typeof data !== 'object' || data === null || !('status' in data)) {
+    return null;
+  }
+
+  const status = (data as Record<string, unknown>).status;
+  return typeof status === 'number' && Number.isInteger(status) && status >= 100 && status <= 599
+    ? status
+    : null;
+}
+
+export function pushServiceErrorDiagnostic(status: number, endpoint: string) {
+  return {
+    status,
+    delivered: false,
+    provider: pushProviderHostname(endpoint),
+    gone: false,
+    error: 'push_service_rejected',
+  };
 }
 
 export function isAllowedPushEndpoint(endpoint: string) {
@@ -69,11 +99,25 @@ export async function sendTestPushForInstallation({
     throw new Error('Push endpoint is not allowed.');
   }
 
-  const delivered = await send(subscription);
-  if (!delivered) {
-    await disable(subscription.id);
-    return { delivered: false, disabled: true };
+  const provider = pushProviderHostname(subscription.endpoint);
+  const result = await send(subscription);
+  const gone = !result.delivered && (result.status === 404 || result.status === 410);
+
+  if (!result.delivered && !gone) {
+    throw new Error('Unexpected push service result.');
+  }
+  if (result.delivered && (result.status < 200 || result.status > 299)) {
+    throw new Error('Unexpected push service result.');
   }
 
-  return { delivered: true, disabled: false };
+  if (gone) {
+    await disable(subscription.id);
+  }
+
+  return {
+    status: result.status,
+    delivered: result.delivered,
+    provider,
+    gone,
+  };
 }

@@ -41,22 +41,31 @@ trailer 是否与 PROJECT_STATE tree diff 一致；tag 只验证目标 commit �
 
 ## v0.1.8 Mobile Push Reminder Acceptance Plan
 
-Status: Slice 1 is `IMPLEMENTED / VALIDATION PENDING`. Automated repository checks listed below passed; cloud configuration and all Desktop/iPhone/Android checks remain planned acceptance criteria, not passed results.
+Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`. Automated verification plus real Desktop Chrome/macOS and iPhone installed PWA Push Infrastructure acceptance passed. Android Push lifecycle acceptance is intentionally deferred to final v0.1.8 cross-platform acceptance and does not block Slice 2.
 
 ### Slice 1 — Push Infrastructure Foundation
 
-Local automated verification on 2026-09-18:
+Local automated verification updated on 2026-09-19:
 
-- Passed 21/21 Node tests across `tests/push-notifications.test.ts`, `tests/send-test-push.test.ts`, `tests/send-test-push-source.test.ts`, `tests/service-worker.test.ts`, and `tests/supabase-schema-push.test.ts`.
+- Passed 29/29 Node tests across `tests/push-notifications.test.ts`, `tests/send-test-push.test.ts`, `tests/send-test-push-source.test.ts`, `tests/service-worker.test.ts`, and `tests/supabase-schema-push.test.ts`; the full repository suite passed 90/90.
 - Passed `npm run build` (TypeScript project build plus Vite production bundle).
+- Passed an Edge static/type check against the exact `@mmmike/web-push@1.3.0` package declarations. Sender diagnostics cover accepted 2xx, gone 404/410, rejected 401/403/429/5xx, and network/runtime failure while returning only upstream status, provider hostname, delivery flags, and a stable non-sensitive error code.
 - Added `supabase/tests/2026-09-18-v0.1.8.1-push-infrastructure.test.sql` with 22 assertions for table/RPC structure, privileges, authenticated registration/upsert, endpoint ownership, current-installation disable, and isolation. Its local run is pending because the local Supabase database was unavailable; Production was not used as a substitute.
-- Pending: Edge Function runtime bundle/serve validation with configured local secrets, Supabase patch execution, cloud deploy, Vercel redeploy, and every real-device smoke below.
+- The local pgTAP suite remains implemented but unexecuted because local Supabase was unavailable; this is not a recorded test failure or Slice 2 blocker.
+
+Real Push Infrastructure acceptance on 2026-09-19:
+
+- **iPhone installed PWA — PASS:** notification permission, subscription, test push, delivery after returning to the home screen, and lock-screen delivery passed.
+- **Desktop Chrome/macOS — PASS:** notification permission, local `Notification`, Service Worker `showNotification`, FCM upstream acceptance, and final test-push display passed. The diagnostic result was `status = 201`, `delivered = true`, `provider = fcm.googleapis.com`, and `gone = false`.
+- **Desktop recovery evidence:** the initial browser subscription produced FCM acceptance but no displayed Push. Closing notifications, enabling them again, and creating a fresh subscription restored delivery. No evidence indicates a Push architecture, VAPID, Edge Function, or Service Worker blocker.
+- **First-line Push recovery:** retry; unsubscribe/resubscribe; restart the browser/PWA. Escalate to deeper RCA only if these do not restore delivery or safe sender diagnostics show provider rejection.
+- **Android deferred by validation strategy:** permission, subscription, foreground delivery, background delivery, closed-app delivery, notification click, and logout lifecycle will be validated together during final v0.1.8 cross-platform acceptance. This is not a blocker for Slice 2.
 
 - Register a root-scope Service Worker that handles Push and notification clicks only; verify that it adds no offline cache or `fetch` caching behavior.
 - Request notification permission only after an explicit user action. Cover granted, dismissed/default, denied, unsupported-browser, and iPhone-not-installed guidance.
-- Persist subscriptions by `user + installation`, not by Space. Verify one user can retain active Desktop, iPhone PWA, and Android PWA subscriptions concurrently.
+- Persist subscriptions by `user + installation`, not by Space. Desktop and iPhone used independent installations; final Android multi-device coverage remains part of final v0.1.8 acceptance.
 - Verify current-installation logout disables/unsubscribes that installation without disabling another device, and invalid/expired endpoints are retired safely.
-- Pass a diagnostic system-notification smoke on Desktop, iPhone installed PWA, and Android installed PWA before adding event reminder scheduling.
+- Desktop and iPhone diagnostic system-notification smoke passed. Android system-notification and lifecycle smoke is deferred to final v0.1.8 acceptance and does not block reminder-semantics work.
 - Confirm this slice does not add `events.reminder_offset_minutes`, reminder scheduling, recurrence delivery, Email reminder delivery, SQL beyond subscription persistence, or offline caching.
 
 ### Slices 2–4 — Reminder Delivery

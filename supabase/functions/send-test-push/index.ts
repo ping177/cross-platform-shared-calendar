@@ -2,6 +2,8 @@ import { sendPushNotification, WebPushError } from '@mmmike/web-push/send';
 import { createClient } from '@supabase/supabase-js';
 import {
   installationIdFromRequestBody,
+  pushServiceErrorDiagnostic,
+  pushStatusFromLoggerData,
   sendTestPushForInstallation,
   type StoredPushSubscription,
 } from './logic.ts';
@@ -125,20 +127,37 @@ Deno.serve(async (request) => {
         }
         return data;
       },
-      send: (subscription) => sendPushNotification(
-        {
-          endpoint: subscription.endpoint,
-          keys: { p256dh: subscription.p256dh, auth: subscription.auth },
-        },
-        {
-          title: '共享日历',
-          body: '通知测试成功',
-          url: '/',
-          tag: 'shared-calendar-test',
-        },
-        vapid,
-        { ttl: 60, timeoutMs: 10_000, urgency: 'normal' },
-      ),
+      send: async (subscription) => {
+        let upstreamStatus: number | null = null;
+        const delivered = await sendPushNotification(
+          {
+            endpoint: subscription.endpoint,
+            keys: { p256dh: subscription.p256dh, auth: subscription.auth },
+          },
+          {
+            title: '共享日历',
+            body: '通知测试成功',
+            url: '/',
+            tag: 'shared-calendar-test',
+          },
+          vapid,
+          {
+            ttl: 60,
+            timeoutMs: 10_000,
+            urgency: 'normal',
+            logger: {
+              debug: (_message, data) => {
+                upstreamStatus = pushStatusFromLoggerData(data) ?? upstreamStatus;
+              },
+            },
+          },
+        );
+
+        if (upstreamStatus === null) {
+          throw new Error('Push service status unavailable.');
+        }
+        return { status: upstreamStatus, delivered };
+      },
       disable: async (subscriptionId) => {
         const { error } = await adminClient
           .from('push_subscriptions')
@@ -154,11 +173,13 @@ Deno.serve(async (request) => {
     return jsonResponse(origin, result);
   } catch (error) {
     if (error instanceof WebPushError) {
+      const diagnostic = pushServiceErrorDiagnostic(error.statusCode, error.endpoint);
       console.error('Push service rejected a test notification.', {
-        statusCode: error.statusCode,
+        statusCode: diagnostic.status,
+        provider: diagnostic.provider,
         retryAfterMs: error.retryAfterMs,
       });
-      return jsonResponse(origin, { error: 'Push service rejected the notification.' }, 502);
+      return jsonResponse(origin, diagnostic, 502);
     }
 
     const message = error instanceof Error ? error.message : 'Unexpected push error.';
