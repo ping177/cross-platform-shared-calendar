@@ -16,7 +16,7 @@ Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.
 
 ## Latest completed
 
-Completed the docs-only v0.1.8.2 architecture / semantics freeze. The superseded `events.reminder_offset_minutes` proposal is replaced by nullable `events.reminder_kind` plus nullable canonical IANA `events.time_zone`; new UI-created timed events default to `timed_10m_before`, new UI-created all-day events default to `all_day_same_day_08`, while all historical events remain `reminder_kind = null` and retain unknown `time_zone = null` unless a later explicit reminder/time edit establishes one. Timed/all-day conversion, start-only multi-day behavior, past-due skip, roughly ten-minute infrastructure grace, event-level recipients, due-aware idempotency, and Slice 3 recurrence inheritance were frozen without implementing business code, SQL, migration, Cron, or delivery.
+Completed and pushed to `origin/main` the docs-only v0.1.8.2 architecture / semantics freeze. The superseded `events.reminder_offset_minutes` proposal is replaced by nullable `events.reminder_kind` plus nullable canonical IANA `events.time_zone`; new UI-created timed events default to `timed_10m_before`, new UI-created all-day events default to `all_day_same_day_08`, while all historical events remain `reminder_kind = null` and retain unknown `time_zone = null` unless a later explicit reminder/time edit establishes one. Timed/all-day conversion, start-only multi-day behavior, past-due skip, roughly ten-minute infrastructure grace, event-level recipients, due-aware idempotency, and Slice 3 recurrence inheritance were frozen without implementing business code, SQL, migration, Cron, or delivery.
 
 ## Deployment
 
