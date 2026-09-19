@@ -8,15 +8,15 @@
 
 ## Current version
 
-v0.1.8.2 (Reminder Persistence + Ordinary Event Delivery — Slice A Cross-Runtime Verified)
+v0.1.8.2 (Reminder Persistence + Ordinary Event Delivery — Slice A Governance Closeout Pushed)
 
 ## Current status
 
-Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.8.1 — Push Infrastructure Foundation` 保持 `CLOSED / PASS — Android final acceptance deferred`。`v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery` 的 Slice A timezone primitives + due calculator 已在本地实现并完成 Node、Vite 与 Deno 跨 runtime 验证，等待最终人工 review 与 commit/push governance closeout。Slice B persistence/UI 和 Slice C delivery pipeline 尚未开始。Android installed PWA 的完整 Push 生命周期仍延后到整个 v0.1.8 的最终 cross-platform acceptance，不阻塞 Slice 2。
+Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.8.1 — Push Infrastructure Foundation` 保持 `CLOSED / PASS — Android final acceptance deferred`。`v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery` 的 Slice A timezone primitives + due calculator 已完成实现、Node/Vite/Deno 跨 runtime 验证、人工 review，并已通过 commit `100d8a37711918152ba0a0f0bf8a2ec7f70c6d03` push 到 `origin/main`。Slice B persistence/UI 和 Slice C delivery pipeline 尚未开始。Android installed PWA 的完整 Push 生命周期仍延后到整个 v0.1.8 的最终 cross-platform acceptance，不阻塞 Slice 2。
 
 ## Latest completed
 
-Implemented and cross-runtime verified v0.1.8.2 Slice A locally: the existing recurrence timezone/DST primitives now have one runtime-neutral TypeScript source, recurrence behavior is protected by spring-gap and fall-overlap characterization tests, and the pure Reminder due calculator covers all seven frozen kinds without accepting `ends_at`. Targeted tests passed 34/34, the full Node suite passed 101/101, both Deno 2.9.7 checks passed, `npm run build` passed, and `git diff --check` passed. No database, migration, Event UI, delivery ledger, sender, Cron, deployment, commit, or push changed.
+Completed v0.1.8.2 Slice A implementation, cross-runtime verification, and human review; commit `100d8a37711918152ba0a0f0bf8a2ec7f70c6d03` is pushed to `origin/main`. The existing recurrence timezone/DST primitives now have one runtime-neutral TypeScript source, and the pure Reminder due calculator covers all seven frozen kinds without accepting `ends_at`. Targeted tests passed 34/34, the full Node suite passed 101/101, both Deno 2.9.7 checks passed, `npm run build` passed, and `git diff --check` passed. No database, migration, Event UI, delivery ledger, sender, or Cron changed.
 
 ## Deployment
 
@@ -48,7 +48,7 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 - v0.1.7.3.3.2 — Frontend Scope Integration（Production Desktop 与 iPhone Standalone PWA recurrence smoke 已通过）
 - v0.1.8 — Mobile Push Reminder（current approved product line；architecture frozen）
 - v0.1.8.1 — Push Infrastructure Foundation（CLOSED / PASS；Desktop + iPhone verified；Android final acceptance deferred）
-- v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（Slice A implementation + cross-runtime verification complete；final review / governance closeout pending；Slice B/C not started）
+- v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（Slice A implementation / verification / human review complete；commit `100d8a3` pushed；Slice B/C not started）
 
 ## Last verified
 
@@ -56,7 +56,7 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 
 ## Next Action
 
-完成 v0.1.8.2 Slice A 最终人工 review，然后按 Project State Push Gate 要求完成 commit/push governance closeout。在 Slice A closeout 完成并获得新授权前，不进入 Slice B persistence + Event mutation/UI；Slice C 仍不启动。
+进入 v0.1.8.2 Slice B implementation planning / pre-implementation review。Slice B 将负责 persistence 与 Event mutation/UI；在新的明确授权前不开始实现，Slice C 仍不启动。
 
 ## Blockers
 
@@ -108,4 +108,4 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 
 ## Handoff Prompt
 
-Complete final human review for v0.1.8.2 Slice A, whose runtime-neutral timezone/DST primitives and pure seven-kind Reminder due calculator now pass Node, Vite, and Deno verification. Then complete the Slice A commit/push governance closeout with `Project-State-Review: updated`. Do not begin Slice B without separate authorization. Slice B will own persistence and Event mutation/UI; Slice C will own the minimal ledger, sender, Cron, and acceptance. Keep recurring delivery for Slice 3 and Android final Push acceptance deferred to final v0.1.8 acceptance.
+Begin v0.1.8.2 Slice B implementation planning / pre-implementation review. Slice A is complete, human-reviewed, committed, and pushed at `100d8a37711918152ba0a0f0bf8a2ec7f70c6d03`; do not modify Slice A or begin Slice B implementation until the planning review grants separate authorization. Slice B will own persistence and Event mutation/UI; Slice C will own the minimal ledger, sender, Cron, and acceptance. Keep recurring delivery for Slice 3 and Android final Push acceptance deferred to final v0.1.8 acceptance.
