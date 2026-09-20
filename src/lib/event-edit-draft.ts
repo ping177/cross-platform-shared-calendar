@@ -1,4 +1,5 @@
 import type { RecurrenceDraft } from './recurrence';
+import type { ReminderKind } from '../../supabase/functions/_shared/reminder-due.ts';
 import type { EventAudience, EventEditTarget } from '../types';
 
 export type EventDraft = {
@@ -8,6 +9,7 @@ export type EventDraft = {
   startsAt: string;
   endsAt: string;
   allDay: boolean;
+  reminderKind: ReminderKind | null;
   recurrence: RecurrenceDraft;
 };
 

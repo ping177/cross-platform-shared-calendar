@@ -49,6 +49,7 @@ insert into public.events (
   title,
   starts_at,
   recurrence_rule,
+  time_zone,
   series_id
 )
 values (
@@ -60,6 +61,7 @@ values (
   'v0.1.7.1 recurring event',
   '2026-07-20T12:00:00Z',
   '{"version": 1, "frequency": "daily", "interval": 1, "time_zone": "UTC"}'::jsonb,
+  'UTC',
   '00000000-0000-0000-0000-000000000731'
 );
 

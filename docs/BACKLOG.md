@@ -12,7 +12,7 @@
 
 ### v0.1.8 — Mobile Push Reminder
 
-Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`. Desktop Chrome/macOS and iPhone installed PWA Push Infrastructure validation passed. Slice 2 architecture / semantics are frozen; implementation planning is next and implementation has not started.
+Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`. Desktop Chrome/macOS and iPhone installed PWA Push Infrastructure validation passed. Slice 2 architecture / semantics are frozen. Slice A is closed; Slice B implementation, local ordered-upgrade, 28/28 Slice B pgTAP, 98/98 database regressions, code verification, and Production database migration are complete. Frontend rollout and Production human acceptance remain pending. Slice C has not started.
 
 In scope:
 
@@ -45,7 +45,7 @@ Explicitly out of scope:
 Implementation slices:
 
 1. **Push Infrastructure Foundation — CLOSED / PASS; Android final acceptance deferred:** Push-only Service Worker, explicit permission flow, `user + installation` subscription persistence, multi-device lifecycle, logout/invalid-subscription handling, and an authenticated current-installation test-push path are implemented. Desktop Chrome/macOS and iPhone installed PWA validation passed. The initial Desktop subscription was abnormal/stale despite FCM `201`; unsubscribe/resubscribe restored delivery. Android Push lifecycle acceptance is deferred to final v0.1.8 cross-platform acceptance and does not block Slice 2. This slice does not implement scheduler, event reminder persistence, or recurrence delivery.
-2. **Reminder Persistence + Ordinary Event Delivery — ARCHITECTURE / SEMANTICS FROZEN; IMPLEMENTATION NEXT:** plan and implement `events.reminder_kind`, canonical `events.time_zone`, new-event defaults, historical-null migration, visible timed/all-day conversion, ordinary due calculation, current-recipient resolution, Cron + Edge Function sender, delivery ledger, due-time-aware idempotency, stale cancellation, past-due skip, and infrastructure-only grace. Stop and report rather than expanding all-day architecture if the existing effective-date model cannot safely produce canonical 08:00.
+2. **Reminder Persistence + Ordinary Event Delivery — IN PROGRESS:** Slice A timezone/due primitives are closed. Slice B persistence + Event mutation/UI, local database/code verification, and Production database migration are complete; frontend rollout and Production human acceptance remain pending. Slice C current-recipient resolution, Cron + Edge Function sender, delivery ledger, due-time-aware idempotency, stale cancellation, past-due skip, and infrastructure-only grace have not started. Stop and report rather than expanding all-day architecture if the existing effective-date model cannot safely produce canonical 08:00.
 3. **Recurrence Integration:** canonical dynamic occurrence projection, override/delete/split/current-and-future semantics, reminder inheritance, timezone/DST coverage, stale-delivery cancellation, and no-duplicate regression coverage.
 4. **Production Validation + Canonical Closeout:** Production Desktop, iPhone installed PWA, and Android installed PWA acceptance; Android permission, subscription, foreground/background/closed-app delivery, notification click, and logout lifecycle; late-delivery and subscription lifecycle evidence; final canonical docs closeout.
 

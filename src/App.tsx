@@ -19,6 +19,7 @@ import { RecurrenceControls } from './components/RecurrenceControls';
 import { calendarVisibleRange } from './lib/calendar-display';
 import { draftFromEditTarget, type EventDraft } from './lib/event-edit-draft';
 import {
+  buildEventUpdatePayload,
   deleteMutationRoute,
   deleteOccurrenceAndFutureRpcArgs,
   occurrenceDeleteRpcArgs,
@@ -30,7 +31,15 @@ import {
 import { eventEditTargetForEvent, eventEditTargetForOccurrence } from './lib/event-edit-target';
 import { eventEditUiState, occurrenceActionCopy, type OccurrenceAction } from './lib/event-edit-ui';
 import { memberDisplayNameForUser } from './lib/member';
-import { browserTimeZone, defaultRecurrenceDraft, expandRecurringEvents, recurrenceDraftFromRule, recurrenceRuleFromDraft, recurrenceSummary, type RecurrenceDraft } from './lib/recurrence';
+import { defaultRecurrenceDraft, expandRecurringEvents, recurrenceDraftFromRule, recurrenceRuleFromDraft, recurrenceSummary, type RecurrenceDraft } from './lib/recurrence';
+import {
+  allDayReminderOptions,
+  defaultReminderKind,
+  mapReminderKindForAllDay,
+  reminderKindLabel,
+  resolveEventTimeZone,
+  timedReminderOptions,
+} from './lib/reminder';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import {
   cleanupPushAndSignOut,
@@ -54,6 +63,7 @@ import {
   toDateInputValue,
 } from './lib/date';
 import type { CalendarEvent, CalendarOccurrence, EventAudience, EventEditTarget, EventOccurrenceException, Space, SpaceMember } from './types';
+import type { ReminderKind } from '../supabase/functions/_shared/reminder-due.ts';
 
 type ViewMode = 'today' | 'week' | 'month';
 const viewLabels: Record<ViewMode, string> = {
@@ -74,6 +84,7 @@ function emptyDraft(date?: Date): EventDraft {
     startsAt: startsAtValue,
     endsAt: toDateInputValue(endsAt),
     allDay: false,
+    reminderKind: defaultReminderKind(false),
     recurrence: defaultRecurrenceDraft(startsAtValue),
   };
 }
@@ -88,6 +99,7 @@ function draftFromEvent(event: CalendarEvent, userId: string): EventDraft {
     startsAt,
     endsAt: event.ends_at ? toDateInputValue(new Date(event.ends_at)) : '',
     allDay: event.all_day,
+    reminderKind: event.reminder_kind,
     recurrence: recurrenceDraftFromRule(event.recurrence_rule, startsAt),
   };
 }
@@ -910,6 +922,13 @@ function EventSheet({
 
     return draftFromEditTarget(target, draftFromEvent(target.event, userId), toDateInputValue);
   });
+  const [initialDraft, setInitialDraft] = useState<EventDraft>(() => {
+    if (!target) {
+      return emptyDraft();
+    }
+
+    return draftFromEditTarget(target, draftFromEvent(target.event, userId), toDateInputValue);
+  });
   const [endManuallyEdited, setEndManuallyEdited] = useState(() => Boolean(event));
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -919,7 +938,9 @@ function EventSheet({
   const [pendingOccurrenceAction, setPendingOccurrenceAction] = useState<OccurrenceAction | null>(null);
 
   useEffect(() => {
-    setDraft(target ? draftFromEditTarget(target, draftFromEvent(target.event, userId), toDateInputValue) : emptyDraft());
+    const nextDraft = target ? draftFromEditTarget(target, draftFromEvent(target.event, userId), toDateInputValue) : emptyDraft();
+    setDraft(nextDraft);
+    setInitialDraft(nextDraft);
     setEndManuallyEdited(Boolean(event));
     setError('');
     setBusy(false);
@@ -952,12 +973,25 @@ function EventSheet({
   function updateRecurrenceFrequency(frequency: RecurrenceDraft['frequency']) {
     setDraft((currentDraft) => ({
       ...currentDraft,
+      reminderKind: frequency === 'none' ? currentDraft.reminderKind : null,
       recurrence: { ...defaultRecurrenceDraft(currentDraft.startsAt), frequency },
     }));
   }
 
   function updateRecurrence(recurrence: RecurrenceDraft) {
-    setDraft((currentDraft) => ({ ...currentDraft, recurrence }));
+    setDraft((currentDraft) => ({
+      ...currentDraft,
+      reminderKind: recurrence.frequency === 'none' ? currentDraft.reminderKind : null,
+      recurrence,
+    }));
+  }
+
+  function updateAllDay(allDay: boolean) {
+    setDraft((currentDraft) => ({
+      ...currentDraft,
+      allDay,
+      reminderKind: mapReminderKindForAllDay(currentDraft.reminderKind, allDay),
+    }));
   }
 
   async function executeOccurrenceAction(scope: OccurrenceScope) {
@@ -1004,28 +1038,52 @@ function EventSheet({
       return;
     }
 
-    const recurrenceResult = recurrenceRuleFromDraft(draft.recurrence, browserTimeZone());
+    const captureTimeZone = !event
+      || (event.time_zone === null && (draft.reminderKind !== null || draft.recurrence.frequency !== 'none'));
+    const timeZoneResult = resolveEventTimeZone(event, captureTimeZone);
+    if (!timeZoneResult.ok) {
+      setError(timeZoneResult.error);
+      return;
+    }
+
+    const recurrenceResult = recurrenceRuleFromDraft(draft.recurrence, timeZoneResult.timeZone);
     if (!recurrenceResult.ok) {
       setError(recurrenceResult.error);
       return;
     }
 
+    const saveDraft = recurrenceResult.rule === null ? draft : { ...draft, reminderKind: null };
+
     setBusy(true);
 
-    const shouldClearDefaultAllDayEnd = !event && draft.allDay && !endManuallyEdited;
+    const shouldClearDefaultAllDayEnd = !event && saveDraft.allDay && !endManuallyEdited;
     const contentPayload = {
-      title: draft.title.trim(),
-      description: draft.description.trim() || null,
-      starts_at: fromDateInputValue(draft.startsAt),
-      ends_at: shouldClearDefaultAllDayEnd ? null : draft.endsAt ? fromDateInputValue(draft.endsAt) : null,
-      all_day: draft.allDay,
+      title: saveDraft.title.trim(),
+      description: saveDraft.description.trim() || null,
+      starts_at: fromDateInputValue(saveDraft.startsAt),
+      ends_at: shouldClearDefaultAllDayEnd ? null : saveDraft.endsAt ? fromDateInputValue(saveDraft.endsAt) : null,
+      all_day: saveDraft.allDay,
       recurrence_rule: recurrenceResult.rule,
+      reminder_kind: saveDraft.reminderKind,
+      time_zone: timeZoneResult.timeZone,
     };
 
     let result;
 
     if (event) {
-      result = await supabase.from('events').update(contentPayload).eq('id', event.id);
+      const updatePayload = buildEventUpdatePayload(
+        event,
+        initialDraft,
+        saveDraft,
+        recurrenceResult.rule,
+        timeZoneResult.timeZone,
+        fromDateInputValue,
+      );
+      if (Object.keys(updatePayload).length === 0) {
+        await completeSuccessfulMutation();
+        return;
+      }
+      result = await supabase.from('events').update(updatePayload).eq('id', event.id);
     } else {
       const ownerUserId = draft.audience === 'shared' ? null : draft.audience === 'mine' ? userId : partnerId;
 
@@ -1094,6 +1152,7 @@ function EventSheet({
             <ReadOnlyField label="开始时间" value={new Date(event.starts_at).toLocaleString('zh-CN')} />
             <ReadOnlyField label="结束时间" value={event.ends_at ? new Date(event.ends_at).toLocaleString('zh-CN') : '未设置'} />
             <ReadOnlyField label="全天" value={event.all_day ? '是' : '否'} />
+            <ReadOnlyField label="提醒" value={reminderKindLabel(event.reminder_kind)} />
             <ReadOnlyField label="重复" value={recurrenceSummary(event.recurrence_rule)} />
             <ReadOnlyField label="描述" value={event.description || '无'} />
           </div>
@@ -1133,9 +1192,31 @@ function EventSheet({
           </Field>
 
           <label className="flex items-center gap-3 rounded-lg bg-mist px-4 py-3 text-sm font-semibold">
-            <input type="checkbox" checked={draft.allDay} onChange={(inputEvent) => setDraft({ ...draft, allDay: inputEvent.target.checked })} disabled={!editUi.canEditAllDay} />
+            <input type="checkbox" checked={draft.allDay} onChange={(inputEvent) => updateAllDay(inputEvent.target.checked)} disabled={!editUi.canEditAllDay} />
             {editUi.isRecurringOccurrenceEdit ? '全天（当前仅此事件不支持修改）' : '全天'}
           </label>
+
+          <Field label="提醒">
+            <select
+              className="w-full rounded-lg border border-ink/15 bg-white px-4 py-3 outline-none focus:border-teal disabled:bg-mist disabled:text-ink/55"
+              value={draft.reminderKind ?? ''}
+              disabled={draft.recurrence.frequency !== 'none' || editUi.isRecurringOccurrenceEdit}
+              onChange={(inputEvent) => setDraft({
+                ...draft,
+                reminderKind: inputEvent.target.value === '' ? null : inputEvent.target.value as ReminderKind,
+              })}
+            >
+              {(draft.allDay ? allDayReminderOptions : timedReminderOptions).map((option) => (
+                <option key={option.value || 'none'} value={option.value}>{option.label}</option>
+              ))}
+            </select>
+            {(draft.recurrence.frequency !== 'none' || editUi.isRecurringOccurrenceEdit) && (
+              <p className="mt-2 text-sm text-ink/55">重复日程提醒暂不支持。</p>
+            )}
+            {draft.audience === 'shared' && draft.recurrence.frequency === 'none' && !editUi.isRecurringOccurrenceEdit && (
+              <p className="mt-2 text-sm text-ink/55">共同日程提醒会通知当前空间成员。</p>
+            )}
+          </Field>
 
           <Field label="重复">
             {editUi.canEditRecurrence ? (

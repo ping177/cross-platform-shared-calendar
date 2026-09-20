@@ -56,6 +56,9 @@ create table if not exists public.events (
   starts_at timestamptz not null,
   ends_at timestamptz,
   all_day boolean not null default false,
+  reminder_kind text,
+  time_zone text,
+  reminder_schedule_changed_at timestamptz not null,
   recurrence_rule jsonb,
   series_id uuid,
   parent_event_id uuid,
@@ -68,7 +71,34 @@ create table if not exists public.events (
     (scope = 'personal' and owner_user_id is not null)
   ),
   constraint event_ends_after_start check (ends_at is null or ends_at >= starts_at),
-  constraint events_recurrence_until_after_start_check check (recurrence_until is null or recurrence_until >= starts_at)
+  constraint events_recurrence_until_after_start_check check (recurrence_until is null or recurrence_until >= starts_at),
+  constraint events_reminder_kind_check check (
+    reminder_kind is null
+    or reminder_kind in (
+      'timed_at_start',
+      'timed_10m_before',
+      'timed_30m_before',
+      'timed_1h_before',
+      'timed_previous_day_same_time',
+      'all_day_same_day_08',
+      'all_day_previous_day_20'
+    )
+  ),
+  constraint events_reminder_kind_matches_all_day_check check (
+    reminder_kind is null
+    or (not all_day and reminder_kind like 'timed_%')
+    or (all_day and reminder_kind like 'all_day_%')
+  ),
+  constraint events_reminder_requires_time_zone_check check (
+    reminder_kind is null or time_zone is not null
+  ),
+  constraint events_recurring_reminder_unsupported_check check (
+    recurrence_rule is null or reminder_kind is null
+  ),
+  constraint events_recurring_time_zone_consistency_check check (
+    recurrence_rule is null
+    or (time_zone is not null and time_zone = recurrence_rule ->> 'time_zone')
+  )
 );
 
 create table if not exists public.push_subscriptions (
@@ -391,6 +421,38 @@ drop trigger if exists events_validate_recurrence_rule on public.events;
 create trigger events_validate_recurrence_rule
 before insert or update on public.events
 for each row execute function public.validate_event_recurrence_rule();
+
+create or replace function public.prepare_event_reminder_schedule()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  if new.time_zone is not null and not exists (
+    select 1
+    from pg_catalog.pg_timezone_names
+    where name = new.time_zone
+  ) then
+    raise exception 'Event time_zone must be a valid IANA timezone';
+  end if;
+
+  if tg_op = 'INSERT' then
+    new.reminder_schedule_changed_at = clock_timestamp();
+  elsif row(new.starts_at, new.all_day, new.reminder_kind, new.time_zone)
+    is distinct from row(old.starts_at, old.all_day, old.reminder_kind, old.time_zone) then
+    new.reminder_schedule_changed_at = clock_timestamp();
+  else
+    new.reminder_schedule_changed_at = old.reminder_schedule_changed_at;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists events_prepare_reminder_schedule on public.events;
+create trigger events_prepare_reminder_schedule
+before insert or update on public.events
+for each row execute function public.prepare_event_reminder_schedule();
 
 create or replace function public.can_manage_event(
   event_space_id uuid,
@@ -1027,12 +1089,12 @@ begin
 
   insert into public.events (
     space_id, created_by, scope, owner_user_id, title, description, starts_at, ends_at, all_day,
-    recurrence_rule, series_id, parent_event_id, recurrence_until
+    recurrence_rule, time_zone, series_id, parent_event_id, recurrence_until
   )
   values (
     source_event.space_id, source_event.created_by, source_event.scope, source_event.owner_user_id,
     p_new_title, p_new_description, p_new_starts_at, p_new_ends_at, source_event.all_day,
-    source_event.recurrence_rule, coalesce(source_event.series_id, source_event.id), source_event.id, source_event.recurrence_until
+    source_event.recurrence_rule, source_event.time_zone, coalesce(source_event.series_id, source_event.id), source_event.id, source_event.recurrence_until
   )
   returning * into child_event;
 

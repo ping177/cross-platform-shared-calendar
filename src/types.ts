@@ -1,3 +1,5 @@
+import type { ReminderKind } from '../supabase/functions/_shared/reminder-due.ts';
+
 export type Space = {
   id: string;
   name: string;
@@ -61,6 +63,9 @@ export type CalendarEvent = {
   starts_at: string;
   ends_at: string | null;
   all_day: boolean;
+  reminder_kind: ReminderKind | null;
+  time_zone: string | null;
+  reminder_schedule_changed_at: string;
   recurrence_rule: RecurrenceRule | null;
   series_id: string | null;
   parent_event_id: string | null;

@@ -16,6 +16,9 @@ const sourceEvent: CalendarEvent = {
   starts_at: '2026-07-18T09:00:00.000Z',
   ends_at: '2026-07-18T10:00:00.000Z',
   all_day: false,
+  reminder_kind: null,
+  time_zone: 'Asia/Shanghai',
+  reminder_schedule_changed_at: '2026-07-01T00:00:00.000Z',
   recurrence_rule: { version: 1, frequency: 'weekly', interval: 1, days_of_week: [6], time_zone: 'Asia/Shanghai' },
   series_id: 'event-1',
   parent_event_id: null,
@@ -31,6 +34,7 @@ const sourceDraft = {
   startsAt: toDateInputValue(new Date(sourceEvent.starts_at)),
   endsAt: toDateInputValue(new Date(sourceEvent.ends_at!)),
   allDay: false,
+  reminderKind: null,
   recurrence: { frequency: 'weekly' as const, interval: 1, days_of_week: [6], day_of_month: 18, month: 7, day: 18 },
 };
 

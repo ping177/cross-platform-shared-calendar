@@ -23,7 +23,7 @@ values
   ('00000000-0000-0000-0000-000000001741', '00000000-0000-0000-0000-000000001732', 'member');
 
 insert into public.events (
-  id, space_id, created_by, scope, owner_user_id, title, starts_at, ends_at, recurrence_rule, series_id
+  id, space_id, created_by, scope, owner_user_id, title, starts_at, ends_at, recurrence_rule, time_zone, series_id
 )
 values (
   '00000000-0000-0000-0000-000000001751',
@@ -32,11 +32,12 @@ values (
   'shared', null, 'v0.1.7.3 weekly source',
   '2026-08-03T12:00:00Z', '2026-08-03T13:00:00Z',
   '{"version": 1, "frequency": "weekly", "interval": 1, "time_zone": "UTC", "days_of_week": [1]}'::jsonb,
+  'UTC',
   '00000000-0000-0000-0000-000000001751'
 );
 
 insert into public.events (
-  id, space_id, created_by, scope, owner_user_id, title, starts_at, ends_at, recurrence_rule, series_id, recurrence_until
+  id, space_id, created_by, scope, owner_user_id, title, starts_at, ends_at, recurrence_rule, time_zone, series_id, recurrence_until
 )
 values
   (
@@ -46,6 +47,7 @@ values
     'shared', null, 'v0.1.7.3 finite middle source',
     '2026-09-07T12:00:00Z', '2026-09-07T13:00:00Z',
     '{"version": 1, "frequency": "weekly", "interval": 1, "time_zone": "UTC", "days_of_week": [1]}'::jsonb,
+    'UTC',
     '00000000-0000-0000-0000-000000001752', '2026-09-28T12:00:00Z'
   ),
   (
@@ -55,6 +57,7 @@ values
     'shared', null, 'v0.1.7.3 finite final source',
     '2026-10-05T12:00:00Z', '2026-10-05T13:00:00Z',
     '{"version": 1, "frequency": "weekly", "interval": 1, "time_zone": "UTC", "days_of_week": [1]}'::jsonb,
+    'UTC',
     '00000000-0000-0000-0000-000000001753', '2026-10-26T12:00:00Z'
   );
 

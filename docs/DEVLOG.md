@@ -1,5 +1,15 @@
 # Development Log
 
+# 2026-09-20 - v0.1.8.2 Slice B Persistence + Event Mutation/UI
+
+- Implemented the approved additive Event persistence contract: nullable `reminder_kind`, nullable canonical `time_zone`, DB-owned non-null `reminder_schedule_changed_at`, five minimum CHECK constraints, and one validation/schedule-marker trigger function + trigger. Added a guarded incremental patch and kept the canonical bootstrap schema aligned.
+- Historical ordinary Events remain reminder/timezone null; historical recurring rows backfill timezone only from `recurrence_rule.time_zone`. The existing split RPC now copies source `events.time_zone` to its child without changing projection, cutoff, exception, or DST semantics.
+- Added the small existing-sheet Reminder selector, timed/all-day defaults and visible conversion, recurring Reminder disablement, read-only presentation, canonical timezone preservation, and controlled capture failure. Timezone detection never falls back to UTC and failed capture performs no mutation.
+- Ordinary Event updates now use a field-level payload builder. Title/description-only edits no longer resubmit schedule fields, unchanged `datetime-local` values preserve stored seconds/milliseconds, protected identity fields remain absent, and empty payloads skip the UPDATE.
+- Recovered the local Docker/Supabase stack without reset or volume deletion. Disposable ordered-upgrade passed; Slice B pgTAP passed 28/28 and the complete database regression suite passed 98/98 after restoring the existing local v0.1.8.1 prerequisite.
+- Production read-only preflight passed with no schema drift. Applied only `supabase/patches/2026-09-20-v0.1.8.2-reminder-persistence.sql`; postflight confirmed three columns, five constraints, marker function/trigger, historical-null policy, recurring timezone backfill, RLS/owner validation/Realtime preservation, and intact v0.1.8.1 Push infrastructure.
+- Final verification passed: full Node suite 114/114, both Deno checks, `npm run build`, and `git diff --check`. The new static schema/migration contract passed 4/4. Slice B remains open pending frontend rollout and Production human acceptance. Slice C did not start.
+
 # 2026-09-20 - v0.1.8.2 Slice A Timezone Primitives + Reminder Due Calculator
 
 - Extracted the existing recurrence timezone conversion and DST gap/overlap policy into runtime-neutral pure TypeScript under `supabase/functions/_shared/`; recurrence now imports the same implementation without changing its public behavior.

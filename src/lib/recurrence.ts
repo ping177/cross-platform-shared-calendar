@@ -166,9 +166,13 @@ export function recurrenceDraftFromRule(rule: RecurrenceRule | null, startsAt: s
   };
 }
 
-export function recurrenceRuleFromDraft(draft: RecurrenceDraft, timeZone: string): RecurrenceRuleDraftResult {
+export function recurrenceRuleFromDraft(draft: RecurrenceDraft, timeZone: string | null): RecurrenceRuleDraftResult {
   if (draft.frequency === 'none') {
     return { ok: true, rule: null };
+  }
+
+  if (timeZone === null) {
+    return { ok: false, error: '无法获取有效的设备时区，请检查系统设置后重试。' };
   }
 
   const base = { version: 1, frequency: draft.frequency, interval: draft.interval, time_zone: timeZone };
@@ -181,10 +185,6 @@ export function recurrenceRuleFromDraft(draft: RecurrenceDraft, timeZone: string
         : base;
   const parsed = parseRecurrenceRule(candidate);
   return parsed.ok ? { ok: true, rule: parsed.rule } : parsed;
-}
-
-export function browserTimeZone() {
-  return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
 }
 
 export function recurrenceSummary(rule: RecurrenceRule | null) {

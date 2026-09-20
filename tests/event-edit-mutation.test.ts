@@ -22,6 +22,9 @@ const event: CalendarEvent = {
   starts_at: '2026-07-20T09:00:00.000Z',
   ends_at: '2026-07-20T10:00:00.000Z',
   all_day: false,
+  reminder_kind: null,
+  time_zone: 'Asia/Shanghai',
+  reminder_schedule_changed_at: '2026-07-02T00:00:00.000Z',
   recurrence_rule: { version: 1, frequency: 'weekly', interval: 1, days_of_week: [1], time_zone: 'Asia/Shanghai' },
   series_id: 'event-1',
   parent_event_id: null,
@@ -49,6 +52,7 @@ const draft = {
   startsAt: '2026-07-27T19:00',
   endsAt: '2026-07-27T20:30',
   allDay: true,
+  reminderKind: null,
   recurrence: { frequency: 'weekly' as const, interval: 1, days_of_week: [1], day_of_month: 27, month: 7, day: 27 },
 };
 

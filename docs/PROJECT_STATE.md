@@ -8,15 +8,15 @@
 
 ## Current version
 
-v0.1.8.2 (Reminder Persistence + Ordinary Event Delivery — Slice A Governance Closeout Pushed)
+v0.1.8.2 (Reminder Persistence + Ordinary Event Delivery — Production DB Migrated / Frontend Rollout Pending)
 
 ## Current status
 
-Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.8.1 — Push Infrastructure Foundation` 保持 `CLOSED / PASS — Android final acceptance deferred`。`v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery` 的 Slice A timezone primitives + due calculator 已完成实现、Node/Vite/Deno 跨 runtime 验证、人工 review，并已通过 commit `100d8a37711918152ba0a0f0bf8a2ec7f70c6d03` push 到 `origin/main`。Slice B persistence/UI 和 Slice C delivery pipeline 尚未开始。Android installed PWA 的完整 Push 生命周期仍延后到整个 v0.1.8 的最终 cross-platform acceptance，不阻塞 Slice 2。
+Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.8.1 — Push Infrastructure Foundation` 保持 `CLOSED / PASS — Android final acceptance deferred`。`v0.1.8.2` Slice A 已关闭。Slice B persistence + Event mutation/UI implementation、disposable ordered-upgrade、28/28 Slice B pgTAP、98/98 database regressions、Node 114/114、Vite build、Deno checks 与 Production database migration/postflight 均已完成。Frontend rollout 与 Production human acceptance 尚未完成，因此 Slice B 仍未关闭。Slice C delivery pipeline 未开始。
 
 ## Latest completed
 
-Completed v0.1.8.2 Slice A implementation, cross-runtime verification, and human review; commit `100d8a37711918152ba0a0f0bf8a2ec7f70c6d03` is pushed to `origin/main`. The existing recurrence timezone/DST primitives now have one runtime-neutral TypeScript source, and the pure Reminder due calculator covers all seven frozen kinds without accepting `ends_at`. Targeted tests passed 34/34, the full Node suite passed 101/101, both Deno 2.9.7 checks passed, `npm run build` passed, and `git diff --check` passed. No database, migration, Event UI, delivery ledger, sender, or Cron changed.
+Applied the reviewed Slice B additive patch to Production after a drift-free read-only preflight. Production postflight confirmed all three Event columns, five constraints, the database-owned marker trigger, historical Reminder/timezone policy, and preserved RLS, owner validation, Realtime, replica identity, and v0.1.8.1 Push infrastructure. Local disposable ordered-upgrade, Slice B pgTAP 28/28, all database regressions 98/98, Node 114/114, both Deno checks, `npm run build`, and `git diff --check` passed. Frontend deployment confirmation and human acceptance remain pending; no delivery ledger, sender, or Cron work occurred.
 
 ## Deployment
 
@@ -24,7 +24,7 @@ Status: public_deployed
 Public URL: https://cross-platform-shared-calendar.vercel.app/
 Provider: Vercel
 Backend: Supabase Free
-Notes: 已完成公网部署，用于真实设备访问和跨端验收。
+Notes: 现有公网版本继续服务；Slice B Production database migration 已完成，Slice B frontend rollout / deployment confirmation pending。
 
 ## Version Index
 
@@ -48,7 +48,7 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 - v0.1.7.3.3.2 — Frontend Scope Integration（Production Desktop 与 iPhone Standalone PWA recurrence smoke 已通过）
 - v0.1.8 — Mobile Push Reminder（current approved product line；architecture frozen）
 - v0.1.8.1 — Push Infrastructure Foundation（CLOSED / PASS；Desktop + iPhone verified；Android final acceptance deferred）
-- v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（Slice A implementation / verification / human review complete；commit `100d8a3` pushed；Slice B/C not started）
+- v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（Slice A closed；Slice B Production DB migrated，frontend rollout / human acceptance pending；Slice C not started）
 
 ## Last verified
 
@@ -56,7 +56,7 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 
 ## Next Action
 
-进入 v0.1.8.2 Slice B implementation planning / pre-implementation review。Slice B 将负责 persistence 与 Event mutation/UI；在新的明确授权前不开始实现，Slice C 仍不启动。
+Confirm the Vercel Production deployment for the reviewed Slice B commit, then complete the user-owned Production browser acceptance checklist. Do not mark Slice B closed and do not begin Slice C before that acceptance passes.
 
 ## Blockers
 
@@ -89,7 +89,7 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 - v0.1.7.1 foundation is present in the local schema and its 18-test pgTAP suite passes. v0.1.7.2 has a compatible reader/projection implementation. v0.1.7.3.3.2 supports only-this and this-and-future mutation UI; logical-series deletion UI and exception Realtime publication/subscriptions remain deliberately deferred.
 - v0.1.7.3 treats `series_id` as the logical root and `parent_event_id` as the immediate predecessor. The final split RPC moves future exceptions to the child, consumes a split-day override, rejects a split-day deletion, preserves source recurrence rule/all-day, and requires the child to start on the selected occurrence date. The actual exception schema uses `event_id`, `occurrence_date`, `exception_type`, and `override_data`; the v0.1.7.3.3.2 client relies on the RPC for all transaction work.
 - Final Production recurrence smoke passed on Desktop and iPhone Standalone PWA for all four supported occurrence actions. iOS Standalone PWA cannot actively refresh itself due to an iOS system limitation; this is not an application defect.
-- `supabase/config.toml` uses a stable local `project_id`; the local database/API/Auth/Mailpit stack is reachable. It configures a local 8-digit Mailpit OTP template and port-5175 redirect URL only; the local status currently reports stopped imgproxy and pooler services, which do not block Postgres, Auth, Mailpit, or pgTAP validation.
+- `supabase/config.toml` uses a stable local `project_id` and configures a local 8-digit Mailpit OTP template plus the port-5175 redirect URL. The local Docker/Supabase stack was recovered without reset or volume deletion; Slice B pgTAP and all database regressions passed.
 - The engine uses native `Intl` IANA timezone formatting/conversion and rejects invalid rule shapes at both client and database boundaries. It returns an explicit error instead of a partial result after 500 candidates.
 - v0.1.8.2 supersedes the earlier `events.reminder_offset_minutes` proposal. One event-level nullable `events.reminder_kind` supports `timed_at_start`, `timed_10m_before`, `timed_30m_before`, `timed_1h_before`, `timed_previous_day_same_time`, `all_day_same_day_08`, and `all_day_previous_day_20`; `null` means no reminder. Multiple reminders, JSON reminder config, arbitrary custom minutes, and per-user reminder preferences remain outside this version.
 - `events.time_zone` is the nullable canonical IANA timezone of the Event. New events detect it from the creating browser/PWA with standard `Intl` capability; later device timezone changes never silently rewrite an existing Event. Historical ordinary timezone remains null rather than guessed, while historical recurring sources may initialize it from their already-authoritative rule timezone. Recurring Event `time_zone` must equal `recurrence_rule.time_zone`, so there is only one authoritative timezone.
@@ -108,4 +108,4 @@ Notes: 已完成公网部署，用于真实设备访问和跨端验收。
 
 ## Handoff Prompt
 
-Begin v0.1.8.2 Slice B implementation planning / pre-implementation review. Slice A is complete, human-reviewed, committed, and pushed at `100d8a37711918152ba0a0f0bf8a2ec7f70c6d03`; do not modify Slice A or begin Slice B implementation until the planning review grants separate authorization. Slice B will own persistence and Event mutation/UI; Slice C will own the minimal ledger, sender, Cron, and acceptance. Keep recurring delivery for Slice 3 and Android final Push acceptance deferred to final v0.1.8 acceptance.
+Complete the v0.1.8.2 Slice B rollout from the reviewed working tree. Production database migration/postflight and all local verification are complete. Commit with `Project-State-Review: updated`, push `main` through the Project State Push Gate, confirm the Vercel Production deployment, then hand the Production browser acceptance checklist to the user. Do not mark Slice B closed and do not begin Slice C until human acceptance passes.

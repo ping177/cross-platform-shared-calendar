@@ -41,7 +41,7 @@ trailer 是否与 PROJECT_STATE tree diff 一致；tag 只验证目标 commit �
 
 ## v0.1.8 Mobile Push Reminder Acceptance Plan
 
-Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`. Automated verification plus real Desktop Chrome/macOS and iPhone installed PWA Push Infrastructure acceptance passed. Slice 2 architecture / semantics are frozen. Slice A (timezone primitives + due calculator) implementation and cross-runtime verification are complete and awaiting final human review plus commit/push governance closeout; Slice B and Slice C have not started. Android Push lifecycle acceptance is intentionally deferred to final v0.1.8 cross-platform acceptance and does not block Slice 2.
+Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`. Automated verification plus real Desktop Chrome/macOS and iPhone installed PWA Push Infrastructure acceptance passed. Slice 2 architecture / semantics are frozen. Slice A is closed. Slice B implementation, local ordered-upgrade/database verification, code verification, and Production database migration/postflight are complete; frontend rollout and Production human acceptance remain pending. Slice C has not started. Android Push lifecycle acceptance remains deferred to final v0.1.8 cross-platform acceptance.
 
 ### Slice 2A — Timezone Primitives + Reminder Due Calculator
 
@@ -54,6 +54,20 @@ Local verification on 2026-09-20:
 - Passed with system Deno 2.9.7: `deno check supabase/functions/_shared/time-zone.ts` and `deno check supabase/functions/_shared/reminder-due.ts`. Deno remains a system verification tool rather than a project dependency.
 - Scope audit passed: no database/schema/migration, Event UI, sender, Cron, Service Worker, Push Subscription, Supabase/Vercel configuration, dependency, deployment, commit, or push change.
 
+### Slice 2B — Reminder Persistence + Event Mutation/UI
+
+Local implementation verification on 2026-09-20:
+
+- Passed the Slice B schema/migration static contract: 4/4. It covers the exact three columns, five minimum constraints, one validation/marker function + trigger, historical recurring-only timezone backfill, no historical Reminder activation, no legacy offset, and split-child timezone inheritance.
+- Passed the complete repository Node suite: `node --test tests/*.test.ts tests/*.test.js` (114/114). New coverage includes timed/all-day defaults and mapping, null preservation, controlled timezone capture failure with no UTC fallback, existing timezone preservation, historical capture boundaries, semantic partial payloads, seconds/milliseconds preservation, and protected identity-field exclusion.
+- Passed `deno check supabase/functions/_shared/time-zone.ts`, `deno check supabase/functions/_shared/reminder-due.ts`, `npm run build`, and `git diff --check`.
+- Added `supabase/tests/2026-09-20-v0.1.8.2-reminder-persistence.test.sql` with 28 planned assertions for structure, constraints, marker behavior, direct marker mutation defense, and split-child timezone inheritance. Existing recurrence pgTAP fixtures now provide their authoritative Event timezone.
+- Passed disposable ordered-upgrade from the committed pre-Slice-B schema with historical ordinary/recurring/personal fixtures. Verified historical-null policy, recurring timezone backfill, marker initialization, constraints/trigger, split-child timezone inheritance, RLS, personal ownership, and Realtime preservation.
+- Passed Slice B pgTAP 28/28 and the complete local database regression suite 98/98. The recovered local database initially lacked the existing v0.1.8.1 prerequisite; applying that already-approved additive patch locally restored the expected baseline before the final green run.
+- Production preflight, application of only `supabase/patches/2026-09-20-v0.1.8.2-reminder-persistence.sql`, and read-only postflight passed. Historical reminders remained disabled, ordinary timezones remained null, recurring timezones matched their rule, and existing RLS/owner validation/Realtime/Push infrastructure were preserved.
+- Pending after frontend rollout: Production human acceptance for new timed/all-day defaults, visible mapping, historical-null behavior, travel preservation, recurring disablement, personal non-owner read-only presentation, semantic partial updates, and ordinary Realtime behavior. Timezone detection failure remains covered by automated tests rather than a browser hack.
+- Scope audit: no delivery table, claim function, sender, Cron, retry, recipient resolution, Push delivery, recurring Reminder delivery, dependency, deployment, commit, or push change.
+
 ### Slice 1 — Push Infrastructure Foundation
 
 Local automated verification updated on 2026-09-19:
@@ -62,7 +76,7 @@ Local automated verification updated on 2026-09-19:
 - Passed `npm run build` (TypeScript project build plus Vite production bundle).
 - Passed an Edge static/type check against the exact `@mmmike/web-push@1.3.0` package declarations. Sender diagnostics cover accepted 2xx, gone 404/410, rejected 401/403/429/5xx, and network/runtime failure while returning only upstream status, provider hostname, delivery flags, and a stable non-sensitive error code.
 - Added `supabase/tests/2026-09-18-v0.1.8.1-push-infrastructure.test.sql` with 22 assertions for table/RPC structure, privileges, authenticated registration/upsert, endpoint ownership, current-installation disable, and isolation. Its local run is pending because the local Supabase database was unavailable; Production was not used as a substitute.
-- The local pgTAP suite remains implemented but unexecuted because local Supabase was unavailable; this is not a recorded test failure or Slice 2 blocker.
+- The v0.1.8.1 Push Infrastructure pgTAP suite passed as part of the complete 98/98 local database regression run on 2026-09-20.
 
 Real Push Infrastructure acceptance on 2026-09-19:
 
