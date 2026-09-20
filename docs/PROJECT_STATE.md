@@ -8,15 +8,15 @@
 
 ## Current version
 
-v0.1.8.2 (Reminder Persistence + Ordinary Event Delivery — Production DB Migrated / Frontend Rollout Pending)
+v0.1.8.2 (Reminder Persistence + Ordinary Event Delivery — Slice B CLOSED / PASS)
 
 ## Current status
 
-Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.8.1 — Push Infrastructure Foundation` 保持 `CLOSED / PASS — Android final acceptance deferred`。`v0.1.8.2` Slice A 已关闭。Slice B persistence + Event mutation/UI implementation、disposable ordered-upgrade、28/28 Slice B pgTAP、98/98 database regressions、Node 114/114、Vite build、Deno checks 与 Production database migration/postflight 均已完成。Frontend rollout 与 Production human acceptance 尚未完成，因此 Slice B 仍未关闭。Slice C delivery pipeline 未开始。
+Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.8.1 — Push Infrastructure Foundation` 保持 `CLOSED / PASS — Android final acceptance deferred`。`v0.1.8.2` Slice A 已关闭。Slice B persistence + Event mutation/UI implementation、disposable ordered-upgrade、28/28 Slice B pgTAP、98/98 database regressions、Node 114/114、Vite build、Deno checks、Production database migration/postflight、frontend deployment 与真实 Production human acceptance 均已通过，Slice B 为 `CLOSED / PASS`。Historical ordinary Event browser fixture 在 Production 中为 N/A（无可用的 pre-Slice-B ordinary fixture），其冻结历史语义已由 ordered-upgrade 与 pgTAP 覆盖。Slice C delivery pipeline 未开始；Android Push lifecycle 仍按 validation strategy 延后，不构成当前 blocker。
 
 ## Latest completed
 
-Applied the reviewed Slice B additive patch to Production after a drift-free read-only preflight. Production postflight confirmed all three Event columns, five constraints, the database-owned marker trigger, historical Reminder/timezone policy, and preserved RLS, owner validation, Realtime, replica identity, and v0.1.8.1 Push infrastructure. Local disposable ordered-upgrade, Slice B pgTAP 28/28, all database regressions 98/98, Node 114/114, both Deno checks, `npm run build`, and `git diff --check` passed. Frontend deployment confirmation and human acceptance remain pending; no delivery ledger, sender, or Cron work occurred.
+Applied the reviewed Slice B additive patch to Production after a drift-free read-only preflight. Production postflight confirmed all three Event columns, five constraints, the database-owned marker trigger, historical Reminder/timezone policy, and preserved RLS, owner validation, Realtime, replica identity, and v0.1.8.1 Push infrastructure. Local disposable ordered-upgrade, Slice B pgTAP 28/28, all database regressions 98/98, Node 114/114, both Deno checks, `npm run build`, and `git diff --check` passed. The deployed frontend then passed the user-owned Production human acceptance on 2026-09-20, including defaults, conversions, null/persistence/disablement semantics, recurring boundary, partial edits, ownership, CRUD, and Realtime. No delivery ledger, sender, or Cron work occurred.
 
 ## Deployment
 
@@ -24,7 +24,7 @@ Status: public_deployed
 Public URL: https://cross-platform-shared-calendar.vercel.app/
 Provider: Vercel
 Backend: Supabase Free
-Notes: 现有公网版本继续服务；Slice B Production database migration 已完成，Slice B frontend rollout / deployment confirmation pending。
+Notes: 现有公网版本继续服务；Slice B Production database migration、frontend deployment 与 Production human acceptance 已完成。Android Push lifecycle 仍按 validation strategy 延后，不构成 Slice B blocker。
 
 ## Version Index
 
@@ -48,7 +48,7 @@ Notes: 现有公网版本继续服务；Slice B Production database migration �
 - v0.1.7.3.3.2 — Frontend Scope Integration（Production Desktop 与 iPhone Standalone PWA recurrence smoke 已通过）
 - v0.1.8 — Mobile Push Reminder（current approved product line；architecture frozen）
 - v0.1.8.1 — Push Infrastructure Foundation（CLOSED / PASS；Desktop + iPhone verified；Android final acceptance deferred）
-- v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（Slice A closed；Slice B Production DB migrated，frontend rollout / human acceptance pending；Slice C not started）
+- v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（Slice A closed；Slice B CLOSED / PASS；Slice C not started）
 
 ## Last verified
 
@@ -56,7 +56,7 @@ Notes: 现有公网版本继续服务；Slice B Production database migration �
 
 ## Next Action
 
-Confirm the Vercel Production deployment for the reviewed Slice B commit, then complete the user-owned Production browser acceptance checklist. Do not mark Slice B closed and do not begin Slice C before that acceptance passes.
+Enter v0.1.8.2 Slice C implementation planning / pre-implementation review. Do not start Slice C implementation until that review is approved.
 
 ## Blockers
 
@@ -108,4 +108,4 @@ Confirm the Vercel Production deployment for the reviewed Slice B commit, then c
 
 ## Handoff Prompt
 
-Complete the v0.1.8.2 Slice B rollout from the reviewed working tree. Production database migration/postflight and all local verification are complete. Commit with `Project-State-Review: updated`, push `main` through the Project State Push Gate, confirm the Vercel Production deployment, then hand the Production browser acceptance checklist to the user. Do not mark Slice B closed and do not begin Slice C until human acceptance passes.
+v0.1.8.2 Slice B is CLOSED / PASS after Production database migration/postflight, local verification, frontend deployment, and the user-owned Production browser acceptance. Preserve the frozen reminder semantics and do not start Slice C implementation until its separate planning / pre-implementation review is approved.

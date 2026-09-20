@@ -1,5 +1,12 @@
 # Development Log
 
+# 2026-09-20 - v0.1.8.2 Slice B Production Human Acceptance + Governance Closeout
+
+- Completed the user-owned Production browser acceptance for the deployed Slice B frontend — PASS. New timed reminders defaulted to 10 minutes before; new all-day reminders defaulted to 08:00; timed/all-day conversions, null preservation, timed 1-hour and all-day previous-day 20:00 presets, persistence, schedule edits, and disablement behaved as specified.
+- Confirmed recurring reminders remain unavailable, title-only and description-only edits do not rewrite the schedule, ordinary schedule edits reopen without Reminder anomalies, A-created-B-owned personal Events remain read-only to A while B can edit, shared and own personal CRUD pass, and ordinary Event plus shared Reminder Realtime propagation pass.
+- Historical ordinary Event browser coverage was N/A because Production had no pre-Slice-B ordinary fixture. The frozen historical `reminder_kind = null`, ordinary `time_zone = null`, no-auto-enable, recurring-timezone, constraint, trigger, RLS, ownership, and Realtime semantics were already covered by the disposable ordered-upgrade, Slice B pgTAP 28/28, and the complete database regression suite 98/98. Timezone detection failure and seconds/milliseconds preservation remain automated checks; the browser acceptance only verified visible schedule preservation for title/description edits.
+- v0.1.8.2 Slice B is now `CLOSED / PASS`. No business code, SQL, database, Production data, Slice C implementation, or unrelated files changed during this governance closeout; only canonical project documentation was updated.
+
 # 2026-09-20 - v0.1.8.2 Slice B Persistence + Event Mutation/UI
 
 - Implemented the approved additive Event persistence contract: nullable `reminder_kind`, nullable canonical `time_zone`, DB-owned non-null `reminder_schedule_changed_at`, five minimum CHECK constraints, and one validation/schedule-marker trigger function + trigger. Added a guarded incremental patch and kept the canonical bootstrap schema aligned.
@@ -8,7 +15,7 @@
 - Ordinary Event updates now use a field-level payload builder. Title/description-only edits no longer resubmit schedule fields, unchanged `datetime-local` values preserve stored seconds/milliseconds, protected identity fields remain absent, and empty payloads skip the UPDATE.
 - Recovered the local Docker/Supabase stack without reset or volume deletion. Disposable ordered-upgrade passed; Slice B pgTAP passed 28/28 and the complete database regression suite passed 98/98 after restoring the existing local v0.1.8.1 prerequisite.
 - Production read-only preflight passed with no schema drift. Applied only `supabase/patches/2026-09-20-v0.1.8.2-reminder-persistence.sql`; postflight confirmed three columns, five constraints, marker function/trigger, historical-null policy, recurring timezone backfill, RLS/owner validation/Realtime preservation, and intact v0.1.8.1 Push infrastructure.
-- Final verification passed: full Node suite 114/114, both Deno checks, `npm run build`, and `git diff --check`. The new static schema/migration contract passed 4/4. Slice B remains open pending frontend rollout and Production human acceptance. Slice C did not start.
+- Final verification passed: full Node suite 114/114, both Deno checks, `npm run build`, and `git diff --check`. The new static schema/migration contract passed 4/4. Slice B then passed the deployed-frontend Production human acceptance recorded above. Slice C did not start.
 
 # 2026-09-20 - v0.1.8.2 Slice A Timezone Primitives + Reminder Due Calculator
 
