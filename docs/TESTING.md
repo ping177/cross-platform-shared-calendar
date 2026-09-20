@@ -41,7 +41,18 @@ trailer 是否与 PROJECT_STATE tree diff 一致；tag 只验证目标 commit �
 
 ## v0.1.8 Mobile Push Reminder Acceptance Plan
 
-Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`. Automated verification plus real Desktop Chrome/macOS and iPhone installed PWA Push Infrastructure acceptance passed. Slice 2 architecture / semantics are frozen. Slice A is closed. Slice B implementation, local ordered-upgrade/database verification, code verification, Production database migration/postflight, frontend deployment, and Production human acceptance are complete; Slice B is `CLOSED / PASS`. Slice C has not started. Android Push lifecycle acceptance remains deferred to final v0.1.8 cross-platform acceptance.
+Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`. Automated verification plus real Desktop Chrome/macOS and iPhone installed PWA Push Infrastructure acceptance passed. Slice 2 architecture / semantics are frozen. Slice A is closed and Slice B is `CLOSED / PASS`. Slice C1 ledger + atomic claim is implemented locally and under review; C1 is not in Production, sender / Edge Function / Cron have not started, and Slice C overall remains open. Android Push lifecycle acceptance remains deferred to final v0.1.8 cross-platform acceptance.
+
+### Slice 2C1 — Minimal Delivery Ledger + Atomic Claim
+
+Local implementation verification on 2026-09-21:
+
+- Confirmed TDD RED from `supabase/tests/2026-09-20-v0.1.8.2-reminder-delivery.test.sql` before implementation because `public.reminder_deliveries` and `claim_reminder_delivery(...)` did not exist.
+- Passed the final C1 pgTAP contract 63/63. Coverage includes the exact ledger fields and `smallint` provider status, minimum constraints, no audit foreign keys, RLS/ACL/Realtime/function privileges, first/duplicate claim, all frozen eligibility rejections, exact marker matching, valid grace, and audit survival after Event/subscription deletion or disablement.
+- Passed a real local concurrency probe with four PostgreSQL sessions calling the identical claim after the same synchronization delay: exactly one call returned a UUID and the final ledger count was one. The fixed-UUID test fixture was removed afterward. No `dblink`, extension, or dependency was added.
+- Passed the complete local database suite: 5 files and 161/161 assertions. Slice B remains 28/28.
+- Passed `node --test tests/*.test.ts tests/*.test.js` (114/114), `node --test tests/reminder-due.test.ts` (9/9), `node --test tests/recurrence.test.ts` (25/25), both existing Deno checks, `npm run build`, and `git diff --check`.
+- Marker contract: future callers must pass the database `reminder_schedule_changed_at` value without lossy JavaScript formatting or precision truncation. C1 itself is DB-only and has no caller, sender, candidate scan, Cron, secret, provider integration, or Production migration.
 
 ### Slice 2A — Timezone Primitives + Reminder Due Calculator
 

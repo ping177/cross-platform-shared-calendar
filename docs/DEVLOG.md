@@ -1,5 +1,14 @@
 # Development Log
 
+# 2026-09-21 - v0.1.8.2 Slice C1 Minimal Delivery Ledger + Atomic Claim
+
+- Implemented the approved local-only C1 boundary: one durable `reminder_deliveries` table, minimum `claimed` / `sent` / `failed` constraints, unique `(event_id, subscription_id, due_at)`, no Event/user/subscription foreign keys, and no Realtime publication. RLS is enabled; anon/authenticated have no table access; `service_role` receives only select/update table privileges and must use the atomic function for inserts.
+- Added exactly one `SECURITY DEFINER` `claim_reminder_delivery(...)` function with a fixed `pg_catalog, pg_temp` search path and service-role-only execute. It captures `claim_now` once and uses one atomic `INSERT ... SELECT ... ON CONFLICT DO NOTHING RETURNING` to revalidate ordinary Reminder state, exact schedule marker, current shared/personal membership, active recipient-owned subscription, due bounds, and the ten-minute grace window.
+- Established the precision contract that `reminder_schedule_changed_at` must round-trip at full PostgreSQL `timestamptz` precision. C1 does not calculate due time, mutate Events/subscriptions, send Push, create retries, or add an Edge Function/Cron/secret/provider integration.
+- Confirmed TDD RED before implementation because the table/function were absent. Final C1 pgTAP passed 63/63; the complete local database suite passed 161/161 including Slice B 28/28. Four concurrent identical claims produced one UUID and one ledger row; sequential duplicate, rejection matrix, permissions, constraints, and audit survival all passed.
+- Final code verification passed: Node 114/114, Slice A due 9/9, recurrence 25/25, both existing Deno checks, `npm run build`, and `git diff --check`. Docker Desktop exited once during regression startup; the existing local database container was restarted without reset, rebuild, or volume deletion.
+- No dependency, frontend/business UI, sender, Edge Function, Cron, Vault, Production database, deployment, commit, or push changed. Slice C1 is implementation complete / under review; Slice C overall remains open.
+
 # 2026-09-20 - v0.1.8.2 Slice B Production Human Acceptance + Governance Closeout
 
 - Completed the user-owned Production browser acceptance for the deployed Slice B frontend — PASS. New timed reminders defaulted to 10 minutes before; new all-day reminders defaulted to 08:00; timed/all-day conversions, null preservation, timed 1-hour and all-day previous-day 20:00 presets, persistence, schedule edits, and disablement behaved as specified.

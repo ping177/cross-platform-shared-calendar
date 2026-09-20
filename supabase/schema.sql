@@ -134,6 +134,31 @@ create table if not exists public.push_subscriptions (
   )
 );
 
+create table if not exists public.reminder_deliveries (
+  id uuid primary key default gen_random_uuid(),
+  event_id uuid not null,
+  recipient_user_id uuid not null,
+  subscription_id uuid not null,
+  due_at timestamptz not null,
+  status text not null,
+  result_code text,
+  provider_status smallint,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint reminder_deliveries_status_check check (
+    status in ('claimed', 'sent', 'failed')
+  ),
+  constraint reminder_deliveries_provider_status_check check (
+    provider_status is null or provider_status between 100 and 599
+  ),
+  constraint reminder_deliveries_result_shape_check check (
+    (status = 'claimed' and result_code is null and provider_status is null)
+    or (status = 'sent' and result_code = 'delivered' and provider_status between 200 and 299)
+    or (status = 'failed' and result_code is not null)
+  ),
+  constraint reminder_deliveries_event_subscription_due_key unique (event_id, subscription_id, due_at)
+);
+
 create unique index if not exists one_space_per_user_idx on public.space_members (user_id);
 create index if not exists space_members_space_id_idx on public.space_members (space_id);
 create index if not exists events_space_starts_idx on public.events (space_id, starts_at);
@@ -198,6 +223,11 @@ for each row execute function public.touch_updated_at();
 drop trigger if exists push_subscriptions_touch_updated_at on public.push_subscriptions;
 create trigger push_subscriptions_touch_updated_at
 before update on public.push_subscriptions
+for each row execute function public.touch_updated_at();
+
+drop trigger if exists reminder_deliveries_touch_updated_at on public.reminder_deliveries;
+create trigger reminder_deliveries_touch_updated_at
+before update on public.reminder_deliveries
 for each row execute function public.touch_updated_at();
 
 create or replace function public.is_space_member(target_space_id uuid)
@@ -719,12 +749,87 @@ begin
 end;
 $$;
 
+create or replace function public.claim_reminder_delivery(
+  p_event_id uuid,
+  p_recipient_user_id uuid,
+  p_subscription_id uuid,
+  p_due_at timestamptz,
+  p_expected_reminder_schedule_changed_at timestamptz
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = pg_catalog, pg_temp
+as $$
+declare
+  claim_now timestamptz := pg_catalog.clock_timestamp();
+  claimed_delivery_id uuid;
+begin
+  insert into public.reminder_deliveries (
+    event_id,
+    recipient_user_id,
+    subscription_id,
+    due_at,
+    status,
+    result_code,
+    provider_status,
+    created_at,
+    updated_at
+  )
+  select
+    event.id,
+    p_recipient_user_id,
+    subscription.id,
+    p_due_at,
+    'claimed',
+    null,
+    null,
+    claim_now,
+    claim_now
+  from public.events event
+  join public.space_members recipient_membership
+    on recipient_membership.space_id = event.space_id
+   and recipient_membership.user_id = p_recipient_user_id
+  join public.push_subscriptions subscription
+    on subscription.id = p_subscription_id
+   and subscription.user_id = p_recipient_user_id
+  where event.id = p_event_id
+    and event.recurrence_rule is null
+    and event.reminder_kind is not null
+    and event.time_zone is not null
+    and event.reminder_schedule_changed_at = p_expected_reminder_schedule_changed_at
+    and p_due_at >= event.reminder_schedule_changed_at
+    and p_due_at <= claim_now
+    and p_due_at >= claim_now - interval '10 minutes'
+    and (
+      event.scope = 'shared'
+      or (
+        event.scope = 'personal'
+        and event.owner_user_id = p_recipient_user_id
+      )
+    )
+    and subscription.disabled_at is null
+    and (
+      subscription.expiration_time is null
+      or subscription.expiration_time > claim_now
+    )
+  on conflict (event_id, subscription_id, due_at) do nothing
+  returning reminder_deliveries.id into claimed_delivery_id;
+
+  return claimed_delivery_id;
+end;
+$$;
+
+comment on function public.claim_reminder_delivery(uuid, uuid, uuid, timestamptz, timestamptz) is
+  'Atomically claims one ordinary Event reminder. The expected schedule marker must round-trip at full PostgreSQL timestamptz precision; formatted or truncated values are stale.';
+
 alter table public.profiles enable row level security;
 alter table public.spaces enable row level security;
 alter table public.space_members enable row level security;
 alter table public.events enable row level security;
 alter table public.event_occurrence_exceptions enable row level security;
 alter table public.push_subscriptions enable row level security;
+alter table public.reminder_deliveries enable row level security;
 
 do $$
 begin
@@ -817,6 +922,8 @@ grant select, insert, update, delete on table public.events to authenticated;
 grant select, insert, update, delete on table public.event_occurrence_exceptions to authenticated;
 revoke all on table public.push_subscriptions from anon, authenticated;
 grant select, update on table public.push_subscriptions to service_role;
+revoke all on table public.reminder_deliveries from public, anon, authenticated;
+grant select, update on table public.reminder_deliveries to service_role;
 
 grant execute on function public.create_space_with_invite(text) to authenticated;
 grant execute on function public.join_space_by_invite_code(text) to authenticated;
@@ -827,6 +934,9 @@ revoke all on function public.register_push_subscription(uuid, text, text, text,
 revoke all on function public.disable_push_subscription(uuid) from anon;
 grant execute on function public.register_push_subscription(uuid, text, text, text, timestamptz, text) to authenticated;
 grant execute on function public.disable_push_subscription(uuid) to authenticated;
+revoke all on function public.claim_reminder_delivery(uuid, uuid, uuid, timestamptz, timestamptz) from public;
+revoke all on function public.claim_reminder_delivery(uuid, uuid, uuid, timestamptz, timestamptz) from anon, authenticated;
+grant execute on function public.claim_reminder_delivery(uuid, uuid, uuid, timestamptz, timestamptz) to service_role;
 
 -- v0.1.7.3.3.1 final recurrence RPC bootstrap definitions.
 create or replace function public.recurring_occurrence_instant(

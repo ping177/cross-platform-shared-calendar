@@ -8,15 +8,15 @@
 
 ## Current version
 
-v0.1.8.2 (Reminder Persistence + Ordinary Event Delivery — Slice B CLOSED / PASS)
+v0.1.8.2 (Reminder Persistence + Ordinary Event Delivery — Slice C1 implemented / under review)
 
 ## Current status
 
-Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.8.1 — Push Infrastructure Foundation` 保持 `CLOSED / PASS — Android final acceptance deferred`。`v0.1.8.2` Slice A 已关闭。Slice B persistence + Event mutation/UI implementation、disposable ordered-upgrade、28/28 Slice B pgTAP、98/98 database regressions、Node 114/114、Vite build、Deno checks、Production database migration/postflight、frontend deployment 与真实 Production human acceptance 均已通过，Slice B 为 `CLOSED / PASS`。Historical ordinary Event browser fixture 在 Production 中为 N/A（无可用的 pre-Slice-B ordinary fixture），其冻结历史语义已由 ordered-upgrade 与 pgTAP 覆盖。Slice C delivery pipeline 未开始；Android Push lifecycle 仍按 validation strategy 延后，不构成当前 blocker。
+Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.8.1 — Push Infrastructure Foundation` 保持 `CLOSED / PASS — Android final acceptance deferred`。`v0.1.8.2` Slice A 已关闭，Slice B 为 `CLOSED / PASS`。Slice C1 Minimal Delivery Ledger + Atomic Claim 已在本地实现并通过 63/63 C1 pgTAP、161/161 全量数据库回归、4-session 并发 claim、Node 114/114、Slice A due 9/9、recurrence 25/25、Deno checks 与 Vite build，当前状态为 implementation complete / under review。Slice C sender / Edge Function / Cron 尚未开始，Slice C 整体未关闭；C1 patch 未应用到 Production。Android Push lifecycle 仍按 validation strategy 延后，不构成当前 blocker。
 
 ## Latest completed
 
-Applied the reviewed Slice B additive patch to Production after a drift-free read-only preflight. Production postflight confirmed all three Event columns, five constraints, the database-owned marker trigger, historical Reminder/timezone policy, and preserved RLS, owner validation, Realtime, replica identity, and v0.1.8.1 Push infrastructure. Local disposable ordered-upgrade, Slice B pgTAP 28/28, all database regressions 98/98, Node 114/114, both Deno checks, `npm run build`, and `git diff --check` passed. The deployed frontend then passed the user-owned Production human acceptance on 2026-09-20, including defaults, conversions, null/persistence/disablement semantics, recurring boundary, partial edits, ownership, CRUD, and Realtime. No delivery ledger, sender, or Cron work occurred.
+Implemented Slice C1 locally: durable `reminder_deliveries` audit rows with no Event/user/subscription foreign keys, minimum `claimed` / `sent` / `failed` constraints, server-only RLS/ACL, and one service-role-only `claim_reminder_delivery(...)` function. The claim captures DB time once and atomically revalidates the ordinary Event, exact schedule marker, current recipient membership, active subscription, due bounds, ten-minute grace, and unique `(event_id, subscription_id, due_at)` before inserting. RED was confirmed before implementation; C1 pgTAP passed 63/63, all database regressions 161/161 including Slice B 28/28, and four concurrent identical claims produced one ledger row. Node 114/114, Slice A due 9/9, recurrence 25/25, both Deno checks, build, and diff checks passed. No sender, Edge Function, Cron, Production migration, dependency, commit, or push occurred.
 
 ## Deployment
 
@@ -24,7 +24,7 @@ Status: public_deployed
 Public URL: https://cross-platform-shared-calendar.vercel.app/
 Provider: Vercel
 Backend: Supabase Free
-Notes: 现有公网版本继续服务；Slice B Production database migration、frontend deployment 与 Production human acceptance 已完成。Android Push lifecycle 仍按 validation strategy 延后，不构成 Slice B blocker。
+Notes: 现有公网版本继续服务；Slice B Production database migration、frontend deployment 与 Production human acceptance 已完成。Slice C1 仅在本地实现和验证，additive patch 尚未应用到 Production；sender / Cron 未开始。Android Push lifecycle 仍按 validation strategy 延后。
 
 ## Version Index
 
@@ -48,15 +48,15 @@ Notes: 现有公网版本继续服务；Slice B Production database migration、
 - v0.1.7.3.3.2 — Frontend Scope Integration（Production Desktop 与 iPhone Standalone PWA recurrence smoke 已通过）
 - v0.1.8 — Mobile Push Reminder（current approved product line；architecture frozen）
 - v0.1.8.1 — Push Infrastructure Foundation（CLOSED / PASS；Desktop + iPhone verified；Android final acceptance deferred）
-- v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（Slice A closed；Slice B CLOSED / PASS；Slice C not started）
+- v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（Slice A closed；Slice B CLOSED / PASS；Slice C1 implemented / under review；Slice C overall open）
 
 ## Last verified
 
-2026-09-20
+2026-09-21
 
 ## Next Action
 
-Enter v0.1.8.2 Slice C implementation planning / pre-implementation review. Do not start Slice C implementation until that review is approved.
+Complete human review of the local Slice C1 ledger + atomic claim implementation. Do not begin Slice C2 sender / Edge Function / Cron work or apply the C1 patch to Production without separate explicit authorization.
 
 ## Blockers
 
@@ -89,7 +89,7 @@ Enter v0.1.8.2 Slice C implementation planning / pre-implementation review. Do n
 - v0.1.7.1 foundation is present in the local schema and its 18-test pgTAP suite passes. v0.1.7.2 has a compatible reader/projection implementation. v0.1.7.3.3.2 supports only-this and this-and-future mutation UI; logical-series deletion UI and exception Realtime publication/subscriptions remain deliberately deferred.
 - v0.1.7.3 treats `series_id` as the logical root and `parent_event_id` as the immediate predecessor. The final split RPC moves future exceptions to the child, consumes a split-day override, rejects a split-day deletion, preserves source recurrence rule/all-day, and requires the child to start on the selected occurrence date. The actual exception schema uses `event_id`, `occurrence_date`, `exception_type`, and `override_data`; the v0.1.7.3.3.2 client relies on the RPC for all transaction work.
 - Final Production recurrence smoke passed on Desktop and iPhone Standalone PWA for all four supported occurrence actions. iOS Standalone PWA cannot actively refresh itself due to an iOS system limitation; this is not an application defect.
-- `supabase/config.toml` uses a stable local `project_id` and configures a local 8-digit Mailpit OTP template plus the port-5175 redirect URL. The local Docker/Supabase stack was recovered without reset or volume deletion; Slice B pgTAP and all database regressions passed.
+- `supabase/config.toml` uses a stable local `project_id` and configures a local 8-digit Mailpit OTP template plus the port-5175 redirect URL. The local Docker/Supabase stack was recovered without reset or volume deletion; C1 pgTAP 63/63 and all database regressions 161/161 passed.
 - The engine uses native `Intl` IANA timezone formatting/conversion and rejects invalid rule shapes at both client and database boundaries. It returns an explicit error instead of a partial result after 500 candidates.
 - v0.1.8.2 supersedes the earlier `events.reminder_offset_minutes` proposal. One event-level nullable `events.reminder_kind` supports `timed_at_start`, `timed_10m_before`, `timed_30m_before`, `timed_1h_before`, `timed_previous_day_same_time`, `all_day_same_day_08`, and `all_day_previous_day_20`; `null` means no reminder. Multiple reminders, JSON reminder config, arbitrary custom minutes, and per-user reminder preferences remain outside this version.
 - `events.time_zone` is the nullable canonical IANA timezone of the Event. New events detect it from the creating browser/PWA with standard `Intl` capability; later device timezone changes never silently rewrite an existing Event. Historical ordinary timezone remains null rather than guessed, while historical recurring sources may initialize it from their already-authoritative rule timezone. Recurring Event `time_zone` must equal `recurrence_rule.time_zone`, so there is only one authoritative timezone.
@@ -102,10 +102,11 @@ Enter v0.1.8.2 Slice C implementation planning / pre-implementation review. Do n
 - shared event reminders resolve current active Space members at send time; personal event reminders resolve only the current `owner_user_id`. A former member must not receive a delivery.
 - v0.1.8 freezes a one-minute Supabase Cron + Edge Function sender architecture. Slice 2 will implement ordinary events; Slice 3 will dynamically project recurring occurrences through canonical recurrence/exception semantics without materializing a long horizon.
 - Slice 2 ordinary-delivery idempotency is `(event_id, subscription_id, due_at)`. It does not add `occurrence_key`, pre-generate pending rows, mutate ledger rows when an Event schedule changes, or automatically retry provider failures. Recurring occurrence identity remains a Slice 3 decision.
+- Slice C1 implements the durable server-only `reminder_deliveries` ledger and one service-role-only atomic claim. Audit rows intentionally have no Event/user/subscription foreign keys. The expected `reminder_schedule_changed_at` must round-trip at full PostgreSQL `timestamptz` precision; future callers must not normalize, truncate, or reconstruct it through a lossy JavaScript formatting path.
 - A newly created/edited/enabled reminder whose derived `due_at` is already past is skipped without immediate Push or compensation. Normal target precision is about one minute; a roughly ten-minute grace window applies only to infrastructure delay. Web Push remains best-effort and is not an Alarm Clock.
 - v0.1.8 excludes Email reminder delivery, SMS, Bark, multiple reminders, arbitrary custom minutes, snooze, sound customization, notification inbox/history, native alarms, and per-user reminder preferences. Email OTP authentication remains unchanged.
 - `v0.1.9 Shared Tasks`, `v0.1.10 Shared Lists`, `v0.1.11 Important Dates / Anniversaries`, and `v0.1.12 Tags / Color = Who` are roadmap directions only, not frozen architectures. UI/UX overhaul remains deferred pending a Design System.
 
 ## Handoff Prompt
 
-v0.1.8.2 Slice B is CLOSED / PASS after Production database migration/postflight, local verification, frontend deployment, and the user-owned Production browser acceptance. Preserve the frozen reminder semantics and do not start Slice C implementation until its separate planning / pre-implementation review is approved.
+v0.1.8.2 Slice C1 ledger + atomic claim is implemented locally and under human review. Its 63/63 pgTAP, 161/161 database regression, real concurrent-claim, Node/Deno/build, and scope checks pass. C1 is not deployed to Production; sender / Edge Function / Cron remain unstarted and Slice C is not closed. Review C1 before authorizing any Production migration or C2 work.
