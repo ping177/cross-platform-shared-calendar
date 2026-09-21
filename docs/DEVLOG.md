@@ -1,5 +1,13 @@
 # Development Log
 
+# 2026-09-21 - v0.1.8.2 Due Calculator DST-Gap Performance Correction
+
+- C2 Phase 2 pre-implementation review found that the frozen `zonedDateTimeToInstant()` gap fallback could perform 2161 minute probes per calculation. A 1000-call valid New York DST-gap benchmark exceeded the hosted Edge CPU budget, so `send-reminders` implementation remained stopped.
+- Added focused characterization for ordinary local time, New York gap/overlap, the legal two-hour `Antarctica/Troll` gap, and the existing non-zero-millisecond fallback output. Existing Reminder previous-day/all-day and recurrence DST tests continue to lock their established outputs.
+- Replaced only the proven forward-gap hot path with a bracketed binary search over the existing minute probe grid. Reminder kinds, due/recurrence/timezone contracts, gap first-valid-minute behavior, overlap earlier-instant behavior, and the legacy non-gap fallback remain unchanged; no cache, dependency, second timezone engine, SQL calculation, or broader refactor was added.
+- The same-machine 1000-call benchmark improved from Deno `7099.71 ms` / Node `9950.7 ms` before the change to Deno `144.06 ms` / Node `142.47 ms` after it. A separate oracle comparison across 33 New York, Troll, Lord Howe, Chatham, and Apia cases, including non-zero milliseconds and gap sizes from 30 minutes to a full day, found zero output differences.
+- Verification passed: focused timezone/Reminder/recurrence 38/38, full Node 127/127, Deno checks for timezone, due, benchmark, shared Web Push, and `send-test-push`, plus `npm run build` and final diff hygiene. C2 Phase 2 and `send-reminders` remain not started pending human review of this corrective patch.
+
 # 2026-09-21 - v0.1.8.2 C2 Phase 1 Acceptance + Real-Device Closeout
 
 - Human review passed after deploying only the refactored `send-test-push` Edge Function. Desktop Chrome/macOS returned `status = 201`, `delivered = true`, `provider = fcm.googleapis.com`, `gone = false`; the notification title/body and click behavior passed.

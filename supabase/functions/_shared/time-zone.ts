@@ -77,9 +77,11 @@ function timeZoneOffsetMilliseconds(date: Date, timeZone: string) {
 export function zonedDateTimeToInstant(local: LocalDateTime, timeZone: string) {
   const naive = Date.UTC(local.year, local.month - 1, local.day, local.hour, local.minute, local.second, local.millisecond);
   let timestamp = naive;
+  const offsetCandidates = [timestamp];
 
   for (let attempt = 0; attempt < 3; attempt += 1) {
     timestamp = naive - timeZoneOffsetMilliseconds(new Date(timestamp), timeZone);
+    offsetCandidates.push(timestamp);
   }
 
   const candidate = new Date(timestamp);
@@ -89,10 +91,49 @@ export function zonedDateTimeToInstant(local: LocalDateTime, timeZone: string) {
 
   const scanStart = naive - 18 * 60 * 60 * 1000;
   const scanEnd = naive + 18 * 60 * 60 * 1000;
+  const scanPoint = (index: number) => new Date(scanStart + index * 60_000 + local.millisecond);
+  const scanPointCount = Math.floor((scanEnd - scanStart) / 60_000) + 1;
+  const comparedCandidates = offsetCandidates.map((candidateTimestamp) => ({
+    timestamp: candidateTimestamp,
+    comparison: compareLocalDateTime(localParts(new Date(candidateTimestamp), timeZone), local),
+  }));
+  const beforeGap = comparedCandidates
+    .filter((entry) => entry.comparison < 0)
+    .sort((left, right) => right.timestamp - left.timestamp)[0];
+  const afterGap = comparedCandidates
+    .filter((entry) => entry.comparison > 0 && (!beforeGap || entry.timestamp > beforeGap.timestamp))
+    .sort((left, right) => left.timestamp - right.timestamp)[0];
+
+  if (beforeGap && afterGap) {
+    // A forward offset jump makes the fixed-point candidates straddle the gap.
+    // Search the existing minute probe grid instead of formatting all 2161 points.
+    let lowerIndex = Math.max(0, Math.floor((beforeGap.timestamp - scanStart - local.millisecond) / 60_000));
+    let upperIndex = Math.min(scanPointCount - 1, Math.ceil((afterGap.timestamp - scanStart - local.millisecond) / 60_000));
+
+    while (lowerIndex > 0 && compareLocalDateTime(localParts(scanPoint(lowerIndex), timeZone), local) >= 0) {
+      lowerIndex -= 1;
+    }
+    while (upperIndex < scanPointCount - 1 && compareLocalDateTime(localParts(scanPoint(upperIndex), timeZone), local) < 0) {
+      upperIndex += 1;
+    }
+
+    while (lowerIndex + 1 < upperIndex) {
+      const middleIndex = Math.floor((lowerIndex + upperIndex) / 2);
+      const comparison = compareLocalDateTime(localParts(scanPoint(middleIndex), timeZone), local);
+      if (comparison >= 0) {
+        upperIndex = middleIndex;
+      } else {
+        lowerIndex = middleIndex;
+      }
+    }
+
+    return scanPoint(upperIndex);
+  }
+
   let firstAfterGap: Date | null = null;
 
-  for (let current = scanStart; current <= scanEnd; current += 60_000) {
-    const scanned = new Date(current + local.millisecond);
+  for (let index = 0; index < scanPointCount; index += 1) {
+    const scanned = scanPoint(index);
     const comparison = compareLocalDateTime(localParts(scanned, timeZone), local);
     if (comparison === 0) {
       return scanned;
