@@ -1,5 +1,12 @@
 # Development Log
 
+# 2026-09-21 - v0.1.8.2 C2 Phase 2 send-reminders Local Implementation
+
+- Implemented the bounded `send-reminders` Edge orchestration with exact bearer authentication before database work, fixed-run context, stable `id` keyset scanning in pages of 100, an explicit 1001st-row abort, canonical Reminder due calculation, current-recipient resolution, and active-installation filtering. Candidate overflow returns a safe HTTP 409 aggregate response before membership, claim, or Push work.
+- Added deterministic due/Event/recipient/subscription ordering and a hard 50-task cap, C1 atomic claim integration with the exact raw schedule marker, the existing shared Web Push sender, closed result-to-ledger mapping, 404/410 subscription retirement, exact-one-row finalize verification, five-worker concurrency, and a 95-second new-claim cutoff. Already-claimed work completes; there is no retry, queue, lease, recurring delivery, or compensation path.
+- Used TDD throughout, including a review-found RED case proving that the runtime budget must be rechecked immediately before claim acquisition after asynchronous tag generation. Focused `send-reminders` coverage passed 26/26; the full Node suite passed 153/153; Deno checks passed for the orchestration logic, Edge entry, and shared sender; `npm run build` and `git diff --check` passed.
+- Bounded human/code review passed with no BLOCKER / MAJOR / MINOR findings. The implementation is ready for local commit/push closeout, but remains not deployed; C1 Production objects remain undeployed, reminder Cron/Vault/`REMINDER_CRON_SECRET` remain unconfigured, and Slice C remains open.
+
 # 2026-09-21 - v0.1.8.2 Due Calculator DST-Gap Performance Correction
 
 - C2 Phase 2 pre-implementation review found that the frozen `zonedDateTimeToInstant()` gap fallback could perform 2161 minute probes per calculation. A 1000-call valid New York DST-gap benchmark exceeded the hosted Edge CPU budget, so `send-reminders` implementation remained stopped.

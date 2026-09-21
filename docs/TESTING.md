@@ -41,7 +41,18 @@ trailer 是否与 PROJECT_STATE tree diff 一致；tag 只验证目标 commit �
 
 ## v0.1.8 Mobile Push Reminder Acceptance Plan
 
-Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`. Automated verification plus real Desktop Chrome/macOS and iPhone installed PWA Push Infrastructure acceptance passed. Slice 2 architecture / semantics are frozen. Slice A and Slice B are closed. Slice C1 completed implementation, verification, human review, and push but is not in Production. Slice C2 Phase 1 shared sender extraction is `CLOSED / PASS`: automated verification plus Desktop Chrome/macOS and iPhone installed PWA real-device regression passed after deploying only `send-test-push`. Repeated Desktop banners are pre-existing fixed-tag behavior and non-blocking. `send-reminders`, candidate scan, Cron, secrets, and Production rollout have not started, and Slice C overall remains open.
+Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`. Automated verification plus real Desktop Chrome/macOS and iPhone installed PWA Push Infrastructure acceptance passed. Slice 2 architecture / semantics are frozen. Slice A and Slice B are closed. Slice C1 completed implementation, verification, human review, and push but is not in Production. Slice C2 Phase 1 shared sender extraction is `CLOSED / PASS`: automated verification plus Desktop Chrome/macOS and iPhone installed PWA real-device regression passed after deploying only `send-test-push`. Repeated Desktop banners are pre-existing fixed-tag behavior and non-blocking. C2 Phase 2 `send-reminders` core orchestration is implemented locally with automated verification PASS and bounded human/code review PASS with no BLOCKER / MAJOR / MINOR findings. It is ready for commit/push closeout but not deployed; C1 Production objects remain undeployed, Cron, Vault, and real secrets remain unconfigured, Android final Push acceptance remains deferred, and Slice C overall remains open.
+
+### Slice 2C2 Phase 2 — send-reminders Core Orchestration
+
+Local implementation verification on 2026-09-21:
+
+- Confirmed TDD RED before implementation because the `send-reminders` module did not exist. A later review-found cutoff regression also failed before the implementation added an immediate pre-claim budget recheck after asynchronous tag generation.
+- Passed `node --test tests/send-reminders.test.ts` (26/26). Coverage includes exact bearer auth and zero unauthorized work, fixed run context, stable 100-row keyset pagination, exactly-1000 acceptance, explicit 1001st-row abort, canonical due/grace/marker semantics, current personal/shared recipients, active multi-install subscriptions, deterministic 50-task selection, all sender result mappings, raw-marker C1 claim, claim rejection, 404/410 retirement, exact-one-row finalize checks, aggregate-only diagnostics, five-worker concurrency, and the 95-second claim cutoff.
+- Passed the complete repository suite: `node --test tests/*.test.ts tests/*.test.js` (153/153).
+- Passed `deno check --no-lock --node-modules-dir=none --config supabase/functions/send-reminders/deno.json` for `logic.ts`, `index.ts`, and the existing shared Web Push sender. The function reuses the existing exact dependency pins and adds no root dependency or lockfile change.
+- Passed `npm run build` and `git diff --check`.
+- Scope audit: only the new `send-reminders` function, its focused Node test, and canonical status/testing docs changed. No database/schema/C1, recurrence, frontend, Service Worker, shared sender, `send-test-push`, root dependency, Cron, Vault, real secret, deployment, commit, push, or Production change was made. C1 remains undeployed; human/code review passed with no BLOCKER / MAJOR / MINOR findings, and commit/push closeout is the next authorized step.
 
 ### Slice 2C2 Phase 1 — Shared Web Push Sender Extraction
 

@@ -8,15 +8,15 @@
 
 ## Current version
 
-v0.1.8.2 (Due Calculator DST-Gap Performance Correction — IMPLEMENTED / HUMAN REVIEW PASS)
+v0.1.8.2 (C2 Phase 2 send-reminders — IMPLEMENTED LOCALLY / HUMAN CODE REVIEW PASS)
 
 ## Current status
 
-Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.8.1 — Push Infrastructure Foundation` 保持 `CLOSED / PASS — Android final acceptance deferred`。`v0.1.8.2` Slice A 与 Slice B 已关闭。Slice C1 Minimal Delivery Ledger + Atomic Claim 已完成 implementation、verification、human review 与 push；其 database changes 尚未部署到 Production。Slice C2 Phase 1 server-only shared Web Push sender extraction 保持 `CLOSED / PASS`。C2 Phase 2 pre-implementation review 发现 due calculator DST-gap fallback 的 CPU blocker；bounded corrective patch 已完成实现、自动验证与 human review，已将同机 Deno 1000-call worst-case 从 `7099.71 ms` 降至 `144.06 ms`，并保持现有 timezone/DST/Reminder/recurrence 输出；`DUE_CALCULATOR_CPU_BLOCKER = RESOLVED / PASS`。`send-reminders`、candidate scan、Cron、secret 与 Production rollout 仍未开始，Slice C 整体仍未关闭。
+Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.8.1 — Push Infrastructure Foundation` 保持 `CLOSED / PASS — Android final acceptance deferred`。`v0.1.8.2` Slice A 与 Slice B 已关闭。Slice C1 Minimal Delivery Ledger + Atomic Claim 已完成 implementation、verification、human review 与 push；其 database changes 尚未部署到 Production。Slice C2 Phase 1 server-only shared Web Push sender extraction 保持 `CLOSED / PASS`。Due Calculator DST-gap CPU blocker 已完成 corrective implementation、verification 与 human review，`DUE_CALCULATOR_CPU_BLOCKER = RESOLVED / PASS`。C2 Phase 2 `send-reminders` core orchestration 已在本地完成实现与自动验证，并通过 bounded human/code review（无 BLOCKER / MAJOR / MINOR findings），现已具备 commit/push closeout 条件；尚未部署，Cron、Vault 与真实 secret 均未配置，Slice C 整体仍未关闭。
 
 ## Latest completed
 
-Completed the bounded Due Calculator DST-gap performance correction after C2 Phase 2 planning exposed the minute-scan CPU blocker. The existing fixed-point candidates now bracket a proven forward gap and binary-search the same legacy minute probe grid; ordinary time, overlap earlier-instant behavior, first-valid-minute gap behavior, non-zero-millisecond output, Reminder due semantics, and recurrence semantics remain unchanged. Focused timezone/Reminder/recurrence tests passed 38/38; full Node passed 127/127; Deno checks for timezone, due, benchmark, shared Web Push, and `send-test-push` passed; `npm run build` passed. The same-machine 1000-call benchmark improved from Deno `7099.71 ms` / Node `9950.7 ms` to Deno `144.06 ms` / Node `142.47 ms`. Human review passed, and corrective commit `edcbdd5` was pushed to `origin/main`. No database, C1, sender behavior, Edge Function, candidate scan, Cron, secret, or Production change was made; C2 Phase 2 implementation remains not started.
+Implemented the bounded C2 Phase 2 `send-reminders` core orchestration locally. The new Edge Function enforces exact bearer authentication before work, performs stable keyset candidate scanning with an explicit 1001st-row abort, reuses the canonical due calculator, resolves current recipients and active installations in batches, deterministically caps delivery work at 50, claims through the existing C1 RPC, sends through the existing shared Web Push sender, finalizes ledger outcomes, retires 404/410 subscriptions, limits concurrency to five, and stops new claim acquisition at 95 seconds while completing already-claimed work. Focused tests passed 26/26; the complete Node suite passed 153/153; Deno checks for the orchestration logic, Edge entry, and shared sender passed; `npm run build` and `git diff --check` passed. Bounded human/code review passed with no BLOCKER / MAJOR / MINOR findings. No database/schema/C1, recurrence, frontend, Service Worker, sender, `send-test-push`, root dependency, Cron, Vault, secret, deployment, commit, push, or Production change was made; the implementation is ready for commit/push closeout.
 
 ## Deployment
 
@@ -24,7 +24,7 @@ Status: public_deployed
 Public URL: https://cross-platform-shared-calendar.vercel.app/
 Provider: Vercel
 Backend: Supabase Free
-Notes: 现有公网版本继续服务；Slice B Production migration/deployment/acceptance 已完成。Slice C1 additive patch 尚未应用到 Production。仅 `send-test-push` 部署了 C2 Phase 1 sender extraction，并完成 Desktop/iPhone real-device regression；无其他函数、数据库对象、Cron、Vault 或 secret 变更。`send-reminders` / Cron 未开始。Android Push lifecycle 仍按 validation strategy 延后。
+Notes: 现有公网版本继续服务；Slice B Production migration/deployment/acceptance 已完成。Slice C1 additive patch 尚未应用到 Production。仅 `send-test-push` 部署了 C2 Phase 1 sender extraction，并完成 Desktop/iPhone real-device regression。C2 Phase 2 `send-reminders` 仅在本地实现，尚未部署；Cron、Vault 与真实 secret 均未配置，Production 未受本次实现影响。Android Push lifecycle 仍按 validation strategy 延后。
 
 ## Version Index
 
@@ -48,7 +48,7 @@ Notes: 现有公网版本继续服务；Slice B Production migration/deployment/
 - v0.1.7.3.3.2 — Frontend Scope Integration（Production Desktop 与 iPhone Standalone PWA recurrence smoke 已通过）
 - v0.1.8 — Mobile Push Reminder（current approved product line；architecture frozen）
 - v0.1.8.1 — Push Infrastructure Foundation（CLOSED / PASS；Desktop + iPhone verified；Android final acceptance deferred）
-- v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（Slice A/B closed；Slice C1 complete/reviewed/pushed but undeployed；Slice C2 Phase 1 CLOSED / PASS；Due Calculator DST-gap correction implemented/verified, human review PASS, and pushed；send-reminders/Cron not started；Slice C open）
+- v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（Slice A/B closed；Slice C1 complete/reviewed/pushed but undeployed；Slice C2 Phase 1 CLOSED / PASS；Due Calculator DST-gap correction human-review PASS；C2 Phase 2 send-reminders implemented locally/automated verification PASS/human-code review PASS/no findings；ready for commit/push closeout；Cron not started；Slice C open）
 
 ## Last verified
 
@@ -56,7 +56,7 @@ Notes: 现有公网版本继续服务；Slice B Production migration/deployment/
 
 ## Next Action
 
-C2 Phase 2 readiness reconfirmation after resolved CPU blocker, then send-reminders implementation if no new blocker is found. Keep Cron, secrets, and C1 Production migration separately authorized.
+Push the C2 Phase 2 implementation commit → perform the post-push PROJECT_STATE freshness review → only then begin separate Production / Phase 3 deployment planning. Keep C1 Production migration, `send-reminders` deployment, Cron, Vault, and real-secret configuration separately authorized.
 
 ## Blockers
 
@@ -91,7 +91,7 @@ C2 Phase 2 readiness reconfirmation after resolved CPU blocker, then send-remind
 - Final Production recurrence smoke passed on Desktop and iPhone Standalone PWA for all four supported occurrence actions. iOS Standalone PWA cannot actively refresh itself due to an iOS system limitation; this is not an application defect.
 - `supabase/config.toml` uses a stable local `project_id` and configures a local 8-digit Mailpit OTP template plus the port-5175 redirect URL. The local Docker/Supabase stack was recovered without reset or volume deletion; C1 pgTAP 63/63 and all database regressions 161/161 passed.
 - The engine uses native `Intl` IANA timezone formatting/conversion and rejects invalid rule shapes at both client and database boundaries. It returns an explicit error instead of a partial result after 500 candidates.
-- C2 Phase 2 pre-implementation review identified a reproducible DST-gap CPU blocker in the legacy 2161-point minute fallback. The corrective patch preserves the existing minute-grid outputs while using the fixed-point candidates to bracket and binary-search proven forward gaps. Same-machine 1000-call Deno improved from `7099.71 ms` to `144.06 ms`; human review passed and `DUE_CALCULATOR_CPU_BLOCKER = RESOLVED / PASS`; C2 Phase 2 remains not started.
+- C2 Phase 2 pre-implementation review identified a reproducible DST-gap CPU blocker in the legacy 2161-point minute fallback. The corrective patch preserves the existing minute-grid outputs while using the fixed-point candidates to bracket and binary-search proven forward gaps. Same-machine 1000-call Deno improved from `7099.71 ms` to `144.06 ms`; human review passed and `DUE_CALCULATOR_CPU_BLOCKER = RESOLVED / PASS`.
 - v0.1.8.2 supersedes the earlier `events.reminder_offset_minutes` proposal. One event-level nullable `events.reminder_kind` supports `timed_at_start`, `timed_10m_before`, `timed_30m_before`, `timed_1h_before`, `timed_previous_day_same_time`, `all_day_same_day_08`, and `all_day_previous_day_20`; `null` means no reminder. Multiple reminders, JSON reminder config, arbitrary custom minutes, and per-user reminder preferences remain outside this version.
 - `events.time_zone` is the nullable canonical IANA timezone of the Event. New events detect it from the creating browser/PWA with standard `Intl` capability; later device timezone changes never silently rewrite an existing Event. Historical ordinary timezone remains null rather than guessed, while historical recurring sources may initialize it from their already-authoritative rule timezone. Recurring Event `time_zone` must equal `recurrence_rule.time_zone`, so there is only one authoritative timezone.
 - New UI-created timed events default to `timed_10m_before`; new UI-created all-day events default to `all_day_same_day_08`. Database defaults and all historical events remain `reminder_kind = null`; historical ordinary Event timezone is not guessed or bulk-backfilled.
@@ -105,10 +105,11 @@ C2 Phase 2 readiness reconfirmation after resolved CPU blocker, then send-remind
 - Slice 2 ordinary-delivery idempotency is `(event_id, subscription_id, due_at)`. It does not add `occurrence_key`, pre-generate pending rows, mutate ledger rows when an Event schedule changes, or automatically retry provider failures. Recurring occurrence identity remains a Slice 3 decision.
 - Slice C1 implementation, verification, and human review are complete; commit `6902234c40fbfb397d0ed271ec8ea213b7498e88` is pushed to `origin/main`. The durable server-only `reminder_deliveries` ledger and one service-role-only atomic claim remain undeployed to Production. Audit rows intentionally have no Event/user/subscription foreign keys. The expected `reminder_schedule_changed_at` must round-trip at full PostgreSQL `timestamptz` precision; future callers must not normalize, truncate, or reconstruct it through a lossy JavaScript formatting path.
 - Slice C2 Phase 1 extracts Web Push sending into a server-only shared module with a closed safe result union and keeps `send-test-push` externally unchanged. Automated verification and Desktop/iPhone real-device regression passed after deploying only `send-test-push`. Repeated Desktop banners with the fixed `shared-calendar-test` tag are pre-existing/non-blocking; tag/renotify behavior remains unchanged. The later C2 scan must abort before claims/sends when enabled ordinary Events exceed 1000, and must sort eligible tasks by `due_at` ascending before capping at 50; no queue is added.
+- Slice C2 Phase 2 `send-reminders` is implemented locally and passed bounded human/code review with no BLOCKER / MAJOR / MINOR findings. It uses stable 100-row keyset pages plus an explicit 1001st-row probe, aborts overflow before recipient/claim/send work, preserves the raw C1 schedule marker, resolves current memberships and active subscriptions in batches, selects at most 50 tasks deterministically, uses five workers, and rechecks the 95-second budget immediately before claim acquisition. It adds no retry, lease, queue, recurring delivery, schema, or dependency and is not deployed.
 - A newly created/edited/enabled reminder whose derived `due_at` is already past is skipped without immediate Push or compensation. Normal target precision is about one minute; a roughly ten-minute grace window applies only to infrastructure delay. Web Push remains best-effort and is not an Alarm Clock.
 - v0.1.8 excludes Email reminder delivery, SMS, Bark, multiple reminders, arbitrary custom minutes, snooze, sound customization, notification inbox/history, native alarms, and per-user reminder preferences. Email OTP authentication remains unchanged.
 - `v0.1.9 Shared Tasks`, `v0.1.10 Shared Lists`, `v0.1.11 Important Dates / Anniversaries`, and `v0.1.12 Tags / Color = Who` are roadmap directions only, not frozen architectures. UI/UX overhaul remains deferred pending a Design System.
 
 ## Handoff Prompt
 
-v0.1.8.2 Due Calculator DST-gap performance correction is implemented, automatically verified, human-reviewed PASS, and pushed as `edcbdd5`, with existing timezone/DST/Reminder/recurrence outputs unchanged and the same-machine Deno 1000-call worst-case reduced from `7099.71 ms` to `144.06 ms`. Next: reconfirm C2 Phase 2 readiness after the resolved CPU blocker, then implement `send-reminders` only if no new blocker is found. Do not configure Cron/secrets, deploy, or apply the C1 Production migration yet.
+v0.1.8.2 C2 Phase 2 `send-reminders` core orchestration is implemented locally, automated verification passed, and bounded human/code review passed with no BLOCKER / MAJOR / MINOR findings. It has not been deployed or committed, C1 remains undeployed to Production, and Cron/Vault/real secrets remain unconfigured. Next: push the Phase 2 implementation commit, then perform the post-push PROJECT_STATE freshness review, and only then begin separate Production / Phase 3 deployment planning. Do not deploy or configure remote C1/send-reminders/Cron/Vault/secrets as part of this closeout.
