@@ -1,5 +1,11 @@
 # Development Log
 
+# 2026-09-21 - v0.1.8.2 Phase 3 Repository Auth Configuration Preparation
+
+- Added the minimal source-controlled `[functions.send-reminders] verify_jwt = false` configuration while preserving `[functions.send-test-push] verify_jwt = true`. This allows the future scheduler's custom bearer to reach the existing `send-reminders` application-auth boundary without relying on a one-off deployment flag.
+- Reconfirmed that the exact `Authorization: Bearer <REMINDER_CRON_SECRET>` check runs before the authorized `run` callback creates the Supabase admin client or performs database work. No real secret was generated, read, printed, committed, or added to a frontend/VITE variable; the service-role key remains server-side database authorization rather than the scheduler bearer.
+- Focused verification passed: `node --test tests/send-reminders.test.ts` (26/26), Deno checks for `send-reminders/logic.ts` and `send-reminders/index.ts`, and `npm run build`. Bounded human review passed with no findings. No function code, C1 SQL, schema/migration, shared sender, `send-test-push`, frontend, Service Worker, dependency, Production resource/data, deployment, secret, Vault, pg_cron, pg_net, Cron job, or push changed. C1 and `send-reminders` remain undeployed; Slice C remains open and the push authorization remains separate.
+
 # 2026-09-21 - v0.1.8.2 C2 Phase 2 send-reminders Local Implementation
 
 - Implemented the bounded `send-reminders` Edge orchestration with exact bearer authentication before database work, fixed-run context, stable `id` keyset scanning in pages of 100, an explicit 1001st-row abort, canonical Reminder due calculation, current-recipient resolution, and active-installation filtering. Candidate overflow returns a safe HTTP 409 aggregate response before membership, claim, or Push work.

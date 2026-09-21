@@ -8,15 +8,15 @@
 
 ## Current version
 
-v0.1.8.2 (C2 Phase 2 send-reminders — IMPLEMENTED LOCALLY / HUMAN CODE REVIEW PASS)
+v0.1.8.2 (Phase 3 send-reminders auth config — PREPARED / HUMAN REVIEW PASS)
 
 ## Current status
 
-Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.8.1 — Push Infrastructure Foundation` 保持 `CLOSED / PASS — Android final acceptance deferred`。`v0.1.8.2` Slice A 与 Slice B 已关闭。Slice C1 Minimal Delivery Ledger + Atomic Claim 已完成 implementation、verification、human review 与 push；其 database changes 尚未部署到 Production。Slice C2 Phase 1 server-only shared Web Push sender extraction 保持 `CLOSED / PASS`。Due Calculator DST-gap CPU blocker 已完成 corrective implementation、verification 与 human review，`DUE_CALCULATOR_CPU_BLOCKER = RESOLVED / PASS`。C2 Phase 2 `send-reminders` core orchestration 已在本地完成实现与自动验证，并通过 bounded human/code review（无 BLOCKER / MAJOR / MINOR findings）；implementation commit `bb6a5e0` 已 pushed 到 `origin/main`，尚未部署，Cron、Vault 与真实 secret 均未配置，Slice C 整体仍未关闭。
+Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.8.1 — Push Infrastructure Foundation` 保持 `CLOSED / PASS — Android final acceptance deferred`。`v0.1.8.2` Slice A 与 Slice B 已关闭。Slice C1 Minimal Delivery Ledger + Atomic Claim 已完成 implementation、verification、human review 与 push；其 database changes 尚未部署到 Production。Slice C2 Phase 1 server-only shared Web Push sender extraction 与 C2 Phase 2 `send-reminders` core orchestration 均为 `CLOSED / PASS`；Phase 2 已完成本地实现、自动验证、bounded human/code review 与 push。Due Calculator DST-gap CPU blocker 已完成 corrective implementation、verification 与 human review，`DUE_CALCULATOR_CPU_BLOCKER = RESOLVED / PASS`。Phase 3 repository-only auth configuration preparation 已加入 source-controlled `verify_jwt = false`，使未来 Cron custom bearer 可到达现有 application auth；该准备已通过 human review，尚未 push。`send-reminders`、C1 均未部署，`REMINDER_CRON_SECRET`、Vault、pg_cron、pg_net 与 Reminder Cron 均未配置或变更，Slice C 整体仍未关闭。
 
 ## Latest completed
 
-Implemented the bounded C2 Phase 2 `send-reminders` core orchestration locally. The new Edge Function enforces exact bearer authentication before work, performs stable keyset candidate scanning with an explicit 1001st-row abort, reuses the canonical due calculator, resolves current recipients and active installations in batches, deterministically caps delivery work at 50, claims through the existing C1 RPC, sends through the existing shared Web Push sender, finalizes ledger outcomes, retires 404/410 subscriptions, limits concurrency to five, and stops new claim acquisition at 95 seconds while completing already-claimed work. Focused tests passed 26/26; the complete Node suite passed 153/153; Deno checks for the orchestration logic, Edge entry, and shared sender passed; `npm run build` and `git diff --check` passed. Bounded human/code review passed with no BLOCKER / MAJOR / MINOR findings. No database/schema/C1, recurrence, frontend, Service Worker, sender, `send-test-push`, root dependency, Cron, Vault, secret, deployment, or Production change was made; implementation commit `bb6a5e0` was pushed to `origin/main`.
+Prepared the bounded Phase 3 repository auth configuration by adding `[functions.send-reminders] verify_jwt = false` beside the existing `send-test-push` function stanza. The existing high-entropy `Authorization: Bearer <REMINDER_CRON_SECRET>` application check remains authoritative and still runs before Supabase client/database access; no function code or secret value changed. Focused `send-reminders` tests passed 26/26, Deno checked both the function entry and orchestration logic, and `npm run build` passed. Bounded human review passed with no findings. No deployment, Production invocation/data change, C1 application, secret generation/configuration, Vault entry, pg_cron/pg_net enablement, Cron job, dependency, or push occurred; C1 and `send-reminders` remain undeployed and Slice C remains open.
 
 ## Deployment
 
@@ -24,7 +24,7 @@ Status: public_deployed
 Public URL: https://cross-platform-shared-calendar.vercel.app/
 Provider: Vercel
 Backend: Supabase Free
-Notes: 现有公网版本继续服务；Slice B Production migration/deployment/acceptance 已完成。Slice C1 additive patch 尚未应用到 Production。仅 `send-test-push` 部署了 C2 Phase 1 sender extraction，并完成 Desktop/iPhone real-device regression。C2 Phase 2 `send-reminders` 仅在本地实现，尚未部署；Cron、Vault 与真实 secret 均未配置，Production 未受本次实现影响。Android Push lifecycle 仍按 validation strategy 延后。
+Notes: 现有公网版本继续服务；Slice B Production migration/deployment/acceptance 已完成。Slice C1 additive patch 尚未应用到 Production。仅 `send-test-push` 部署了 C2 Phase 1 sender extraction，并完成 Desktop/iPhone real-device regression。C2 Phase 2 `send-reminders` 仅在仓库中实现，Phase 3 auth config 也仅为未 push 的本地 source preparation；两者均未部署。Cron、Vault、pg_cron、pg_net 与真实 secret 均未配置或变更，Production 未受本次 preparation 影响。Android Push lifecycle 仍按 validation strategy 延后。
 
 ## Version Index
 
@@ -56,7 +56,7 @@ Notes: 现有公网版本继续服务；Slice B Production migration/deployment/
 
 ## Next Action
 
-Enter bounded Phase 3 / Production rollout planning: (1) Production preflight; (2) deploy the C1 DB patch first; (3) verify C1 postflight; (4) deploy `send-reminders` with Cron still OFF; (5) configure only what is required for safe manual authenticated invocation; (6) perform bounded real reminder/manual invocation verification; (7) configure Cron/Vault last; (8) enable the scheduler only after the previous gates pass. Keep every rollout step separately authorized.
+Push the reviewed Phase 3 auth-config commit, then perform the post-push `PROJECT_STATE.md` freshness review. Only after that governance closeout, request separate authorization for P3A Production C1 preflight and deployment; do not deploy `send-reminders` or configure secrets/Vault/Cron yet.
 
 ## Blockers
 
@@ -112,4 +112,4 @@ Enter bounded Phase 3 / Production rollout planning: (1) Production preflight; (
 
 ## Handoff Prompt
 
-v0.1.8.2 C2 Phase 2 `send-reminders` core orchestration is implemented locally, automated verification passed, and bounded human/code review passed with no BLOCKER / MAJOR / MINOR findings. Implementation commit `bb6a5e0` is pushed to `origin/main`; it has not been deployed, C1 remains undeployed to Production, and Cron/Vault/real secrets remain unconfigured. Next: enter bounded Phase 3 / Production rollout planning through the documented preflight, C1-first, manual-invocation, and final scheduler-gate sequence. Do not execute rollout steps without separate authorization.
+v0.1.8.2 Phase 3 rollout planning is complete (`PHASE3_ROLLOUT_PLAN_READY`). Repository-only auth preparation exists: `supabase/config.toml` contains `[functions.send-reminders] verify_jwt = false`; focused verification passed; and bounded human review passed with no remaining findings. No Production deployment or C1 Production deployment occurred, no secret is configured, Vault/Cron/`pg_cron`/`pg_net` remain untouched, and Slice C remains open. Next: push the reviewed auth-config commit, perform governance freshness closeout, and separately authorize P3A Production C1 preflight/deployment. Do not execute rollout steps without separate authorization.
