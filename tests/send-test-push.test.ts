@@ -3,7 +3,7 @@ import test from 'node:test';
 import {
   installationIdFromRequestBody,
   isAllowedPushEndpoint,
-  pushServiceErrorDiagnostic,
+  pushServiceResultDiagnostic,
   pushStatusFromLoggerData,
   sendTestPushForInstallation,
   type StoredPushSubscription,
@@ -51,7 +51,11 @@ test('rejects unauthenticated sends before looking up a subscription', async () 
       userId: null,
       installationId: subscription.installation_id,
       lookup: async () => subscription,
-      send: async () => ({ status: 201, delivered: true }),
+      send: async () => ({
+        classification: 'delivered',
+        provider: 'fcm.googleapis.com',
+        status: 201,
+      }),
       disable: async () => undefined,
     }),
     /Authentication required/,
@@ -64,7 +68,11 @@ test('does not send a row that is not owned by the authenticated user', async ()
       userId: '44444444-4444-4444-8444-444444444444',
       installationId: subscription.installation_id,
       lookup: async () => subscription,
-      send: async () => ({ status: 201, delivered: true }),
+      send: async () => ({
+        classification: 'delivered',
+        provider: 'fcm.googleapis.com',
+        status: 201,
+      }),
       disable: async () => undefined,
     }),
     /Subscription not found/,
@@ -84,7 +92,11 @@ test('returns the accepted upstream status and hostname-only provider', async ()
     },
     send: async (current) => {
       endpoints.push(current.endpoint);
-      return { status: 201, delivered: true };
+      return {
+        classification: 'delivered',
+        provider: 'fcm.googleapis.com',
+        status: 201,
+      };
     },
     disable: async () => undefined,
   });
@@ -109,7 +121,11 @@ for (const status of [404, 410]) {
       userId: subscription.user_id,
       installationId: subscription.installation_id,
       lookup: async () => subscription,
-      send: async () => ({ status, delivered: false }),
+      send: async () => ({
+        classification: 'subscription_gone',
+        provider: 'fcm.googleapis.com',
+        status,
+      }),
       disable: async (subscriptionId) => {
         disabledIds.push(subscriptionId);
       },
@@ -144,7 +160,11 @@ test('extracts only a valid numeric status from library logger data', () => {
 
 for (const status of [401, 403, 429, 503]) {
   test(`builds a non-sensitive diagnostic for upstream ${status}`, () => {
-    const result = pushServiceErrorDiagnostic(status, subscription.endpoint);
+    const result = pushServiceResultDiagnostic({
+      classification: 'provider_rejected',
+      provider: 'fcm.googleapis.com',
+      status,
+    });
     const serialized = JSON.stringify(result);
 
     assert.deepEqual(result, {

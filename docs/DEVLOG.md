@@ -1,5 +1,20 @@
 # Development Log
 
+# 2026-09-21 - v0.1.8.2 C2 Phase 1 Acceptance + Real-Device Closeout
+
+- Human review passed after deploying only the refactored `send-test-push` Edge Function. Desktop Chrome/macOS returned `status = 201`, `delivered = true`, `provider = fcm.googleapis.com`, `gone = false`; the notification title/body and click behavior passed.
+- iPhone installed PWA test push, actual notification delivery, title/body, click-to-open/focus behavior, and Desktop subscription isolation all passed.
+- The repeated Desktop banner observation was read-only RCA-classified as pre-existing/non-blocking: the fixed `shared-calendar-test` tag and unchanged Service Worker behavior predate C2 Phase 1. No tag or `renotify` behavior changed.
+- C2 Phase 1 is now `CLOSED / PASS`. `send-reminders`, candidate scanning, Cron, secrets, database changes, and C2 overall closeout remain unstarted/open. The next approved action is C2 Phase 2 `send-reminders` implementation planning after the Phase 1 commit is pushed.
+
+# 2026-09-21 - v0.1.8.2 Slice C2 Phase 1 Shared Web Push Sender Extraction
+
+- Confirmed TDD RED before production changes: the new shared sender and its source contract were absent. Added a focused `tests/web-push.test.ts` suite plus `send-test-push` regression/source assertions for the shared integration, CORS, auth/user scoping, installation targeting, fixed payload, 404/410 retirement, response shape, package pin, server-only boundary, and non-sensitive diagnostics.
+- Added server-only `supabase/functions/_shared/web-push.ts` with the exact `@mmmike/web-push@1.3.0` transport, VAPID loading, existing HTTPS endpoint allowlist, hostname-only provider extraction, TTL 60, timeout 10000 ms, normal urgency, safe status capture, and the closed `delivered` / `subscription_gone` / `provider_rejected` / `network_timeout` / `network_error` / `invalid_sender_result` union. The explicit transport injection seam exists only for Node tests; no root/browser dependency or generic provider framework was added.
+- Migrated `send-test-push` to the shared sender while retaining its CORS, OPTIONS/POST boundary, 4096-byte/JSON validation, JWT authentication, installation UUID validation, user-scoped lookup/disable, fixed test payload, and external `status` / `delivered` / `provider` / `gone` response contract. Logs/results contain no endpoint, subscription keys, VAPID values, payload body, raw provider body, or raw transport error.
+- Automated verification passed: focused sender + test-push tests 29/29; full `node --test tests/*.test.ts tests/*.test.js` 123/123; Deno checks for the shared module and function entry; `npm run build`; and `git diff --check`. Real Desktop Chrome/macOS and iPhone installed-PWA test-push regression remains pending and requires a separately authorized deployment.
+- Scope remained Phase 1 only: no `send-reminders`, candidate scan, delivery claim/ledger change, Cron, secret, Vault, database, Service Worker, Production deployment, commit, or push. Slice C2 and Slice C remain open.
+
 # 2026-09-21 - v0.1.8.2 Slice C1 Minimal Delivery Ledger + Atomic Claim
 
 - Implemented the approved local-only C1 boundary: one durable `reminder_deliveries` table, minimum `claimed` / `sent` / `failed` constraints, unique `(event_id, subscription_id, due_at)`, no Event/user/subscription foreign keys, and no Realtime publication. RLS is enabled; anon/authenticated have no table access; `service_role` receives only select/update table privileges and must use the atomic function for inserts.

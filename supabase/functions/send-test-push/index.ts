@@ -1,9 +1,9 @@
-import { sendPushNotification, WebPushError } from '@mmmike/web-push/send';
 import { createClient } from '@supabase/supabase-js';
+import { loadVapidConfig, sendWebPush } from '../_shared/web-push.ts';
 import {
   installationIdFromRequestBody,
-  pushServiceErrorDiagnostic,
-  pushStatusFromLoggerData,
+  pushServiceResultDiagnostic,
+  SendTestPushDeliveryError,
   sendTestPushForInstallation,
   type StoredPushSubscription,
 } from './logic.ts';
@@ -74,11 +74,7 @@ Deno.serve(async (request) => {
     const supabaseUrl = requiredSecret('SUPABASE_URL');
     const supabaseAnonKey = requiredSecret('SUPABASE_ANON_KEY');
     const serviceRoleKey = requiredSecret('SUPABASE_SERVICE_ROLE_KEY');
-    const vapid = {
-      subject: requiredSecret('VAPID_SUBJECT'),
-      publicKey: requiredSecret('VAPID_PUBLIC_KEY'),
-      privateKey: requiredSecret('VAPID_PRIVATE_KEY'),
-    };
+    const vapid = loadVapidConfig();
 
     const callerClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authorization } },
@@ -127,37 +123,16 @@ Deno.serve(async (request) => {
         }
         return data;
       },
-      send: async (subscription) => {
-        let upstreamStatus: number | null = null;
-        const delivered = await sendPushNotification(
-          {
-            endpoint: subscription.endpoint,
-            keys: { p256dh: subscription.p256dh, auth: subscription.auth },
-          },
-          {
-            title: '共享日历',
-            body: '通知测试成功',
-            url: '/',
-            tag: 'shared-calendar-test',
-          },
-          vapid,
-          {
-            ttl: 60,
-            timeoutMs: 10_000,
-            urgency: 'normal',
-            logger: {
-              debug: (_message, data) => {
-                upstreamStatus = pushStatusFromLoggerData(data) ?? upstreamStatus;
-              },
-            },
-          },
-        );
-
-        if (upstreamStatus === null) {
-          throw new Error('Push service status unavailable.');
-        }
-        return { status: upstreamStatus, delivered };
-      },
+      send: (subscription) => sendWebPush({
+        subscription,
+        payload: {
+          title: '共享日历',
+          body: '通知测试成功',
+          url: '/',
+          tag: 'shared-calendar-test',
+        },
+        vapid,
+      }),
       disable: async (subscriptionId) => {
         const { error } = await adminClient
           .from('push_subscriptions')
@@ -172,12 +147,14 @@ Deno.serve(async (request) => {
 
     return jsonResponse(origin, result);
   } catch (error) {
-    if (error instanceof WebPushError) {
-      const diagnostic = pushServiceErrorDiagnostic(error.statusCode, error.endpoint);
+    if (
+      error instanceof SendTestPushDeliveryError
+      && error.result.classification === 'provider_rejected'
+    ) {
+      const diagnostic = pushServiceResultDiagnostic(error.result);
       console.error('Push service rejected a test notification.', {
         statusCode: diagnostic.status,
         provider: diagnostic.provider,
-        retryAfterMs: error.retryAfterMs,
       });
       return jsonResponse(origin, diagnostic, 502);
     }

@@ -6,11 +6,11 @@ Production URL: https://cross-platform-shared-calendar.vercel.app/
 
 ## 当前阶段
 
-- 当前里程碑：`v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery`。Slice A 已关闭；Slice B persistence + Event mutation/UI implementation、local ordered-upgrade、pgTAP、code verification、Production database migration、frontend deployment 与 Production 人工验收均已通过，Slice B 为 `CLOSED / PASS`。Slice C 尚未开始，Android Push lifecycle 仍按既定 validation strategy 延后，不构成 Slice B blocker。
+- 当前里程碑：`v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery`。Slice A 与 Slice B 已关闭；Slice C1 ledger + atomic claim 已完成 implementation、verification、human review 与 push，但仍未部署到 Production。Slice C2 Phase 1 shared Web Push sender extraction 已完成 automated verification、Desktop Chrome/macOS 与 iPhone installed PWA real-device regression，并保持 `send-test-push` 外部契约；Phase 1 为 `CLOSED / PASS`，Slice C 整体仍未关闭。
 - Slice 1 已实现并验证 Push-only Service Worker、明确用户操作触发的 notification permission flow、`user + installation` subscription persistence/lifecycle，以及带安全 upstream diagnostics 的 authenticated test-push Edge Function。
 - Desktop Chrome/macOS 与 iPhone installed PWA 的真实 Push Infrastructure 验收已通过。Android installed PWA 的完整 Push 生命周期验收延后到整个 v0.1.8 的最终 cross-platform acceptance；这是 validation strategy，不阻塞 Slice 2。
 - Slice 2 已冻结一个 nullable `events.reminder_kind`、per-event canonical IANA `events.time_zone`、新建 timed 默认提前 10 分钟、新建 all-day 默认当天 08:00、历史事件不自动开启提醒，以及普通事件的 past-due / grace / edit-recalculation 规则。
-- Slice B 已在仓库中加入 additive Event reminder persistence patch、ordinary Reminder UI、canonical timezone capture/preservation、schedule marker 与 semantic partial update；Production Supabase preflight、migration、postflight、Vercel Production deployment 与真实 Production browser acceptance 均已通过。当前仍未加入 scheduler、Cron、delivery ledger、sender 或 recurrence delivery。下一步是进入 Slice C implementation planning / pre-implementation review。完整冻结决策和分片见 [Decisions](./docs/DECISIONS.md) 与 [Backlog](./docs/BACKLOG.md)。
+- Slice B 已在仓库中加入 additive Event reminder persistence patch、ordinary Reminder UI、canonical timezone capture/preservation、schedule marker 与 semantic partial update；Production Supabase preflight、migration、postflight、Vercel Production deployment 与真实 Production browser acceptance 均已通过。Slice C1 已加入本地 ledger/atomic claim，C2 Phase 1 已抽取 server-only shared sender，并在仅部署 `send-test-push` 后通过 Desktop/iPhone real-device regression。重复 test-push banner 的固定 tag 行为确认是 pre-existing / non-blocking，不属于 sender extraction regression。`send-reminders`、candidate scan、Cron、secret、Production rollout 与 recurrence delivery 均未开始。完整冻结决策和分片见 [Decisions](./docs/DECISIONS.md) 与 [Backlog](./docs/BACKLOG.md)。
 
 ## v0.1 功能范围
 

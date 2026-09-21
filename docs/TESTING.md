@@ -41,7 +41,19 @@ trailer 是否与 PROJECT_STATE tree diff 一致；tag 只验证目标 commit �
 
 ## v0.1.8 Mobile Push Reminder Acceptance Plan
 
-Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`. Automated verification plus real Desktop Chrome/macOS and iPhone installed PWA Push Infrastructure acceptance passed. Slice 2 architecture / semantics are frozen. Slice A is closed and Slice B is `CLOSED / PASS`. Slice C1 ledger + atomic claim is implemented locally and under review; C1 is not in Production, sender / Edge Function / Cron have not started, and Slice C overall remains open. Android Push lifecycle acceptance remains deferred to final v0.1.8 cross-platform acceptance.
+Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`. Automated verification plus real Desktop Chrome/macOS and iPhone installed PWA Push Infrastructure acceptance passed. Slice 2 architecture / semantics are frozen. Slice A and Slice B are closed. Slice C1 completed implementation, verification, human review, and push but is not in Production. Slice C2 Phase 1 shared sender extraction is `CLOSED / PASS`: automated verification plus Desktop Chrome/macOS and iPhone installed PWA real-device regression passed after deploying only `send-test-push`. Repeated Desktop banners are pre-existing fixed-tag behavior and non-blocking. `send-reminders`, candidate scan, Cron, secrets, and Production rollout have not started, and Slice C overall remains open.
+
+### Slice 2C2 Phase 1 — Shared Web Push Sender Extraction
+
+Local implementation verification on 2026-09-21:
+
+- Confirmed RED before production refactoring because `supabase/functions/_shared/web-push.ts` did not exist and the new source-contract assertions could not read it.
+- Passed `node --test tests/web-push.test.ts tests/send-test-push.test.ts tests/send-test-push-source.test.ts` (29/29). Coverage includes 2xx, 404, 410, provider rejection, timeout, network failure, invalid sender results, allowed/disallowed endpoints, VAPID loading, TTL 60, timeout 10000 ms, normal urgency, hostname/status-only diagnostics, no sensitive result leakage, shared-module usage, preserved CORS/auth/installation/fixed-payload/disable/response contracts, exact package pinning, and exclusion from the browser tsconfig/root package.
+- Passed the complete repository suite: `node --test tests/*.test.ts tests/*.test.js` (123/123).
+- Passed `deno check --no-lock --node-modules-dir=none supabase/functions/_shared/web-push.ts` and `deno check --no-lock --node-modules-dir=none --config supabase/functions/send-test-push/deno.json supabase/functions/send-test-push/index.ts`, using the Deno global cache for already-pinned function dependencies and adding no root dependency or lockfile.
+- Passed `npm run build` and `git diff --check`.
+- Passed required real-device regression after deploying only `send-test-push`: Desktop Chrome/macOS and iPhone installed PWA actual notification, unchanged safe diagnostics, correct title/body, and unchanged notification-click behavior. Desktop repeated-banner behavior was separately classified as pre-existing fixed-tag behavior and is non-blocking.
+- Scope audit: no `send-reminders`, candidate scan, delivery ledger/claim, Cron, secret, Vault, database, or Service Worker change. Only `send-test-push` was deployed; commit/push closeout remains separate.
 
 ### Slice 2C1 — Minimal Delivery Ledger + Atomic Claim
 

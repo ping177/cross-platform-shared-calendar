@@ -8,15 +8,15 @@
 
 ## Current version
 
-v0.1.8.2 (Reminder Persistence + Ordinary Event Delivery — Slice C1 complete / human review complete)
+v0.1.8.2 (Reminder Persistence + Ordinary Event Delivery — Slice C2 Phase 1 CLOSED / PASS)
 
 ## Current status
 
-Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.8.1 — Push Infrastructure Foundation` 保持 `CLOSED / PASS — Android final acceptance deferred`。`v0.1.8.2` Slice A 已关闭，Slice B 为 `CLOSED / PASS`。Slice C1 Minimal Delivery Ledger + Atomic Claim 已完成 implementation、verification 与 human review；commit `6902234c40fbfb397d0ed271ec8ea213b7498e88` 已 push 到 `origin/main`。C1 通过 63/63 C1 pgTAP、161/161 全量数据库回归、4-session 并发 claim、Node 114/114、Slice A due 9/9、recurrence 25/25、Deno checks 与 Vite build。Slice C2 sender / Edge Function / Cron 尚未开始，Slice C 整体仍未关闭；C1 database changes 尚未部署到 Production。Android Push lifecycle 仍按 validation strategy 延后，不构成当前 blocker。
+Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.8.1 — Push Infrastructure Foundation` 保持 `CLOSED / PASS — Android final acceptance deferred`。`v0.1.8.2` Slice A 与 Slice B 已关闭。Slice C1 Minimal Delivery Ledger + Atomic Claim 已完成 implementation、verification、human review 与 push；其 database changes 尚未部署到 Production。Slice C2 Phase 1 server-only shared Web Push sender extraction 已完成，focused 29/29、full Node 123/123、Deno checks、Vite build、Desktop Chrome/macOS real Push 与 iPhone installed PWA real Push 均通过；`send-test-push` 行为保持不变。重复 test-push banner 的固定 tag 行为确认是 pre-existing / non-blocking，不属于 C2 sender extraction regression。`send-reminders`、candidate scan、Cron、secret 与 Production rollout 尚未开始，Slice C 整体仍未关闭。
 
 ## Latest completed
 
-Completed Slice C1 implementation, verification, and human review: durable `reminder_deliveries` audit rows with no Event/user/subscription foreign keys, minimum `claimed` / `sent` / `failed` constraints, server-only RLS/ACL, and one service-role-only `claim_reminder_delivery(...)` function. The claim captures DB time once and atomically revalidates the ordinary Event, exact schedule marker, current recipient membership, active subscription, due bounds, ten-minute grace, and unique `(event_id, subscription_id, due_at)` before inserting. RED was confirmed before implementation; C1 pgTAP passed 63/63, all database regressions 161/161 including Slice B 28/28, and four concurrent identical claims produced one ledger row. Node 114/114, Slice A due 9/9, recurrence 25/25, both Deno checks, build, and diff checks passed. Commit `6902234c40fbfb397d0ed271ec8ea213b7498e88` is pushed to `origin/main`. C1 database changes remain undeployed to Production; no sender, Edge Function, Cron, or C2 work has started.
+Completed C2 Phase 1 implementation, automated verification, deployment, and human real-device regression. `supabase/functions/_shared/web-push.ts` owns the exact pinned transport, VAPID loading, endpoint allowlist, safe provider/status extraction, fixed transport options, and closed non-sensitive result classification; `send-test-push` reuses it without changing its CORS, auth, installation lookup/disable, fixed payload, response shape, or status mapping. Focused tests passed 29/29, full Node passed 123/123, both Deno checks and `npm run build` passed. The deployed `send-test-push` passed Desktop Chrome/macOS and iPhone installed PWA Push regression with status 201, `delivered = true`, hostname-only provider, `gone = false`, correct notification title/body, and click behavior. Repeated-banner behavior was classified as pre-existing fixed-tag behavior and non-blocking. No database, secret, Cron, or unrelated function changed. C2 candidate scanning and `send-reminders` have not started; C1 remains human-reviewed/pushed but undeployed to Production.
 
 ## Deployment
 
@@ -24,7 +24,7 @@ Status: public_deployed
 Public URL: https://cross-platform-shared-calendar.vercel.app/
 Provider: Vercel
 Backend: Supabase Free
-Notes: 现有公网版本继续服务；Slice B Production database migration、frontend deployment 与 Production human acceptance 已完成。Slice C1 仅在本地实现和验证，additive patch 尚未应用到 Production；sender / Cron 未开始。Android Push lifecycle 仍按 validation strategy 延后。
+Notes: 现有公网版本继续服务；Slice B Production migration/deployment/acceptance 已完成。Slice C1 additive patch 尚未应用到 Production。仅 `send-test-push` 部署了 C2 Phase 1 sender extraction，并完成 Desktop/iPhone real-device regression；无其他函数、数据库对象、Cron、Vault 或 secret 变更。`send-reminders` / Cron 未开始。Android Push lifecycle 仍按 validation strategy 延后。
 
 ## Version Index
 
@@ -48,7 +48,7 @@ Notes: 现有公网版本继续服务；Slice B Production database migration、
 - v0.1.7.3.3.2 — Frontend Scope Integration（Production Desktop 与 iPhone Standalone PWA recurrence smoke 已通过）
 - v0.1.8 — Mobile Push Reminder（current approved product line；architecture frozen）
 - v0.1.8.1 — Push Infrastructure Foundation（CLOSED / PASS；Desktop + iPhone verified；Android final acceptance deferred）
-- v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（Slice A closed；Slice B CLOSED / PASS；Slice C1 implementation / verification / human review complete；commit pushed；C1 not deployed to Production；Slice C overall open）
+- v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（Slice A/B closed；Slice C1 complete/reviewed/pushed but undeployed；Slice C2 Phase 1 CLOSED / PASS；send-reminders/Cron not started；Slice C open）
 
 ## Last verified
 
@@ -56,7 +56,7 @@ Notes: 现有公网版本继续服务；Slice B Production database migration、
 
 ## Next Action
 
-Enter v0.1.8.2 Slice C2 implementation planning / pre-implementation review. Do not begin C2 implementation or apply C1 database changes to Production without separate explicit authorization.
+Push the reviewed C2 Phase 1 commit, then perform the read-only post-push PROJECT_STATE freshness review. Next enter C2 Phase 2 — `send-reminders` implementation planning. Keep Cron, secrets, and C1 Production migration separately authorized; C2 overall remains open.
 
 ## Blockers
 
@@ -103,10 +103,11 @@ Enter v0.1.8.2 Slice C2 implementation planning / pre-implementation review. Do 
 - v0.1.8 freezes a one-minute Supabase Cron + Edge Function sender architecture. Slice 2 will implement ordinary events; Slice 3 will dynamically project recurring occurrences through canonical recurrence/exception semantics without materializing a long horizon.
 - Slice 2 ordinary-delivery idempotency is `(event_id, subscription_id, due_at)`. It does not add `occurrence_key`, pre-generate pending rows, mutate ledger rows when an Event schedule changes, or automatically retry provider failures. Recurring occurrence identity remains a Slice 3 decision.
 - Slice C1 implementation, verification, and human review are complete; commit `6902234c40fbfb397d0ed271ec8ea213b7498e88` is pushed to `origin/main`. The durable server-only `reminder_deliveries` ledger and one service-role-only atomic claim remain undeployed to Production. Audit rows intentionally have no Event/user/subscription foreign keys. The expected `reminder_schedule_changed_at` must round-trip at full PostgreSQL `timestamptz` precision; future callers must not normalize, truncate, or reconstruct it through a lossy JavaScript formatting path.
+- Slice C2 Phase 1 extracts Web Push sending into a server-only shared module with a closed safe result union and keeps `send-test-push` externally unchanged. Automated verification and Desktop/iPhone real-device regression passed after deploying only `send-test-push`. Repeated Desktop banners with the fixed `shared-calendar-test` tag are pre-existing/non-blocking; tag/renotify behavior remains unchanged. The later C2 scan must abort before claims/sends when enabled ordinary Events exceed 1000, and must sort eligible tasks by `due_at` ascending before capping at 50; no queue is added.
 - A newly created/edited/enabled reminder whose derived `due_at` is already past is skipped without immediate Push or compensation. Normal target precision is about one minute; a roughly ten-minute grace window applies only to infrastructure delay. Web Push remains best-effort and is not an Alarm Clock.
 - v0.1.8 excludes Email reminder delivery, SMS, Bark, multiple reminders, arbitrary custom minutes, snooze, sound customization, notification inbox/history, native alarms, and per-user reminder preferences. Email OTP authentication remains unchanged.
 - `v0.1.9 Shared Tasks`, `v0.1.10 Shared Lists`, `v0.1.11 Important Dates / Anniversaries`, and `v0.1.12 Tags / Color = Who` are roadmap directions only, not frozen architectures. UI/UX overhaul remains deferred pending a Design System.
 
 ## Handoff Prompt
 
-v0.1.8.2 Slice C1 ledger + atomic claim implementation, verification, and human review are complete. Commit `6902234c40fbfb397d0ed271ec8ea213b7498e88` is pushed to `origin/main`; C1 database changes are not deployed to Production. Sender / Edge Function / Cron remain unstarted and Slice C is not closed. Enter Slice C2 implementation planning / pre-implementation review.
+v0.1.8.2 Slice C2 Phase 1 shared Web Push sender extraction is `CLOSED / PASS`: automated verification and Desktop/iPhone real-device regression passed, with only `send-test-push` deployed and its external contract preserved. C1 remains human-reviewed/pushed but undeployed. Push the Phase 1 commit and perform the post-push PROJECT_STATE freshness review, then enter C2 Phase 2 — `send-reminders` implementation planning. Do not configure Cron, secrets, or apply C1 Production migration yet.
