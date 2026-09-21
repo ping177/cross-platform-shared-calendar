@@ -12,11 +12,11 @@ v0.1.8.2 (C2 Phase 2 send-reminders — IMPLEMENTED LOCALLY / HUMAN CODE REVIEW 
 
 ## Current status
 
-Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.8.1 — Push Infrastructure Foundation` 保持 `CLOSED / PASS — Android final acceptance deferred`。`v0.1.8.2` Slice A 与 Slice B 已关闭。Slice C1 Minimal Delivery Ledger + Atomic Claim 已完成 implementation、verification、human review 与 push；其 database changes 尚未部署到 Production。Slice C2 Phase 1 server-only shared Web Push sender extraction 保持 `CLOSED / PASS`。Due Calculator DST-gap CPU blocker 已完成 corrective implementation、verification 与 human review，`DUE_CALCULATOR_CPU_BLOCKER = RESOLVED / PASS`。C2 Phase 2 `send-reminders` core orchestration 已在本地完成实现与自动验证，并通过 bounded human/code review（无 BLOCKER / MAJOR / MINOR findings），现已具备 commit/push closeout 条件；尚未部署，Cron、Vault 与真实 secret 均未配置，Slice C 整体仍未关闭。
+Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.8.1 — Push Infrastructure Foundation` 保持 `CLOSED / PASS — Android final acceptance deferred`。`v0.1.8.2` Slice A 与 Slice B 已关闭。Slice C1 Minimal Delivery Ledger + Atomic Claim 已完成 implementation、verification、human review 与 push；其 database changes 尚未部署到 Production。Slice C2 Phase 1 server-only shared Web Push sender extraction 保持 `CLOSED / PASS`。Due Calculator DST-gap CPU blocker 已完成 corrective implementation、verification 与 human review，`DUE_CALCULATOR_CPU_BLOCKER = RESOLVED / PASS`。C2 Phase 2 `send-reminders` core orchestration 已在本地完成实现与自动验证，并通过 bounded human/code review（无 BLOCKER / MAJOR / MINOR findings）；implementation commit `bb6a5e0` 已 pushed 到 `origin/main`，尚未部署，Cron、Vault 与真实 secret 均未配置，Slice C 整体仍未关闭。
 
 ## Latest completed
 
-Implemented the bounded C2 Phase 2 `send-reminders` core orchestration locally. The new Edge Function enforces exact bearer authentication before work, performs stable keyset candidate scanning with an explicit 1001st-row abort, reuses the canonical due calculator, resolves current recipients and active installations in batches, deterministically caps delivery work at 50, claims through the existing C1 RPC, sends through the existing shared Web Push sender, finalizes ledger outcomes, retires 404/410 subscriptions, limits concurrency to five, and stops new claim acquisition at 95 seconds while completing already-claimed work. Focused tests passed 26/26; the complete Node suite passed 153/153; Deno checks for the orchestration logic, Edge entry, and shared sender passed; `npm run build` and `git diff --check` passed. Bounded human/code review passed with no BLOCKER / MAJOR / MINOR findings. No database/schema/C1, recurrence, frontend, Service Worker, sender, `send-test-push`, root dependency, Cron, Vault, secret, deployment, commit, push, or Production change was made; the implementation is ready for commit/push closeout.
+Implemented the bounded C2 Phase 2 `send-reminders` core orchestration locally. The new Edge Function enforces exact bearer authentication before work, performs stable keyset candidate scanning with an explicit 1001st-row abort, reuses the canonical due calculator, resolves current recipients and active installations in batches, deterministically caps delivery work at 50, claims through the existing C1 RPC, sends through the existing shared Web Push sender, finalizes ledger outcomes, retires 404/410 subscriptions, limits concurrency to five, and stops new claim acquisition at 95 seconds while completing already-claimed work. Focused tests passed 26/26; the complete Node suite passed 153/153; Deno checks for the orchestration logic, Edge entry, and shared sender passed; `npm run build` and `git diff --check` passed. Bounded human/code review passed with no BLOCKER / MAJOR / MINOR findings. No database/schema/C1, recurrence, frontend, Service Worker, sender, `send-test-push`, root dependency, Cron, Vault, secret, deployment, or Production change was made; implementation commit `bb6a5e0` was pushed to `origin/main`.
 
 ## Deployment
 
@@ -48,7 +48,7 @@ Notes: 现有公网版本继续服务；Slice B Production migration/deployment/
 - v0.1.7.3.3.2 — Frontend Scope Integration（Production Desktop 与 iPhone Standalone PWA recurrence smoke 已通过）
 - v0.1.8 — Mobile Push Reminder（current approved product line；architecture frozen）
 - v0.1.8.1 — Push Infrastructure Foundation（CLOSED / PASS；Desktop + iPhone verified；Android final acceptance deferred）
-- v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（Slice A/B closed；Slice C1 complete/reviewed/pushed but undeployed；Slice C2 Phase 1 CLOSED / PASS；Due Calculator DST-gap correction human-review PASS；C2 Phase 2 send-reminders implemented locally/automated verification PASS/human-code review PASS/no findings；ready for commit/push closeout；Cron not started；Slice C open）
+- v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（Slice A/B closed；Slice C1 complete/reviewed/pushed but undeployed；Slice C2 Phase 1 CLOSED / PASS；Due Calculator DST-gap correction human-review PASS；C2 Phase 2 send-reminders implemented locally/automated verification PASS/human-code review PASS/no findings；implementation commit `bb6a5e0` pushed；Cron not started；Slice C open）
 
 ## Last verified
 
@@ -56,7 +56,7 @@ Notes: 现有公网版本继续服务；Slice B Production migration/deployment/
 
 ## Next Action
 
-Push the C2 Phase 2 implementation commit → perform the post-push PROJECT_STATE freshness review → only then begin separate Production / Phase 3 deployment planning. Keep C1 Production migration, `send-reminders` deployment, Cron, Vault, and real-secret configuration separately authorized.
+Enter bounded Phase 3 / Production rollout planning: (1) Production preflight; (2) deploy the C1 DB patch first; (3) verify C1 postflight; (4) deploy `send-reminders` with Cron still OFF; (5) configure only what is required for safe manual authenticated invocation; (6) perform bounded real reminder/manual invocation verification; (7) configure Cron/Vault last; (8) enable the scheduler only after the previous gates pass. Keep every rollout step separately authorized.
 
 ## Blockers
 
@@ -112,4 +112,4 @@ Push the C2 Phase 2 implementation commit → perform the post-push PROJECT_STAT
 
 ## Handoff Prompt
 
-v0.1.8.2 C2 Phase 2 `send-reminders` core orchestration is implemented locally, automated verification passed, and bounded human/code review passed with no BLOCKER / MAJOR / MINOR findings. It has not been deployed or committed, C1 remains undeployed to Production, and Cron/Vault/real secrets remain unconfigured. Next: push the Phase 2 implementation commit, then perform the post-push PROJECT_STATE freshness review, and only then begin separate Production / Phase 3 deployment planning. Do not deploy or configure remote C1/send-reminders/Cron/Vault/secrets as part of this closeout.
+v0.1.8.2 C2 Phase 2 `send-reminders` core orchestration is implemented locally, automated verification passed, and bounded human/code review passed with no BLOCKER / MAJOR / MINOR findings. Implementation commit `bb6a5e0` is pushed to `origin/main`; it has not been deployed, C1 remains undeployed to Production, and Cron/Vault/real secrets remain unconfigured. Next: enter bounded Phase 3 / Production rollout planning through the documented preflight, C1-first, manual-invocation, and final scheduler-gate sequence. Do not execute rollout steps without separate authorization.
