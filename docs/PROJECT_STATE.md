@@ -16,7 +16,7 @@ Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.
 
 ## Latest completed
 
-Completed C2 Phase 1 implementation, automated verification, deployment, and human real-device regression. `supabase/functions/_shared/web-push.ts` owns the exact pinned transport, VAPID loading, endpoint allowlist, safe provider/status extraction, fixed transport options, and closed non-sensitive result classification; `send-test-push` reuses it without changing its CORS, auth, installation lookup/disable, fixed payload, response shape, or status mapping. Focused tests passed 29/29, full Node passed 123/123, both Deno checks and `npm run build` passed. The deployed `send-test-push` passed Desktop Chrome/macOS and iPhone installed PWA Push regression with status 201, `delivered = true`, hostname-only provider, `gone = false`, correct notification title/body, and click behavior. Repeated-banner behavior was classified as pre-existing fixed-tag behavior and non-blocking. No database, secret, Cron, or unrelated function changed. C2 candidate scanning and `send-reminders` have not started; C1 remains human-reviewed/pushed but undeployed to Production.
+Completed C2 Phase 1 implementation, automated verification, deployment, and human real-device regression. `supabase/functions/_shared/web-push.ts` owns the exact pinned transport, VAPID loading, endpoint allowlist, safe provider/status extraction, fixed transport options, and closed non-sensitive result classification; `send-test-push` reuses it without changing its CORS, auth, installation lookup/disable, fixed payload, response shape, or status mapping. Focused tests passed 29/29, full Node passed 123/123, both Deno checks and `npm run build` passed. The deployed `send-test-push` passed Desktop Chrome/macOS and iPhone installed PWA Push regression with status 201, `delivered = true`, hostname-only provider, `gone = false`, correct notification title/body, and click behavior. Repeated-banner behavior was classified as pre-existing fixed-tag behavior and non-blocking. Commit `33fc1272a02eb58519823cc24529a77752b45259` is pushed to `origin/main`. No database, secret, Cron, or unrelated function changed. C2 candidate scanning and `send-reminders` have not started; C1 remains human-reviewed/pushed but undeployed to Production.
 
 ## Deployment
 
@@ -56,7 +56,7 @@ Notes: 现有公网版本继续服务；Slice B Production migration/deployment/
 
 ## Next Action
 
-Push the reviewed C2 Phase 1 commit, then perform the read-only post-push PROJECT_STATE freshness review. Next enter C2 Phase 2 — `send-reminders` implementation planning. Keep Cron, secrets, and C1 Production migration separately authorized; C2 overall remains open.
+Enter C2 Phase 2 — `send-reminders` implementation planning / pre-implementation review. Keep Cron, secrets, and C1 Production migration separately authorized; C2 overall remains open.
 
 ## Blockers
 
@@ -110,4 +110,4 @@ Push the reviewed C2 Phase 1 commit, then perform the read-only post-push PROJEC
 
 ## Handoff Prompt
 
-v0.1.8.2 Slice C2 Phase 1 shared Web Push sender extraction is `CLOSED / PASS`: automated verification and Desktop/iPhone real-device regression passed, with only `send-test-push` deployed and its external contract preserved. C1 remains human-reviewed/pushed but undeployed. Push the Phase 1 commit and perform the post-push PROJECT_STATE freshness review, then enter C2 Phase 2 — `send-reminders` implementation planning. Do not configure Cron, secrets, or apply C1 Production migration yet.
+v0.1.8.2 Slice C2 Phase 1 shared Web Push sender extraction is `CLOSED / PASS`: automated verification and Desktop/iPhone real-device regression passed, with only `send-test-push` deployed and its external contract preserved. Commit `33fc1272a02eb58519823cc24529a77752b45259` is pushed to `origin/main`; the post-push PROJECT_STATE freshness review is complete. Next enter C2 Phase 2 — `send-reminders` implementation planning. Do not configure Cron, secrets, or apply C1 Production migration yet.
