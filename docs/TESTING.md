@@ -41,16 +41,26 @@ trailer 是否与 PROJECT_STATE tree diff 一致；tag 只验证目标 commit �
 
 ## v0.1.8 Mobile Push Reminder Acceptance Plan
 
-Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`. Automated verification plus real Desktop Chrome/macOS and iPhone installed PWA Push Infrastructure acceptance passed. Slice A and Slice B are closed. P3A applied the exact C1 patch to Production, but the C1 foundation remains stopped because the new table has broad direct `service_role` privileges. Read-only RCA and bounded human/code review are complete; the table-local corrective patch is locally verified, while Production remains uncorrected. Slice C2 Phase 1 and Phase 2 remain `CLOSED / PASS`; `send-reminders` is not deployed, Cron/Vault/real secrets remain unconfigured, Android final Push acceptance remains deferred, and Slice C remains open.
+Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`. Automated verification plus real Desktop Chrome/macOS and iPhone installed PWA Push Infrastructure acceptance passed. Slice A and Slice B are closed. P3A C1 Production foundation is `CLOSED / PASS` after applying the reviewed table-local ACL correction and completing bounded final postflight. Slice C2 Phase 1 and Phase 2 remain `CLOSED / PASS`; `send-reminders` is not deployed, Cron/Vault/real secrets remain unconfigured, Android final Push acceptance remains deferred, and Slice C remains open.
 
-### P3A C1 ACL Corrective RCA — HUMAN REVIEW PASS / PRODUCTION PENDING
+### P3A Production C1 Foundation Final Closeout — CLOSED / PASS
+
+Production ACL correction and bounded postflight on 2026-09-21:
+
+- Applied only `supabase/patches/2026-09-21-v0.1.8.2-reminder-delivery-acl-correction.sql` once to canonical Production. Final direct/effective ACL is `service_role` SELECT / UPDATE only; INSERT / DELETE / TRUNCATE / REFERENCES / TRIGGER / MAINTAIN are denied. All eight privileges remain denied for anon/authenticated.
+- `reminder_deliveries` remains empty with 10 expected columns, five constraints, UUID primary key, unique `(event_id, subscription_id, due_at)`, zero foreign keys, enabled updated-at trigger, RLS enabled, zero policies, and no Realtime publication.
+- `claim_reminder_delivery(...)` remains one UUID-returning SECURITY DEFINER function with hardened search path, unchanged definition hash and reviewed body contract, service-role-only execution among application roles, and no Production invocation.
+- Events, Push subscriptions, and Space members structural fingerprints matched pre-correction exactly. Five Reminder persistence constraints and the schedule-marker trigger remain intact.
+- `send-test-push` remained ACTIVE v3. `send-reminders`, Edge/Vault Reminder secrets, pg_cron, pg_net, and Reminder Cron remain absent or untouched; no Push, Event/test data, or subscription mutation occurred. `C1_PRODUCTION_FOUNDATION = PASS`; stop before P3B.
+
+### P3A C1 ACL Corrective RCA — HUMAN REVIEW PASS / APPLIED
 
 - Production read-only catalog evidence classified the source as `DIRECT_OR_DEFAULT_TABLE_GRANT`: owner `postgres` has a schema-`public` default table ACL granting all privileges to `service_role`, and those grants were materialized directly in `reminder_deliveries.relacl`. `service_role` is not owner/superuser, has no inherited roles, and has no PUBLIC or other-role privilege path.
 - Catalog reasoning confirms a table-local `REVOKE ALL PRIVILEGES ... FROM service_role` followed by `GRANT SELECT, UPDATE ... TO service_role` is sufficient. Default privileges affect future object creation and do not reapply to the existing table after the revoke.
 - Added the four missing negative assertions for TRUNCATE, REFERENCES, TRIGGER, and MAINTAIN to the existing C1 pgTAP suite. Before the local correction they failed exactly 4/67; after applying the new corrective patch to the local database only, the suite passed 67/67.
-- Bounded human/code review found no issues in the corrective SQL, full privilege contract, or governance scope. Production was not modified during this RCA/review. The original deployed patch remains unchanged; P3A is not PASS and P3B must not begin.
+- Bounded human/code review found no issues in the corrective SQL, full privilege contract, or governance scope. Production was not modified during the RCA/review itself; the reviewed correction was later applied in the bounded final closeout above.
 
-### P3A Production C1 Foundation — STOPPED / INVESTIGATION_REQUIRED
+### P3A Initial Production C1 Foundation Attempt — ACL GATE FAILED (historical)
 
 Production execution and structural verification on 2026-09-21:
 
@@ -59,7 +69,7 @@ Production execution and structural verification on 2026-09-21:
 - Applied exactly `supabase/patches/2026-09-21-v0.1.8.2-reminder-delivery.sql` once. Postflight confirmed 10/10 expected columns, five expected constraints, UUID primary key, unique `(event_id, subscription_id, due_at)`, zero foreign keys, enabled `touch_updated_at` trigger, RLS enabled, zero policies, no Realtime publication, and zero initial ledger rows.
 - `claim_reminder_delivery(...)` exists once, returns UUID, is SECURITY DEFINER with exact `pg_catalog, pg_temp` search path, matches the reviewed revalidation/idempotency body contract, and is executable by `service_role` but not anon/authenticated.
 - Existing Events, Push subscriptions, and Space members column/constraint/index/RLS-policy/trigger/publication fingerprints matched preflight exactly. `send-test-push` remained ACTIVE v3; `send-reminders`, Reminder secret, pg_cron, and pg_net remained absent.
-- ACL gate failed: effective and direct ACL inspection showed `service_role` has INSERT / DELETE / TRUNCATE plus other broad table privileges, not only SELECT / UPDATE. No correction or cleanup was attempted. P3A must not be marked PASS until a separately authorized least-privilege correction is applied and reverified.
+- ACL gate failed: effective and direct ACL inspection showed `service_role` had INSERT / DELETE / TRUNCATE plus other broad table privileges, not only SELECT / UPDATE. No correction or cleanup was attempted during that run. This historical stop condition was resolved by the separately authorized correction and final closeout recorded above.
 
 ### Slice 2C2 Phase 2 — send-reminders Core Orchestration
 

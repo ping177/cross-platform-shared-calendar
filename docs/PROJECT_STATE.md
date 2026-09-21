@@ -8,15 +8,15 @@
 
 ## Current version
 
-v0.1.8.2 (Phase 3 P3A C1 ACL correction — SOURCE REVIEW PASS / PRODUCTION PENDING)
+v0.1.8.2 (Phase 3 P3A C1 Production foundation — CLOSED / PASS)
 
 ## Current status
 
-Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.8.1 — Push Infrastructure Foundation` 保持 `CLOSED / PASS — Android final acceptance deferred`。`v0.1.8.2` Slice A 与 Slice B 已关闭。P3A 已将 exact reviewed C1 patch 应用到 Production；结构、RLS、zero-row、function contract 与 existing-schema invariance 检查通过，但 `service_role` 的创建时 default ACL 被物化为直接全表权限，违反 SELECT / UPDATE-only contract。只读 RCA 已确认无 ownership、继承角色或 PUBLIC 权限路径，新的 table-local ACL corrective patch 已准备、通过 bounded human/code review，并在本地通过 67/67 focused pgTAP；Production ACL 尚未修改，因此 `C1_PRODUCTION_FOUNDATION = STOPPED / SOURCE_CORRECTION_REVIEW_PASS`。Slice C2 Phase 1 与 C2 Phase 2 保持 `CLOSED / PASS`；`send-reminders` 尚未部署，`REMINDER_CRON_SECRET`、Vault、pg_cron、pg_net 与 Reminder Cron 均未配置或变更，Slice C 整体仍未关闭。
+Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.8.1 — Push Infrastructure Foundation` 保持 `CLOSED / PASS — Android final acceptance deferred`。`v0.1.8.2` Slice A 与 Slice B 已关闭。P3A 已完成 C1 Production foundation：原始 C1 patch 成功创建空 ledger 与 atomic claim function；发现 `postgres`/`public` default table ACL 物化了过宽 `service_role` 权限后，已应用 reviewed table-local corrective patch。最终 `service_role` 仅有 SELECT / UPDATE，其他六项 table privileges 均 denied；anon/authenticated 无直接访问；结构、RLS、function contract、zero-row 与 existing-schema invariance 全部 PASS，因此 `C1_PRODUCTION_FOUNDATION = PASS`。Slice C2 Phase 1 与 C2 Phase 2 保持 `CLOSED / PASS`；`send-reminders` 尚未部署，`REMINDER_CRON_SECRET`、Vault、pg_cron、pg_net 与 Reminder Cron 均未配置或变更，Slice C 整体仍未关闭。
 
 ## Latest completed
 
-Completed a read-only Production ACL RCA and bounded human/code review. Catalog evidence shows the `postgres` owner's `public` table default ACL granted all table privileges directly to `service_role` at creation; the original patch's later `GRANT SELECT, UPDATE` did not remove them. `service_role` is neither owner nor superuser, inherits no other role, and has no PUBLIC/other-role ACL path, so a table-local revoke and narrow re-grant is sufficient. Prepared and approved `supabase/patches/2026-09-21-v0.1.8.2-reminder-delivery-acl-correction.sql`, expanded the focused privilege contract to all eight table privileges, reproduced four missing denials locally, then passed 67/67 after the local-only correction. Production was not modified.
+Applied only the reviewed `supabase/patches/2026-09-21-v0.1.8.2-reminder-delivery-acl-correction.sql` to canonical Production. Actual catalog checks now show `service_role` SELECT / UPDATE only, with INSERT / DELETE / TRUNCATE / REFERENCES / TRIGGER / MAINTAIN denied; anon/authenticated remain fully denied. The ledger remains empty, all C1 table/function/RLS checks pass, and Events/Push subscriptions/Space members fingerprints are unchanged. `send-test-push` remains ACTIVE v3; `send-reminders`, Reminder secrets, Vault/Cron, pg_cron, and pg_net remain absent or untouched. P3A is closed and passed without invoking the claim function or sending Push.
 
 ## Deployment
 
@@ -24,7 +24,7 @@ Status: public_deployed
 Public URL: https://cross-platform-shared-calendar.vercel.app/
 Provider: Vercel
 Backend: Supabase Free
-Notes: 现有公网版本继续服务；Slice B Production migration/deployment/acceptance 已完成。P3A 已应用 C1 additive patch，但 ACL postflight gate failed，尚未完成 Production foundation acceptance。仅 `send-test-push` 部署了 C2 Phase 1 sender extraction；C2 Phase 2 `send-reminders` 仍未部署。Cron、Vault、pg_cron、pg_net 与真实 Reminder secret 均未配置或变更；Android Push lifecycle 仍按 validation strategy 延后。
+Notes: 现有公网版本继续服务；Slice B Production migration/deployment/acceptance 已完成。P3A C1 additive patch 与 reviewed ACL correction 均已应用并通过最终 postflight，`C1_PRODUCTION_FOUNDATION = PASS`。仅 `send-test-push` 部署了 C2 Phase 1 sender extraction；C2 Phase 2 `send-reminders` 仍未部署。Cron、Vault、pg_cron、pg_net 与真实 Reminder secret 均未配置或变更；Android Push lifecycle 仍按 validation strategy 延后。
 
 ## Version Index
 
@@ -48,7 +48,7 @@ Notes: 现有公网版本继续服务；Slice B Production migration/deployment/
 - v0.1.7.3.3.2 — Frontend Scope Integration（Production Desktop 与 iPhone Standalone PWA recurrence smoke 已通过）
 - v0.1.8 — Mobile Push Reminder（current approved product line；architecture frozen）
 - v0.1.8.1 — Push Infrastructure Foundation（CLOSED / PASS；Desktop + iPhone verified；Android final acceptance deferred）
-- v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（Slice A/B closed；P3A C1 patch applied but ACL gate failed；table-local correction prepared / Production not corrected；Slice C2 Phase 1/2 CLOSED / PASS；send-reminders undeployed；Cron not started；Slice C open）
+- v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（Slice A/B closed；P3A C1 Production foundation CLOSED / PASS after reviewed ACL correction；Slice C2 Phase 1/2 CLOSED / PASS；send-reminders undeployed；Cron not started；Slice C open）
 
 ## Last verified
 
@@ -56,11 +56,11 @@ Notes: 现有公网版本继续服务；Slice B Production migration/deployment/
 
 ## Next Action
 
-Apply the reviewed C1 ACL corrective patch to Production under separate authorization, then verify effective `service_role` privileges and rerun the bounded C1 postflight. If all checks pass, close P3A. Do not begin P3B, deploy `send-reminders`, or configure secrets/Vault/Cron.
+Separately authorize P3B `send-reminders` Production deployment with Cron OFF, followed by the bounded manual E2E sequence. Do not configure Cron or begin recurring Reminder work without later authorization.
 
 ## Blockers
 
-Production `reminder_deliveries` still grants `service_role` direct INSERT / DELETE / TRUNCATE and other broad table privileges through the creation-time ACL. The reviewed table-local correction has not been applied to Production.
+暂无明确阻塞。
 
 ## Important Context
 
@@ -103,7 +103,7 @@ Production `reminder_deliveries` still grants `service_role` direct INSERT / DEL
 - shared event reminders resolve current active Space members at send time; personal event reminders resolve only the current `owner_user_id`. A former member must not receive a delivery.
 - v0.1.8 freezes a one-minute Supabase Cron + Edge Function sender architecture. Slice 2 will implement ordinary events; Slice 3 will dynamically project recurring occurrences through canonical recurrence/exception semantics without materializing a long horizon.
 - Slice 2 ordinary-delivery idempotency is `(event_id, subscription_id, due_at)`. It does not add `occurrence_key`, pre-generate pending rows, mutate ledger rows when an Event schedule changes, or automatically retry provider failures. Recurring occurrence identity remains a Slice 3 decision.
-- Slice C1 implementation, verification, and human review are complete; commit `6902234c40fbfb397d0ed271ec8ea213b7498e88` is pushed to `origin/main`. P3A applied the exact C1 patch to Production, creating the empty durable ledger and atomic claim function. Structural/RLS/function/invariance checks passed, but the table inherited direct broad `service_role` ACLs, so the Production foundation remains stopped and not accepted. Read-only RCA isolated the source to the `postgres`/`public` default table ACL; the table-local corrective patch passed bounded human/code review and has not touched Production. Audit rows intentionally have no Event/user/subscription foreign keys. The schedule marker must still round-trip at full PostgreSQL `timestamptz` precision.
+- Slice C1 implementation, verification, human review, Production deployment, ACL correction, and final postflight are complete. The original patch created the empty durable ledger and atomic claim function; RCA isolated its ACL gate failure to the `postgres`/`public` default table ACL, and the reviewed table-local correction reduced `service_role` to SELECT / UPDATE only. `C1_PRODUCTION_FOUNDATION = PASS`. Audit rows intentionally have no Event/user/subscription foreign keys. The schedule marker must still round-trip at full PostgreSQL `timestamptz` precision.
 - Slice C2 Phase 1 extracts Web Push sending into a server-only shared module with a closed safe result union and keeps `send-test-push` externally unchanged. Automated verification and Desktop/iPhone real-device regression passed after deploying only `send-test-push`. Repeated Desktop banners with the fixed `shared-calendar-test` tag are pre-existing/non-blocking; tag/renotify behavior remains unchanged. The later C2 scan must abort before claims/sends when enabled ordinary Events exceed 1000, and must sort eligible tasks by `due_at` ascending before capping at 50; no queue is added.
 - Slice C2 Phase 2 `send-reminders` is implemented locally and passed bounded human/code review with no BLOCKER / MAJOR / MINOR findings. It uses stable 100-row keyset pages plus an explicit 1001st-row probe, aborts overflow before recipient/claim/send work, preserves the raw C1 schedule marker, resolves current memberships and active subscriptions in batches, selects at most 50 tasks deterministically, uses five workers, and rechecks the 95-second budget immediately before claim acquisition. It adds no retry, lease, queue, recurring delivery, schema, or dependency and is not deployed.
 - A newly created/edited/enabled reminder whose derived `due_at` is already past is skipped without immediate Push or compensation. Normal target precision is about one minute; a roughly ten-minute grace window applies only to infrastructure delay. Web Push remains best-effort and is not an Alarm Clock.
@@ -112,4 +112,4 @@ Production `reminder_deliveries` still grants `service_role` direct INSERT / DEL
 
 ## Handoff Prompt
 
-v0.1.8.2 P3A applied the exact reviewed C1 patch, but the Production ACL gate failed. Read-only RCA conclusively classified the cause as `DIRECT_OR_DEFAULT_TABLE_GRANT`: the `postgres`/`public` default table ACL materialized broad direct `service_role` grants, with no owner, inherited-role, PUBLIC, or other-role path. The table-local corrective patch and full eight-privilege regression passed bounded human/code review; local RED reproduced four missing denials and local GREEN passed 67/67. Production ACL remains unchanged and `C1_PRODUCTION_FOUNDATION = STOPPED / SOURCE_CORRECTION_REVIEW_PASS`. Next: separately authorize Production correction and bounded postflight; do not begin P3B.
+v0.1.8.2 P3A C1 Production foundation is `CLOSED / PASS`. The original patch created the empty ledger and atomic claim function; the default-ACL blocker was diagnosed as `DIRECT_OR_DEFAULT_TABLE_GRANT`; and the reviewed table-local correction was applied successfully. Final effective ACL is `service_role` SELECT / UPDATE only, with anon/authenticated denied; C1 structure/function and existing-schema invariance pass, and ledger rows remain zero. `send-reminders` and Reminder secrets/Vault/Cron remain absent. Next: separately authorize P3B deployment with Cron OFF and bounded manual E2E; stop before Cron.

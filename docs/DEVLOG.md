@@ -1,5 +1,12 @@
 # Development Log
 
+# 2026-09-21 - v0.1.8.2 P3A C1 Production Foundation Final Closeout
+
+- Applied exactly the reviewed `supabase/patches/2026-09-21-v0.1.8.2-reminder-delivery-acl-correction.sql` once to canonical Production project `ximazjhxvmktpcdbypka`; neither the original C1 patch nor any broad migration command was rerun. The transaction completed successfully and changed only the existing `public.reminder_deliveries` table ACL.
+- Final effective privileges are the frozen contract: `service_role` SELECT / UPDATE allowed and INSERT / DELETE / TRUNCATE / REFERENCES / TRIGGER / MAINTAIN denied; anon/authenticated have no direct table privileges. The ledger remains at zero rows; 10 columns, five constraints, UUID primary key, unique idempotency key, zero foreign keys, enabled updated-at trigger, RLS, zero policies, and no Realtime publication all pass.
+- The atomic claim function remains exactly one UUID-returning SECURITY DEFINER function with hardened `pg_catalog, pg_temp` search path, unchanged definition hash/body contract, service-role execute, and anon/authenticated execute denial. Events, Push subscriptions, and Space members column/constraint/index/policy/trigger/publication fingerprints were unchanged; all five Reminder persistence constraints and the schedule-marker trigger remain present.
+- Phase 3 isolation remained intact: `send-test-push` is ACTIVE v3; `send-reminders`, `REMINDER_CRON_SECRET`, Vault Reminder secret, pg_cron, and pg_net remain absent; no Cron, claim invocation, Push, Event/test data, or subscription mutation occurred. `C1_PRODUCTION_FOUNDATION = PASS`; P3A is closed, Slice C remains open, and P3B requires separate authorization.
+
 # 2026-09-21 - v0.1.8.2 P3A C1 ACL Corrective RCA
 
 - Completed a read-only Production catalog RCA for `public.reminder_deliveries`. The table is owned by `postgres`; `service_role` is not owner or superuser, inherits no other role, and has no PUBLIC/other-role grant path. The `postgres` default table ACL for schema `public` grants all eight table privileges to `service_role`, which were materialized as direct ACL entries when C1 created the table. The original `GRANT SELECT, UPDATE` was additive and did not remove those existing privileges.
