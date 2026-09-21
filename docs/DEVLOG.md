@@ -1,5 +1,17 @@
 # Development Log
 
+# 2026-09-21 - v0.1.8.2 P3A C1 ACL Corrective RCA
+
+- Completed a read-only Production catalog RCA for `public.reminder_deliveries`. The table is owned by `postgres`; `service_role` is not owner or superuser, inherits no other role, and has no PUBLIC/other-role grant path. The `postgres` default table ACL for schema `public` grants all eight table privileges to `service_role`, which were materialized as direct ACL entries when C1 created the table. The original `GRANT SELECT, UPDATE` was additive and did not remove those existing privileges.
+- Prepared the additive, table-local `supabase/patches/2026-09-21-v0.1.8.2-reminder-delivery-acl-correction.sql`. It revokes all table privileges from `service_role` and grants back only SELECT / UPDATE; it does not change rows, ownership, default/global privileges, RLS, function ACL, or any other object. The original deployed C1 patch remains unchanged at SHA-256 `81c40c715d6cd52cecc5f4f19835b6612ddafc7daaecdd1aa82d85b6bb6de629`.
+- Expanded the existing C1 pgTAP contract from 63 to 67 assertions for denied TRUNCATE / REFERENCES / TRIGGER / MAINTAIN. Local RED reproduced exactly those four failures; applying the new patch to the local database only produced 67/67 PASS. Bounded human/code review passed with no findings: the transactionally ordered table-local revoke/re-grant is sufficient and default ACLs will not reapply to the existing table. Production was not modified; no deployment, function, secret, Vault, pg_cron, pg_net, Cron, Push, or business-data operation occurred.
+
+# 2026-09-21 - v0.1.8.2 P3A Production C1 Foundation Stopped at ACL Gate
+
+- Verified the canonical clean repository baseline and exact C1 patch SHA-256, then repeated Production catalog preflight against project `ximazjhxvmktpcdbypka`: C1 objects were absent, all required Slice B/Event/member/subscription prerequisites were present, Reminder extensions/secrets were absent, and structural fingerprints were captured without reading business rows.
+- Applied only `supabase/patches/2026-09-21-v0.1.8.2-reminder-delivery.sql` once through `supabase db query --linked --file`. The ledger and atomic claim function were committed; the ledger remained empty; table columns/constraints/trigger/RLS/no-policy/no-Realtime checks passed; the function signature, hardened search path, SECURITY DEFINER, body contract, and service-role-only execute boundary passed; existing Event/push/member fingerprints remained unchanged.
+- P3A stopped because Production granted `service_role` direct INSERT / DELETE / TRUNCATE and additional broad table privileges despite the reviewed SELECT / UPDATE-only contract. No privilege correction, patch rerun, cleanup, function deployment, secret, Vault, pg_cron, pg_net, Cron, Push invocation, test Event, or business-data mutation followed. `send-test-push` remains ACTIVE v3, `send-reminders` remains absent, and `C1_PRODUCTION_FOUNDATION = STOPPED / INVESTIGATION_REQUIRED` pending separate authorization.
+
 # 2026-09-21 - v0.1.8.2 Phase 3 Repository Auth Configuration Preparation
 
 - Added the minimal source-controlled `[functions.send-reminders] verify_jwt = false` configuration while preserving `[functions.send-test-push] verify_jwt = true`. This allows the future scheduler's custom bearer to reach the existing `send-reminders` application-auth boundary without relying on a one-off deployment flag.

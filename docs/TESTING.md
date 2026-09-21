@@ -41,7 +41,25 @@ trailer 是否与 PROJECT_STATE tree diff 一致；tag 只验证目标 commit �
 
 ## v0.1.8 Mobile Push Reminder Acceptance Plan
 
-Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`. Automated verification plus real Desktop Chrome/macOS and iPhone installed PWA Push Infrastructure acceptance passed. Slice 2 architecture / semantics are frozen. Slice A and Slice B are closed. Slice C1 completed implementation, verification, human review, and push but is not in Production. Slice C2 Phase 1 shared sender extraction is `CLOSED / PASS`: automated verification plus Desktop Chrome/macOS and iPhone installed PWA real-device regression passed after deploying only `send-test-push`. Repeated Desktop banners are pre-existing fixed-tag behavior and non-blocking. C2 Phase 2 `send-reminders` core orchestration is implemented locally with automated verification PASS and bounded human/code review PASS with no BLOCKER / MAJOR / MINOR findings. It is ready for commit/push closeout but not deployed; C1 Production objects remain undeployed, Cron, Vault, and real secrets remain unconfigured, Android final Push acceptance remains deferred, and Slice C overall remains open.
+Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`. Automated verification plus real Desktop Chrome/macOS and iPhone installed PWA Push Infrastructure acceptance passed. Slice A and Slice B are closed. P3A applied the exact C1 patch to Production, but the C1 foundation remains stopped because the new table has broad direct `service_role` privileges. Read-only RCA and bounded human/code review are complete; the table-local corrective patch is locally verified, while Production remains uncorrected. Slice C2 Phase 1 and Phase 2 remain `CLOSED / PASS`; `send-reminders` is not deployed, Cron/Vault/real secrets remain unconfigured, Android final Push acceptance remains deferred, and Slice C remains open.
+
+### P3A C1 ACL Corrective RCA — HUMAN REVIEW PASS / PRODUCTION PENDING
+
+- Production read-only catalog evidence classified the source as `DIRECT_OR_DEFAULT_TABLE_GRANT`: owner `postgres` has a schema-`public` default table ACL granting all privileges to `service_role`, and those grants were materialized directly in `reminder_deliveries.relacl`. `service_role` is not owner/superuser, has no inherited roles, and has no PUBLIC or other-role privilege path.
+- Catalog reasoning confirms a table-local `REVOKE ALL PRIVILEGES ... FROM service_role` followed by `GRANT SELECT, UPDATE ... TO service_role` is sufficient. Default privileges affect future object creation and do not reapply to the existing table after the revoke.
+- Added the four missing negative assertions for TRUNCATE, REFERENCES, TRIGGER, and MAINTAIN to the existing C1 pgTAP suite. Before the local correction they failed exactly 4/67; after applying the new corrective patch to the local database only, the suite passed 67/67.
+- Bounded human/code review found no issues in the corrective SQL, full privilege contract, or governance scope. Production was not modified during this RCA/review. The original deployed patch remains unchanged; P3A is not PASS and P3B must not begin.
+
+### P3A Production C1 Foundation — STOPPED / INVESTIGATION_REQUIRED
+
+Production execution and structural verification on 2026-09-21:
+
+- Repository baseline was clean at `7c5c08634e7d689f9df1ae02388a06d02d75f619`; the exact C1 patch SHA-256 matched `81c40c715d6cd52cecc5f4f19835b6612ddafc7daaecdd1aa82d85b6bb6de629`. Linked-project identity matched canonical Production project `ximazjhxvmktpcdbypka`.
+- Read-only preflight confirmed both C1 objects absent, all 14 required columns present, all five Slice B constraints and the schedule trigger present, `touch_updated_at()` present, `pg_cron` / `pg_net` absent, and `REMINDER_CRON_SECRET` absent. Structural fingerprints were captured for Events, Push subscriptions, and Space members.
+- Applied exactly `supabase/patches/2026-09-21-v0.1.8.2-reminder-delivery.sql` once. Postflight confirmed 10/10 expected columns, five expected constraints, UUID primary key, unique `(event_id, subscription_id, due_at)`, zero foreign keys, enabled `touch_updated_at` trigger, RLS enabled, zero policies, no Realtime publication, and zero initial ledger rows.
+- `claim_reminder_delivery(...)` exists once, returns UUID, is SECURITY DEFINER with exact `pg_catalog, pg_temp` search path, matches the reviewed revalidation/idempotency body contract, and is executable by `service_role` but not anon/authenticated.
+- Existing Events, Push subscriptions, and Space members column/constraint/index/RLS-policy/trigger/publication fingerprints matched preflight exactly. `send-test-push` remained ACTIVE v3; `send-reminders`, Reminder secret, pg_cron, and pg_net remained absent.
+- ACL gate failed: effective and direct ACL inspection showed `service_role` has INSERT / DELETE / TRUNCATE plus other broad table privileges, not only SELECT / UPDATE. No correction or cleanup was attempted. P3A must not be marked PASS until a separately authorized least-privilege correction is applied and reverified.
 
 ### Slice 2C2 Phase 2 — send-reminders Core Orchestration
 

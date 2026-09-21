@@ -1,6 +1,6 @@
 begin;
 
-select plan(63);
+select plan(67);
 
 select has_table('public', 'reminder_deliveries', 'reminder delivery ledger exists');
 select has_column('public', 'reminder_deliveries', 'id', 'delivery id exists');
@@ -71,6 +71,10 @@ select ok(has_table_privilege('service_role', 'public.reminder_deliveries', 'SEL
 select ok(not has_table_privilege('service_role', 'public.reminder_deliveries', 'INSERT'), 'service role must use the atomic claim function instead of direct insert');
 select ok(has_table_privilege('service_role', 'public.reminder_deliveries', 'UPDATE'), 'service role can update delivery rows');
 select ok(not has_table_privilege('service_role', 'public.reminder_deliveries', 'DELETE'), 'service role cannot delete durable delivery rows');
+select ok(not has_table_privilege('service_role', 'public.reminder_deliveries', 'TRUNCATE'), 'service role cannot truncate durable delivery rows');
+select ok(not has_table_privilege('service_role', 'public.reminder_deliveries', 'REFERENCES'), 'service role cannot create references to delivery rows');
+select ok(not has_table_privilege('service_role', 'public.reminder_deliveries', 'TRIGGER'), 'service role cannot create triggers on the delivery ledger');
+select ok(not has_table_privilege('service_role', 'public.reminder_deliveries', 'MAINTAIN'), 'service role cannot maintain the delivery ledger');
 
 select has_function(
   'public',
