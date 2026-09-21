@@ -8,15 +8,15 @@
 
 ## Current version
 
-v0.1.8.2 (Due Calculator DST-Gap Performance Correction — IMPLEMENTED / HUMAN REVIEW PENDING)
+v0.1.8.2 (Due Calculator DST-Gap Performance Correction — IMPLEMENTED / HUMAN REVIEW PASS)
 
 ## Current status
 
-Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.8.1 — Push Infrastructure Foundation` 保持 `CLOSED / PASS — Android final acceptance deferred`。`v0.1.8.2` Slice A 与 Slice B 已关闭。Slice C1 Minimal Delivery Ledger + Atomic Claim 已完成 implementation、verification、human review 与 push；其 database changes 尚未部署到 Production。Slice C2 Phase 1 server-only shared Web Push sender extraction 保持 `CLOSED / PASS`。C2 Phase 2 pre-implementation review 发现 due calculator DST-gap fallback 的 CPU blocker；bounded corrective patch 已完成本地实现与自动验证，将同机 Deno 1000-call worst-case 从 `7099.71 ms` 降至 `144.06 ms`，并保持现有 timezone/DST/Reminder/recurrence 输出。该 corrective patch 待 human review；`send-reminders`、candidate scan、Cron、secret 与 Production rollout 仍未开始，Slice C 整体仍未关闭。
+Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.8.1 — Push Infrastructure Foundation` 保持 `CLOSED / PASS — Android final acceptance deferred`。`v0.1.8.2` Slice A 与 Slice B 已关闭。Slice C1 Minimal Delivery Ledger + Atomic Claim 已完成 implementation、verification、human review 与 push；其 database changes 尚未部署到 Production。Slice C2 Phase 1 server-only shared Web Push sender extraction 保持 `CLOSED / PASS`。C2 Phase 2 pre-implementation review 发现 due calculator DST-gap fallback 的 CPU blocker；bounded corrective patch 已完成实现、自动验证与 human review，已将同机 Deno 1000-call worst-case 从 `7099.71 ms` 降至 `144.06 ms`，并保持现有 timezone/DST/Reminder/recurrence 输出；`DUE_CALCULATOR_CPU_BLOCKER = RESOLVED / PASS`。`send-reminders`、candidate scan、Cron、secret 与 Production rollout 仍未开始，Slice C 整体仍未关闭。
 
 ## Latest completed
 
-Completed the local bounded Due Calculator DST-gap performance correction after C2 Phase 2 planning exposed the minute-scan CPU blocker. The existing fixed-point candidates now bracket a proven forward gap and binary-search the same legacy minute probe grid; ordinary time, overlap earlier-instant behavior, first-valid-minute gap behavior, non-zero-millisecond output, Reminder due semantics, and recurrence semantics remain unchanged. Focused timezone/Reminder/recurrence tests passed 38/38; full Node passed 127/127; Deno checks for timezone, due, benchmark, shared Web Push, and `send-test-push` passed; `npm run build` passed. The same-machine 1000-call benchmark improved from Deno `7099.71 ms` / Node `9950.7 ms` to Deno `144.06 ms` / Node `142.47 ms`. The patch is local and awaiting human review. No database, C1, sender behavior, Edge Function, candidate scan, Cron, secret, Production, commit, or push changed; C2 Phase 2 implementation remains not started.
+Completed the bounded Due Calculator DST-gap performance correction after C2 Phase 2 planning exposed the minute-scan CPU blocker. The existing fixed-point candidates now bracket a proven forward gap and binary-search the same legacy minute probe grid; ordinary time, overlap earlier-instant behavior, first-valid-minute gap behavior, non-zero-millisecond output, Reminder due semantics, and recurrence semantics remain unchanged. Focused timezone/Reminder/recurrence tests passed 38/38; full Node passed 127/127; Deno checks for timezone, due, benchmark, shared Web Push, and `send-test-push` passed; `npm run build` passed. The same-machine 1000-call benchmark improved from Deno `7099.71 ms` / Node `9950.7 ms` to Deno `144.06 ms` / Node `142.47 ms`. Human review passed, and corrective commit `edcbdd5` was pushed to `origin/main`. No database, C1, sender behavior, Edge Function, candidate scan, Cron, secret, or Production change was made; C2 Phase 2 implementation remains not started.
 
 ## Deployment
 
@@ -48,7 +48,7 @@ Notes: 现有公网版本继续服务；Slice B Production migration/deployment/
 - v0.1.7.3.3.2 — Frontend Scope Integration（Production Desktop 与 iPhone Standalone PWA recurrence smoke 已通过）
 - v0.1.8 — Mobile Push Reminder（current approved product line；architecture frozen）
 - v0.1.8.1 — Push Infrastructure Foundation（CLOSED / PASS；Desktop + iPhone verified；Android final acceptance deferred）
-- v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（Slice A/B closed；Slice C1 complete/reviewed/pushed but undeployed；Slice C2 Phase 1 CLOSED / PASS；Due Calculator DST-gap correction implemented/verified and awaiting human review；send-reminders/Cron not started；Slice C open）
+- v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（Slice A/B closed；Slice C1 complete/reviewed/pushed but undeployed；Slice C2 Phase 1 CLOSED / PASS；Due Calculator DST-gap correction implemented/verified, human review PASS, and pushed；send-reminders/Cron not started；Slice C open）
 
 ## Last verified
 
@@ -56,7 +56,7 @@ Notes: 现有公网版本继续服务；Slice B Production migration/deployment/
 
 ## Next Action
 
-Human-review the bounded Due Calculator DST-gap performance correction. Do not begin C2 Phase 2 `send-reminders` implementation until this corrective patch is accepted; keep Cron, secrets, and C1 Production migration separately authorized.
+C2 Phase 2 readiness reconfirmation after resolved CPU blocker, then send-reminders implementation if no new blocker is found. Keep Cron, secrets, and C1 Production migration separately authorized.
 
 ## Blockers
 
@@ -91,7 +91,7 @@ Human-review the bounded Due Calculator DST-gap performance correction. Do not b
 - Final Production recurrence smoke passed on Desktop and iPhone Standalone PWA for all four supported occurrence actions. iOS Standalone PWA cannot actively refresh itself due to an iOS system limitation; this is not an application defect.
 - `supabase/config.toml` uses a stable local `project_id` and configures a local 8-digit Mailpit OTP template plus the port-5175 redirect URL. The local Docker/Supabase stack was recovered without reset or volume deletion; C1 pgTAP 63/63 and all database regressions 161/161 passed.
 - The engine uses native `Intl` IANA timezone formatting/conversion and rejects invalid rule shapes at both client and database boundaries. It returns an explicit error instead of a partial result after 500 candidates.
-- C2 Phase 2 pre-implementation review identified a reproducible DST-gap CPU blocker in the legacy 2161-point minute fallback. The local corrective patch preserves the existing minute-grid outputs while using the fixed-point candidates to bracket and binary-search proven forward gaps. Same-machine 1000-call Deno improved from `7099.71 ms` to `144.06 ms`; C2 Phase 2 remains not started until human review accepts the patch.
+- C2 Phase 2 pre-implementation review identified a reproducible DST-gap CPU blocker in the legacy 2161-point minute fallback. The corrective patch preserves the existing minute-grid outputs while using the fixed-point candidates to bracket and binary-search proven forward gaps. Same-machine 1000-call Deno improved from `7099.71 ms` to `144.06 ms`; human review passed and `DUE_CALCULATOR_CPU_BLOCKER = RESOLVED / PASS`; C2 Phase 2 remains not started.
 - v0.1.8.2 supersedes the earlier `events.reminder_offset_minutes` proposal. One event-level nullable `events.reminder_kind` supports `timed_at_start`, `timed_10m_before`, `timed_30m_before`, `timed_1h_before`, `timed_previous_day_same_time`, `all_day_same_day_08`, and `all_day_previous_day_20`; `null` means no reminder. Multiple reminders, JSON reminder config, arbitrary custom minutes, and per-user reminder preferences remain outside this version.
 - `events.time_zone` is the nullable canonical IANA timezone of the Event. New events detect it from the creating browser/PWA with standard `Intl` capability; later device timezone changes never silently rewrite an existing Event. Historical ordinary timezone remains null rather than guessed, while historical recurring sources may initialize it from their already-authoritative rule timezone. Recurring Event `time_zone` must equal `recurrence_rule.time_zone`, so there is only one authoritative timezone.
 - New UI-created timed events default to `timed_10m_before`; new UI-created all-day events default to `all_day_same_day_08`. Database defaults and all historical events remain `reminder_kind = null`; historical ordinary Event timezone is not guessed or bulk-backfilled.
@@ -111,4 +111,4 @@ Human-review the bounded Due Calculator DST-gap performance correction. Do not b
 
 ## Handoff Prompt
 
-v0.1.8.2 Due Calculator DST-gap performance correction is implemented and automatically verified locally, with existing timezone/DST/Reminder/recurrence outputs unchanged and the same-machine Deno 1000-call worst-case reduced from `7099.71 ms` to `144.06 ms`. Human review this corrective patch next. C2 Phase 2 `send-reminders` implementation has not started; do not configure Cron/secrets, deploy, or apply the C1 Production migration yet.
+v0.1.8.2 Due Calculator DST-gap performance correction is implemented, automatically verified, human-reviewed PASS, and pushed as `edcbdd5`, with existing timezone/DST/Reminder/recurrence outputs unchanged and the same-machine Deno 1000-call worst-case reduced from `7099.71 ms` to `144.06 ms`. Next: reconfirm C2 Phase 2 readiness after the resolved CPU blocker, then implement `send-reminders` only if no new blocker is found. Do not configure Cron/secrets, deploy, or apply the C1 Production migration yet.
