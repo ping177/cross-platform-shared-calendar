@@ -41,7 +41,19 @@ trailer 是否与 PROJECT_STATE tree diff 一致；tag 只验证目标 commit �
 
 ## v0.1.8 Mobile Push Reminder Acceptance Plan
 
-Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`. Automated verification plus real Desktop Chrome/macOS and iPhone installed PWA Push Infrastructure acceptance passed. Slice A and Slice B are closed. P3A C1 Production foundation is `CLOSED / PASS` after applying the reviewed table-local ACL correction and completing bounded final postflight. Slice C2 Phase 1 and Phase 2 remain `CLOSED / PASS`; `send-reminders` is not deployed, Cron/Vault/real secrets remain unconfigured, Android final Push acceptance remains deferred, and Slice C remains open.
+Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`. Automated verification plus real Desktop Chrome/macOS and iPhone installed PWA Push Infrastructure acceptance passed. Slice A and Slice B are closed. P3A C1 Production foundation is `CLOSED / PASS` after applying the reviewed table-local ACL correction and completing bounded final postflight. P3B `send-reminders` Production manual E2E is `CLOSED / PASS`: `verify_jwt=false`, application auth, no-due safety, iPhone real notification, Mac post-Sleep/Focus regression, idempotency, and ledger postflight passed. Cron remains OFF; Vault, pg_cron, pg_net, Android final Push acceptance, and Slice C closeout remain open/separate.
+
+### P3B send-reminders Production Manual E2E — CLOSED / PASS
+
+Production acceptance on 2026-09-22:
+
+- `send-reminders` is ACTIVE with `verify_jwt=false`; `send-test-push` remains ACTIVE v4 / `verify_jwt=true`. The Edge `REMINDER_CRON_SECRET` is confirmed by name only; its value was never exposed.
+- Missing and invalid Authorization returned HTTP 401 before database work. The authorized no-due invocation returned HTTP 200 with `due_eligible = 0`, `claimed = 0`, `sent = 0`, and `failed = 0`.
+- The disposable personal timed Event used `timed_10m_before`; one recipient had two active subscriptions. The first due-window invocation returned HTTP 200 with `due_eligible = 1`, `recipients = 1`, `active_subscriptions = 2`, `delivery_tasks = 2`, `claimed = 2`, `sent = 2`, `failed = 0`, and `finalize_failures = 0`.
+- iPhone received the real Reminder; title/body and click behavior passed. Mac backend delivery succeeded, while visible presentation was initially suppressed by Sleep/Focus. After disabling that state, the existing Mac `send-test-push` regression passed.
+- The repeat invocation returned `claim_rejected = 2`, `claimed = 0`, `sent = 0`, `failed = 0`, and no duplicate notification.
+- Ledger postflight confirmed two finalized `sent` rows, zero remaining `claimed`, zero `failed`, zero duplicate `(event_id, subscription_id, due_at)` identities, zero unexpected subscription disablement, and zero unexpected ledger rows. The disposable Event is not present in the current aggregate check; no ledger rows were deleted.
+- Cron remains OFF; Vault Reminder secret, pg_cron, and pg_net remain absent. P3C scheduler activation requires separate authorization.
 
 ### P3A Production C1 Foundation Final Closeout — CLOSED / PASS
 

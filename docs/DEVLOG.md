@@ -1,5 +1,14 @@
 # Development Log
 
+# 2026-09-22 - v0.1.8.2 P3B send-reminders Production Manual E2E Closeout
+
+- Completed the authorized P3B Production rollout on canonical project `ximazjhxvmktpcdbypka` with `send-reminders` ACTIVE and source-controlled `verify_jwt = false`; `send-test-push` remained ACTIVE v4 and reviewed-equivalent. The Edge `REMINDER_CRON_SECRET` was confirmed by name only; its value was never read or logged.
+- Missing and invalid Bearer checks returned HTTP 401 before database work. The authorized no-due invocation returned HTTP 200 with zero eligible, claimed, sent, and failed work and no side effects.
+- One disposable ordinary personal timed Event using `timed_10m_before` produced one recipient, two active subscriptions, two delivery tasks, two claims, and two sent results with zero failures or finalize errors. The iPhone received the real system notification with correct title/body/click behavior.
+- Mac backend delivery also succeeded; visible presentation was initially suppressed while macOS Sleep/Focus was active. After that state was cleared, the existing `send-test-push` regression passed. This does not indicate a `send-reminders` delivery regression.
+- A repeat invocation in the same due/grace window returned two claim rejections, zero new claims, zero sends, and no duplicate notification. Ledger postflight confirmed two finalized `sent` rows, zero remaining `claimed`, zero `failed`, zero duplicate identities, zero unexpected subscription disablement, and zero unexpected ledger rows.
+- P3B is `CLOSED / PASS`. No disposable Event cleanup was performed through SQL and no ledger rows were deleted. Cron remains OFF; Vault, pg_cron, and pg_net remain untouched; P3C scheduler activation requires separate authorization.
+
 # 2026-09-21 - v0.1.8.2 P3A C1 Production Foundation Final Closeout
 
 - Applied exactly the reviewed `supabase/patches/2026-09-21-v0.1.8.2-reminder-delivery-acl-correction.sql` once to canonical Production project `ximazjhxvmktpcdbypka`; neither the original C1 patch nor any broad migration command was rerun. The transaction completed successfully and changed only the existing `public.reminder_deliveries` table ACL.

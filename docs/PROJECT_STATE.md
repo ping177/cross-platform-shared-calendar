@@ -8,15 +8,15 @@
 
 ## Current version
 
-v0.1.8.2 (Phase 3 P3A C1 Production foundation — CLOSED / PASS)
+v0.1.8.2 (Phase 3 P3B send-reminders manual Production E2E — CLOSED / PASS; P3C not started)
 
 ## Current status
 
-Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.8.1 — Push Infrastructure Foundation` 保持 `CLOSED / PASS — Android final acceptance deferred`。`v0.1.8.2` Slice A 与 Slice B 已关闭。P3A 已完成 C1 Production foundation：原始 C1 patch 成功创建空 ledger 与 atomic claim function；发现 `postgres`/`public` default table ACL 物化了过宽 `service_role` 权限后，已应用 reviewed table-local corrective patch。最终 `service_role` 仅有 SELECT / UPDATE，其他六项 table privileges 均 denied；anon/authenticated 无直接访问；结构、RLS、function contract、zero-row 与 existing-schema invariance 全部 PASS，因此 `C1_PRODUCTION_FOUNDATION = PASS`。Slice C2 Phase 1 与 C2 Phase 2 保持 `CLOSED / PASS`；`send-reminders` 尚未部署，`REMINDER_CRON_SECRET`、Vault、pg_cron、pg_net 与 Reminder Cron 均未配置或变更，Slice C 整体仍未关闭。
+Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.8.1 — Push Infrastructure Foundation` 保持 `CLOSED / PASS — Android final acceptance deferred`。`v0.1.8.2` Slice A 与 Slice B 已关闭。P3A 已完成 C1 Production foundation：原始 C1 patch 成功创建空 ledger；经 ACL RCA 与 reviewed table-local corrective patch 后，`service_role` 仅有 SELECT / UPDATE，anon/authenticated 无直接访问，结构、RLS、function contract 与 existing-schema invariance 全部 PASS，因此 `C1_PRODUCTION_FOUNDATION = PASS`。P3B `send-reminders` 已部署为 ACTIVE 且 `verify_jwt=false`；缺失/无效 Bearer、授权 no-due、真实 personal Reminder E2E、iPhone 系统通知、Mac 恢复后的 send-test-push、幂等重复调用与 ledger postflight 全部 PASS。Edge `REMINDER_CRON_SECRET` 仅确认名称存在；Vault、pg_cron、pg_net 与 Reminder Cron 仍未配置或变更，Slice C 整体仍保持 OPEN。
 
 ## Latest completed
 
-Applied only the reviewed `supabase/patches/2026-09-21-v0.1.8.2-reminder-delivery-acl-correction.sql` to canonical Production. Actual catalog checks now show `service_role` SELECT / UPDATE only, with INSERT / DELETE / TRUNCATE / REFERENCES / TRIGGER / MAINTAIN denied; anon/authenticated remain fully denied. The ledger remains empty, all C1 table/function/RLS checks pass, and Events/Push subscriptions/Space members fingerprints are unchanged. `send-test-push` remains ACTIVE v3; `send-reminders`, Reminder secrets, Vault/Cron, pg_cron, and pg_net remain absent or untouched. P3A is closed and passed without invoking the claim function or sending Push.
+Completed the bounded P3B Production acceptance on canonical project `ximazjhxvmktpcdbypka`: `send-reminders` is ACTIVE with `verify_jwt=false`, application Bearer checks reject missing/invalid credentials, the authorized no-due run completed with zero work, and one disposable personal timed Reminder delivered to two active subscriptions. The iPhone received the real notification; Mac backend delivery succeeded while Sleep/Focus initially suppressed visible presentation, and send-test-push passed after that state was cleared. The repeat invocation produced two claim rejections with no duplicate delivery. Ledger postflight has two finalized `sent` rows, zero claimed/failed rows, zero duplicate identities, zero unexpected subscription disablement, and zero unexpected rows. C1 remains PASS; Cron is OFF; the Edge secret is confirmed by name only; Vault, pg_cron, and pg_net remain untouched.
 
 ## Deployment
 
@@ -24,7 +24,7 @@ Status: public_deployed
 Public URL: https://cross-platform-shared-calendar.vercel.app/
 Provider: Vercel
 Backend: Supabase Free
-Notes: 现有公网版本继续服务；Slice B Production migration/deployment/acceptance 已完成。P3A C1 additive patch 与 reviewed ACL correction 均已应用并通过最终 postflight，`C1_PRODUCTION_FOUNDATION = PASS`。仅 `send-test-push` 部署了 C2 Phase 1 sender extraction；C2 Phase 2 `send-reminders` 仍未部署。Cron、Vault、pg_cron、pg_net 与真实 Reminder secret 均未配置或变更；Android Push lifecycle 仍按 validation strategy 延后。
+Notes: 现有公网版本继续服务；Slice B Production migration/deployment/acceptance 与 P3A C1 foundation 均已完成。C2 Phase 1 `send-test-push` 保持 ACTIVE v4 reviewed-equivalent；P3B `send-reminders` 已完成部署与手工 E2E 验收。Cron 保持 OFF，Vault、pg_cron、pg_net 与 recurring Reminder scheduler 尚未配置；Android final Push acceptance 仍按 validation strategy 延后。
 
 ## Version Index
 
@@ -48,15 +48,15 @@ Notes: 现有公网版本继续服务；Slice B Production migration/deployment/
 - v0.1.7.3.3.2 — Frontend Scope Integration（Production Desktop 与 iPhone Standalone PWA recurrence smoke 已通过）
 - v0.1.8 — Mobile Push Reminder（current approved product line；architecture frozen）
 - v0.1.8.1 — Push Infrastructure Foundation（CLOSED / PASS；Desktop + iPhone verified；Android final acceptance deferred）
-- v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（Slice A/B closed；P3A C1 Production foundation CLOSED / PASS after reviewed ACL correction；Slice C2 Phase 1/2 CLOSED / PASS；send-reminders undeployed；Cron not started；Slice C open）
+- v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（Slice A/B closed；P3A C1 foundation CLOSED / PASS；P3B send-reminders manual Production E2E CLOSED / PASS；P3C scheduler not started；Slice C open）
 
 ## Last verified
 
-2026-09-21
+2026-09-22
 
 ## Next Action
 
-Separately authorize P3B `send-reminders` Production deployment with Cron OFF, followed by the bounded manual E2E sequence. Do not configure Cron or begin recurring Reminder work without later authorization.
+Separately authorize P3C scheduler activation only: configure the Vault Reminder secret, enable `pg_cron` / `pg_net`, create one once-per-minute scheduler, verify scheduled runs, and retain an unschedule-first rollback rule. Do not begin recurring Reminder work or Android final acceptance without separate authorization.
 
 ## Blockers
 
@@ -105,11 +105,11 @@ Separately authorize P3B `send-reminders` Production deployment with Cron OFF, f
 - Slice 2 ordinary-delivery idempotency is `(event_id, subscription_id, due_at)`. It does not add `occurrence_key`, pre-generate pending rows, mutate ledger rows when an Event schedule changes, or automatically retry provider failures. Recurring occurrence identity remains a Slice 3 decision.
 - Slice C1 implementation, verification, human review, Production deployment, ACL correction, and final postflight are complete. The original patch created the empty durable ledger and atomic claim function; RCA isolated its ACL gate failure to the `postgres`/`public` default table ACL, and the reviewed table-local correction reduced `service_role` to SELECT / UPDATE only. `C1_PRODUCTION_FOUNDATION = PASS`. Audit rows intentionally have no Event/user/subscription foreign keys. The schedule marker must still round-trip at full PostgreSQL `timestamptz` precision.
 - Slice C2 Phase 1 extracts Web Push sending into a server-only shared module with a closed safe result union and keeps `send-test-push` externally unchanged. Automated verification and Desktop/iPhone real-device regression passed after deploying only `send-test-push`. Repeated Desktop banners with the fixed `shared-calendar-test` tag are pre-existing/non-blocking; tag/renotify behavior remains unchanged. The later C2 scan must abort before claims/sends when enabled ordinary Events exceed 1000, and must sort eligible tasks by `due_at` ascending before capping at 50; no queue is added.
-- Slice C2 Phase 2 `send-reminders` is implemented locally and passed bounded human/code review with no BLOCKER / MAJOR / MINOR findings. It uses stable 100-row keyset pages plus an explicit 1001st-row probe, aborts overflow before recipient/claim/send work, preserves the raw C1 schedule marker, resolves current memberships and active subscriptions in batches, selects at most 50 tasks deterministically, uses five workers, and rechecks the 95-second budget immediately before claim acquisition. It adds no retry, lease, queue, recurring delivery, schema, or dependency and is not deployed.
+- Slice C2 Phase 2 `send-reminders` passed bounded human/code review with no BLOCKER / MAJOR / MINOR findings and completed P3B Production manual acceptance. It uses stable 100-row keyset pages plus an explicit 1001st-row probe, aborts overflow before recipient/claim/send work, preserves the raw C1 schedule marker, resolves current memberships and active subscriptions in batches, selects at most 50 tasks deterministically, uses five workers, and rechecks the 95-second budget immediately before claim acquisition. It adds no retry, lease, queue, recurring delivery, schema, or dependency. P3B delivered one iPhone Reminder, finalized two ledger rows, and passed idempotency; Mac visible delivery was initially suppressed by Sleep/Focus and later send-test-push regression passed after that state was cleared.
 - A newly created/edited/enabled reminder whose derived `due_at` is already past is skipped without immediate Push or compensation. Normal target precision is about one minute; a roughly ten-minute grace window applies only to infrastructure delay. Web Push remains best-effort and is not an Alarm Clock.
 - v0.1.8 excludes Email reminder delivery, SMS, Bark, multiple reminders, arbitrary custom minutes, snooze, sound customization, notification inbox/history, native alarms, and per-user reminder preferences. Email OTP authentication remains unchanged.
 - `v0.1.9 Shared Tasks`, `v0.1.10 Shared Lists`, `v0.1.11 Important Dates / Anniversaries`, and `v0.1.12 Tags / Color = Who` are roadmap directions only, not frozen architectures. UI/UX overhaul remains deferred pending a Design System.
 
 ## Handoff Prompt
 
-v0.1.8.2 P3A C1 Production foundation is `CLOSED / PASS`. The original patch created the empty ledger and atomic claim function; the default-ACL blocker was diagnosed as `DIRECT_OR_DEFAULT_TABLE_GRANT`; and the reviewed table-local correction was applied successfully. Final effective ACL is `service_role` SELECT / UPDATE only, with anon/authenticated denied; C1 structure/function and existing-schema invariance pass, and ledger rows remain zero. `send-reminders` and Reminder secrets/Vault/Cron remain absent. Next: separately authorize P3B deployment with Cron OFF and bounded manual E2E; stop before Cron.
+v0.1.8.2 P3B send-reminders manual Production E2E is `CLOSED / PASS`. P3A C1 remains PASS with `service_role` SELECT / UPDATE only and anon/authenticated denied. `send-reminders` is ACTIVE with source-controlled `verify_jwt=false`; missing/invalid Bearer checks, no-due invocation, real iPhone Reminder, Mac post-Sleep/Focus send-test-push regression, idempotency repeat, and two-row finalized ledger postflight all passed. The disposable Event is not present in the current aggregate check; no ledger rows were deleted. Cron remains OFF; the Edge secret is confirmed by name only; Vault, pg_cron, and pg_net remain untouched. Next: separately authorize P3C scheduler activation with Vault → pg_cron/pg_net → once-per-minute scheduler → scheduled-run verification → unschedule-first rollback.
