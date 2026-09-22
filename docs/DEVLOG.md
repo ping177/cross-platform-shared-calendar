@@ -1,5 +1,12 @@
 # Development Log
 
+# 2026-09-22 - v0.1.9 Slice 1 Task Persistence and Authorization
+
+- Implemented the local-only `public.tasks` foundation in both `supabase/schema.sql` and the additive `2026-09-22-v0.1.9-shared-tasks-slice1.sql` patch. The table contains exactly the nine frozen fields, deterministic title/status constraints, date-only `due_on`, shared timestamp handling, immutable `space_id` / `created_by`, direct authenticated CRUD grants, four member-scoped RLS policies, `REPLICA IDENTITY FULL`, and existing-publication Realtime membership. No Task CRUD RPC was added.
+- Verified the actual local Supabase target is PostgreSQL 17.6 and selected the FK-native member-leave solution: `(space_id, assigned_to_user_id)` references `space_members(space_id, user_id)` with column-specific `ON DELETE SET NULL (assigned_to_user_id)`. Tests prove the Task and `space_id` survive while assignment becomes shared. The one list index is `(space_id, status, due_on, created_at, id)` to match the frozen stable order.
+- Added focused pgTAP coverage for schema, constraints, owner/non-owner member creation, member/shared/cross-Space assignment, member removal, collaborative CRUD, former/non-member isolation, creator forgery, immutable identity, grants, and Realtime metadata, plus a bootstrap/patch source-contract test. TDD RED failed on the absent table/patch; GREEN passed 58/58 focused pgTAP, 257/257 full database regression, 14/14 schema-contract tests, and `git diff --check`.
+- No frontend, `App.tsx`, Event, Reminder, recurrence, Multi-space, dependency, Production, Vercel, deployment, commit, or push change was made. Slice 2 remains not started and requires explicit approval after evidence review.
+
 # 2026-09-22 - v0.1.9 Shared Tasks MVP Docs-Only Scope Freeze
 
 - Froze `v0.1.9 — Shared Tasks MVP` as `SCOPE FROZEN / IMPLEMENTATION NOT STARTED`. Added the canonical specification covering Task/Event semantics, the one-table data contract, collaborative permission model, Realtime reuse, Calendar/Reminder boundaries, complexity budget, minimal UI, risks, deferred scope, acceptance criteria, and three bounded implementation slices.

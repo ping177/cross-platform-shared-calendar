@@ -2,9 +2,16 @@
 
 ## v0.1.9 Shared Tasks MVP Acceptance Plan
 
-Status: `SCOPE FROZEN / IMPLEMENTATION NOT STARTED`. The canonical behavior and boundaries are defined in [v0.1.9 Shared Tasks Spec](./v0.1.9_SHARED_TASKS_SPEC.md). No v0.1.9 test claim is PASS until the corresponding separately approved implementation slice exists and the checks below have run.
+Status: `SCOPE FROZEN / SLICE 1 IMPLEMENTED / LOCAL VERIFICATION PASS / SLICE 2 NOT STARTED`. The canonical behavior and boundaries are defined in [v0.1.9 Shared Tasks Spec](./v0.1.9_SHARED_TASKS_SPEC.md). Slice 1 claims are local-only; Production and frontend acceptance remain pending separately authorized slices.
 
-### Slice 1 — Task persistence and authorization
+### Slice 1 — Task persistence and authorization — LOCAL PASS
+
+- Focused Task pgTAP: 58/58 PASS.
+- Full database regression: 257/257 PASS across seven pgTAP files.
+- Relevant schema-contract tests: 14/14 PASS.
+- `git diff --check`: PASS.
+- Verified local target: PostgreSQL 17.6. The composite assignee FK with column-specific `ON DELETE SET NULL (assigned_to_user_id)` preserved the Task and `space_id` while clearing assignment.
+- Scope audit: no frontend, Event, Reminder, recurrence, Multi-space, dependency, Production, or deployment change.
 
 - Verify the exact `tasks` fields and one-table complexity budget, required/default/nullability rules, title canonical-value constraint, `open` / `completed` status check, date-only `due_on`, timestamps, and one reasonable list-oriented index.
 - Verify `space_id` and `created_by` are immutable; authenticated creation cannot forge another creator.
@@ -31,6 +38,7 @@ Status: `SCOPE FROZEN / IMPLEMENTATION NOT STARTED`. The canonical behavior and 
 ### Slice 3 — Production acceptance and closeout
 
 - Requires separate Production/deployment approval after Slice 1 and Slice 2 acceptance.
+- Before applying the reviewed patch, verify the Production Supabase PostgreSQL environment supports the column-specific `ON DELETE SET NULL (assigned_to_user_id)` behavior used by the composite assignee foreign key. This rollout preflight is not a Slice 1 blocker.
 - Preflight the canonical Production prerequisites and apply only the reviewed incremental Task patch.
 - Postflight the Task table, constraints, index, immutable identity, RLS/grants, Realtime publication, replica identity, and unchanged Event/Reminder fingerprints.
 - Deploy only the compatible reviewed frontend.

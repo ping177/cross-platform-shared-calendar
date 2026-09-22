@@ -98,6 +98,27 @@ create table if not exists public.events (
   )
 );
 
+create table if not exists public.tasks (
+  id uuid primary key default gen_random_uuid(),
+  space_id uuid not null references public.spaces(id) on delete cascade,
+  created_by uuid not null default auth.uid() references public.profiles(id) on delete cascade,
+  assigned_to_user_id uuid,
+  title text not null,
+  status text not null default 'open',
+  due_on date,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint tasks_assigned_member_fkey
+    foreign key (space_id, assigned_to_user_id)
+    references public.space_members(space_id, user_id)
+    on delete set null (assigned_to_user_id),
+  constraint tasks_title_format_check check (
+    char_length(title) between 1 and 200
+    and title = regexp_replace(title, '^[[:space:]]+|[[:space:]]+$', '', 'g')
+  ),
+  constraint tasks_status_check check (status in ('open', 'completed'))
+);
+
 create table if not exists public.push_subscriptions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -165,9 +186,11 @@ create index if not exists events_owner_idx on public.events (owner_user_id);
 create index if not exists events_series_starts_idx on public.events (series_id, starts_at);
 create index if not exists events_parent_event_id_idx on public.events (parent_event_id) where parent_event_id is not null;
 create index if not exists events_space_recurrence_until_idx on public.events (space_id, recurrence_until) where recurrence_until is not null;
+create index if not exists tasks_space_status_due_created_id_idx on public.tasks (space_id, status, due_on, created_at, id);
 create index if not exists push_subscriptions_active_user_idx on public.push_subscriptions (user_id) where disabled_at is null;
 
 alter table public.events replica identity full;
+alter table public.tasks replica identity full;
 
 create or replace function public.touch_updated_at()
 returns trigger
@@ -176,6 +199,24 @@ set search_path = public
 as $$
 begin
   new.updated_at = clock_timestamp();
+  return new;
+end;
+$$;
+
+create or replace function public.validate_task_identity()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  if new.space_id is distinct from old.space_id then
+    raise exception 'Task space_id is immutable';
+  end if;
+
+  if new.created_by is distinct from old.created_by then
+    raise exception 'Task created_by is immutable';
+  end if;
+
   return new;
 end;
 $$;
@@ -217,6 +258,16 @@ create trigger event_occurrence_exceptions_touch_updated_at before update on pub
 drop trigger if exists events_touch_updated_at on public.events;
 create trigger events_touch_updated_at
 before update on public.events
+for each row execute function public.touch_updated_at();
+
+drop trigger if exists tasks_validate_identity on public.tasks;
+create trigger tasks_validate_identity
+before update on public.tasks
+for each row execute function public.validate_task_identity();
+
+drop trigger if exists tasks_touch_updated_at on public.tasks;
+create trigger tasks_touch_updated_at
+before update on public.tasks
 for each row execute function public.touch_updated_at();
 
 drop trigger if exists push_subscriptions_touch_updated_at on public.push_subscriptions;
@@ -940,6 +991,7 @@ alter table public.profiles enable row level security;
 alter table public.spaces enable row level security;
 alter table public.space_members enable row level security;
 alter table public.events enable row level security;
+alter table public.tasks enable row level security;
 alter table public.event_occurrence_exceptions enable row level security;
 alter table public.push_subscriptions enable row level security;
 alter table public.reminder_deliveries enable row level security;
@@ -954,6 +1006,20 @@ begin
       and tablename = 'events'
   ) then
     alter publication supabase_realtime add table public.events;
+  end if;
+end;
+$$;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'tasks'
+  ) then
+    alter publication supabase_realtime add table public.tasks;
   end if;
 end;
 $$;
@@ -1012,6 +1078,30 @@ create policy "events_delete_member"
 on public.events for delete
 using (public.can_manage_event(space_id, scope, owner_user_id));
 
+drop policy if exists "tasks_select_member" on public.tasks;
+create policy "tasks_select_member"
+on public.tasks for select
+using (public.is_space_member(space_id));
+
+drop policy if exists "tasks_insert_member" on public.tasks;
+create policy "tasks_insert_member"
+on public.tasks for insert
+with check (
+  public.is_space_member(space_id)
+  and created_by = auth.uid()
+);
+
+drop policy if exists "tasks_update_member" on public.tasks;
+create policy "tasks_update_member"
+on public.tasks for update
+using (public.is_space_member(space_id))
+with check (public.is_space_member(space_id));
+
+drop policy if exists "tasks_delete_member" on public.tasks;
+create policy "tasks_delete_member"
+on public.tasks for delete
+using (public.is_space_member(space_id));
+
 create policy "event_occurrence_exceptions_select_event_member"
 on public.event_occurrence_exceptions for select
 using (exists (select 1 from public.events event where event.id = event_occurrence_exceptions.event_id and public.is_space_member(event.space_id)));
@@ -1032,6 +1122,7 @@ grant select, update on table public.profiles to authenticated;
 grant select, update on table public.spaces to authenticated;
 grant select on table public.space_members to authenticated;
 grant select, insert, update, delete on table public.events to authenticated;
+grant select, insert, update, delete on table public.tasks to authenticated;
 grant select, insert, update, delete on table public.event_occurrence_exceptions to authenticated;
 revoke all on table public.push_subscriptions from anon, authenticated;
 grant select, update on table public.push_subscriptions to service_role;

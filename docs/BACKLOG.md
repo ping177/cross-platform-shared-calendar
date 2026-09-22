@@ -12,7 +12,7 @@
 
 ### v0.1.8 — Mobile Push Reminder
 
-Status: `v0.1.8 — Mobile Push Reminder` is `CLOSED / PASS`. Slice 1, ordinary Reminder Slice A/B/C, Slice 3 Recurrence Reminder Integration, and final cross-platform acceptance are complete. Mac/iPhone Production acceptance passed; Android Studio Emulator subscription, test Push, ordinary automatic Reminder, sound, and notification-shade delivery passed. Physical Android heads-up presentation was not validated and is non-blocking. v0.1.9 scope is now frozen separately; no implementation has started.
+Status: `v0.1.8 — Mobile Push Reminder` is `CLOSED / PASS`. Slice 1, ordinary Reminder Slice A/B/C, Slice 3 Recurrence Reminder Integration, and final cross-platform acceptance are complete. Mac/iPhone Production acceptance passed; Android Studio Emulator subscription, test Push, ordinary automatic Reminder, sound, and notification-shade delivery passed. Physical Android heads-up presentation was not validated and is non-blocking. v0.1.9 Slice 1 is implemented and verified locally only; this does not change the latest deployed capability.
 
 In scope:
 
@@ -64,20 +64,20 @@ Future compatibility:
 
 ### v0.1.9 — Shared Tasks MVP
 
-Status: `SCOPE FROZEN / IMPLEMENTATION NOT STARTED`. Implementation requires explicit approval after docs-freeze review. Canonical scope: [v0.1.9 Shared Tasks Spec](./v0.1.9_SHARED_TASKS_SPEC.md).
+Status: `SCOPE FROZEN / SLICE 1 IMPLEMENTED / LOCAL VERIFICATION PASS / SLICE 2 NOT STARTED`. Review Slice 1 evidence and obtain explicit approval before Slice 2. Canonical scope: [v0.1.9 Shared Tasks Spec](./v0.1.9_SHARED_TASKS_SPEC.md).
 
 In scope:
 
 - One Space-scoped `tasks` product table with creator attribution, same-Space member/shared assignment, title, `open` / `completed`, optional date-only `due_on`, and timestamps.
 - Collaborative household permissions: all current Space members can view, edit, reassign, complete, reopen, and delete Tasks; RLS and database invariants remain authoritative.
-- Assigned-member departure converts the assignment to shared, using the smallest target-compatible mechanism chosen during Slice 1.
+- Assigned-member departure converts the assignment to shared through the locally verified composite FK with column-specific `ON DELETE SET NULL (assigned_to_user_id)`.
 - Existing Supabase/PostgREST CRUD and Space-filtered Realtime patterns.
 - A minimal `Calendar / Tasks` module switch, open/completed sections, create/edit/delete confirmation, complete/reopen, assignment, and optional due date.
 - Decision `MULTISPACE_NOT_REQUIRED_FOR_V019`; explicit `space_id` preserves future compatibility without implementing Multi-space.
 
 Implementation slices:
 
-1. **Task persistence and authorization:** schema/incremental patch, constraints, assignment/member-leave semantics, immutable identity, RLS/grants, Realtime/replica identity, and focused database tests. No UI.
+1. **Task persistence and authorization — IMPLEMENTED / LOCAL VERIFICATION PASS:** schema/incremental patch, constraints, assignment/member-leave semantics, immutable identity, RLS/grants, Realtime/replica identity, and focused database tests. No UI or Production rollout.
 2. **Minimal CRUD, UI, and Realtime:** frontend Task model, bounded Tasks module, CRUD, completion/reopen, assignment, due date, deterministic grouping/order, and authenticated two-session validation.
 3. **Production acceptance and closeout:** only after separate approval, apply reviewed artifacts and run bounded Production CRUD/Realtime/RLS/mobile acceptance. Fix only concrete acceptance defects.
 

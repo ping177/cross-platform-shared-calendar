@@ -12,11 +12,11 @@ v0.1.9 — Shared Tasks MVP
 
 ## Current status
 
-`SCOPE FROZEN / IMPLEMENTATION NOT STARTED`. v0.1.9 Shared Tasks MVP 的产品语义、数据契约、权限、Realtime、Calendar/Reminder 边界、`MULTISPACE_NOT_REQUIRED_FOR_V019`、complexity budget、最小 UI 与三个 bounded slices 已冻结。尚未修改 application source、Supabase schema/RLS、依赖、Production 或部署；进入 Slice 1 前需要明确 implementation approval。
+`SCOPE FROZEN / SLICE 1 IMPLEMENTED / LOCAL VERIFICATION PASS / SLICE 2 NOT STARTED`. v0.1.9 Task persistence、same-Space assignment、member-removal-to-shared、immutable identity、RLS CRUD、Realtime publication 与 bootstrap/incremental SQL 已在本地实现并通过验证。Frontend、Slice 2、Production 与部署均未开始。
 
 ## Latest completed
 
-Completed the docs-only v0.1.9 Shared Tasks MVP scope freeze. The latest completed and deployed product capability remains `v0.1.8 — Mobile Push Reminder = CLOSED / PASS`: Mac/iPhone Production Push and automatic Reminder passed; Android Studio Emulator subscription, test Push, ordinary automatic Reminder, sound, and notification-shade delivery passed. This scope freeze does not reopen or modify the accepted v0.1.8 Reminder architecture.
+Completed `v0.1.9 Slice 1 — Task Persistence and Authorization` locally with 58/58 focused pgTAP, 257/257 full database regression, and 14/14 schema-contract tests passing. The latest completed and deployed product capability remains `v0.1.8 — Mobile Push Reminder = CLOSED / PASS`: no v0.1.9 artifact has been applied to Production, and the accepted v0.1.8 Reminder architecture remains unchanged.
 
 ## Deployment
 
@@ -49,7 +49,7 @@ Notes: 当前公网版本包含已验收的 ordinary 与 recurring Reminder。`s
 - v0.1.8 — Mobile Push Reminder（CLOSED / PASS）
 - v0.1.8.1 — Push Infrastructure Foundation（CLOSED / PASS；Desktop + iPhone + Android Studio Emulator verified）
 - v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（Slice A/B/C CLOSED / PASS；P3A C1、P3B manual E2E、P3C automatic scheduler E2E complete）
-- v0.1.9 — Shared Tasks MVP（Scope Frozen / Implementation Not Started）
+- v0.1.9 — Shared Tasks MVP（Scope Frozen；Slice 1 Implemented / Local Verification Pass；Slice 2 Not Started）
 
 ## Last verified
 
@@ -57,7 +57,7 @@ Notes: 当前公网版本包含已验收的 ordinary 与 recurring Reminder。`s
 
 ## Next Action
 
-Enter `v0.1.9 Slice 1 — Task persistence and authorization` only after explicit implementation approval following docs-freeze review. Do not begin Slice 1 from this docs-only freeze commit.
+Review Slice 1 evidence and obtain explicit approval before `v0.1.9 Slice 2 — Minimal CRUD, UI, and Realtime`.
 
 ## Blockers
 
@@ -75,7 +75,8 @@ Enter `v0.1.9 Slice 1 — Task persistence and authorization` only after explici
 - README is the project entrypoint; detailed smoke checklists and production validation records live in `docs/TESTING.md`.
 - Android compatibility smoke test is complete for Xiaomi 14 / Android 16 / Chrome on mobile network.
 - v0.1 is a Web/PWA, not native iOS / Android.
-- v0.1.9 canonical scope is `docs/v0.1.9_SHARED_TASKS_SPEC.md`; status is `SCOPE FROZEN / IMPLEMENTATION NOT STARTED`.
+- v0.1.9 canonical scope is `docs/v0.1.9_SHARED_TASKS_SPEC.md`; status is `SCOPE FROZEN / SLICE 1 IMPLEMENTED / LOCAL VERIFICATION PASS / SLICE 2 NOT STARTED`.
+- Slice 1 uses direct PostgREST CRUD with four member-scoped RLS policies, no Task RPC, one exact-order list index, and a PostgreSQL 17.6-verified composite FK whose column-specific delete action clears only `assigned_to_user_id` when a member leaves.
 - A Task is Space-scoped work that remains to be completed. Assignment is responsibility, not access control; null assignee means shared. All current Space members collaborate, while RLS/database invariants remain authoritative.
 - Task status is only `open` / `completed`; `due_on` is optional date-only metadata. v0.1.9 has no completion audit, Task Reminder, recurrence, Task/Event dual persistence, Multi-space implementation, or UI overhaul.
 - Multi-space decision is `MULTISPACE_NOT_REQUIRED_FOR_V019`. Task persistence must always use explicit `space_id` and introduce no new one-space-only assumption.
@@ -117,8 +118,8 @@ Enter `v0.1.9 Slice 1 — Task persistence and authorization` only after explici
 - Future consideration — Web/PWA Push delivery precision: semantic Reminder due calculation remains exact, while once-per-minute `pg_cron` + async `pg_net` + Web Push may occasionally add sub-minute to approximately one-minute visible delivery latency. The observed recurring example had semantic due 11:45 and claim/finalize around 11:46; this is not a due-calculation defect. v0.1.8 adds no `-60s` early-dispatch allowance and keeps ordinary/recurring timing under the same semantic rule. Revisit only if real-use feedback shows material UX impact or a future native iOS/Android app adopts OS-level local notification scheduling.
 - Future consideration — physical Android heads-up presentation: functional delivery passed on Android Studio Emulator, including sound and notification-shade presence, but no heads-up banner was observed and physical hardware presentation was not validated. This may be casually revalidated on a physical Android device later; it is non-blocking and does not reopen v0.1.8.
 - v0.1.8 excludes Email reminder delivery, SMS, Bark, multiple reminders, arbitrary custom minutes, snooze, sound customization, notification inbox/history, native alarms, and per-user reminder preferences. Email OTP authentication remains unchanged.
-- `v0.1.9 Shared Tasks` scope is frozen but implementation has not started. `v0.1.10 Shared Lists`, `v0.1.11 Important Dates / Anniversaries`, and `v0.1.12 Tags / Color = Who` remain roadmap directions only, not frozen architectures. UI/UX overhaul remains deferred pending a Design System.
+- `v0.1.9 Shared Tasks` Slice 1 is implemented and verified locally; Slice 2 and Production rollout have not started. `v0.1.10 Shared Lists`, `v0.1.11 Important Dates / Anniversaries`, and `v0.1.12 Tags / Color = Who` remain roadmap directions only, not frozen architectures. UI/UX overhaul remains deferred pending a Design System.
 
 ## Handoff Prompt
 
-v0.1.9 Shared Tasks MVP is `SCOPE FROZEN / IMPLEMENTATION NOT STARTED`; canonical scope is `docs/v0.1.9_SHARED_TASKS_SPEC.md` and Multi-space is not required for this version. v0.1.8 remains `CLOSED / PASS` and its Reminder architecture is unchanged. Next: after explicit approval, begin only `v0.1.9 Slice 1 — Task persistence and authorization`; do not begin UI, Production rollout, deployment, or deferred Task features.
+v0.1.9 Shared Tasks MVP is `SCOPE FROZEN / SLICE 1 IMPLEMENTED / LOCAL VERIFICATION PASS / SLICE 2 NOT STARTED`; canonical scope is `docs/v0.1.9_SHARED_TASKS_SPEC.md` and Multi-space is not required for this version. v0.1.8 remains the latest deployed `CLOSED / PASS` capability and its Reminder architecture is unchanged. Next: review Slice 1 evidence and obtain explicit approval before Slice 2; do not begin UI, Production rollout, deployment, or deferred Task features.
