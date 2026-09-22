@@ -12,7 +12,7 @@
 
 ### v0.1.8 — Mobile Push Reminder
 
-Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`; Slice 2 ordinary Reminder Slice A/B/C is `CLOSED / PASS` in Production. Slice 3 Recurrence Reminder Integration is implemented, fully verified locally, and final human/code review is `PASS`; it is not deployed. The Production ordinary scheduler, Vault, Cron, secrets, and deployed Functions remain unchanged. Overall v0.1.8 stays OPEN until Slice 3 rollout and final cross-platform/Android acceptance are completed under separate authorization.
+Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`; Slice 2 ordinary Reminder Slice A/B/C and Slice 3 Recurrence Reminder Integration are `CLOSED / PASS` in Production. The Slice 3 DB patch, `send-reminders` v2, frontend rollout, scheduler health, recurring override/delete/split semantics, ordinary regression, and real iPhone/Mac automatic Push have passed acceptance. Overall v0.1.8 stays OPEN only for the final cross-platform / Android acceptance under separate authorization.
 
 In scope:
 
@@ -46,8 +46,8 @@ Implementation slices:
 
 1. **Push Infrastructure Foundation — CLOSED / PASS; Android final acceptance deferred:** Push-only Service Worker, explicit permission flow, `user + installation` subscription persistence, multi-device lifecycle, logout/invalid-subscription handling, and an authenticated current-installation test-push path are implemented. Desktop Chrome/macOS and iPhone installed PWA validation passed. The initial Desktop subscription was abnormal/stale despite FCM `201`; unsubscribe/resubscribe restored delivery. Android Push lifecycle acceptance is deferred to final v0.1.8 cross-platform acceptance and does not block Slice 2. This slice does not implement scheduler, event reminder persistence, or recurrence delivery.
 2. **Reminder Persistence + Ordinary Event Delivery — CLOSED / PASS:** Slice A/B/C, Production foundation, manual E2E, and automatic once-per-minute scheduler E2E are complete.
-3. **Recurrence Integration — LOCAL IMPLEMENTATION + REVIEW PASS / NOT DEPLOYED:** canonical bounded occurrence projection, override/delete/split/current-and-future semantics, Reminder/timezone inheritance, all-day/timezone/DST coverage, stale projection rejection, and recurrence-aware no-duplicate identity are implemented and reviewed. The long-duration projection blocker found during review has a bounded correction that passed re-review without changing the canonical recurrence engine. Production rollout remains separately authorized.
-4. **Production Validation + Canonical Closeout:** Production Desktop, iPhone installed PWA, and Android installed PWA acceptance; Android permission, subscription, foreground/background/closed-app delivery, notification click, and logout lifecycle; late-delivery and subscription lifecycle evidence; final canonical docs closeout.
+3. **Recurrence Integration — CLOSED / PASS:** canonical bounded occurrence projection, override/delete/split/current-and-future semantics, Reminder/timezone inheritance, all-day/timezone/DST coverage, stale projection rejection, and recurrence-aware no-duplicate identity are deployed and accepted in Production. The bounded long-duration correction preserved the canonical recurrence engine. Normal recurring delivery, only-this override and delete, this-and-future split, scheduler health, and ordinary Reminder regression all passed without duplicate or stuck claims.
+4. **Final Cross-Platform / Android Acceptance — OPEN:** complete only the deferred Android installed-PWA permission, subscription, foreground/background/closed-app delivery, notification click, and logout lifecycle checks, then perform the final v0.1.8 canonical closeout. Desktop/macOS and iPhone Slice 3 Production acceptance are already complete and must not be repeated as a new Slice 3 rollout cycle.
 
 Idempotency freeze:
 

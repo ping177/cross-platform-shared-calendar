@@ -41,7 +41,20 @@ trailer 是否与 PROJECT_STATE tree diff 一致；tag 只验证目标 commit �
 
 ## v0.1.8 Mobile Push Reminder Acceptance Plan
 
-Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`; `v0.1.8.2` ordinary Slice A/B/C is `CLOSED / PASS` in Production. Slice 3 Recurrence Reminder Integration is implemented locally, all automated local checks pass, and final human/code review is `PASS`; deployment remains pending. Production ordinary Reminder delivery/scheduler is live and unchanged. Overall v0.1.8 remains open through Slice 3 rollout and final cross-platform/Android acceptance.
+Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`; `v0.1.8.2` ordinary Slice A/B/C and Slice 3 Recurrence Reminder Integration are `CLOSED / PASS` in Production. Overall v0.1.8 remains open only for final cross-platform / Android acceptance.
+
+### Slice 3 Recurring Reminder Production Acceptance — CLOSED / PASS
+
+Production rollout and acceptance on 2026-09-22:
+
+- Applied only the reviewed Slice 3 forward DB patch once. Postflight passed for nullable `reminder_deliveries.occurrence_date`, recurrence-aware `UNIQUE NULLS NOT DISTINCT` identity, preserved ordinary ledger rows, RLS/no-policy/no-Realtime state, service-role SELECT/UPDATE-only table access, and the exact service-role-only hardened recurring claim with no SQL recurrence expansion. Historical recurring Events were not auto-enabled.
+- Deployed only `send-reminders` v2 with source-controlled `verify_jwt=false`; `send-test-push` remained v4. The deployed frontend contains recurring source Reminder controls. The unique once-per-minute scheduler stayed active and healthy without Vault/secret/Cron changes.
+- Normal recurring automatic E2E passed: semantic start 11:55 and due 11:45 were exact; iPhone and Mac received the automatic Push; two subscription-specific rows finalized as `sent`; repeated work did not duplicate. The approximately one-minute visible delay was traced to asynchronous scheduler/pg_net/Web Push processing, not due calculation.
+- ONLY-THIS override acceptance passed with inherited/read-only 10-minute Reminder, effective moved start/title, automatic Push, original scheduled occurrence identity, and no duplicate delivery. ONLY-THIS delete acceptance passed immediately without waiting: one unambiguous delete exception, zero canonical occurrence, zero Reminder candidate/effective due/ledger/claim/send, preserved neighboring occurrences, and structural stale-snapshot claim rejection.
+- THIS-AND-FUTURE split acceptance passed: exactly one child source inherited Reminder/timezone/rule and logical identity, received a fresh marker, and projected the split boundary/future while the parent cutoff excluded them. There were no duplicate logical dates, no catch-up ledger, no per-occurrence Reminder field, and the prior override/delete semantics remained intact.
+- Final health: `send-reminders` ACTIVE v2; one active scheduler; 10/10 recent Cron runs and pg_net HTTP 200 responses healthy; zero stuck claims, duplicate delivery identities, split-created ledger rows, or unexpected subscription disables. The prior ordinary Reminder regression remains PASS.
+- `ALLDAY_PRODUCTION_REALTIME_WAIT_NOT_REQUIRED`: the deployed contracts and focused 26/26 automated verification remain authoritative for recurring all-day same-day 08:00, previous-day 20:00, canonical timezone, DST gap/overlap, a non-1-hour transition, and a full date-line/day transition. No next-day real Push wait was required.
+- Future consideration — Web/PWA Push delivery precision: semantic due remains exact; once-per-minute `pg_cron` + async `pg_net` + Web Push may occasionally add sub-minute to approximately one-minute visible latency. v0.1.8 adds no `-60s` early-dispatch allowance and keeps ordinary/recurring timing under the same semantic rule. Revisit only for material real-use UX impact or future native OS-level local notification scheduling.
 
 ### P3C Automatic Scheduler E2E — CLOSED / PASS
 

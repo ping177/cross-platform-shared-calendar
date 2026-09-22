@@ -6,11 +6,11 @@ Production URL: https://cross-platform-shared-calendar.vercel.app/
 
 ## 当前阶段
 
-- 当前产品线：`v0.1.8 — Mobile Push Reminder`。`v0.1.8.2` ordinary Reminder 的 Slice A/B/C 已 `CLOSED / PASS`；Slice 3 Recurrence Reminder Integration 已完成本地实现、自动化验证与 final human/code review PASS，尚未部署。整体 `v0.1.8` 仍为 OPEN。
+- 当前产品线：`v0.1.8 — Mobile Push Reminder`。`v0.1.8.2` ordinary Reminder 的 Slice A/B/C 与 Slice 3 Recurrence Reminder Integration 均已完成 Production 验收并 `CLOSED / PASS`。整体 `v0.1.8` 仍为 OPEN，仅剩最终 cross-platform / Android acceptance。
 - Slice 1 已实现并验证 Push-only Service Worker、明确用户操作触发的 notification permission flow、`user + installation` subscription persistence/lifecycle，以及带安全 upstream diagnostics 的 authenticated test-push Edge Function。
 - Desktop Chrome/macOS 与 iPhone installed PWA 的真实 Push Infrastructure 验收已通过。Android installed PWA 的完整 Push 生命周期验收延后到整个 v0.1.8 的最终 cross-platform acceptance；这是 validation strategy，不阻塞 Slice 2。
 - Slice 2 已冻结一个 nullable `events.reminder_kind`、per-event canonical IANA `events.time_zone`、新建 timed 默认提前 10 分钟、新建 all-day 默认当天 08:00、历史事件不自动开启提醒，以及普通事件的 past-due / grace / edit-recalculation 规则。
-- Slice B persistence/UI 与 Slice C ordinary delivery/scheduler 已通过 Production acceptance。Slice 3 在本地复用 canonical recurrence projection，加入 recurrence-aware ledger identity、独立原子 claim、override/delete/split/current-and-future 语义、bounded occurrence window 与 recurring source UI；本次未修改 Production、Vault、Cron、secrets 或已部署 Function。完整状态见 [Decisions](./docs/DECISIONS.md)、[Backlog](./docs/BACKLOG.md) 与 [Testing](./docs/TESTING.md)。
+- Slice B persistence/UI、Slice C ordinary delivery/scheduler 与 Slice 3 recurrence delivery 均已通过 Production acceptance。Slice 3 复用 canonical recurrence projection，并已验收 recurrence-aware ledger identity、独立原子 claim、override/delete/split/current-and-future 语义、bounded occurrence window 与 recurring source UI；DB patch、`send-reminders` v2 与前端均已部署，scheduler、ordinary Reminder 回归及真实 iPhone/Mac 自动 Push 均通过。完整状态见 [Decisions](./docs/DECISIONS.md)、[Backlog](./docs/BACKLOG.md) 与 [Testing](./docs/TESTING.md)。
 
 ## v0.1 功能范围
 
