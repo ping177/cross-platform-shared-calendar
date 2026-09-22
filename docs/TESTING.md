@@ -41,7 +41,23 @@ trailer 是否与 PROJECT_STATE tree diff 一致；tag 只验证目标 commit �
 
 ## v0.1.8 Mobile Push Reminder Acceptance Plan
 
-Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`; `v0.1.8.2` ordinary Slice A/B/C and Slice 3 Recurrence Reminder Integration are `CLOSED / PASS` in Production. Overall v0.1.8 remains open only for final cross-platform / Android acceptance.
+Status: `v0.1.8 — Mobile Push Reminder` is `CLOSED / PASS`. Push Infrastructure, ordinary Reminder Slice A/B/C, Slice 3 Recurrence Reminder Integration, and final cross-platform acceptance are complete.
+
+### Final Cross-Platform / Android Acceptance — CLOSED / PASS
+
+- Mac Production Push and automatic Reminder: PASS.
+- iPhone Production Push and automatic Reminder: PASS.
+- Android acceptance was performed on Android Studio Emulator, not physical Android hardware.
+- Android notification permission/subscription: PASS.
+- Android `send-test-push` delivery: PASS.
+- Android ordinary automatic Event Reminder delivery: PASS.
+- Android audible notification: PASS.
+- Android notification-shade delivery: PASS; pulling down the shade showed the delivered notifications, so no missing delivery was found.
+- Android heads-up/top-screen banner: not observed. This is classified as emulator/Chrome notification presentation behavior, not a Push or Reminder delivery failure. Physical Android hardware heads-up presentation was not validated and is non-blocking.
+- Notification-click/open PASS is not recorded because the supplied final evidence did not independently confirm it.
+- Final read-only Production health review: project Healthy; displayed recent request success 100%; zero displayed Postgres/Edge Function warnings or errors. The accepted `send-reminders` v2, `send-test-push` v4, exactly one active scheduler, healthy recent Cron/pg_net HTTP results, no stuck claims, no unexpected subscription disablement, and no duplicate delivery identities remain the canonical state. No Production mutation was required.
+- Existing Future Consideration remains unchanged: semantic due is exact; once-per-minute `pg_cron` + async `pg_net` + Web Push may add sub-minute to approximately one-minute visible latency; v0.1.8 adds no `-60s` early-dispatch allowance. Revisit only for material real-use feedback or future native OS-level local scheduling.
+- Optional future consideration: casually revalidate heads-up presentation on physical Android hardware if convenient. This does not reopen v0.1.8.
 
 ### Slice 3 Recurring Reminder Production Acceptance — CLOSED / PASS
 

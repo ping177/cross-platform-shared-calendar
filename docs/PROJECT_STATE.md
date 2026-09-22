@@ -8,15 +8,15 @@
 
 ## Current version
 
-v0.1.8 (Mobile Push Reminder — Slice 3 Production CLOSED / PASS; final cross-platform / Android acceptance pending)
+v0.1.8 (Mobile Push Reminder — CLOSED / PASS)
 
 ## Current status
 
-Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.8.1` Push Infrastructure、`v0.1.8.2` ordinary Reminder Slice A/B/C、以及 Slice 3 Recurrence Reminder Integration 均为 `CLOSED / PASS`。Slice 3 的精确 DB patch、`send-reminders` v2 与当前 frontend 已部署；normal recurring automatic E2E、iPhone/Mac Push、only-this override/delete、this-and-future split、occurrence identity/idempotency、ordinary regression 与 scheduler health 均通过。Android final acceptance 仍延期，因此整体 `v0.1.8` 保持 OPEN，仅余 final cross-platform / Android acceptance。
+`v0.1.8 — Mobile Push Reminder` is `CLOSED / PASS`. Push Infrastructure、ordinary Reminder Slice A/B/C、Slice 3 Recurrence Reminder Integration 与 final cross-platform acceptance 均已完成。Mac 与 iPhone Production Push / automatic Reminder 通过；Android Studio Emulator 的 notification permission/subscription、`send-test-push`、ordinary automatic Reminder、声音与 notification-shade delivery 通过。Android heads-up banner 未观察到，实体 Android 硬件 heads-up presentation 未验证，但不构成 release blocker。
 
 ## Latest completed
 
-Completed the bounded Slice 3 Production rollout and acceptance. The reviewed DB patch applied once with full postflight; `send-reminders` is ACTIVE v2 with `verify_jwt=false`; the deployed frontend exposes recurring Reminder controls. Normal recurring automatic delivery passed on iPhone and Mac, only-this override delivered automatically, only-this delete produced zero canonical/Reminder projection and no ledger row, and this-and-future split preserved Reminder/timezone/marker/identity and exception semantics without catch-up delivery. The scheduler remains exactly one healthy job with no stuck claims, duplicate identities, or unexpected subscription disablement.
+Completed final v0.1.8 cross-platform acceptance and release closeout. Android functional evidence is emulator-based, not physical-device evidence: subscription, test Push, ordinary automatic Reminder, audible presentation, and notification-shade delivery passed; heads-up presentation was not observed. The Production project remains Healthy, recent requests show 100% success with no Postgres/Edge Function warnings or errors, and the previously accepted single scheduler / no-stuck / no-duplicate state remains current with no Production mutation required.
 
 ## Deployment
 
@@ -24,7 +24,7 @@ Status: public_deployed
 Public URL: https://cross-platform-shared-calendar.vercel.app/
 Provider: Vercel
 Backend: Supabase Free
-Notes: 当前公网版本已包含 Slice 3 recurring Reminder UI；精确 Slice 3 DB patch 已部署。`send-test-push` 保持 ACTIVE v4 reviewed-equivalent；`send-reminders` 为 ACTIVE v2 / `verify_jwt=false`。Vault secret 未读取或轮换，现有 `pg_cron`、`pg_net` 与唯一 once-per-minute scheduler 保持健康。Slice 3 Production 为 `CLOSED / PASS`；Android final Push acceptance 仍延期。
+Notes: 当前公网版本包含已验收的 ordinary 与 recurring Reminder。`send-test-push` 保持 ACTIVE v4 reviewed-equivalent；`send-reminders` 为 ACTIVE v2 / `verify_jwt=false`。Vault/secret/Cron 未修改，唯一 once-per-minute scheduler 保持健康。Mac、iPhone 与 Android Studio Emulator 的 final cross-platform acceptance 已完成；v0.1.8 为 `CLOSED / PASS`。
 
 ## Version Index
 
@@ -46,8 +46,8 @@ Notes: 当前公网版本已包含 Slice 3 recurring Reminder UI；精确 Slice 
 - v0.1.7.3.2 — Frontend RPC Integration（only-this authenticated smoke 已通过）
 - v0.1.7.3.3.1 — Split RPC Correctness Patch（final split / future-delete semantics 已验证）
 - v0.1.7.3.3.2 — Frontend Scope Integration（Production Desktop 与 iPhone Standalone PWA recurrence smoke 已通过）
-- v0.1.8 — Mobile Push Reminder（current approved product line；architecture frozen）
-- v0.1.8.1 — Push Infrastructure Foundation（CLOSED / PASS；Desktop + iPhone verified；Android final acceptance deferred）
+- v0.1.8 — Mobile Push Reminder（CLOSED / PASS）
+- v0.1.8.1 — Push Infrastructure Foundation（CLOSED / PASS；Desktop + iPhone + Android Studio Emulator verified）
 - v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（Slice A/B/C CLOSED / PASS；P3A C1、P3B manual E2E、P3C automatic scheduler E2E complete）
 
 ## Last verified
@@ -56,7 +56,7 @@ Notes: 当前公网版本已包含 Slice 3 recurring Reminder UI；精确 Slice 
 
 ## Next Action
 
-Perform final v0.1.8 cross-platform / Android acceptance under separate authorization. Do not start v0.1.9 or invent its scope before v0.1.8 is `CLOSED / PASS`.
+Define / confirm v0.1.9 scope before implementation. Do not begin implementation until that scope is separately reviewed and approved.
 
 ## Blockers
 
@@ -98,7 +98,7 @@ Perform final v0.1.8 cross-platform / Android acceptance under separate authoriz
 - Timed-to-all-day conversion maps a non-null timed reminder to `all_day_same_day_08`; all-day-to-timed maps a non-null all-day reminder to `timed_10m_before`; null remains null and the UI must show the resulting option. Multi-day reminders anchor only to the start and ignore `ends_at`.
 - v0.1.8.1 Push Infrastructure is closed and passed on Desktop Chrome/macOS and iPhone installed PWA. `push_subscriptions` uses RPC-only authenticated browser writes, `send-test-push` owns server-side VAPID delivery, and the private key remains only in Supabase secrets. Safe diagnostics expose only upstream `status`, `delivered`, hostname-only `provider`, and `gone`. `@mmmike/web-push@1.3.0` remains an exact function-level dependency; no root/browser dependency was added.
 - The initial Desktop Chrome subscription was abnormal/stale: FCM accepted the send (`201`, `delivered = true`) but no notification appeared. Closing notifications, unsubscribing, and creating a fresh subscription restored Desktop test-push delivery. For similar Push symptoms, try retry, unsubscribe/resubscribe, and browser/PWA restart before deeper RCA.
-- Standard Web Push is the delivery channel. The Push Service Worker handles Push only and must not introduce offline caching. Desktop and iPhone Slice 1 acceptance passed; Android permission, subscription, foreground/background/closed-app delivery, notification click, and logout lifecycle are deferred together to final v0.1.8 cross-platform acceptance. This is a validation strategy, not a blocker.
+- Standard Web Push is the delivery channel. The Push Service Worker handles Push only and must not introduce offline caching. Desktop/macOS and iPhone acceptance passed. Android Studio Emulator permission/subscription, test Push, ordinary automatic Reminder, audible presentation, and notification-shade delivery passed; the supplied evidence does not establish physical-device heads-up behavior, and no notification-click PASS is asserted beyond the evidence provided.
 - Push subscriptions bind to `user + installation`, never to a Space, and one user may retain multiple active device/browser subscriptions. This persistence model remains compatible with a future multi-space schema without implementing multi-space in v0.1.8.
 - shared event reminders resolve current active Space members at send time; personal event reminders resolve only the current `owner_user_id`. A former member must not receive a delivery.
 - v0.1.8 uses one active once-per-minute Supabase Cron + Edge Function sender. Slice 2 ordinary Event delivery and Slice 3 recurring delivery are closed in Production. Slice 3 dynamically projects recurring occurrences through canonical recurrence/exception semantics within a bounded timezone-aware window and does not materialize a future horizon.
@@ -110,9 +110,10 @@ Perform final v0.1.8 cross-platform / Android acceptance under separate authoriz
 - P3C enabled only Vault, `pg_cron`, and `pg_net`, then created exactly one active once-per-minute scheduler whose stored command performs the `REMINDER_CRON_SECRET` Vault lookup at execution time. Automatic no-due and real iPhone/Mac Reminder delivery passed without manual invocation. Two subscription-specific ledger rows finalized as `sent`; repeated scheduler runs created no duplicate row or send. The canonical failure containment is to unschedule `send-reminders-every-minute` first, before diagnosis.
 - A newly created/edited/enabled reminder whose derived `due_at` is already past is skipped without immediate Push or compensation. Normal target precision is about one minute; a roughly ten-minute grace window applies only to infrastructure delay. Web Push remains best-effort and is not an Alarm Clock.
 - Future consideration — Web/PWA Push delivery precision: semantic Reminder due calculation remains exact, while once-per-minute `pg_cron` + async `pg_net` + Web Push may occasionally add sub-minute to approximately one-minute visible delivery latency. The observed recurring example had semantic due 11:45 and claim/finalize around 11:46; this is not a due-calculation defect. v0.1.8 adds no `-60s` early-dispatch allowance and keeps ordinary/recurring timing under the same semantic rule. Revisit only if real-use feedback shows material UX impact or a future native iOS/Android app adopts OS-level local notification scheduling.
+- Future consideration — physical Android heads-up presentation: functional delivery passed on Android Studio Emulator, including sound and notification-shade presence, but no heads-up banner was observed and physical hardware presentation was not validated. This may be casually revalidated on a physical Android device later; it is non-blocking and does not reopen v0.1.8.
 - v0.1.8 excludes Email reminder delivery, SMS, Bark, multiple reminders, arbitrary custom minutes, snooze, sound customization, notification inbox/history, native alarms, and per-user reminder preferences. Email OTP authentication remains unchanged.
 - `v0.1.9 Shared Tasks`, `v0.1.10 Shared Lists`, `v0.1.11 Important Dates / Anniversaries`, and `v0.1.12 Tags / Color = Who` are roadmap directions only, not frozen architectures. UI/UX overhaul remains deferred pending a Design System.
 
 ## Handoff Prompt
 
-v0.1.8 remains OPEN only for final cross-platform / Android acceptance. `v0.1.8.2` ordinary Slice A/B/C and Slice 3 Recurrence Reminder Integration are `CLOSED / PASS` in Production. Slice 3 deployed the reviewed DB patch, `send-reminders` v2, and current frontend; normal recurring automatic delivery, iPhone/Mac Push, only-this override/delete, this-and-future split, all-day automated coverage, identity/idempotency, ordinary regression, and scheduler health passed. Semantic due remains exact; the observed approximately one-minute Web/PWA delivery latency is a non-blocking scheduler/pg_net/Web Push characteristic with no early-dispatch change. Next: separately authorize final v0.1.8 cross-platform / Android acceptance; do not start v0.1.9 yet.
+v0.1.8 is `CLOSED / PASS`. Mac and iPhone Production Push / automatic Reminder passed; Android Studio Emulator subscription, test Push, ordinary automatic Reminder, audible notification, and notification-shade delivery passed. Heads-up presentation was not observed and was not validated on physical Android hardware; this is non-blocking. Ordinary and recurring delivery, recurrence mutation semantics, idempotency, scheduler health, and exact semantic due remain accepted. Next: define / confirm v0.1.9 scope before implementation; no v0.1.9 implementation has started.

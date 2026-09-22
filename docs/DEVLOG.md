@@ -1,5 +1,12 @@
 # Development Log
 
+# 2026-09-22 - v0.1.8 Final Cross-Platform Acceptance + Release Closeout
+
+- Closed `v0.1.8 — Mobile Push Reminder` as `CLOSED / PASS`. Mac and iPhone Production Push / automatic Reminder acceptance were already PASS; Android final functional acceptance completed on Android Studio Emulator.
+- Android emulator evidence passed for notification permission/subscription, `send-test-push`, ordinary automatic Event Reminder, audible notification, and presence in the Android notification shade. A heads-up/top-screen banner was not observed. This evidence is emulator-based, not physical Android hardware evidence; physical-device heads-up presentation remains an optional future revalidation and does not reopen v0.1.8. Notification-click PASS is not asserted because it was not independently confirmed in the supplied completion evidence.
+- Final read-only health review found the Supabase Production project Healthy, 100% request success over the displayed recent window, and zero displayed Postgres or Edge Function warnings/errors. The already accepted `send-reminders` v2, `send-test-push` v4, one active scheduler, healthy recent Cron/HTTP results, zero stuck claims, zero duplicate delivery identities, and zero unexpected subscription disablement remain the canonical closeout state. No Production mutation, Function invocation, scheduler/Vault/secret change, business-code change, or new acceptance harness was performed.
+- Retained the Web/PWA delivery-precision future consideration without changing semantic due, adding early dispatch, or redesigning the scheduler. Next action is to define / confirm v0.1.9 scope before implementation; this closeout does not define or implement v0.1.9.
+
 # 2026-09-22 - v0.1.8 Slice 3 Production Acceptance + Governance Closeout
 
 - Completed the bounded Slice 3 Production rollout. Applied only `supabase/patches/2026-09-22-v0.1.8-slice3-recurrence-reminders.sql` once; postflight confirmed nullable `occurrence_date`, `NULLS NOT DISTINCT` recurring identity, preserved ordinary ledger rows, RLS/ACL boundaries, the service-role-only hardened recurring claim, canonical Event timezone constraint, and split-marker inheritance. Deployed only `send-reminders` v2 with `verify_jwt=false`; the existing single once-per-minute scheduler, Vault secret, and `send-test-push` v4 remained unchanged.

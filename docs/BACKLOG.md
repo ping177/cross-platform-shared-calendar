@@ -8,11 +8,11 @@
 
 - Complete two-session Email OTP recurrence Realtime and supported-browser DST-zone coverage; this is not a v0.1.8 product-line blocker.
 
-## Next Approved Product Slice
+## Latest Completed Product Slice
 
 ### v0.1.8 — Mobile Push Reminder
 
-Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`; Slice 2 ordinary Reminder Slice A/B/C and Slice 3 Recurrence Reminder Integration are `CLOSED / PASS` in Production. The Slice 3 DB patch, `send-reminders` v2, frontend rollout, scheduler health, recurring override/delete/split semantics, ordinary regression, and real iPhone/Mac automatic Push have passed acceptance. Overall v0.1.8 stays OPEN only for the final cross-platform / Android acceptance under separate authorization.
+Status: `v0.1.8 — Mobile Push Reminder` is `CLOSED / PASS`. Slice 1, ordinary Reminder Slice A/B/C, Slice 3 Recurrence Reminder Integration, and final cross-platform acceptance are complete. Mac/iPhone Production acceptance passed; Android Studio Emulator subscription, test Push, ordinary automatic Reminder, sound, and notification-shade delivery passed. Physical Android heads-up presentation was not validated and is non-blocking. No v0.1.9 implementation is approved until its scope is separately defined and confirmed.
 
 In scope:
 
@@ -44,10 +44,10 @@ Explicitly out of scope:
 
 Implementation slices:
 
-1. **Push Infrastructure Foundation — CLOSED / PASS; Android final acceptance deferred:** Push-only Service Worker, explicit permission flow, `user + installation` subscription persistence, multi-device lifecycle, logout/invalid-subscription handling, and an authenticated current-installation test-push path are implemented. Desktop Chrome/macOS and iPhone installed PWA validation passed. The initial Desktop subscription was abnormal/stale despite FCM `201`; unsubscribe/resubscribe restored delivery. Android Push lifecycle acceptance is deferred to final v0.1.8 cross-platform acceptance and does not block Slice 2. This slice does not implement scheduler, event reminder persistence, or recurrence delivery.
+1. **Push Infrastructure Foundation — CLOSED / PASS:** Push-only Service Worker, explicit permission flow, `user + installation` subscription persistence, multi-device lifecycle, logout/invalid-subscription handling, and an authenticated current-installation test-push path are implemented. Desktop Chrome/macOS and iPhone installed PWA validation passed. Android Studio Emulator permission/subscription and test Push passed; physical-device heads-up presentation was not validated. The initial Desktop subscription was abnormal/stale despite FCM `201`; unsubscribe/resubscribe restored delivery. This slice does not implement scheduler, event reminder persistence, or recurrence delivery.
 2. **Reminder Persistence + Ordinary Event Delivery — CLOSED / PASS:** Slice A/B/C, Production foundation, manual E2E, and automatic once-per-minute scheduler E2E are complete.
 3. **Recurrence Integration — CLOSED / PASS:** canonical bounded occurrence projection, override/delete/split/current-and-future semantics, Reminder/timezone inheritance, all-day/timezone/DST coverage, stale projection rejection, and recurrence-aware no-duplicate identity are deployed and accepted in Production. The bounded long-duration correction preserved the canonical recurrence engine. Normal recurring delivery, only-this override and delete, this-and-future split, scheduler health, and ordinary Reminder regression all passed without duplicate or stuck claims.
-4. **Final Cross-Platform / Android Acceptance — OPEN:** complete only the deferred Android installed-PWA permission, subscription, foreground/background/closed-app delivery, notification click, and logout lifecycle checks, then perform the final v0.1.8 canonical closeout. Desktop/macOS and iPhone Slice 3 Production acceptance are already complete and must not be repeated as a new Slice 3 rollout cycle.
+4. **Final Cross-Platform / Android Acceptance — CLOSED / PASS:** Mac and iPhone Production Push / automatic Reminder passed. Android Studio Emulator subscription, `send-test-push`, ordinary automatic Reminder, sound, and notification-shade delivery passed. Heads-up presentation was not observed or validated on physical Android hardware; this is non-blocking. The supplied evidence does not independently establish notification-click PASS, so none is claimed.
 
 Idempotency freeze:
 
