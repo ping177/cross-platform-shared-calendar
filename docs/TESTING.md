@@ -41,7 +41,19 @@ trailer 是否与 PROJECT_STATE tree diff 一致；tag 只验证目标 commit �
 
 ## v0.1.8 Mobile Push Reminder Acceptance Plan
 
-Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`. Automated verification plus real Desktop Chrome/macOS and iPhone installed PWA Push Infrastructure acceptance passed. Slice A and Slice B are closed. P3A C1 Production foundation is `CLOSED / PASS` after applying the reviewed table-local ACL correction and completing bounded final postflight. P3B `send-reminders` Production manual E2E is `CLOSED / PASS`: `verify_jwt=false`, application auth, no-due safety, iPhone real notification, Mac post-Sleep/Focus regression, idempotency, and ledger postflight passed. Cron remains OFF; Vault, pg_cron, pg_net, Android final Push acceptance, and Slice C closeout remain open/separate.
+Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`. Automated verification plus real Desktop Chrome/macOS and iPhone installed PWA Push Infrastructure acceptance passed. `v0.1.8.2` Slice A/B/C are `CLOSED / PASS`. P3A C1 Production foundation, P3B `send-reminders` manual E2E, and P3C automatic scheduler E2E all passed. Production now has one Vault Reminder secret by name, enabled `pg_cron` / `pg_net`, and exactly one active once-per-minute scheduler. Automatic no-due and real iPhone/Mac Reminder delivery passed without manual invocation. Overall v0.1.8 remains open for Slice 3 recurrence integration and later final cross-platform/Android acceptance.
+
+### P3C Automatic Scheduler E2E — CLOSED / PASS
+
+Production acceptance on 2026-09-22:
+
+- Confirmed exactly one Vault `REMINDER_CRON_SECRET` by name without retrieving its value. Enabled only `pg_cron` in `pg_catalog` and `pg_net` in `extensions`; `cron.schedule`, `cron.unschedule`, and `net.http_post` are available.
+- Created exactly one active `send-reminders-every-minute` job on `* * * * *`. The exact stored command targets Production `send-reminders`, performs the Vault lookup at execution time, uses a 120000 ms request timeout, and contains neither plaintext secret nor service-role bearer. Unschedule-first is the canonical failure containment.
+- Automatic no-due verification passed with zero enabled ordinary Reminder candidates and zero selected/claimed/sent/failed work. The ledger and subscription state remained unchanged.
+- The scheduler discovered one disposable personal timed `Automatic Reminder E2E Test` without any manual curl or Function invocation. Both iPhone and Mac automatically received the real Reminder.
+- Ledger postflight confirmed two rows for one due across two distinct active subscriptions: `sent = 2`, `claimed = 0`, `failed = 0`, duplicate identities `= 0`, and unexpected subscription disables `= 0`.
+- Four repeated due-window scheduled responses produced eight aggregate claim rejections with no extra claim, row, send, or notification. A bounded 120-minute postflight recorded 120/120 successful Cron runs and HTTP 200 responses, at most one run in any minute, zero timeouts/errors, zero stuck claims, and zero sensitive diagnostic markers.
+- C1 remains PASS; `send-reminders` remains ACTIVE v1 / `verify_jwt=false`; `send-test-push` remains ACTIVE v4 reviewed-equivalent. Slice C is `CLOSED / PASS`; Slice 3 recurrence Reminder integration and final Android/cross-platform acceptance remain separate.
 
 ### P3B send-reminders Production Manual E2E — CLOSED / PASS
 

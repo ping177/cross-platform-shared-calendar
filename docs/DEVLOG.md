@@ -1,5 +1,13 @@
 # Development Log
 
+# 2026-09-22 - v0.1.8.2 P3C Automatic Scheduler E2E + Governance Closeout
+
+- Enabled only `pg_cron` and `pg_net` in their canonical Production schemas after confirming exactly one Vault `REMINDER_CRON_SECRET` by name, zero existing Reminder jobs, `send-reminders` ACTIVE v1 / `verify_jwt=false`, and C1 PASS with zero claimed rows. Created exactly one active `send-reminders-every-minute` job on `* * * * *`; its exact stored command targets Production `send-reminders`, resolves the bearer from Vault only at execution time, uses a 120000 ms timeout, and contains neither plaintext secret nor service-role bearer. Unschedule-first remains the canonical containment rule.
+- Automatic no-due scheduler verification passed with zero enabled ordinary Reminder candidates, zero delivery work, unchanged ledger/subscriptions, successful Cron execution, and HTTP 200 pg_net responses. No manual `send-reminders` invocation was used for the final automatic test.
+- One disposable personal timed `Automatic Reminder E2E Test` Event was discovered by the scheduler and automatically delivered to both active subscriptions. iPhone and Mac both displayed the real Reminder. Ledger postflight confirmed exactly two rows across two distinct subscriptions and one due, all `sent`, with zero remaining `claimed`, zero `failed`, zero duplicate identities, and zero unexpected subscription disablement.
+- Repeated scheduled invocations within the same due/grace window produced eight aggregate claim rejections across four idempotent responses, while total claimed/sent remained two and no extra row or Push was created. A bounded 120-minute postflight recorded 120/120 successful Cron runs and HTTP 200 responses, at most one run per minute, zero timeouts/errors, zero persistent claimed rows, and zero sensitive diagnostic markers.
+- P3C is `CLOSED / PASS`; `v0.1.8.2` Slice A/B/C are now `CLOSED / PASS`. Overall v0.1.8 remains open for the already-frozen Slice 3 Recurrence Reminder Integration and later final cross-platform/Android acceptance. No code, SQL source, config, dependency, Function deployment, C1 change, secret rotation/value access, ledger deletion, subscription mutation, or Production test-data deletion occurred during this postflight/governance closeout.
+
 # 2026-09-22 - v0.1.8.2 P3B send-reminders Production Manual E2E Closeout
 
 - Completed the authorized P3B Production rollout on canonical project `ximazjhxvmktpcdbypka` with `send-reminders` ACTIVE and source-controlled `verify_jwt = false`; `send-test-push` remained ACTIVE v4 and reviewed-equivalent. The Edge `REMINDER_CRON_SECRET` was confirmed by name only; its value was never read or logged.
