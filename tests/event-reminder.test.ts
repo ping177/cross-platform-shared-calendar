@@ -106,6 +106,29 @@ test('existing recurring Event keeps its authoritative recurrence timezone', () 
   });
 });
 
+test('a recurring source preserves its event-level Reminder in the update payload', () => {
+  const recurrenceRule: RecurrenceRule = {
+    version: 1,
+    frequency: 'daily',
+    interval: 1,
+    time_zone: 'Asia/Shanghai',
+  };
+  const recurring = { ...baseEvent, recurrence_rule: recurrenceRule };
+  const recurringDraft = {
+    ...initialDraft,
+    recurrence: { ...initialDraft.recurrence, frequency: 'daily' as const },
+  };
+
+  assert.deepEqual(buildEventUpdatePayload(
+    recurring,
+    recurringDraft,
+    { ...recurringDraft, reminderKind: 'timed_30m_before' },
+    recurrenceRule,
+    'Asia/Shanghai',
+    (value) => `iso:${value}`,
+  ), { reminder_kind: 'timed_30m_before' });
+});
+
 test('title-only update omits every schedule and identity field', () => {
   const payload = buildEventUpdatePayload(
     baseEvent,

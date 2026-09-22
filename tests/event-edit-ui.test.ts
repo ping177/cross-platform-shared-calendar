@@ -57,6 +57,18 @@ test('restricts recurrence and all-day edits for an occurrence target', () => {
 
   assert.equal(state.canEditRecurrence, false);
   assert.equal(state.canEditAllDay, false);
+  assert.equal(state.canEditReminder, false);
+  assert.equal(state.reminderHelpText, '当前事件继承系列提醒；修改开始时间会自动重算本次提醒时间。');
+});
+
+test('allows a recurring source to use the ordinary event-level Reminder presets', () => {
+  const state = eventEditUiState(eventEditTargetForEvent({
+    ...recurringEvent,
+    reminder_kind: 'timed_10m_before',
+  }));
+
+  assert.equal(state.canEditReminder, true);
+  assert.equal(state.reminderHelpText, null);
 });
 
 test('offers exactly only-this and this-and-future scopes for an occurrence', () => {

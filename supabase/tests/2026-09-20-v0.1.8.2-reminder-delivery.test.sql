@@ -23,7 +23,7 @@ select is(
         'reminder_deliveries_status_check',
         'reminder_deliveries_provider_status_check',
         'reminder_deliveries_result_shape_check',
-        'reminder_deliveries_event_subscription_due_key'
+        'reminder_deliveries_occurrence_identity_key'
       )
   ),
   4::bigint,
@@ -327,7 +327,7 @@ select ok(
       lower(pg_get_functiondef('public.claim_reminder_delivery(uuid,uuid,uuid,timestamp with time zone,timestamp with time zone)'::regprocedure))
         like '%insert into public.reminder_deliveries%'
       and lower(pg_get_functiondef('public.claim_reminder_delivery(uuid,uuid,uuid,timestamp with time zone,timestamp with time zone)'::regprocedure))
-        like '%on conflict (event_id, subscription_id, due_at) do nothing%'
+        like '%on conflict on constraint reminder_deliveries_occurrence_identity_key do nothing%'
   ),
   'claim uses one atomic insert with conflict suppression for concurrent identical claims'
 );

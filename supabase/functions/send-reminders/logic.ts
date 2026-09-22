@@ -7,9 +7,18 @@ import type {
   WebPushDeliveryResult,
   WebPushPayload,
 } from '../_shared/web-push.ts';
+import type {
+  RecurringReminderSource,
+  RecurringReminderCandidate,
+  RecurringReminderSnapshot,
+} from './recurring.ts';
+import { projectRecurringReminderCandidates } from './recurring.ts';
+import type { EventOccurrenceException } from '../../../src/types.ts';
 
 export const CANDIDATE_PAGE_SIZE = 100;
 export const MAX_CANDIDATES = 1000;
+export const MAX_RECURRING_SOURCES = 1000;
+export const MAX_RECURRING_EXCEPTIONS = 1000;
 export const MAX_DELIVERY_TASKS = 50;
 export const PUSH_CONCURRENCY = 5;
 export const CLAIM_ACQUISITION_CUTOFF_MS = 95_000;
@@ -30,8 +39,10 @@ export type ReminderCandidate = {
   reminder_schedule_changed_at: string;
 };
 
+export type ProjectedReminderCandidate = ReminderCandidate | RecurringReminderCandidate;
+
 export type EligibleReminderCandidate = {
-  event: ReminderCandidate;
+  event: ProjectedReminderCandidate;
   dueAt: Date;
   rawReminderScheduleChangedAt: string;
 };
@@ -52,6 +63,7 @@ export type DeliveryTask = {
   subscription: ReminderSubscription;
   dueAt: Date;
   rawReminderScheduleChangedAt: string;
+  recurrence: RecurringReminderSnapshot | null;
 };
 
 export type LedgerFinalResult = {
@@ -68,6 +80,27 @@ export type ClaimReminderInput = {
   expectedReminderScheduleChangedAt: string;
 };
 
+export type ClaimRecurringReminderInput = {
+  sourceEventId: string;
+  logicalSeriesId: string;
+  occurrenceDate: string;
+  recipientUserId: string;
+  subscriptionId: string;
+  dueAt: string;
+  expectedSourceUpdatedAt: string;
+  expectedReminderScheduleChangedAt: string;
+  expectedExceptionId: string | null;
+  expectedExceptionUpdatedAt: string | null;
+  expectedExceptionType: EventOccurrenceException['exception_type'] | null;
+  effectiveScheduleChangedAt: string;
+};
+
+export type RecurringExceptionScanResult = {
+  exceptions: EventOccurrenceException[];
+  exceptionsScanned: number;
+  exceptionTruncated: boolean;
+};
+
 export type FinalizeReminderInput = {
   deliveryId: string;
   status: 'sent' | 'failed';
@@ -77,12 +110,15 @@ export type FinalizeReminderInput = {
 
 export type RunSendRemindersDependencies = {
   fetchCandidatePage: (request: CandidatePageRequest) => Promise<ReminderCandidate[]>;
+  fetchRecurringCandidatePage: (request: CandidatePageRequest) => Promise<RecurringReminderSource[]>;
+  fetchRecurringExceptions: (eventIds: string[]) => Promise<RecurringExceptionScanResult>;
   fetchMemberships: (spaceIds: string[]) => Promise<SpaceMembership[]>;
   fetchSubscriptions: (
     userIds: string[],
     runNow: Date,
   ) => Promise<ReminderSubscription[]>;
   claim: (input: ClaimReminderInput) => Promise<string | null>;
+  claimRecurring: (input: ClaimRecurringReminderInput) => Promise<string | null>;
   send: (
     subscription: StoredPushSubscription,
     payload: WebPushPayload,
@@ -131,13 +167,13 @@ type RequestHandlerOptions = {
   monotonicNow?: () => number;
 };
 
-type CandidatePageRequest = {
+export type CandidatePageRequest = {
   afterId: string | null;
   limit: number;
 };
 
-type CandidateScanResult = {
-  candidates: ReminderCandidate[];
+type CandidateScanResult<T> = {
+  candidates: T[];
   candidatesScanned: number;
   candidateTruncated: boolean;
 };
@@ -186,8 +222,8 @@ export async function handleSendRemindersRequest(
   }
 }
 
-function assertStableCandidatePage(
-  page: ReminderCandidate[],
+function assertStableCandidatePage<T extends { id: string }>(
+  page: T[],
   afterId: string | null,
   limit: number,
 ) {
@@ -204,14 +240,15 @@ function assertStableCandidatePage(
   }
 }
 
-export async function scanReminderCandidates(
-  fetchPage: (request: CandidatePageRequest) => Promise<ReminderCandidate[]>,
-): Promise<CandidateScanResult> {
-  const candidates: ReminderCandidate[] = [];
+export async function scanReminderCandidates<T extends { id: string }>(
+  fetchPage: (request: CandidatePageRequest) => Promise<T[]>,
+  maximum = MAX_CANDIDATES,
+): Promise<CandidateScanResult<T>> {
+  const candidates: T[] = [];
   let afterId: string | null = null;
 
-  while (candidates.length < MAX_CANDIDATES) {
-    const limit = Math.min(CANDIDATE_PAGE_SIZE, MAX_CANDIDATES - candidates.length);
+  while (candidates.length < maximum) {
+    const limit = Math.min(CANDIDATE_PAGE_SIZE, maximum - candidates.length);
     const page = await fetchPage({ afterId, limit });
     assertStableCandidatePage(page, afterId, limit);
     candidates.push(...page);
@@ -254,8 +291,32 @@ function dueIsBeforeMarker(dueAt: Date, rawMarker: string) {
   return markerHasSubMillisecondRemainder(rawMarker);
 }
 
+function subMillisecondDigits(rawMarker: string) {
+  const match = rawMarker.match(/\.(\d+)(?:Z|[+-]\d{2}:?\d{2})$/i);
+  return (match?.[1] ?? '').padEnd(9, '0').slice(3, 9);
+}
+
+function laterRawTimestamp(left: string, right: string) {
+  const leftMilliseconds = Date.parse(left);
+  const rightMilliseconds = Date.parse(right);
+  if (leftMilliseconds !== rightMilliseconds) {
+    return leftMilliseconds > rightMilliseconds ? left : right;
+  }
+  return subMillisecondDigits(left) >= subMillisecondDigits(right) ? left : right;
+}
+
+function effectiveScheduleChangedAt(recurrence: RecurringReminderSnapshot) {
+  if (!recurrence.exceptionChangesSchedule || recurrence.exceptionUpdatedAt === null) {
+    return recurrence.sourceReminderScheduleChangedAt;
+  }
+  return laterRawTimestamp(
+    recurrence.sourceReminderScheduleChangedAt,
+    recurrence.exceptionUpdatedAt,
+  );
+}
+
 export function classifyReminderCandidates(
-  candidates: ReminderCandidate[],
+  candidates: ProjectedReminderCandidate[],
   runNow: Date,
 ): DueClassification {
   const classification: DueClassification = {
@@ -278,12 +339,20 @@ export function classifyReminderCandidates(
       continue;
     }
 
-    const beforeMarker = dueIsBeforeMarker(due.dueAt, event.reminder_schedule_changed_at);
-    if (beforeMarker === null) {
+    const scheduleMarkers = [event.reminder_schedule_changed_at];
+    if (
+      'recurrence' in event
+      && event.recurrence.exceptionChangesSchedule
+      && event.recurrence.exceptionUpdatedAt !== null
+    ) {
+      scheduleMarkers.push(event.recurrence.exceptionUpdatedAt);
+    }
+    const markerChecks = scheduleMarkers.map((marker) => dueIsBeforeMarker(due.dueAt, marker));
+    if (markerChecks.some((check) => check === null)) {
       classification.invalidSkipped += 1;
       continue;
     }
-    if (beforeMarker) {
+    if (markerChecks.some(Boolean)) {
       classification.newlyPastSkipped += 1;
       continue;
     }
@@ -307,8 +376,10 @@ export function classifyReminderCandidates(
   return classification;
 }
 
-export async function createReminderTag(eventId: string, dueAt: Date) {
-  const input = `${eventId}\n${dueAt.toISOString()}`;
+export async function createReminderTag(eventId: string, dueAt: Date, occurrenceDate: string | null = null) {
+  const input = occurrenceDate === null
+    ? `${eventId}\n${dueAt.toISOString()}`
+    : `${eventId}\n${occurrenceDate}\n${dueAt.toISOString()}`;
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(input));
   const base64 = btoa(String.fromCharCode(...new Uint8Array(digest)));
   return `reminder-v1-${base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')}`;
@@ -402,6 +473,7 @@ export function createDeliveryTasks(
         subscription,
         dueAt: pair.candidate.dueAt,
         rawReminderScheduleChangedAt: pair.candidate.rawReminderScheduleChangedAt,
+        recurrence: 'recurrence' in pair.candidate.event ? pair.candidate.event.recurrence : null,
       });
     }
   }
@@ -420,6 +492,7 @@ function compareStrings(left: string, right: string) {
 function compareDeliveryTasks(left: DeliveryTask, right: DeliveryTask) {
   return left.dueAt.getTime() - right.dueAt.getTime()
     || compareStrings(left.eventId, right.eventId)
+    || compareStrings(left.recurrence?.occurrenceDate ?? '', right.recurrence?.occurrenceDate ?? '')
     || compareStrings(left.recipientUserId, right.recipientUserId)
     || compareStrings(left.subscription.id, right.subscription.id);
 }
@@ -500,13 +573,28 @@ async function processDeliveryTask(
 ) {
   let deliveryId: string | null;
   try {
-    deliveryId = await dependencies.claim({
-      eventId: task.eventId,
-      recipientUserId: task.recipientUserId,
-      subscriptionId: task.subscription.id,
-      dueAt: task.dueAt.toISOString(),
-      expectedReminderScheduleChangedAt: task.rawReminderScheduleChangedAt,
-    });
+    deliveryId = task.recurrence === null
+      ? await dependencies.claim({
+        eventId: task.eventId,
+        recipientUserId: task.recipientUserId,
+        subscriptionId: task.subscription.id,
+        dueAt: task.dueAt.toISOString(),
+        expectedReminderScheduleChangedAt: task.rawReminderScheduleChangedAt,
+      })
+      : await dependencies.claimRecurring({
+        sourceEventId: task.eventId,
+        logicalSeriesId: task.recurrence.logicalSeriesId,
+        occurrenceDate: task.recurrence.occurrenceDate,
+        recipientUserId: task.recipientUserId,
+        subscriptionId: task.subscription.id,
+        dueAt: task.dueAt.toISOString(),
+        expectedSourceUpdatedAt: task.recurrence.sourceUpdatedAt,
+        expectedReminderScheduleChangedAt: task.recurrence.sourceReminderScheduleChangedAt,
+        expectedExceptionId: task.recurrence.exceptionId,
+        expectedExceptionUpdatedAt: task.recurrence.exceptionUpdatedAt,
+        expectedExceptionType: task.recurrence.exceptionType,
+        effectiveScheduleChangedAt: effectiveScheduleChangedAt(task.recurrence),
+      });
   } catch {
     diagnostics.unexpected_task_errors += 1;
     return;
@@ -569,16 +657,41 @@ export async function runSendReminders(
   dependencies: RunSendRemindersDependencies,
 ) {
   const diagnostics = emptyDiagnostics();
-  const scan = await scanReminderCandidates(dependencies.fetchCandidatePage);
-  diagnostics.candidates_scanned = scan.candidatesScanned;
-  diagnostics.candidate_truncated = scan.candidateTruncated;
+  const [scan, recurringSourceScan] = await Promise.all([
+    scanReminderCandidates(dependencies.fetchCandidatePage),
+    scanReminderCandidates(dependencies.fetchRecurringCandidatePage, MAX_RECURRING_SOURCES),
+  ]);
+  diagnostics.candidates_scanned = scan.candidatesScanned + recurringSourceScan.candidatesScanned;
+  diagnostics.candidate_truncated = scan.candidateTruncated || recurringSourceScan.candidateTruncated;
 
-  if (scan.candidateTruncated) {
+  if (diagnostics.candidate_truncated) {
     diagnostics.status = 'candidate_limit_exceeded';
     return finishDiagnostics(diagnostics, context);
   }
 
-  const due = classifyReminderCandidates(scan.candidates, context.runNow);
+  let recurringCandidates: RecurringReminderCandidate[] = [];
+  if (recurringSourceScan.candidates.length > 0) {
+    const exceptionScan = await dependencies.fetchRecurringExceptions(
+      recurringSourceScan.candidates.map((source) => source.id),
+    );
+    if (exceptionScan.exceptionTruncated || exceptionScan.exceptionsScanned > MAX_RECURRING_EXCEPTIONS) {
+      diagnostics.status = 'candidate_limit_exceeded';
+      diagnostics.candidate_truncated = true;
+      return finishDiagnostics(diagnostics, context);
+    }
+
+    const recurringProjection = projectRecurringReminderCandidates(
+      recurringSourceScan.candidates,
+      exceptionScan.exceptions,
+      context.runNow,
+    );
+    if (recurringProjection.errors.length > 0) {
+      throw new Error('Recurring Reminder projection failed.');
+    }
+    recurringCandidates = recurringProjection.candidates;
+  }
+
+  const due = classifyReminderCandidates([...scan.candidates, ...recurringCandidates], context.runNow);
   diagnostics.due_eligible = due.eligible.length;
   diagnostics.future_skipped = due.futureSkipped;
   diagnostics.newly_past_skipped = due.newlyPastSkipped;
@@ -623,7 +736,11 @@ export async function runSendReminders(
 
       let tag: string;
       try {
-        tag = await createReminderTag(task.eventId, task.dueAt);
+        tag = await createReminderTag(
+          task.recurrence?.logicalSeriesId ?? task.eventId,
+          task.dueAt,
+          task.recurrence?.occurrenceDate ?? null,
+        );
       } catch {
         diagnostics.unexpected_task_errors += 1;
         continue;

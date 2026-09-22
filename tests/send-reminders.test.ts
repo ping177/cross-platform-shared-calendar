@@ -310,6 +310,7 @@ function task(
     subscription: subscription(subscriptionId, recipientUserId),
     dueAt: new Date(dueAt),
     rawReminderScheduleChangedAt: '2026-09-21T11:00:00.123456+00:00',
+    recurrence: null,
   };
 }
 
@@ -378,12 +379,19 @@ function orchestrationDependencies(
 ): RunSendRemindersDependencies {
   return {
     fetchCandidatePage: pageFetcher([candidate('event-0001')]),
+    fetchRecurringCandidatePage: async () => [],
+    fetchRecurringExceptions: async () => ({
+      exceptions: [],
+      exceptionsScanned: 0,
+      exceptionTruncated: false,
+    }),
     fetchMemberships: async () => [{
       space_id: '20000000-0000-4000-8000-000000000001',
       user_id: 'user-1',
     }],
     fetchSubscriptions: async () => [subscription('subscription-1', 'user-1')],
     claim: async () => '30000000-0000-4000-8000-000000000001',
+    claimRecurring: async () => '30000000-0000-4000-8000-000000000002',
     send: async () => ({
       classification: 'delivered',
       provider: 'fcm.googleapis.com',
@@ -705,12 +713,18 @@ test('keeps the Edge entry thin and wires the frozen query, C1, sender, and fina
   assert.match(source, /handleSendRemindersRequest/);
   assert.match(source, /runSendReminders/);
   assert.match(source, /\.is\('recurrence_rule', null\)/);
+  assert.match(source, /fetchRecurringCandidatePage/);
+  assert.match(source, /\.not\('recurrence_rule', 'is', null\)/);
+  assert.match(source, /event_occurrence_exceptions/);
+  assert.match(source, /afterExceptionId/);
+  assert.match(source, /query = query[.]gt\('id', afterExceptionId\)/);
   assert.match(source, /\.not\('reminder_kind', 'is', null\)/);
   assert.match(source, /\.not\('time_zone', 'is', null\)/);
   assert.match(source, /\.order\('id', \{ ascending: true \}\)/);
   assert.match(source, /\.limit\(limit\)/);
   assert.match(source, /\.gt\('id', afterId\)/);
   assert.match(source, /\.rpc\('claim_reminder_delivery'/);
+  assert.match(source, /\.rpc\('claim_recurring_reminder_delivery'/);
   assert.match(source, /p_expected_reminder_schedule_changed_at: input\.expectedReminderScheduleChangedAt/);
   assert.match(source, /sendWebPush/);
   assert.match(source, /\.eq\('id', input\.deliveryId\)[\s\S]*\.eq\('status', 'claimed'\)[\s\S]*\.select\('id'\)/);

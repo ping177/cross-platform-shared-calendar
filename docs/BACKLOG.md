@@ -12,7 +12,7 @@
 
 ### v0.1.8 — Mobile Push Reminder
 
-Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`. Desktop Chrome/macOS and iPhone installed PWA Push Infrastructure validation passed. Slice 2 architecture / semantics are frozen. Slice A and Slice B are closed. Slice C1 Minimal Delivery Ledger + Atomic Claim completed implementation, verification, human review, and push; its patch is not in Production. Slice C2 Phase 1 shared sender extraction is `CLOSED / PASS`: automated verification plus Desktop Chrome/macOS and iPhone installed PWA real-device regression passed after deploying only `send-test-push`. Repeated Desktop banners were classified as pre-existing fixed-tag behavior and non-blocking. `send-reminders`, candidate scanning, Cron, secrets, and Production rollout have not started, and Slice C overall remains open.
+Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`; Slice 2 ordinary Reminder Slice A/B/C is `CLOSED / PASS` in Production. Slice 3 Recurrence Reminder Integration is implemented, fully verified locally, and final human/code review is `PASS`; it is not deployed. The Production ordinary scheduler, Vault, Cron, secrets, and deployed Functions remain unchanged. Overall v0.1.8 stays OPEN until Slice 3 rollout and final cross-platform/Android acceptance are completed under separate authorization.
 
 In scope:
 
@@ -45,14 +45,14 @@ Explicitly out of scope:
 Implementation slices:
 
 1. **Push Infrastructure Foundation — CLOSED / PASS; Android final acceptance deferred:** Push-only Service Worker, explicit permission flow, `user + installation` subscription persistence, multi-device lifecycle, logout/invalid-subscription handling, and an authenticated current-installation test-push path are implemented. Desktop Chrome/macOS and iPhone installed PWA validation passed. The initial Desktop subscription was abnormal/stale despite FCM `201`; unsubscribe/resubscribe restored delivery. Android Push lifecycle acceptance is deferred to final v0.1.8 cross-platform acceptance and does not block Slice 2. This slice does not implement scheduler, event reminder persistence, or recurrence delivery.
-2. **Reminder Persistence + Ordinary Event Delivery — Slice C2 Phase 1 CLOSED / PASS:** Slice A timezone/due primitives and Slice B persistence/UI are closed. C1 provides the durable server-only delivery ledger and atomic ordinary-Event claim and has completed human review/push, while remaining undeployed. C2 Phase 1 extracts the proven Web Push transport into a server-only shared sender, keeps `send-test-push` behavior unchanged, and passed automated plus Desktop/iPhone real-device regression. Repeated Desktop banners are pre-existing fixed-tag behavior and non-blocking. C2 candidate scanning, `send-reminders`, delivery transitions, Cron, secrets, and Production rollout have not started; Slice C overall is not closed.
-3. **Recurrence Integration:** canonical dynamic occurrence projection, override/delete/split/current-and-future semantics, reminder inheritance, timezone/DST coverage, stale-delivery cancellation, and no-duplicate regression coverage.
+2. **Reminder Persistence + Ordinary Event Delivery — CLOSED / PASS:** Slice A/B/C, Production foundation, manual E2E, and automatic once-per-minute scheduler E2E are complete.
+3. **Recurrence Integration — LOCAL IMPLEMENTATION + REVIEW PASS / NOT DEPLOYED:** canonical bounded occurrence projection, override/delete/split/current-and-future semantics, Reminder/timezone inheritance, all-day/timezone/DST coverage, stale projection rejection, and recurrence-aware no-duplicate identity are implemented and reviewed. The long-duration projection blocker found during review has a bounded correction that passed re-review without changing the canonical recurrence engine. Production rollout remains separately authorized.
 4. **Production Validation + Canonical Closeout:** Production Desktop, iPhone installed PWA, and Android installed PWA acceptance; Android permission, subscription, foreground/background/closed-app delivery, notification click, and logout lifecycle; late-delivery and subscription lifecycle evidence; final canonical docs closeout.
 
 Idempotency freeze:
 
-- Recurring: `(logical_series_id, occurrence_key, subscription_id, due_at)`.
-- One-off: `(event_id, "once", subscription_id, due_at)`.
+- Recurring: `(logical_series_id, occurrence_date, subscription_id, due_at)`.
+- One-off: `(event_id, NULL occurrence_date, subscription_id, due_at)`; `NULLS NOT DISTINCT` preserves the former ordinary identity behavior.
 - `due_at` is derived from effective start/date, `reminder_kind`, and canonical Event timezone. A changed effective start/date or preset may create a new legitimate delivery; unchanged `due_at` must not duplicate, including across a future split.
 
 Future compatibility:

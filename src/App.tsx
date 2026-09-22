@@ -973,7 +973,6 @@ function EventSheet({
   function updateRecurrenceFrequency(frequency: RecurrenceDraft['frequency']) {
     setDraft((currentDraft) => ({
       ...currentDraft,
-      reminderKind: frequency === 'none' ? currentDraft.reminderKind : null,
       recurrence: { ...defaultRecurrenceDraft(currentDraft.startsAt), frequency },
     }));
   }
@@ -981,7 +980,6 @@ function EventSheet({
   function updateRecurrence(recurrence: RecurrenceDraft) {
     setDraft((currentDraft) => ({
       ...currentDraft,
-      reminderKind: recurrence.frequency === 'none' ? currentDraft.reminderKind : null,
       recurrence,
     }));
   }
@@ -1052,7 +1050,7 @@ function EventSheet({
       return;
     }
 
-    const saveDraft = recurrenceResult.rule === null ? draft : { ...draft, reminderKind: null };
+    const saveDraft = draft;
 
     setBusy(true);
 
@@ -1200,7 +1198,7 @@ function EventSheet({
             <select
               className="w-full rounded-lg border border-ink/15 bg-white px-4 py-3 outline-none focus:border-teal disabled:bg-mist disabled:text-ink/55"
               value={draft.reminderKind ?? ''}
-              disabled={draft.recurrence.frequency !== 'none' || editUi.isRecurringOccurrenceEdit}
+              disabled={!editUi.canEditReminder}
               onChange={(inputEvent) => setDraft({
                 ...draft,
                 reminderKind: inputEvent.target.value === '' ? null : inputEvent.target.value as ReminderKind,
@@ -1210,10 +1208,10 @@ function EventSheet({
                 <option key={option.value || 'none'} value={option.value}>{option.label}</option>
               ))}
             </select>
-            {(draft.recurrence.frequency !== 'none' || editUi.isRecurringOccurrenceEdit) && (
-              <p className="mt-2 text-sm text-ink/55">重复日程提醒暂不支持。</p>
+            {editUi.reminderHelpText && (
+              <p className="mt-2 text-sm text-ink/55">{editUi.reminderHelpText}</p>
             )}
-            {draft.audience === 'shared' && draft.recurrence.frequency === 'none' && !editUi.isRecurringOccurrenceEdit && (
+            {draft.audience === 'shared' && !editUi.isRecurringOccurrenceEdit && (
               <p className="mt-2 text-sm text-ink/55">共同日程提醒会通知当前空间成员。</p>
             )}
           </Field>

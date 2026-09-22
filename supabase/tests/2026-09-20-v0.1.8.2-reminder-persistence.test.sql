@@ -1,6 +1,6 @@
 begin;
 
-select plan(28);
+select plan(30);
 
 select has_column('public', 'events', 'reminder_kind', 'events has reminder_kind');
 select has_column('public', 'events', 'time_zone', 'events has time_zone');
@@ -22,11 +22,10 @@ select is(
         'events_reminder_kind_check',
         'events_reminder_kind_matches_all_day_check',
         'events_reminder_requires_time_zone_check',
-        'events_recurring_reminder_unsupported_check',
         'events_recurring_time_zone_consistency_check'
       )),
-  5::bigint,
-  'events has exactly the five Slice B reminder constraints'
+  4::bigint,
+  'events keeps the four canonical Reminder constraints after Slice 3 removes the temporary restriction'
 );
 
 insert into auth.users (
@@ -134,12 +133,10 @@ select throws_ok(
   'Event time_zone must be a valid IANA timezone',
   'invalid timezone is rejected'
 );
-select throws_ok(
+select lives_ok(
   $$insert into public.events (space_id, created_by, scope, title, starts_at, recurrence_rule, reminder_kind, time_zone)
     values ('00000000-0000-0000-0000-000000001822', '00000000-0000-0000-0000-000000001821', 'shared', 'Recurring reminder', '2030-01-01T09:00:00Z', '{"version": 1, "frequency": "daily", "interval": 1, "time_zone": "UTC"}'::jsonb, 'timed_at_start', 'UTC')$$,
-  '23514',
-  'new row for relation "events" violates check constraint "events_recurring_reminder_unsupported_check"',
-  'recurring reminder is rejected in Slice B'
+  'recurring source Event may carry an event-level Reminder in Slice 3'
 );
 select throws_ok(
   $$insert into public.events (space_id, created_by, scope, title, starts_at, recurrence_rule, time_zone)
@@ -198,6 +195,10 @@ insert into marker_snapshots select 'before_direct', reminder_schedule_changed_a
 update public.events set reminder_schedule_changed_at = '2000-01-01T00:00:00Z' where id = '00000000-0000-0000-0000-000000001823';
 select is((select reminder_schedule_changed_at from public.events where id = '00000000-0000-0000-0000-000000001823'), (select marker from marker_snapshots where label = 'before_direct'), 'direct marker mutation is ignored');
 
+update public.events
+set reminder_kind = 'timed_at_start'
+where id = '00000000-0000-0000-0000-000000001824';
+
 set local role authenticated;
 select set_config('request.jwt.claim.role', 'authenticated', true);
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000001821', true);
@@ -220,6 +221,16 @@ select is(
   (select time_zone from public.events where parent_event_id = '00000000-0000-0000-0000-000000001824'),
   'UTC',
   'split child inherits source Event timezone'
+);
+select is(
+  (select reminder_kind from public.events where parent_event_id = '00000000-0000-0000-0000-000000001824'),
+  'timed_at_start',
+  'split child inherits source Event reminder'
+);
+select ok(
+  (select reminder_schedule_changed_at from public.events where parent_event_id = '00000000-0000-0000-0000-000000001824')
+    > (select reminder_schedule_changed_at from public.events where id = '00000000-0000-0000-0000-000000001824'),
+  'split child receives a fresh schedule marker that prevents newly-past catch-up'
 );
 
 select * from finish();

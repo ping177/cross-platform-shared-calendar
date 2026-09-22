@@ -41,7 +41,7 @@ trailer 是否与 PROJECT_STATE tree diff 一致；tag 只验证目标 commit �
 
 ## v0.1.8 Mobile Push Reminder Acceptance Plan
 
-Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`. Automated verification plus real Desktop Chrome/macOS and iPhone installed PWA Push Infrastructure acceptance passed. `v0.1.8.2` Slice A/B/C are `CLOSED / PASS`. P3A C1 Production foundation, P3B `send-reminders` manual E2E, and P3C automatic scheduler E2E all passed. Production now has one Vault Reminder secret by name, enabled `pg_cron` / `pg_net`, and exactly one active once-per-minute scheduler. Automatic no-due and real iPhone/Mac Reminder delivery passed without manual invocation. Overall v0.1.8 remains open for Slice 3 recurrence integration and later final cross-platform/Android acceptance.
+Status: Slice 1 is `CLOSED / PASS — Android final acceptance deferred`; `v0.1.8.2` ordinary Slice A/B/C is `CLOSED / PASS` in Production. Slice 3 Recurrence Reminder Integration is implemented locally, all automated local checks pass, and final human/code review is `PASS`; deployment remains pending. Production ordinary Reminder delivery/scheduler is live and unchanged. Overall v0.1.8 remains open through Slice 3 rollout and final cross-platform/Android acceptance.
 
 ### P3C Automatic Scheduler E2E — CLOSED / PASS
 
@@ -200,10 +200,13 @@ Real Push Infrastructure acceptance on 2026-09-19:
 
 ### Slice 3 — Recurrence Reminder Integration
 
-- Verify normal occurrences inherit source `reminder_kind` and canonical timezone; only-this overrides recalculate from effective start/date; only-this deletes send nothing.
-- Verify future split children inherit `reminder_kind` and `time_zone`; current-and-future delete suppresses future reminders; all-day recurrence calculates 08:00 / previous-day 20:00 from effective occurrence date.
-- Verify recurrence reminder calculation reuses the canonical recurrence timezone/DST implementation and does not introduce a second DST algorithm.
-- Verify recurring uniqueness on `(logical_series_id, occurrence_key, subscription_id, due_at)` and no duplicate when a future split leaves logical occurrence and due unchanged.
+Local implementation verification on 2026-09-22 — automated PASS; one reviewed projection blocker corrected; final human/code re-review PASS with no remaining findings:
+
+- Passed focused recurrence/Reminder tests 46/46 and full repository Node regression 169/169. Coverage includes inherited reminders, effective-title and moved-in/moved-out overrides, newly-past marker behavior, delete/cutoff suppression, split projection, all-day same-day 08:00 and previous-day 20:00, canonical timezone, DST gap/overlap, a non-1h transition, collision-safe tags/identities, caps, ordinary delivery regression, UI inheritance/read-only behavior, and a daily Event whose duration spans more than 500 intervals. The long-duration test proves Reminder projection discovers the current due occurrence without mutating the source while canonical calendar expansion retains its existing duration-overlap guard behavior.
+- Passed all six local pgTAP files, 199/199 assertions. Slice 3 adds 32 assertions for nullable occurrence identity, atomic claim ACL/search path, exact source/exception race rejection, membership/subscription checks, schedule marker, grace, idempotency, colliding due instants, and unchanged ordinary identity. Slice B now has 30 assertions including split Reminder/timezone inheritance and a fresh child schedule marker.
+- Passed strict Deno checks for `send-reminders/logic.ts`, `send-reminders/recurring.ts`, `send-reminders/index.ts`, the canonical recurrence module, and the shared Web Push sender. Passed `npm run build` and `git diff --check`.
+- The implementation imports the canonical `src/lib/recurrence.ts` engine; SQL does not expand recurrence. The bounded timezone/calendar window plus the complete capped exception set discovers moved-in overrides without materializing occurrences.
+- Production, deployed Functions, scheduler, Vault/Cron/secrets, Push subscriptions, and Production data were not modified. Android final acceptance remains deferred and overall v0.1.8 remains OPEN.
 
 ## v0.1.7.3.3.2 Frontend Scope Integration
 

@@ -26,6 +26,10 @@ export function eventEditUiState(target: EventEditTarget | null) {
     isRecurringOccurrenceEdit,
     canEditRecurrence: !isRecurringOccurrenceEdit,
     canEditAllDay: !isRecurringOccurrenceEdit,
+    canEditReminder: !isRecurringOccurrenceEdit,
+    reminderHelpText: isRecurringOccurrenceEdit
+      ? '当前事件继承系列提醒；修改开始时间会自动重算本次提醒时间。'
+      : null,
     showOccurrenceScope,
     occurrenceScopes: showOccurrenceScope ? occurrenceScopes : [],
   };

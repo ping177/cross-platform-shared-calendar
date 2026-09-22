@@ -1,4 +1,4 @@
-import type { CalendarEvent, CalendarOccurrence, CalendarOccurrenceRange, EventOccurrenceException, RecurrenceRule } from '../types';
+import type { CalendarEvent, CalendarOccurrence, CalendarOccurrenceRange, EventOccurrenceException, RecurrenceRule } from '../types.ts';
 import {
   addLocalDays,
   canonicalTimeZone,
@@ -343,12 +343,12 @@ function isScheduledOccurrence(
   return yearDifference >= 0 && yearDifference % rule.interval === 0 && local.month === rule.month && local.day === rule.day;
 }
 
-function scheduledStartForException(event: CalendarEvent, rule: RecurrenceRule, anchor: LocalDateTime, exception: EventOccurrenceException) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(exception.occurrence_date)) {
+function scheduledStartForOccurrenceDate(event: CalendarEvent, rule: RecurrenceRule, anchor: LocalDateTime, occurrenceDate: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(occurrenceDate)) {
     return null;
   }
 
-  const [year, month, day] = exception.occurrence_date.split('-').map(Number);
+  const [year, month, day] = occurrenceDate.split('-').map(Number);
   if (month < 1 || month > 12 || day < 1 || day > daysInMonth(year, month)) {
     return null;
   }
@@ -356,6 +356,25 @@ function scheduledStartForException(event: CalendarEvent, rule: RecurrenceRule, 
   const local = { year, month, day, hour: anchor.hour, minute: anchor.minute, second: anchor.second, millisecond: anchor.millisecond };
   const scheduledStart = zonedDateTimeToInstant(local, rule.time_zone);
   return isScheduledOccurrence(event, rule, anchor, local, scheduledStart) ? scheduledStart : null;
+}
+
+export function scheduledOccurrenceStart(event: CalendarEvent, occurrenceDate: string) {
+  if (event.recurrence_rule === null) {
+    return null;
+  }
+
+  const parsed = parseRecurrenceRule(event.recurrence_rule);
+  if (!parsed.ok) {
+    return null;
+  }
+
+  const sourceStart = new Date(event.starts_at);
+  if (Number.isNaN(sourceStart.getTime())) {
+    return null;
+  }
+
+  const anchor = localParts(sourceStart, parsed.rule.time_zone);
+  return scheduledStartForOccurrenceDate(event, parsed.rule, anchor, occurrenceDate);
 }
 
 export function expandEventOccurrences(event: CalendarEvent, range: CalendarOccurrenceRange, exceptions: EventOccurrenceException[] = []): OccurrenceExpansionResult {
@@ -495,7 +514,7 @@ export function expandEventOccurrences(event: CalendarEvent, range: CalendarOccu
       continue;
     }
 
-    const scheduledStart = scheduledStartForException(event, rule, anchor, exception);
+    const scheduledStart = scheduledStartForOccurrenceDate(event, rule, anchor, exception.occurrence_date);
     if (scheduledStart) {
       candidates.set(scheduledStart.toISOString(), scheduledStart);
     }
