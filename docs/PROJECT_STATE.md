@@ -8,15 +8,15 @@
 
 ## Current version
 
-v0.1.8 (Mobile Push Reminder — CLOSED / PASS)
+v0.1.9 — Shared Tasks MVP
 
 ## Current status
 
-`v0.1.8 — Mobile Push Reminder` is `CLOSED / PASS`. Push Infrastructure、ordinary Reminder Slice A/B/C、Slice 3 Recurrence Reminder Integration 与 final cross-platform acceptance 均已完成。Mac 与 iPhone Production Push / automatic Reminder 通过；Android Studio Emulator 的 notification permission/subscription、`send-test-push`、ordinary automatic Reminder、声音与 notification-shade delivery 通过。Android heads-up banner 未观察到，实体 Android 硬件 heads-up presentation 未验证，但不构成 release blocker。
+`SCOPE FROZEN / IMPLEMENTATION NOT STARTED`. v0.1.9 Shared Tasks MVP 的产品语义、数据契约、权限、Realtime、Calendar/Reminder 边界、`MULTISPACE_NOT_REQUIRED_FOR_V019`、complexity budget、最小 UI 与三个 bounded slices 已冻结。尚未修改 application source、Supabase schema/RLS、依赖、Production 或部署；进入 Slice 1 前需要明确 implementation approval。
 
 ## Latest completed
 
-Completed final v0.1.8 cross-platform acceptance and release closeout. Android functional evidence is emulator-based, not physical-device evidence: subscription, test Push, ordinary automatic Reminder, audible presentation, and notification-shade delivery passed; heads-up presentation was not observed. The Production project remains Healthy, recent requests show 100% success with no Postgres/Edge Function warnings or errors, and the previously accepted single scheduler / no-stuck / no-duplicate state remains current with no Production mutation required.
+Completed the docs-only v0.1.9 Shared Tasks MVP scope freeze. The latest completed and deployed product capability remains `v0.1.8 — Mobile Push Reminder = CLOSED / PASS`: Mac/iPhone Production Push and automatic Reminder passed; Android Studio Emulator subscription, test Push, ordinary automatic Reminder, sound, and notification-shade delivery passed. This scope freeze does not reopen or modify the accepted v0.1.8 Reminder architecture.
 
 ## Deployment
 
@@ -49,6 +49,7 @@ Notes: 当前公网版本包含已验收的 ordinary 与 recurring Reminder。`s
 - v0.1.8 — Mobile Push Reminder（CLOSED / PASS）
 - v0.1.8.1 — Push Infrastructure Foundation（CLOSED / PASS；Desktop + iPhone + Android Studio Emulator verified）
 - v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（Slice A/B/C CLOSED / PASS；P3A C1、P3B manual E2E、P3C automatic scheduler E2E complete）
+- v0.1.9 — Shared Tasks MVP（Scope Frozen / Implementation Not Started）
 
 ## Last verified
 
@@ -56,7 +57,7 @@ Notes: 当前公网版本包含已验收的 ordinary 与 recurring Reminder。`s
 
 ## Next Action
 
-Define / confirm v0.1.9 scope before implementation. Do not begin implementation until that scope is separately reviewed and approved.
+Enter `v0.1.9 Slice 1 — Task persistence and authorization` only after explicit implementation approval following docs-freeze review. Do not begin Slice 1 from this docs-only freeze commit.
 
 ## Blockers
 
@@ -74,6 +75,10 @@ Define / confirm v0.1.9 scope before implementation. Do not begin implementation
 - README is the project entrypoint; detailed smoke checklists and production validation records live in `docs/TESTING.md`.
 - Android compatibility smoke test is complete for Xiaomi 14 / Android 16 / Chrome on mobile network.
 - v0.1 is a Web/PWA, not native iOS / Android.
+- v0.1.9 canonical scope is `docs/v0.1.9_SHARED_TASKS_SPEC.md`; status is `SCOPE FROZEN / IMPLEMENTATION NOT STARTED`.
+- A Task is Space-scoped work that remains to be completed. Assignment is responsibility, not access control; null assignee means shared. All current Space members collaborate, while RLS/database invariants remain authoritative.
+- Task status is only `open` / `completed`; `due_on` is optional date-only metadata. v0.1.9 has no completion audit, Task Reminder, recurrence, Task/Event dual persistence, Multi-space implementation, or UI overhaul.
+- Multi-space decision is `MULTISPACE_NOT_REQUIRED_FOR_V019`. Task persistence must always use explicit `space_id` and introduce no new one-space-only assumption.
 - Event ownership uses stable `scope + owner_user_id`; UI labels are derived from the current user.
 - Personal events are visible to both members but only editable/deletable by the owner.
 - Existing event identity fields must not change: `space_id`, `created_by`, `scope`, `owner_user_id`.
@@ -112,8 +117,8 @@ Define / confirm v0.1.9 scope before implementation. Do not begin implementation
 - Future consideration — Web/PWA Push delivery precision: semantic Reminder due calculation remains exact, while once-per-minute `pg_cron` + async `pg_net` + Web Push may occasionally add sub-minute to approximately one-minute visible delivery latency. The observed recurring example had semantic due 11:45 and claim/finalize around 11:46; this is not a due-calculation defect. v0.1.8 adds no `-60s` early-dispatch allowance and keeps ordinary/recurring timing under the same semantic rule. Revisit only if real-use feedback shows material UX impact or a future native iOS/Android app adopts OS-level local notification scheduling.
 - Future consideration — physical Android heads-up presentation: functional delivery passed on Android Studio Emulator, including sound and notification-shade presence, but no heads-up banner was observed and physical hardware presentation was not validated. This may be casually revalidated on a physical Android device later; it is non-blocking and does not reopen v0.1.8.
 - v0.1.8 excludes Email reminder delivery, SMS, Bark, multiple reminders, arbitrary custom minutes, snooze, sound customization, notification inbox/history, native alarms, and per-user reminder preferences. Email OTP authentication remains unchanged.
-- `v0.1.9 Shared Tasks`, `v0.1.10 Shared Lists`, `v0.1.11 Important Dates / Anniversaries`, and `v0.1.12 Tags / Color = Who` are roadmap directions only, not frozen architectures. UI/UX overhaul remains deferred pending a Design System.
+- `v0.1.9 Shared Tasks` scope is frozen but implementation has not started. `v0.1.10 Shared Lists`, `v0.1.11 Important Dates / Anniversaries`, and `v0.1.12 Tags / Color = Who` remain roadmap directions only, not frozen architectures. UI/UX overhaul remains deferred pending a Design System.
 
 ## Handoff Prompt
 
-v0.1.8 is `CLOSED / PASS`. Mac and iPhone Production Push / automatic Reminder passed; Android Studio Emulator subscription, test Push, ordinary automatic Reminder, audible notification, and notification-shade delivery passed. Heads-up presentation was not observed and was not validated on physical Android hardware; this is non-blocking. Ordinary and recurring delivery, recurrence mutation semantics, idempotency, scheduler health, and exact semantic due remain accepted. Next: define / confirm v0.1.9 scope before implementation; no v0.1.9 implementation has started.
+v0.1.9 Shared Tasks MVP is `SCOPE FROZEN / IMPLEMENTATION NOT STARTED`; canonical scope is `docs/v0.1.9_SHARED_TASKS_SPEC.md` and Multi-space is not required for this version. v0.1.8 remains `CLOSED / PASS` and its Reminder architecture is unchanged. Next: after explicit approval, begin only `v0.1.9 Slice 1 — Task persistence and authorization`; do not begin UI, Production rollout, deployment, or deferred Task features.

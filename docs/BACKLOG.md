@@ -12,7 +12,7 @@
 
 ### v0.1.8 — Mobile Push Reminder
 
-Status: `v0.1.8 — Mobile Push Reminder` is `CLOSED / PASS`. Slice 1, ordinary Reminder Slice A/B/C, Slice 3 Recurrence Reminder Integration, and final cross-platform acceptance are complete. Mac/iPhone Production acceptance passed; Android Studio Emulator subscription, test Push, ordinary automatic Reminder, sound, and notification-shade delivery passed. Physical Android heads-up presentation was not validated and is non-blocking. No v0.1.9 implementation is approved until its scope is separately defined and confirmed.
+Status: `v0.1.8 — Mobile Push Reminder` is `CLOSED / PASS`. Slice 1, ordinary Reminder Slice A/B/C, Slice 3 Recurrence Reminder Integration, and final cross-platform acceptance are complete. Mac/iPhone Production acceptance passed; Android Studio Emulator subscription, test Push, ordinary automatic Reminder, sound, and notification-shade delivery passed. Physical Android heads-up presentation was not validated and is non-blocking. v0.1.9 scope is now frozen separately; no implementation has started.
 
 In scope:
 
@@ -60,14 +60,39 @@ Future compatibility:
 - Push Subscription persistence intentionally does not contain `space_id`. A future user may reuse one device subscription across Family, Travel, Friends, or other Spaces; deliveries continue to resolve recipients from `event.space_id` and current membership at send time.
 - v0.1.8 does not implement multi-space.
 
+## Current Frozen Product Scope
+
+### v0.1.9 — Shared Tasks MVP
+
+Status: `SCOPE FROZEN / IMPLEMENTATION NOT STARTED`. Implementation requires explicit approval after docs-freeze review. Canonical scope: [v0.1.9 Shared Tasks Spec](./v0.1.9_SHARED_TASKS_SPEC.md).
+
+In scope:
+
+- One Space-scoped `tasks` product table with creator attribution, same-Space member/shared assignment, title, `open` / `completed`, optional date-only `due_on`, and timestamps.
+- Collaborative household permissions: all current Space members can view, edit, reassign, complete, reopen, and delete Tasks; RLS and database invariants remain authoritative.
+- Assigned-member departure converts the assignment to shared, using the smallest target-compatible mechanism chosen during Slice 1.
+- Existing Supabase/PostgREST CRUD and Space-filtered Realtime patterns.
+- A minimal `Calendar / Tasks` module switch, open/completed sections, create/edit/delete confirmation, complete/reopen, assignment, and optional due date.
+- Decision `MULTISPACE_NOT_REQUIRED_FOR_V019`; explicit `space_id` preserves future compatibility without implementing Multi-space.
+
+Implementation slices:
+
+1. **Task persistence and authorization:** schema/incremental patch, constraints, assignment/member-leave semantics, immutable identity, RLS/grants, Realtime/replica identity, and focused database tests. No UI.
+2. **Minimal CRUD, UI, and Realtime:** frontend Task model, bounded Tasks module, CRUD, completion/reopen, assignment, due date, deterministic grouping/order, and authenticated two-session validation.
+3. **Production acceptance and closeout:** only after separate approval, apply reviewed artifacts and run bounded Production CRUD/Realtime/RLS/mobile acceptance. Fix only concrete acceptance defects.
+
+Explicitly deferred:
+
+- Task Reminder, recurring Tasks, subtasks, priority, tags, comments, attachments, analytics, custom ordering, Shared Lists semantics, Event generation, Multi-space implementation, and UI/UX overhaul.
+- `completed_at`, `completed_by`, completion history, description, Task scope, and Task/Event dual persistence.
+
 ## Directional Roadmap — Architecture Not Frozen
 
-- v0.1.9 — Shared Tasks.
 - v0.1.10 — Shared Lists.
 - v0.1.11 — Important Dates / Anniversaries.
 - v0.1.12 — Tags / Color = Who.
 - UI/UX overhaul remains deferred until a Design System is defined.
-- These versions are roadmap directions only. Their product scope and architecture require separate review and approval.
+- These future versions are roadmap directions only. Their product scope and architecture require separate review and approval.
 
 ## P1 - Near-Term Product Polish
 

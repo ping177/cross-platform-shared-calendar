@@ -1,5 +1,13 @@
 # Development Log
 
+# 2026-09-22 - v0.1.9 Shared Tasks MVP Docs-Only Scope Freeze
+
+- Froze `v0.1.9 — Shared Tasks MVP` as `SCOPE FROZEN / IMPLEMENTATION NOT STARTED`. Added the canonical specification covering Task/Event semantics, the one-table data contract, collaborative permission model, Realtime reuse, Calendar/Reminder boundaries, complexity budget, minimal UI, risks, deferred scope, acceptance criteria, and three bounded implementation slices.
+- Froze creator attribution without creator-only permission; same-Space member or shared assignment as responsibility rather than access control; `open` / `completed`; optional date-only `due_on`; no completion audit; and assigned-member departure converting the Task to shared. The departure behavior is fixed while the smallest target-compatible FK action or narrowly scoped trigger remains a Slice 1 implementation decision.
+- Recorded `MULTISPACE_NOT_REQUIRED_FOR_V019`. Tasks must persist explicit `space_id` and introduce no new one-space-only assumption, while Multi-space lifecycle, onboarding, selector, and broad RLS work remain separate future scope.
+- Preserved the Calendar/Task boundary and left `v0.1.8 — Mobile Push Reminder` `CLOSED / PASS`. No Task Reminder, Event generation, Reminder persistence/sender/ledger/Cron/Web Push change, recurrence integration, or dual persistence was authorized.
+- Updated README, Decisions, Backlog, Testing, and Project State to point to the canonical spec and make Slice 1 the next action only after explicit implementation approval. No application source, schema, SQL patch, RLS, dependency, configuration, Production resource, deployment, secret, or Slice 1 implementation changed; no push was performed.
+
 # 2026-09-22 - v0.1.8 Final Cross-Platform Acceptance + Release Closeout
 
 - Closed `v0.1.8 — Mobile Push Reminder` as `CLOSED / PASS`. Mac and iPhone Production Push / automatic Reminder acceptance were already PASS; Android final functional acceptance completed on Android Studio Emulator.

@@ -1,5 +1,48 @@
 # Testing
 
+## v0.1.9 Shared Tasks MVP Acceptance Plan
+
+Status: `SCOPE FROZEN / IMPLEMENTATION NOT STARTED`. The canonical behavior and boundaries are defined in [v0.1.9 Shared Tasks Spec](./v0.1.9_SHARED_TASKS_SPEC.md). No v0.1.9 test claim is PASS until the corresponding separately approved implementation slice exists and the checks below have run.
+
+### Slice 1 — Task persistence and authorization
+
+- Verify the exact `tasks` fields and one-table complexity budget, required/default/nullability rules, title canonical-value constraint, `open` / `completed` status check, date-only `due_on`, timestamps, and one reasonable list-oriented index.
+- Verify `space_id` and `created_by` are immutable; authenticated creation cannot forge another creator.
+- Verify a non-null assignee is a current member of the same Space and cross-Space/former-member assignment is rejected.
+- Verify removing an assigned membership clears the assignment to shared without deleting the Task. Test the selected minimal target-compatible mechanism directly.
+- Verify current members can select/insert/update/delete under the frozen collaborative policy while former/non-members cannot read or mutate rows.
+- Verify RLS remains the final row-level boundary and authenticated table grants do not broaden it.
+- Verify `tasks` is present in `supabase_realtime` and uses the compatible replica-identity behavior required for Space-filtered DELETE delivery.
+- Verify the incremental patch and fresh-install `schema.sql` converge on the same Task contract and do not modify Event/Reminder objects.
+- Run the focused v0.1.9 pgTAP suite, all existing database regressions, relevant schema source-contract tests, and `git diff --check`.
+
+### Slice 2 — Minimal CRUD, UI, and Realtime
+
+- Verify the `Calendar / Tasks` switch preserves all existing Calendar behavior and does not add routing or design-system scope.
+- Verify open Tasks are primary; completed Tasks remain visible in a secondary section and can be reopened.
+- Verify create/edit/delete-confirmation, complete/reopen, member/shared assignment, optional native date input, persistence after reload, and database error handling.
+- Verify title input trims for usability while the database remains authoritative for the 1–200-character canonical invariant.
+- Verify one-member Spaces show only the current member plus shared and never invent another member.
+- Verify open Tasks order by `due_on` ascending with nulls last, then `created_at` ascending, then `id` ascending.
+- With two independently authenticated sessions in the same Space, verify create, title/due edit, assignment, complete, reopen, and delete appear on the other device without refresh.
+- Verify a non-member cannot receive or query another Space's Tasks and Realtime does not bypass RLS.
+- Run focused Task Node tests, the full relevant frontend regression suite, `npm run build`, and authenticated desktop/narrow-mobile smoke at `http://127.0.0.1:5175`.
+
+### Slice 3 — Production acceptance and closeout
+
+- Requires separate Production/deployment approval after Slice 1 and Slice 2 acceptance.
+- Preflight the canonical Production prerequisites and apply only the reviewed incremental Task patch.
+- Postflight the Task table, constraints, index, immutable identity, RLS/grants, Realtime publication, replica identity, and unchanged Event/Reminder fingerprints.
+- Deploy only the compatible reviewed frontend.
+- In two authenticated Production sessions, verify Task create/edit/assign/complete/reopen/delete persistence and Realtime, plus non-member/RLS isolation and supported mobile layout.
+- Confirm Task due dates do not create Events and no Task enters Reminder persistence, sender, ledger, Cron, or Web Push paths.
+- Update canonical docs only after observed Production results; correct only concrete acceptance defects rather than adding polish.
+
+### v0.1.9 Explicit Regression Boundaries
+
+- Existing Event CRUD, recurrence, Calendar Today/Week/Month views, member identity, Email OTP, Push subscription lifecycle, ordinary/recurring Reminder delivery, scheduler, and keep-alive behavior remain unchanged.
+- No new dependency, Edge Function, Cron job, queue, local persistence, external storage, Task Reminder, Multi-space implementation, or UI overhaul is part of v0.1.9 acceptance.
+
 ## Filesystem Persistence Boundary
 
 - Tests that exercise filesystem persistence must use temporary directories or injected paths.

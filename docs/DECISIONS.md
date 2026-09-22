@@ -81,6 +81,20 @@
 - **Slice 1 validation strategy:** retain safe test-sender diagnostics (`status`, `delivered`, hostname-only `provider`, `gone`) and treat retry, unsubscribe/resubscribe, then browser/PWA restart as first-line recovery for an accepted-but-not-displayed Push before deeper RCA. The initial Desktop Chrome subscription recovered after resubscription; no architecture, VAPID, Edge Function, or Service Worker blocker was found.
 - **C2 Phase 1 acceptance note:** the deployed shared sender preserved the existing `send-test-push` response and notification behavior on Desktop Chrome/macOS and iPhone installed PWA. Repeated Desktop banners using the unchanged constant `shared-calendar-test` tag are pre-existing/non-blocking behavior; this Phase does not change the tag or add `renotify`.
 
+## v0.1.9 Shared Tasks MVP Scope Freeze
+
+- Status is `SCOPE FROZEN / IMPLEMENTATION NOT STARTED`. The canonical detailed contract is `docs/v0.1.9_SHARED_TASKS_SPEC.md`; implementation requires separate approval.
+- A Task means something that remains to be completed; an Event means when something happens. Every Task belongs to exactly one explicit Space, and a Task due date never creates or mutates an Event.
+- `created_by` is immutable creator attribution only. Assignment is responsibility, not authorization: a current same-Space member ID identifies the responsible member, while null means shared responsibility.
+- Every current Space member may view, edit, assign, complete, reopen, and delete every Task. Former and non-members have no access. RLS, database constraints, membership validation, and immutable identity rules remain authoritative.
+- Status is exactly `open` or `completed`; v0.1.9 stores no completion actor, timestamp, or history. `due_on` is an optional PostgreSQL `date` with no time or timezone.
+- v0.1.9 adds only `public.tasks` with `id`, `space_id`, `created_by`, `assigned_to_user_id`, `title`, `status`, `due_on`, `created_at`, and `updated_at`. It adds no Task scope, description, reminder, recurrence, priority, tags, ordering, JSON config, or Event foreign key.
+- If an assigned member leaves the Space, the Task becomes shared. Slice 1 must choose the smallest target-compatible FK action or narrowly scoped trigger after checking the actual database; this scope freeze does not lock unsupported SQL syntax.
+- Task CRUD should use direct Supabase/PostgREST. Do not add Task CRUD RPCs without a demonstrated atomicity requirement. Realtime reuses the existing Space-filtered Supabase pattern and compatible filtered-delete replica identity.
+- Decision: `MULTISPACE_NOT_REQUIRED_FOR_V019`. Explicit `space_id` keeps Task identity future-compatible; v0.1.9 does not change current membership lifecycle, add a Space selector, or implement Multi-space.
+- Task Reminder is deferred. v0.1.9 does not modify Event Reminder persistence, sender, ledger, Cron, Web Push, recipients, or recurrence projection, and does not reopen v0.1.8.
+- Implementation is bounded to Slice 1 persistence/authorization, Slice 2 minimal CRUD/UI/Realtime, and separately authorized Slice 3 Production acceptance/closeout.
+
 ## PWA
 
 - v0.1 includes basic PWA support with a manifest and mobile meta tags.
