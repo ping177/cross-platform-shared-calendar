@@ -12,11 +12,11 @@ v0.1.8 (Mobile Push Reminder — Slice 3 local implementation and final human/co
 
 ## Current status
 
-Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.8.1` Push Infrastructure 与 `v0.1.8.2` ordinary Reminder Slice A/B/C 保持 `CLOSED / PASS`；Production ordinary scheduler 继续以原已验收版本运行。Slice 3 Recurrence Reminder Integration 已完成本地实现、自动化验证与 final human/code review PASS。Review 发现的唯一 long-duration projection blocker 已用 Reminder-only `ends_at = null` 投影视图有界修正并通过 re-review；canonical recurrence engine、candidate cap 与 ordinary Reminder 路径保持不变。Slice 3 source 已准备好 commit/push，但尚未部署；Android final acceptance 仍延期，因此整体 `v0.1.8` 保持 OPEN。
+Calendar Core 与 Recurring Events 已完成并通过 Production 验收。`v0.1.8.1` Push Infrastructure 与 `v0.1.8.2` ordinary Reminder Slice A/B/C 保持 `CLOSED / PASS`；Production ordinary scheduler 继续以原已验收版本运行。Slice 3 Recurrence Reminder Integration 已完成本地实现、自动化验证与 final human/code review PASS。Review 发现的唯一 long-duration projection blocker 已用 Reminder-only `ends_at = null` 投影视图有界修正并通过 re-review；canonical recurrence engine、candidate cap 与 ordinary Reminder 路径保持不变。Slice 3 source commit 已推送到 `origin/main`，但尚未部署；Android final acceptance 仍延期，因此整体 `v0.1.8` 保持 OPEN。
 
 ## Latest completed
 
-Completed final bounded human/code re-review of Slice 3 with no BLOCKER / MAJOR / MINOR findings. The reviewed long-duration correction keeps Reminder discovery start-based through a non-mutating `ends_at = null` projection view while preserving canonical calendar expansion, its 500-candidate guard, original source snapshots/identity, and ordinary delivery. Full local evidence remains focused recurrence/Reminder 46/46, Node 169/169, pgTAP 199/199, strict Deno PASS, build PASS, and diff check PASS. Source is ready for the authorized commit/push closeout; Slice 3 is not deployed and Production was not modified.
+Completed Slice 3 source governance closeout. Commit `2226731` (`feat: add recurring reminder integration`) was pushed normally to `origin/main` after focused recurrence/Reminder 46/46, ordinary sender 26/26, Node 169/169, pgTAP 199/199, strict Deno, build, diff hygiene, secret scan, and Project State Push Gate all passed. The implementation and long-duration correction remain not deployed, and Production was not modified.
 
 ## Deployment
 
@@ -114,4 +114,4 @@ Perform the separately authorized bounded Slice 3 Production rollout after sourc
 
 ## Handoff Prompt
 
-v0.1.8 remains OPEN. `v0.1.8.2` ordinary Slice A/B/C are closed and Production ordinary delivery/scheduler remain live and unchanged. Slice 3 Recurrence Reminder Integration is implemented and verified locally; final human/code review and the bounded long-duration correction re-review are PASS with no remaining findings. It reuses the one canonical recurrence engine, preserves calendar behavior/caps and ordinary Reminder regression, and adds no dependency, queue, materialization, new Function, or Cron. Slice 3 source is ready for authorized closeout but is not deployed. Next: separately authorize and execute the bounded Slice 3 Production rollout; final Android/cross-platform acceptance remains later and separate.
+v0.1.8 remains OPEN. `v0.1.8.2` ordinary Slice A/B/C are closed and Production ordinary delivery/scheduler remain live and unchanged. Slice 3 Recurrence Reminder Integration source is committed and pushed to `origin/main`; final human/code review and the bounded long-duration correction re-review are PASS with no remaining findings. It reuses the one canonical recurrence engine, preserves calendar behavior/caps and ordinary Reminder regression, and adds no dependency, queue, materialization, new Function, or Cron. Slice 3 is not deployed. Next: separately authorize and execute the bounded Slice 3 Production rollout; final Android/cross-platform acceptance remains later and separate.
