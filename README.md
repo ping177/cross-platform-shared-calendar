@@ -6,8 +6,8 @@ Production URL: https://cross-platform-shared-calendar.vercel.app/
 
 ## 当前阶段
 
-- 当前版本：`v0.1.9 — Shared Tasks MVP`，Slice 1 backend foundation 与 status-ownership corrective patch 已应用至 Production 并通过 postflight；Slice 2 frontend 已通过本地真实 A/B 与 320px 手工验收，尚未 push 或部署。v0.1.8 仍是最新已验收的用户可见 Production capability。Task 规范见 [v0.1.9 Shared Tasks Spec](./docs/v0.1.9_SHARED_TASKS_SPEC.md)；长期导航、Space 模型和方向性路线图见 [Shared Life Architecture Freeze](./docs/SHARED_LIFE_ARCHITECTURE.md)。
-- 最新完成并上线的用户可见产品线仍是 `v0.1.8 — Mobile Push Reminder`。Push Infrastructure、ordinary Reminder delivery、Slice 3 Recurrence Reminder Integration 与 final cross-platform acceptance 均为 `CLOSED / PASS`；v0.1.9 仅 backend foundation 已发布，frontend 尚未部署。
+- 当前版本：`v0.1.9 — Shared Tasks MVP`，`CLOSED / PASS`。Slice 1 backend foundation 与 status-ownership corrective patch 已应用至 Production 并通过 postflight；Slice 2 frontend 已部署至 Vercel；Slice 3 Desktop A/B Production 验收与 iPhone mobile smoke 均 PASS。v0.1.9 是最新已验收的用户可见 Production capability。Task 规范见 [v0.1.9 Shared Tasks Spec](./docs/v0.1.9_SHARED_TASKS_SPEC.md)；长期导航、Space 模型和方向性路线图见 [Shared Life Architecture Freeze](./docs/SHARED_LIFE_ARCHITECTURE.md)。
+- `v0.1.8 — Mobile Push Reminder` 仍为 `CLOSED / PASS`：Push Infrastructure、ordinary Reminder delivery、Slice 3 Recurrence Reminder Integration 与 final cross-platform acceptance 已完成。下一版本为 `v0.1.10 — Personal Space + Multi-space + Module Enablement Foundation`，尚未开始实现。
 - v0.1.8 Slice 1 已实现并验证 Push-only Service Worker、明确用户操作触发的 notification permission flow、`user + installation` subscription persistence/lifecycle，以及带安全 upstream diagnostics 的 authenticated test-push Edge Function。
 - Desktop Chrome/macOS 与 iPhone installed PWA 的真实 Push / automatic Reminder 验收已通过。Android Studio Emulator 的 notification permission/subscription、`send-test-push`、ordinary automatic Reminder、声音与 notification-shade delivery 均通过；未观察到 heads-up banner，且未在实体 Android 硬件上验证该展示行为，这不是 v0.1.8 blocker。
 - v0.1.8 Slice 2 已冻结一个 nullable `events.reminder_kind`、per-event canonical IANA `events.time_zone`、新建 timed 默认提前 10 分钟、新建 all-day 默认当天 08:00、历史事件不自动开启提醒，以及普通事件的 past-due / grace / edit-recalculation 规则。
@@ -25,7 +25,7 @@ Production URL: https://cross-platform-shared-calendar.vercel.app/
 - 成员显示名称与空间成员列表；个人日程显示成员名称，shared 日程显示「共同」
 - 基础 PWA：manifest、mobile meta、可添加到主屏幕
 
-Shared Tasks MVP 的 Space-scoped persistence、member/shared assignment、`open/completed` 与 optional date-only due date 已在 Slice 1 实现并完成 Production backend postflight。Slice 2 的当前 Space 下最小 CRUD UI 与 Realtime 已通过本地真实账号验收；尚未推送或部署前端。Task 不自动创建 Calendar Event，也不接入 Reminder。
+Shared Tasks MVP 的 Space-scoped persistence、member/shared assignment、`open/completed` 与 optional date-only due date 已完成 Production backend postflight。当前 Space 下的最小 CRUD UI 与 Realtime 已部署，Desktop A/B Production 验收和 iPhone mobile smoke 均通过。Task 不自动创建 Calendar Event，也不接入 Reminder。
 
 ## 暂不做
 

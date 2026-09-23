@@ -1,8 +1,17 @@
 # Testing
 
-## v0.1.9 Shared Tasks MVP Acceptance Plan
+## v0.1.9 Shared Tasks MVP Acceptance and Verification
 
-Status: `SLICE 1 IMPLEMENTED / LOCAL VERIFICATION PASS / PRODUCTION BACKEND FOUNDATION APPLIED / POSTFLIGHT VERIFIED; SLICE 2 IMPLEMENTED / MANUAL AUTH ACCEPTANCE PASS; SLICE 3 NOT STARTED`. The canonical behavior and boundaries are defined in [v0.1.9 Shared Tasks Spec](./v0.1.9_SHARED_TASKS_SPEC.md). v0.1.8 remains the latest accepted user-facing Production capability; the v0.1.9 frontend is not deployed.
+Status: `v0.1.9 CLOSED / PASS; SLICE 1/2/3 CLOSED / PASS`. The canonical behavior and boundaries are defined in [v0.1.9 Shared Tasks Spec](./v0.1.9_SHARED_TASKS_SPEC.md). The Production backend was applied/postflight verified, the Vercel frontend was deployed, and v0.1.9 is the latest accepted user-facing Production capability.
+
+### Slice 3 Production acceptance — PASS (user-reported, 2026-09-23)
+
+- Production page loaded and existing Calendar behavior worked. `👥 共享空间 · {space.name} ›` opened Space Hub → Tasks.
+- In Desktop A/B Production sessions, A created a Shared Task and B saw it without refresh. Title, assignment, and due-date changes synchronized in real time.
+- Either current member could Complete/Reopen a Shared Task. Only the assignee could Complete/Reopen an Assigned Task; the other member could not accidentally activate those controls. A member could first reassign a Task to self, then complete it.
+- Complete, Reopen, and Delete synchronized in real time. Delete required a second confirmation, and the Completed page worked.
+- iPhone Production smoke passed for the Tasks page and Create/Edit Task Sheet. Assignment and due date were operable; no material horizontal overflow or obstructed controls were observed.
+- This is user-run authenticated Production evidence. Codex did not drive logged-in sessions. No new full Reminder delivery acceptance or separate Production non-member isolation test is claimed here.
 
 Slice 2 UI is implemented locally. The original all-member complete/reopen rule was corrected after real A/B acceptance found A could complete B's assigned Task. The user completed real A/B and 320px browser acceptance after the correction and Space-entry fix; Codex did not drive authenticated sessions. Final automated results are recorded below.
 
@@ -33,7 +42,7 @@ Slice 2 UI is implemented locally. The original all-member complete/reopen rule 
 
 - The reviewed Slice 1 patch was unchanged from HEAD. The local 5175 frontend's remote target matched the CLI-linked Production project. Preflight found PostgreSQL 17.6, required Space/member helpers and composite uniqueness, and no Task table/function/index/publication entry.
 - Applied only `supabase/patches/2026-09-22-v0.1.9-shared-tasks-slice1.sql`. Postflight verified nine columns, six expected constraints, the column-specific same-Space assignment FK, four member RLS policies, immutable-identity and `updated_at` triggers, CRUD grant, list index, Realtime publication, `REPLICA IDENTITY FULL`, and exactly zero Task rows. The non-Task public schema fingerprint was unchanged; an unauthenticated, read-only zero-row PostgREST request returned HTTP 200.
-- At this backend-alignment checkpoint, the Vercel frontend was not deployed and manual acceptance was still pending; the later Slice 2 acceptance result is recorded above. Full Production acceptance remains pending.
+- At this backend-alignment checkpoint, the Vercel frontend was not deployed and manual acceptance was still pending; the later Slice 2 and Slice 3 acceptance results are recorded above.
 
 ### Slice 2 Task status-ownership correction — 2026-09-23
 

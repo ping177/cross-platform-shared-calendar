@@ -10,9 +10,13 @@
 
 ## Latest Completed Product Slice
 
+### v0.1.9 — Shared Tasks MVP
+
+Status: `CLOSED / PASS`. Slice 1/2/3 均 CLOSED / PASS；Production backend applied/postflight verified、Vercel frontend deployed/accepted、Desktop A/B Production acceptance PASS、iPhone Production smoke PASS。v0.1.9 是最新已验收的用户可见 Production capability。详细范围和历史切片见下方 Current Frozen Product Scope。
+
 ### v0.1.8 — Mobile Push Reminder
 
-Status: `v0.1.8 — Mobile Push Reminder` is `CLOSED / PASS`. Slice 1, ordinary Reminder Slice A/B/C, Slice 3 Recurrence Reminder Integration, and final cross-platform acceptance are complete. Mac/iPhone Production acceptance passed; Android Studio Emulator subscription, test Push, ordinary automatic Reminder, sound, and notification-shade delivery passed. Physical Android heads-up presentation was not validated and is non-blocking. v0.1.9 Slice 1 is implemented and verified locally only; this does not change the latest deployed capability.
+Status: `v0.1.8 — Mobile Push Reminder` is `CLOSED / PASS`. Slice 1, ordinary Reminder Slice A/B/C, Slice 3 Recurrence Reminder Integration, and final cross-platform acceptance are complete. Mac/iPhone Production acceptance passed; Android Studio Emulator subscription, test Push, ordinary automatic Reminder, sound, and notification-shade delivery passed. Physical Android heads-up presentation was not validated and is non-blocking. v0.1.9 is the later accepted Production capability.
 
 In scope:
 
@@ -64,7 +68,7 @@ Future compatibility:
 
 ### v0.1.9 — Shared Tasks MVP
 
-Status: `SLICE 1 IMPLEMENTED / LOCAL VERIFICATION PASS / PRODUCTION BACKEND FOUNDATION APPLIED / POSTFLIGHT VERIFIED; SLICE 2 IMPLEMENTED / MANUAL AUTH ACCEPTANCE PASS; SLICE 3 ROLLOUT AUTHORIZED / IN PROGRESS`. Vercel deployment readiness and user-run Production acceptance remain pending; v0.1.8 remains the latest accepted user-facing Production capability. Canonical Task scope: [v0.1.9 Shared Tasks Spec](./v0.1.9_SHARED_TASKS_SPEC.md); long-term model: [Shared Life Architecture Freeze](./SHARED_LIFE_ARCHITECTURE.md).
+Status: `CLOSED / PASS; SLICE 1/2/3 CLOSED / PASS`. Production backend applied/verified, Vercel frontend deployed/accepted, Desktop A/B Production acceptance PASS, and iPhone Production smoke PASS. v0.1.9 is the latest accepted user-facing Production capability. Canonical Task scope: [v0.1.9 Shared Tasks Spec](./v0.1.9_SHARED_TASKS_SPEC.md); long-term model: [Shared Life Architecture Freeze](./SHARED_LIFE_ARCHITECTURE.md).
 
 In scope:
 
@@ -79,7 +83,7 @@ Implementation slices:
 
 1. **Task persistence and authorization — PRODUCTION APPLIED / POSTFLIGHT VERIFIED:** schema/incremental patch, constraints, assignment/member-leave semantics, immutable identity, RLS/grants, Realtime/replica identity, and focused database tests. Backend foundation is now present in Production.
 2. **Current-Space Tasks CRUD, UI, and Realtime — IMPLEMENTED / MANUAL AUTH ACCEPTANCE PASS:** frontend Task model, bounded Space Hub, CRUD, assignee-owned completion/reopen, assignment, due date, deterministic grouping/order, and user-run two-session validation. The status-ownership corrective backend patch is applied/postflight verified in Production. Calendar header Space-entry discoverability and 320px navigation passed. No Personal Space, Multi-space, module enablement, full navigation, aggregation, or global create.
-3. **Production acceptance and closeout — ROLLOUT AUTHORIZED / IN PROGRESS:** push the reviewed compatible frontend, verify Vercel deployment, then obtain user-run Production acceptance. Fix only concrete acceptance defects; do not close before that evidence.
+3. **Production acceptance and closeout — CLOSED / PASS:** the compatible frontend was deployed through Vercel; user-run Desktop A/B and iPhone Production acceptance passed.
 
 Explicitly deferred:
 
@@ -91,8 +95,8 @@ Explicitly deferred:
 
 The long-term relationships are frozen in [Shared Life Architecture Freeze](./SHARED_LIFE_ARCHITECTURE.md). The version rows below are directional; implementation scope, permissions, and rollout still require version-specific review and approval.
 
-- v0.1.9 — Shared Tasks; Slice 1 local/Production backend PASS, Slice 2 implemented/manual auth acceptance PASS, Slice 3 rollout authorized/in progress.
-- v0.1.10 — Personal Space + Multi-space + Module Enablement Foundation.
+- v0.1.9 — Shared Tasks; Slice 1/2/3 CLOSED / PASS; Production backend and frontend accepted.
+- v0.1.10 — Personal Space + Multi-space + Module Enablement Foundation; scope/design work next, implementation not started. At version start, unify user-visible `Task / Tasks` copy as Chinese “任务”: Tasks → 任务, Completed Tasks → 已完成任务, Create Task → 新建任务, Edit Task → 编辑任务. Change UI copy only; keep database tables, TypeScript types, filenames, and internal identifiers. Do not add full i18n in this version; formal Chinese/English switching remains for a future product stage.
 - v0.1.11 — Navigation + Aggregation Experience.
 - v0.1.12 — Shared Lists.
 - v0.1.13 — Important Dates.

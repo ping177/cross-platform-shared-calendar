@@ -1,5 +1,12 @@
 # Development Log
 
+# 2026-09-23 - v0.1.9 Shared Tasks MVP Final Closeout
+
+- User-reported Production acceptance passed after the Vercel frontend deployment: Production page and existing Calendar worked; `👥 共享空间 · {space.name} ›` opened Space Hub → Tasks. Desktop A/B sessions saw Shared Task creation and title/assignment/due-date edits without refresh. Shared status transitions worked for either member; assigned transitions worked only for the assignee, with disabled controls for the other member. A member could reassign to self and then complete. Complete, Reopen, and confirmed Delete synchronized; Completed page worked.
+- User-reported iPhone Production smoke passed for Tasks, Create/Edit Sheet, assignment and due date. No material horizontal overflow or control obstruction was observed. Slice 1/2/3 are `CLOSED / PASS`; v0.1.9 is the latest accepted user-visible Production capability. This closeout changes governance docs only; no application, database, Reminder, Event, or Production configuration change.
+- v0.1.10 scope/design is next; implementation has not started. User-visible `Task / Tasks` copy is deferred for a Chinese “任务” pass at the start of v0.1.10, without renaming internal identifiers or adding full i18n.
+- Closeout verification: focused existing Task Node/schema-contract tests 16/16 PASS; full existing Node suite 185/185 PASS; `npm run build` PASS; `git diff --check` PASS. No new test harness or database check was needed for documentation-only changes.
+
 # 2026-09-23 - v0.1.9 Slice 3 Rollout Authorization
 
 - User explicitly authorized the reviewed Slice 2 frontend rollout on `main`. Slice 3 is `ROLLOUT AUTHORIZED / IN PROGRESS`; Vercel deployment readiness and user-run Production acceptance are pending. v0.1.8 remains the latest accepted user-visible Production capability.
