@@ -12,11 +12,11 @@ v0.1.10 — Personal Space + Multi-space + Module Enablement Foundation
 
 ## Current status
 
-v0.1.10 Slice 1 backend foundation: `PRODUCTION BACKEND ROLLOUT PASS`; Slice 2 frontend: `LOCAL IMPLEMENTATION / VERIFICATION PASS`; Slice 3: `NOT STARTED`. Authenticated Production acceptance and Production frontend rollout: `NOT STARTED`. v0.1.9 remains `CLOSED / PASS` and the latest accepted user-visible Production capability.
+v0.1.10 Slice 1 backend foundation: `PRODUCTION BACKEND ROLLOUT PASS`; Slice 2 frontend: `DEPLOYED / UNAUTHENTICATED VERIFIED`; Slice 3: `NOT STARTED`. Authenticated Production acceptance: `NOT STARTED`. v0.1.9 remains `CLOSED / PASS` as the latest authenticated-accepted capability; the active Production entry point now serves the Slice 2 frontend. Slice 2 is not `CLOSED / PASS`.
 
 ## Latest completed
 
-Slice 2 selected/current Space frontend flow and the bootstrap degradation correction passed final local diff review. A failed Personal ensure still permits a read-only list and valid Shared Calendar, with a visible warning and manual retry; failed listing or no valid Space remains blocking. Valid current/remembered Shared selection and Space-switch isolation remain in place. Focused frontend Node 19/19, full Node 204/204, build, and diff check passed again. Slice 1 Production postflight found Personal Space count 0 at that earlier checkpoint; no real user Personal Space was created in this Slice 2 work. A fresh pre-authenticated-acceptance count remains required after frontend deployment.
+Slice 2 final diff review, focused frontend Node 19/19, full Node 204/204, build, and diff check passed. Implementation commit `d7e13e1d81472bfee956920e232c443f15f042e5` reached a successful Vercel Production deployment; the public alias returned HTTP 200, loaded the new Slice 2 JS/CSS, and showed the unauthenticated login entry. Post-deployment read-only counts were 2 Spaces, 3 memberships, and 0 Personal Spaces, matching the earlier baseline. No real authenticated acceptance, Personal creation, or backfill occurred.
 
 ## Deployment
 
@@ -24,7 +24,7 @@ Status: public_deployed
 Public URL: https://cross-platform-shared-calendar.vercel.app/
 Provider: Vercel
 Backend: Supabase Free
-Notes: v0.1.9 是最新已验收的用户可见 Production capability，Vercel frontend 仍保持 v0.1.9 行为。v0.1.10 Slice 1 Supabase backend 已 applied/postflight verified；其 postflight Personal Space count 为 0。Slice 2 frontend 仅在本地实现/验证，authenticated Production acceptance 和 Production frontend rollout 均未开始；未执行真实用户 Personal Space 创建或 backfill。Production rollout 时 Task count 为 0，历史 Task disable/re-enable 仅有本地 regression 证据。`send-test-push` 保持 ACTIVE v4 reviewed-equivalent；`send-reminders` 为 ACTIVE v2 / `verify_jwt=false`。Vault/secret/Cron 未修改，唯一 once-per-minute scheduler 保持健康。
+Notes: v0.1.10 Slice 2 frontend 已部署，Production alias 的 active entry point 不再是 v0.1.9 bundle；仅完成未登录页面与静态资源验证，authenticated Production acceptance 尚未开始。部署后只读计数：Personal Space 0、membership 3、Space 2。v0.1.9 仍为最新经 authenticated acceptance 的 capability，但首次真实 Personal 创建后不再是受影响账号的安全 rollback target。用户在验收前须关闭旧 tabs/PWA 并重新打开 Production URL。Slice 1 Supabase backend 已 applied/postflight verified；未执行真实用户 Personal Space 创建或 backfill。Production backend rollout 时 Task count 为 0，历史 Task disable/re-enable 仅有本地 regression 证据。`send-test-push` 保持 ACTIVE v4 reviewed-equivalent；`send-reminders` 为 ACTIVE v2 / `verify_jwt=false`。Vault/secret/Cron 未修改，唯一 once-per-minute scheduler 保持健康。
 
 ## Version Index
 
@@ -50,7 +50,7 @@ Notes: v0.1.9 是最新已验收的用户可见 Production capability，Vercel f
 - v0.1.8.1 — Push Infrastructure Foundation（CLOSED / PASS；Desktop + iPhone + Android Studio Emulator verified）
 - v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（Slice A/B/C CLOSED / PASS；P3A C1、P3B manual E2E、P3C automatic scheduler E2E complete）
 - v0.1.9 — Shared Tasks MVP（CLOSED / PASS；Slice 1/2/3 CLOSED / PASS；Production backend verified、frontend deployed and accepted）
-- v0.1.10 — Personal Space + Multi-space + Module Enablement Foundation（Slice 1 PRODUCTION BACKEND ROLLOUT PASS；Slice 2 LOCAL IMPLEMENTATION / VERIFICATION PASS；Slice 3 NOT STARTED）
+- v0.1.10 — Personal Space + Multi-space + Module Enablement Foundation（Slice 1 PRODUCTION BACKEND ROLLOUT PASS；Slice 2 DEPLOYED / UNAUTHENTICATED VERIFIED，authenticated acceptance NOT STARTED；Slice 3 NOT STARTED）
 
 ## Last verified
 
@@ -58,7 +58,7 @@ Notes: v0.1.9 是最新已验收的用户可见 Production capability，Vercel f
 
 ## Next Action
 
-Execute the authorized controlled Slice 2 frontend rollout: push the verified implementation, confirm the matching Vercel Production deployment and unauthenticated/static assets, then check Production Personal Space and membership counts before the docs closeout. User-run authenticated acceptance follows old tab/PWA refresh; Slice 3 remains deferred.
+MANUAL_AUTH_ACCEPTANCE_CHECKPOINT — v0.1.10 Slice 2
 
 ## Blockers
 
@@ -77,8 +77,8 @@ Execute the authorized controlled Slice 2 frontend rollout: push the verified im
 - Android compatibility smoke test is complete for Xiaomi 14 / Android 16 / Chrome on mobile network.
 - v0.1 is a Web/PWA, not native iOS / Android.
 - v0.1.9 canonical scope is `docs/v0.1.9_SHARED_TASKS_SPEC.md`; Slice 1 backend is Production applied/postflight verified, Slice 2 local UI passed user-run authenticated acceptance, and Slice 3 Production Desktop A/B plus iPhone smoke passed. All three slices are CLOSED / PASS.
-- v0.1.10 Scope / Architecture Freeze is `CLOSED / READY FOR IMPLEMENTATION` in `docs/SHARED_LIFE_ARCHITECTURE.md`; Slice 1 backend is `PRODUCTION BACKEND ROLLOUT PASS`. It reuses `spaces / space_members`, enforces sole-owner Personal Space with partial unique `UNIQUE(created_by) WHERE kind = 'personal'`, retains the Shared two-member limit, and keeps disabled Tasks history readable while blocking mutations. Calendar is always on; only Tasks will have a v0.1.10 visible module toggle. Slice 2's membership-validated `selectedSpaceId` frontend flow is locally verified but has no authenticated Production acceptance; full navigation/aggregation and Shared three-plus-member support remain deferred.
-- v0.1.10 backend rollout preserved existing Space/member/Event/Task row counts and identity/invite fingerprints. No Personal Space was created or backfilled; the old v0.1.9 frontend remains compatible while users each have one Shared membership. The compatible Slice 2 frontend later calls idempotent `ensure_personal_space()` per user. Consider older-account bulk backfill only after real authenticated acceptance. Production Task count was 0 at rollout, so historical Task disable/re-enable remains locally verified rather than Production-tested.
+- v0.1.10 Scope / Architecture Freeze is `CLOSED / READY FOR IMPLEMENTATION` in `docs/SHARED_LIFE_ARCHITECTURE.md`; Slice 1 backend is `PRODUCTION BACKEND ROLLOUT PASS`. It reuses `spaces / space_members`, enforces sole-owner Personal Space with partial unique `UNIQUE(created_by) WHERE kind = 'personal'`, retains the Shared two-member limit, and keeps disabled Tasks history readable while blocking mutations. Calendar is always on; only Tasks will have a v0.1.10 visible module toggle. Slice 2's membership-validated `selectedSpaceId` frontend flow is deployed and unauthenticated-verified but has no authenticated Production acceptance; full navigation/aggregation and Shared three-plus-member support remain deferred.
+- v0.1.10 backend rollout preserved existing Space/member/Event/Task row counts and identity/invite fingerprints. No Personal Space was created or backfilled. The deployed Slice 2 frontend calls idempotent `ensure_personal_space()` on authenticated bootstrap; the old v0.1.9 runtime must be closed before user acceptance and is not a safe rollback target for an account after Personal creation. Consider older-account bulk backfill only after real authenticated acceptance. Production Task count was 0 at backend rollout, so historical Task disable/re-enable remains locally verified rather than Production-tested.
 - `V019_SLICE2_UI_FROZEN` / `SLICE 2 IMPLEMENTED / MANUAL AUTH ACCEPTANCE PASS`: Calendar header `共享空间 · {space.name}` opens the current Space Hub; its only module entry is Tasks. Open Tasks and separate Completed Tasks use the existing Space-scoped contract. Empty `profiles.display_name` may use contextual `我 / 对方` only in the current two-member v0.1.9 UI; this is not a durable partner identity, and future Multi-space / multi-member UI uses generic member display logic. Space-entry navigation and 320px layout passed user-run acceptance; extreme-width name ellipsis is accepted.
 - Slice 1 uses direct PostgREST CRUD with four member-scoped RLS policies, no Task RPC, one exact-order list index, and a PostgreSQL 17.6-verified composite FK whose column-specific delete action clears only `assigned_to_user_id` when a member leaves.
 - A Task is Space-scoped work that remains to be completed. Assignment does not restrict visibility, ordinary edits, reassignment, or deletion; null means shared. Shared status transitions belong to any current member, while assigned status transitions require the assignee from before the UPDATE. A takeover and completion require separate UPDATEs; RLS and the corrective DB trigger remain authoritative.
@@ -126,4 +126,4 @@ Execute the authorized controlled Slice 2 frontend rollout: push the verified im
 
 ## Handoff Prompt
 
-v0.1.10 Slice 1 is PRODUCTION BACKEND ROLLOUT PASS (Personal Space count 0 at its postflight, no backfill). Slice 2 selected/current Space frontend and ensure-failure Shared fallback passed final local review and verification. Authenticated Production acceptance and frontend rollout are NOT STARTED. v0.1.9 remains the latest accepted user-visible Production capability. Next: authorized controlled frontend rollout, matching deployment/static verification, fresh read-only Personal/membership counts, then docs closeout. Users refresh old tabs/PWA before authenticated acceptance. Slice 3 module UI and Task copy remain deferred.
+v0.1.10 Slice 1 is PRODUCTION BACKEND ROLLOUT PASS. Slice 2 frontend is DEPLOYED / UNAUTHENTICATED VERIFIED at implementation commit d7e13e1; post-deployment read-only Personal Space count is 0 and memberships remain 3. Authenticated Production acceptance is NOT STARTED, so Slice 2 is not CLOSED / PASS. Next: MANUAL_AUTH_ACCEPTANCE_CHECKPOINT — v0.1.10 Slice 2. Users close old Production tabs and PWA runtimes, reopen the Production URL, then perform their own A/B authenticated acceptance. The old v0.1.9 runtime is unsafe after Personal creation. Slice 3 remains deferred.

@@ -1,6 +1,6 @@
 # Shared Life Architecture Freeze
 
-Status: `ARCHITECTURE FROZEN`; v0.1.10 Scope / Architecture Freeze: `CLOSED / READY FOR IMPLEMENTATION`; Slice 1: `PRODUCTION BACKEND ROLLOUT PASS`; Slice 2: `LOCAL VERIFIED / REVIEW PENDING`; Slice 3: `NOT STARTED`. Authenticated Production acceptance and frontend rollout are `NOT STARTED`.
+Status: `ARCHITECTURE FROZEN`; v0.1.10 Scope / Architecture Freeze: `CLOSED / READY FOR IMPLEMENTATION`; Slice 1: `PRODUCTION BACKEND ROLLOUT PASS`; Slice 2: `DEPLOYED / UNAUTHENTICATED VERIFIED`; Slice 3: `NOT STARTED`. Authenticated Production acceptance is `NOT STARTED`.
 
 This document freezes the long-term product model and navigation direction plus the reviewed v0.1.10 foundation scope. It does not change the accepted v0.1.9 Production capability. Later roadmap versions remain directional and need their own scope review.
 
