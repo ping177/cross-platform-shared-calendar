@@ -12,11 +12,11 @@ v0.1.9 — Shared Tasks MVP
 
 ## Current status
 
-`SCOPE FROZEN / SLICE 1 IMPLEMENTED / LOCAL VERIFICATION PASS / SLICE 2 NOT STARTED`. Shared Life 长期导航、Space、模块、Calendar Sources、global create 与方向性路线图已完成 docs-only 架构冻结。v0.1.9 Slice 2 UI 范围已修订为当前 Space 下的最小 Tasks 入口，尚未开始实施；Slice 1 本地 PASS 保持有效。
+`SCOPE FROZEN / SLICE 1 IMPLEMENTED / LOCAL VERIFICATION PASS / V019_SLICE2_UI_FROZEN / V019_SLICE2_IMPLEMENTATION_NOT_STARTED`. Shared Life 长期架构仍仅是未来方向；v0.1.9 Slice 2 当前 Space Hub、Tasks 与 Completed Tasks 的 docs-only UI Freeze 已 review 通过，实施尚未开始。Slice 1 本地 PASS 保持有效。
 
 ## Latest completed
 
-Completed the docs-only Shared Life Architecture Freeze and amended v0.1.9 Slice 2 UI scope. `v0.1.9 Slice 1 — Task Persistence and Authorization` remains implemented with 58/58 focused pgTAP, 257/257 full database regression, and 14/14 schema-contract tests passing locally. The latest deployed capability remains `v0.1.8 — Mobile Push Reminder = CLOSED / PASS`; no v0.1.9 artifact has been applied to Production.
+Completed the docs-only v0.1.9 Slice 2 UI Freeze: Calendar header Space-name entry, minimal current Space Hub, Open/Completed pages, Task Sheet/actions, member fallback, narrow-mobile behavior, and two-account Realtime acceptance steps. `v0.1.9 Slice 1 — Task Persistence and Authorization` remains implemented with 58/58 focused pgTAP, 257/257 full database regression, and 14/14 schema-contract tests passing locally. The latest deployed capability remains `v0.1.8 — Mobile Push Reminder = CLOSED / PASS`; no v0.1.9 artifact has been applied to Production.
 
 ## Deployment
 
@@ -49,7 +49,7 @@ Notes: 当前公网版本包含已验收的 ordinary 与 recurring Reminder。`s
 - v0.1.8 — Mobile Push Reminder（CLOSED / PASS）
 - v0.1.8.1 — Push Infrastructure Foundation（CLOSED / PASS；Desktop + iPhone + Android Studio Emulator verified）
 - v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（Slice A/B/C CLOSED / PASS；P3A C1、P3B manual E2E、P3C automatic scheduler E2E complete）
-- v0.1.9 — Shared Tasks MVP（Scope Frozen；Slice 1 Implemented / Local Verification Pass；Slice 2 UI Scope Amended / Not Started）
+- v0.1.9 — Shared Tasks MVP（Scope Frozen；Slice 1 Implemented / Local Verification Pass；Slice 2 UI Frozen / Implementation Not Started）
 
 ## Last verified
 
@@ -57,7 +57,7 @@ Notes: 当前公网版本包含已验收的 ordinary 与 recurring Reminder。`s
 
 ## Next Action
 
-Review the amended v0.1.9 Slice 2 UI scope and obtain explicit approval before implementation.
+Await separate explicit authorization to begin v0.1.9 Slice 2 implementation under the reviewed UI Freeze.
 
 ## Blockers
 
@@ -75,9 +75,9 @@ Review the amended v0.1.9 Slice 2 UI scope and obtain explicit approval before i
 - README is the project entrypoint; detailed smoke checklists and production validation records live in `docs/TESTING.md`.
 - Android compatibility smoke test is complete for Xiaomi 14 / Android 16 / Chrome on mobile network.
 - v0.1 is a Web/PWA, not native iOS / Android.
-- v0.1.9 canonical scope is `docs/v0.1.9_SHARED_TASKS_SPEC.md`; status is `SCOPE FROZEN / SLICE 1 IMPLEMENTED / LOCAL VERIFICATION PASS / SLICE 2 NOT STARTED`.
+- v0.1.9 canonical scope is `docs/v0.1.9_SHARED_TASKS_SPEC.md`; Slice 1 is implemented/local PASS, while Slice 2 UI is frozen for review and implementation has not started.
 - Long-term Shared Life architecture is frozen in `docs/SHARED_LIFE_ARCHITECTURE.md`: `首页 / 日历 / 空间 / 我的`, Personal plus multiple Shared Spaces, per-Space optional modules, Calendar Sources, privacy-confirmed future global create, and the revised directional roadmap. These future capabilities are not implemented by this docs freeze.
-- The amended v0.1.9 Slice 2 puts Tasks under the existing/current Space with only a minimum reusable Space Hub entry. It supersedes a top-level `Calendar / Tasks` switch; Personal Space, Multi-space, module enablement, full navigation, aggregation, and global create remain outside v0.1.9.
+- `V019_SLICE2_UI_FROZEN` / `V019_SLICE2_IMPLEMENTATION_NOT_STARTED`: Calendar header Space name opens the current Space Hub; its only module entry is Tasks. Open Tasks and separate Completed Tasks use the existing Space-scoped contract. Empty `profiles.display_name` may use contextual `我 / 对方` only in the current two-member v0.1.9 UI; this is not a durable partner identity, and future Multi-space / multi-member UI uses generic member display logic. This supersedes a top-level `Calendar / Tasks` switch; Personal Space, Multi-space, module enablement, full navigation, aggregation, and global create remain outside v0.1.9.
 - Slice 1 uses direct PostgREST CRUD with four member-scoped RLS policies, no Task RPC, one exact-order list index, and a PostgreSQL 17.6-verified composite FK whose column-specific delete action clears only `assigned_to_user_id` when a member leaves.
 - A Task is Space-scoped work that remains to be completed. Assignment is responsibility, not access control; null assignee means shared. All current Space members collaborate, while RLS/database invariants remain authoritative.
 - Task status is only `open` / `completed`; `due_on` is optional date-only metadata. v0.1.9 has no completion audit, Task Reminder, recurrence, Task/Event dual persistence, Multi-space implementation, or UI overhaul.

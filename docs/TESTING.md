@@ -4,6 +4,8 @@
 
 Status: `SCOPE FROZEN / SLICE 1 IMPLEMENTED / LOCAL VERIFICATION PASS / SLICE 2 NOT STARTED`. The canonical behavior and boundaries are defined in [v0.1.9 Shared Tasks Spec](./v0.1.9_SHARED_TASKS_SPEC.md). Slice 1 claims are local-only; Production and frontend acceptance remain pending separately authorized slices.
 
+Slice 2 design checkpoint: `V019_SLICE2_UI_FROZEN` / `V019_SLICE2_IMPLEMENTATION_NOT_STARTED`. The checklist below is for future implementation acceptance; it is not a claim that the UI exists or has passed browser testing.
+
 ### Slice 1 — Task persistence and authorization — LOCAL PASS
 
 - Focused Task pgTAP: 58/58 PASS.
@@ -25,14 +27,14 @@ Status: `SCOPE FROZEN / SLICE 1 IMPLEMENTED / LOCAL VERIFICATION PASS / SLICE 2 
 
 ### Slice 2 — Minimal CRUD, UI, and Realtime
 
-- Verify Tasks are reachable through the existing/current Space context with only the minimum reusable current-Space / Space Hub entry. The old top-level `Calendar / Tasks` switch is superseded; no full four-destination navigation, Personal Space, Multi-space, module enablement, aggregation, or global create is part of Slice 2.
-- Verify open Tasks are primary; completed Tasks remain visible in a secondary section and can be reopened.
-- Verify completed history supports delete as well as reopen, without an `archive` status.
-- Verify create/edit/delete-confirmation, complete/reopen, member/shared assignment, optional native date input, persistence after reload, and database error handling.
-- Verify title input trims for usability while the database remains authoritative for the 1–200-character canonical invariant.
-- Verify one-member Spaces show only the current member plus shared and never invent another member.
-- Verify open Tasks order by `due_on` ascending with nulls last, then `created_at` ascending, then `id` ascending.
-- With two independently authenticated sessions in the same Space, verify create, title/due edit, assignment, complete, reopen, and delete appear on the other device without refresh.
+- At `http://127.0.0.1:5175`, start in Calendar. Tap its header Space name, confirm the Hub shows the actual Space name, member count/action, existing invite copy/rotate controls, and only one `Tasks / N 项待完成` module row. Go Hub → Tasks → Completed Tasks and back through each header. Confirm Calendar returns to its former date/view and existing Calendar controls/InvitePanel still work. No old top-level `Calendar / Tasks` switch, full navigation, or future-module placeholders appear.
+- Confirm Tasks shows only Open rows, live `待完成 · N`, page-local `+`, assignment/date secondary labels, and one `已完成 · N >` entry. Completed page shows every completed row with view/edit, `重新打开`, and delete through its edit Sheet; the main page does not expand completed rows. Check that a list exceeding a server row limit is not silently truncated, without adding pagination UI. Test both empty lists and zero counts.
+- Confirm Open ordering by `due_on` ascending, nulls last, then `created_at` and `id` ascending; equal-date and no-date fixtures should be deterministic. Completed uses the same stable ordering and makes no completion-recency claim.
+- Confirm `+` opens the existing-style bottom Sheet with exactly title, assignment, and optional date; create defaults to Shared and no date. Edit preserves status while changing those fields. Title is trimmed and constrained to 1–200 characters; failures stay visible with input intact. Date can be set and cleared. Close/cancel discards unsaved changes.
+- Confirm the left Open circle completes without opening edit and moves the row to Completed; tapping the title opens edit without completing. `重新打开` returns it to the sorted Open list. Delete exists only inside edit, requires a named second confirmation, and cancel leaves the Task intact. A failed write does not leave a false completed/deleted state.
+- Confirm assignment shows `共同` plus only real current Space members. Prefer `profiles.display_name`; in the current two-member v0.1.9 UI, when it is empty use contextual `我` / `对方` labels relative to each signed-in account. Verify those labels are presentation only and writes use member IDs. One-member Space shows no invented partner; no email/Auth metadata label is displayed. Future Multi-space / multi-member display must use generic member logic, not a persisted `partner` identity.
+- At 320px narrow mobile width and a typical mobile viewport, verify one column, wrapped titles, distinct circle/title/reopen targets, readable count/chevrons, no horizontal scrolling, Sheet keyboard/safe-area behavior, and keyboard/accessibility labels for icon controls.
+- With A and B independently authenticated in the same Space, open Hub/Tasks in both and do not refresh either session: (1) A creates an open Task and B sees the row plus Open/Hub counts; (2) B edits title and A sees it; (3) A assigns to B, then Shared, and B sees each change; (4) B sets then clears a due date and A sees both values and resulting order; (5) A completes via circle and B sees the row leave Open and appear in Completed with both counts updated; (6) B reopens and A sees it return to Open; (7) A deletes through edit and confirmation and B sees it disappear from both lists/counts. Reverse A/B writer roles on a second Task. Verify no manual reload, including when the observer is on Hub or Completed.
 - Verify a non-member cannot receive or query another Space's Tasks and Realtime does not bypass RLS.
 - Run focused Task Node tests, the full relevant frontend regression suite, `npm run build`, and authenticated desktop/narrow-mobile smoke at `http://127.0.0.1:5175`.
 

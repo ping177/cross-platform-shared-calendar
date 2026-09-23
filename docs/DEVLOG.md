@@ -1,5 +1,11 @@
 # Development Log
 
+# 2026-09-23 - v0.1.9 Slice 2 UI Freeze (Docs Only)
+
+- Inspected the existing Calendar shell: the current Space name is already in the header, while Member Sheet, InvitePanel, and mobile bottom Sheet patterns already exist. Froze that Space-name control as the only new Calendar entry into a minimal current Space Hub, with local-screen back navigation preserving the Calendar date/view and no routing or shell redesign.
+- Froze the Hub's actual Space name, existing member/invite abilities, and one live Tasks count row; the Open Tasks page with due-date/null/stable ordering and a collapsed Completed count entry; and a separate all-Completed list with view/edit/reopen/delete. Defined create/edit Sheet fields, completion and reopen actions, confirmed deletion, member-name fallbacks, one-member behavior, 320px mobile layout, and two authenticated sessions' no-refresh Realtime acceptance sequence. The user reviewed and approved the UI Freeze. `profiles.display_name` takes priority; `我 / 对方` are contextual fallbacks for this two-member stage only, not a long-term identity model. Future Multi-space / multi-member UI uses generic member display logic.
+- Updated `docs/v0.1.9_SHARED_TASKS_SPEC.md`, `docs/TESTING.md`, and `docs/PROJECT_STATE.md`. Final state is `V019_SLICE2_UI_FROZEN` / `V019_SLICE2_IMPLEMENTATION_NOT_STARTED`. No business code, SQL/schema/RLS, dependency, Production resource, deployment, or secret was changed or inspected. Docs-only verification: `git diff --check` passed.
+
 # 2026-09-23 - Shared Life Architecture Docs-Only Freeze
 
 - Froze the long-term `首页 / 日历 / 空间 / 我的` navigation, Personal and multiple Shared Spaces with single canonical ownership per object, per-Space Calendar core and optional module enablement, Space-backed and global/external Calendar Sources, and the privacy-confirmed future global create flow in `docs/SHARED_LIFE_ARCHITECTURE.md`. Review / Check-in is distinct structured content; voice technology and Task Archive remain deferred.
