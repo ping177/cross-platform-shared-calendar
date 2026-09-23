@@ -1,5 +1,12 @@
 # Development Log
 
+# 2026-09-23 - v0.1.10 Slice 1 Production Backend Rollout — PASS
+
+- Reconfirmed the linked Production project `ximazjhxvmktpcdbypka` (`cross-platform-shared-calendar`, ACTIVE_HEALTHY), clean `main` at `f5adb32610c88b927e787284302080a92ca7cfc9`, and the absence of partial v0.1.10 objects. The final guarded forward patch ran once as its own `BEGIN` / `COMMIT` transaction, without repair or a second execution.
+- Just-in-time and immediate postflight counts matched: 2 Spaces, 3 memberships, 13 Events, 0 Tasks. Aggregate MD5 fingerprints for Space identity, membership identity, Event identity, Task identity, and invite data were unchanged. Existing data invariants remained clear. Both old Spaces are `shared` with `tasks=true`; Personal Space count is 0 and no backfill occurred.
+- Production catalog verified removal of `one_space_per_user_idx`, valid partial Personal unique index, `space_modules` PK/FK/check/RLS, member SELECT without direct client writes, owner-only module RPC, Personal membership/Event guards, compatible Shared create/join/rotate signatures and two-member cap, Task mutation RLS with historical SELECT, and unchanged Event/Task Realtime publication. Anonymous PostgREST probes recognized both new RPCs and returned `401 / 42501` (execute denied), confirming schema visibility without creating data. The existing Vercel page returned HTTP 200.
+- The deployed v0.1.9 frontend remains the user-visible capability; its single-Space loader is safe while each current user has one Shared membership and no Personal Space exists. Production had no Task rows, so historical Task disable/re-enable behavior was not exercised there; local regression covers it. No frontend, Vercel, Edge Function, Reminder, recurrence, Personal creation/backfill, or secret change was made. Slice 2 is next.
+
 # 2026-09-23 - v0.1.10 Slice 1 Local Backend Foundation — Complete
 
 - Implemented the frozen multi-Space data and permission foundation in `supabase/schema.sql` and one guarded forward patch. Existing Spaces remain Shared; the one-user-one-Space index is removed; Personal Space uses a partial creator unique index, sole-owner membership guard, immutable kind/creator/invite code, and an authenticated, idempotent `ensure_personal_space()` RPC. Shared create/join RPCs permit membership in other Spaces while preserving the target's two-member cap and join lock.

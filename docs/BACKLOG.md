@@ -93,9 +93,9 @@ Explicitly deferred:
 
 ## Next Frozen Scope — v0.1.10 Foundation
 
-Status: Scope / Architecture Freeze `CLOSED / READY FOR IMPLEMENTATION`; implementation `NOT STARTED`. v0.1.9 remains `CLOSED / PASS` in Production. Canonical decisions and rollout boundaries are in [Shared Life Architecture Freeze](./SHARED_LIFE_ARCHITECTURE.md).
+Status: Scope / Architecture Freeze `CLOSED / READY FOR IMPLEMENTATION`; Slice 1 `PRODUCTION BACKEND ROLLOUT PASS`; Slices 2–3 `NOT STARTED`. v0.1.9 remains `CLOSED / PASS` as the user-visible Production frontend. Canonical decisions and rollout boundaries are in [Shared Life Architecture Freeze](./SHARED_LIFE_ARCHITECTURE.md).
 
-1. **Slice 1 — Data / permission foundation:** `spaces.kind`, partial personal-owner uniqueness, sole-owner membership invariant, removal of user-wide membership uniqueness, Shared create/join compatibility and two-member capacity, `space_modules`, owner-only toggle RPC, and database Task mutation guard. Verify schema/patch parity, RLS/RPC contracts, and actual Production preflight before any rollout. Backend capability may go first; no automatic Personal Space creation or bulk backfill while the old frontend remains the accepted UI.
+1. **Slice 1 — Data / permission foundation — PRODUCTION BACKEND ROLLOUT PASS:** `spaces.kind`, partial personal-owner uniqueness, sole-owner membership invariant, removal of user-wide membership uniqueness, Shared create/join compatibility and two-member capacity, `space_modules`, owner-only toggle RPC, and database Task mutation guard. Local regression, Production preflight, single patch application, immediate data/catalog/permission postflight, and PostgREST visibility passed. Personal Space count remains 0; no automatic creation or bulk backfill occurred while the old frontend remains the accepted UI.
 2. **Slice 2 — Selected/current Space vertical flow:** compatible frontend calls idempotent `ensure_personal_space()` per user, lists/switches member Spaces, keeps an explicit membership-validated `selectedSpaceId`, and scopes Event/Task/member/module data plus Realtime to it. Preserve the existing Shared Space selection on first upgrade and use Personal Space when no Shared Space exists. Clear and guard old requests/subscriptions during switching. Real authenticated acceptance follows the backend/frontend compatibility gate; only afterward consider bulk backfill of older accounts.
 3. **Slice 3 — Tasks module enablement + UI text closeout:** Calendar stays implicit; Tasks toggles per Space under owner authority, with historical SELECT preserved and all mutations blocked while disabled. Re-enable restores data. Only Tasks has a visible toggle. Change user-visible `Task / Tasks` wording to Chinese “任务” without renaming internal identifiers or adding full i18n.
 
@@ -106,7 +106,7 @@ No Event/Task identity, v0.1.9 Task authorization, v0.1.8 Reminder, recurrence, 
 The long-term relationships and v0.1.10 scope are frozen in [Shared Life Architecture Freeze](./SHARED_LIFE_ARCHITECTURE.md). Later version rows remain directional and require their own scope review.
 
 - v0.1.9 — Shared Tasks; Slice 1/2/3 CLOSED / PASS; Production backend and frontend accepted.
-- v0.1.10 — Personal Space + Multi-space + Module Enablement Foundation; Scope / Architecture Freeze `CLOSED / READY FOR IMPLEMENTATION`, implementation `NOT STARTED`. User-visible `Task / Tasks` copy becomes Chinese “任务” in Slice 3; internal names stay unchanged and full i18n remains future work.
+- v0.1.10 — Personal Space + Multi-space + Module Enablement Foundation; Scope / Architecture Freeze `CLOSED / READY FOR IMPLEMENTATION`, Slice 1 `PRODUCTION BACKEND ROLLOUT PASS`, Slices 2–3 `NOT STARTED`. User-visible `Task / Tasks` copy becomes Chinese “任务” in Slice 3; internal names stay unchanged and full i18n remains future work.
 - v0.1.11 — Navigation + Aggregation Experience.
 - v0.1.12 — Shared Lists.
 - v0.1.13 — Important Dates.
