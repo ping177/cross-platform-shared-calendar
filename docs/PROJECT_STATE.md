@@ -8,15 +8,15 @@
 
 ## Current version
 
-v0.1.10 — Personal Space + Multi-space + Module Enablement Foundation (Scope / Architecture Freeze)
+v0.1.10 — Personal Space + Multi-space + Module Enablement Foundation (Slice 1)
 
 ## Current status
 
-v0.1.10 Scope / Architecture Freeze: `CLOSED / READY FOR IMPLEMENTATION`; v0.1.10 implementation: `NOT STARTED`. v0.1.9 remains `CLOSED / PASS` and is the latest accepted user-visible Production capability. No v0.1.10 Production preflight or rollout has occurred.
+v0.1.10 Scope / Architecture Freeze: `CLOSED / READY FOR IMPLEMENTATION`; Slice 1 backend foundation: `COMPLETE / LOCAL VERIFIED`. Slices 2–3 have not started. v0.1.9 remains `CLOSED / PASS` and is the latest accepted user-visible Production capability. No v0.1.10 Production preflight or rollout has occurred.
 
 ## Latest completed
 
-v0.1.10 repository-first Scope / Architecture Freeze completed in governance docs: Personal Space invariants, multi-space membership/selection, Tasks module enablement, three implementation slices, and staged compatibility rollout are frozen. No code, schema, Production, or deployment change. v0.1.9 Shared Tasks MVP Production closeout remains `CLOSED / PASS`.
+Slice 1 is complete and locally verified. The final forward patch applied once to a disposable database built from commit `08bec32f`'s v0.1.9 schema and representative old data; full-row legacy data postflight and 210 relevant schema/permission catalog comparisons against a separate fresh-install database passed. Focused pgTAP 58/58, full DB 330/330, Node 185/185, and build passed. No Production or deployment change; v0.1.9 remains `CLOSED / PASS`.
 
 ## Deployment
 
@@ -50,7 +50,7 @@ Notes: v0.1.9 是最新已验收的用户可见 Production capability。Producti
 - v0.1.8.1 — Push Infrastructure Foundation（CLOSED / PASS；Desktop + iPhone + Android Studio Emulator verified）
 - v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（Slice A/B/C CLOSED / PASS；P3A C1、P3B manual E2E、P3C automatic scheduler E2E complete）
 - v0.1.9 — Shared Tasks MVP（CLOSED / PASS；Slice 1/2/3 CLOSED / PASS；Production backend verified、frontend deployed and accepted）
-- v0.1.10 — Personal Space + Multi-space + Module Enablement Foundation（Scope / Architecture Freeze CLOSED / READY FOR IMPLEMENTATION；implementation NOT STARTED）
+- v0.1.10 — Personal Space + Multi-space + Module Enablement Foundation（Scope / Architecture Freeze CLOSED；Slice 1 COMPLETE / LOCAL VERIFIED；Slices 2–3 NOT STARTED）
 
 ## Last verified
 
@@ -58,7 +58,7 @@ Notes: v0.1.9 是最新已验收的用户可见 Production capability。Producti
 
 ## Next Action
 
-v0.1.10 Slice 1 — Data / Permission Foundation. Implementation has not started; before any Production rollout, perform real schema/index/RPC/RLS preflight and compatibility review.
+v0.1.10 Slice 1 Production Preflight / Backend Rollout. First verify real Production schema/index/RPC/RLS and frontend compatibility; Production rollout remains separately gated.
 
 ## Blockers
 
@@ -77,8 +77,8 @@ v0.1.10 Slice 1 — Data / Permission Foundation. Implementation has not started
 - Android compatibility smoke test is complete for Xiaomi 14 / Android 16 / Chrome on mobile network.
 - v0.1 is a Web/PWA, not native iOS / Android.
 - v0.1.9 canonical scope is `docs/v0.1.9_SHARED_TASKS_SPEC.md`; Slice 1 backend is Production applied/postflight verified, Slice 2 local UI passed user-run authenticated acceptance, and Slice 3 Production Desktop A/B plus iPhone smoke passed. All three slices are CLOSED / PASS.
-- v0.1.10 Scope / Architecture Freeze is `CLOSED / READY FOR IMPLEMENTATION` in `docs/SHARED_LIFE_ARCHITECTURE.md`; implementation is `NOT STARTED`. Reuse `spaces / space_members`, enforce sole-owner Personal Space with partial unique `UNIQUE(created_by) WHERE kind = 'personal'`, retain Shared two-member limit, validate `selectedSpaceId`, and keep Tasks disabled-state history readable but mutations blocked. Calendar is always on; only Tasks has a v0.1.10 visible module toggle. Full navigation/aggregation and Shared three-plus-member support remain deferred.
-- v0.1.10 rollout order is backend capability first without automatic Personal Space creation/backfill under the old frontend; the compatible new frontend later calls idempotent `ensure_personal_space()` per user. Consider older-account bulk backfill only after real authenticated acceptance. This repo audit did not verify Production schema/index/RPC/RLS state; preflight and rollout have not started.
+- v0.1.10 Scope / Architecture Freeze is `CLOSED / READY FOR IMPLEMENTATION` in `docs/SHARED_LIFE_ARCHITECTURE.md`; Slice 1 is `COMPLETE / LOCAL VERIFIED`. It reuses `spaces / space_members`, enforces sole-owner Personal Space with partial unique `UNIQUE(created_by) WHERE kind = 'personal'`, retains the Shared two-member limit, and keeps disabled Tasks history readable while blocking mutations. Calendar is always on; only Tasks will have a v0.1.10 visible module toggle. The membership-validated `selectedSpaceId` frontend flow belongs to Slice 2; full navigation/aggregation and Shared three-plus-member support remain deferred.
+- v0.1.10 rollout order is backend capability first without automatic Personal Space creation/backfill under the old frontend; the compatible new frontend later calls idempotent `ensure_personal_space()` per user. Consider older-account bulk backfill only after real authenticated acceptance. Local SQL verification does not establish Production schema/index/RPC/RLS state; Production preflight and rollout have not started.
 - `V019_SLICE2_UI_FROZEN` / `SLICE 2 IMPLEMENTED / MANUAL AUTH ACCEPTANCE PASS`: Calendar header `共享空间 · {space.name}` opens the current Space Hub; its only module entry is Tasks. Open Tasks and separate Completed Tasks use the existing Space-scoped contract. Empty `profiles.display_name` may use contextual `我 / 对方` only in the current two-member v0.1.9 UI; this is not a durable partner identity, and future Multi-space / multi-member UI uses generic member display logic. Space-entry navigation and 320px layout passed user-run acceptance; extreme-width name ellipsis is accepted.
 - Slice 1 uses direct PostgREST CRUD with four member-scoped RLS policies, no Task RPC, one exact-order list index, and a PostgreSQL 17.6-verified composite FK whose column-specific delete action clears only `assigned_to_user_id` when a member leaves.
 - A Task is Space-scoped work that remains to be completed. Assignment does not restrict visibility, ordinary edits, reassignment, or deletion; null means shared. Shared status transitions belong to any current member, while assigned status transitions require the assignee from before the UPDATE. A takeover and completion require separate UPDATEs; RLS and the corrective DB trigger remain authoritative.
