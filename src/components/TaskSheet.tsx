@@ -2,18 +2,20 @@ import { useState, type FormEvent } from 'react';
 import { Trash2, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { normalizeTaskTitle, taskAssignmentFromValue, taskAssignmentOptions, taskEditableChanges, taskErrorMessage } from '../lib/task';
-import type { SpaceMember, Task } from '../types';
+import { taskAssignmentForSpace } from '../lib/space-content';
+import type { Space, SpaceMember, Task } from '../types';
 
 type TaskSheetProps = {
   task: Task | null;
   spaceId: string;
+  spaceKind: Space['kind'];
   userId: string;
   members: SpaceMember[];
   onClose: () => void;
   onSaved: () => Promise<void>;
 };
 
-export function TaskSheet({ task, spaceId, userId, members, onClose, onSaved }: TaskSheetProps) {
+export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, onSaved }: TaskSheetProps) {
   const [title, setTitle] = useState(task?.title ?? '');
   const [assignment, setAssignment] = useState(task?.assigned_to_user_id ?? '');
   const [dueOn, setDueOn] = useState(task?.due_on ?? '');
@@ -28,7 +30,8 @@ export function TaskSheet({ task, spaceId, userId, members, onClose, onSaved }: 
     let assignedToUserId: string | null;
     try {
       normalizedTitle = normalizeTaskTitle(title);
-      assignedToUserId = taskAssignmentFromValue(assignment, members);
+      const chosenAssignment = spaceKind === 'shared' ? taskAssignmentFromValue(assignment, members) : null;
+      assignedToUserId = taskAssignmentForSpace(spaceKind, task?.assigned_to_user_id ?? null, chosenAssignment);
     } catch (validationError) {
       setError(taskErrorMessage(validationError));
       return;
@@ -106,14 +109,14 @@ export function TaskSheet({ task, spaceId, userId, members, onClose, onSaved }: 
               <span className="mb-2 block text-sm font-semibold text-ink/70">标题</span>
               <input className="w-full rounded-lg border border-ink/15 px-4 py-3 outline-none focus:border-teal" value={title} onChange={(event) => setTitle(event.target.value)} required />
             </label>
-            <label className="block">
+            {spaceKind === 'shared' && <label className="block">
               <span className="mb-2 block text-sm font-semibold text-ink/70">分配给</span>
               <select className="w-full rounded-lg border border-ink/15 bg-white px-4 py-3 outline-none focus:border-teal" value={assignment} onChange={(event) => setAssignment(event.target.value)}>
                 {taskAssignmentOptions(members, userId).map((option) => (
                   <option key={option.value || 'shared'} value={option.value}>{option.label}</option>
                 ))}
               </select>
-            </label>
+            </label>}
             <div>
               <label className="mb-2 block text-sm font-semibold text-ink/70" htmlFor="task-due-on">截止日期（可选）</label>
               <div className="flex gap-2">

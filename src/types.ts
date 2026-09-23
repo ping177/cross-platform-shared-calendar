@@ -3,10 +3,13 @@ import type { ReminderKind } from '../supabase/functions/_shared/reminder-due.ts
 export type Space = {
   id: string;
   name: string;
+  kind: 'personal' | 'shared';
   invite_code: string;
   created_by: string;
   created_at: string;
 };
+
+export type CurrentSpace = Space & { membershipRole: SpaceMember['role'] };
 
 export type SpaceMember = {
   space_id: string;

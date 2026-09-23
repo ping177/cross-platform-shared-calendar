@@ -1,6 +1,6 @@
 # Shared Life Architecture Freeze
 
-Status: `ARCHITECTURE FROZEN`; v0.1.10 Scope / Architecture Freeze: `CLOSED / READY FOR IMPLEMENTATION`; Slice 1: `PRODUCTION BACKEND ROLLOUT PASS`; Slices 2–3: `NOT STARTED`.
+Status: `ARCHITECTURE FROZEN`; v0.1.10 Scope / Architecture Freeze: `CLOSED / READY FOR IMPLEMENTATION`; Slice 1: `PRODUCTION BACKEND ROLLOUT PASS`; Slice 2: `LOCAL VERIFIED / REVIEW PENDING`; Slice 3: `NOT STARTED`. Authenticated Production acceptance and frontend rollout are `NOT STARTED`.
 
 This document freezes the long-term product model and navigation direction plus the reviewed v0.1.10 foundation scope. It does not change the accepted v0.1.9 Production capability. Later roadmap versions remain directional and need their own scope review.
 
@@ -41,7 +41,7 @@ v0.1.9 did not add enablement storage, controls, or permissions.
 
 ## v0.1.10 Scope / Architecture Freeze
 
-Status: `CLOSED / READY FOR IMPLEMENTATION`. This is a reviewed design contract, not a schema change, Production preflight, implementation, or deployment. v0.1.9 remains the latest accepted Production capability.
+Status: `CLOSED / READY FOR IMPLEMENTATION`. This section is the reviewed design contract; current implementation and deployment status are stated above. v0.1.9 remains the latest accepted Production capability.
 
 ### Personal Space and membership
 

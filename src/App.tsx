@@ -42,6 +42,9 @@ import {
   timedReminderOptions,
 } from './lib/reminder';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
+import { bootstrapSpaces, chooseSelectedSpaceId, completeSharedSpaceAction, ensureOnceUntilFailure, writeSelectedSpaceId } from './lib/space-selection';
+import { newEventIdentity } from './lib/space-content';
+import { createRequestGuard } from './lib/request-guard';
 import {
   cleanupPushAndSignOut,
   disableCurrentPushInstallation,
@@ -63,7 +66,7 @@ import {
   startOfWeek,
   toDateInputValue,
 } from './lib/date';
-import type { CalendarEvent, CalendarOccurrence, EventAudience, EventEditTarget, EventOccurrenceException, Space, SpaceMember } from './types';
+import type { CalendarEvent, CalendarOccurrence, CurrentSpace, EventAudience, EventEditTarget, EventOccurrenceException, Space, SpaceMember } from './types';
 import type { ReminderKind } from '../supabase/functions/_shared/reminder-due.ts';
 
 type ViewMode = 'today' | 'week' | 'month';
@@ -183,7 +186,7 @@ export default function App() {
     return <AuthPage />;
   }
 
-  return <CalendarApp session={session} />;
+  return <CalendarApp key={session.user.id} session={session} />;
 }
 
 function ConfigMissing() {
@@ -372,44 +375,211 @@ function AuthPage() {
   );
 }
 
+const spaceBatchSize = 500;
+
+async function listCurrentSpaces(userId: string): Promise<CurrentSpace[]> {
+  const memberships: Array<Pick<SpaceMember, 'space_id' | 'role'>> = [];
+  for (let start = 0; ;) {
+    const { data, count, error } = await supabase.from('space_members')
+      .select('space_id,role', { count: 'exact' })
+      .eq('user_id', userId)
+      .order('space_id')
+      .range(start, start + spaceBatchSize - 1);
+    if (error) throw error;
+    if (count === null) throw new Error('无法确认空间成员列表是否完整。');
+    const batch = (data ?? []) as Array<Pick<SpaceMember, 'space_id' | 'role'>>;
+    memberships.push(...batch);
+    if (memberships.length >= count) break;
+    if (batch.length === 0) throw new Error('空间成员列表读取不完整，请重试。');
+    start += batch.length;
+  }
+
+  const roles = new Map(memberships.map((member) => [member.space_id, member.role]));
+  const spaces: CurrentSpace[] = [];
+  for (let start = 0; ;) {
+    const { data, count, error } = await supabase.from('spaces')
+      .select('*', { count: 'exact' })
+      .order('created_at')
+      .order('id')
+      .range(start, start + spaceBatchSize - 1);
+    if (error) throw error;
+    if (count === null) throw new Error('无法确认空间列表是否完整。');
+    const batch = (data ?? []) as Space[];
+    for (const space of batch) {
+      const membershipRole = roles.get(space.id);
+      if (membershipRole) spaces.push({ ...space, membershipRole });
+    }
+    if (start + batch.length >= count) break;
+    if (batch.length === 0) throw new Error('空间列表读取不完整，请重试。');
+    start += batch.length;
+  }
+  return spaces;
+}
+
 function CalendarApp({ session }: { session: Session }) {
   const userId = session.user.id;
+  const [spaces, setSpaces] = useState<CurrentSpace[]>([]);
+  const [selectedSpaceId, setSelectedSpaceId] = useState<string | null>(null);
+  const [showSpaceSelector, setShowSpaceSelector] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [personalInitializationError, setPersonalInitializationError] = useState<Error | null>(null);
+  const requestGuard = useRef(createRequestGuard());
+  const ensurePersonalSpace = useRef(ensureOnceUntilFailure(async () => {
+    const { error: ensureError } = await supabase.rpc('ensure_personal_space');
+    if (ensureError) throw ensureError;
+  }));
+
+  async function loadSpaces(preferredId?: string): Promise<boolean> {
+    const currentRequest = requestGuard.current.begin();
+    setLoading(true);
+    setError('');
+    try {
+      let result: { spaces: CurrentSpace[]; selectedSpaceId: string; personalInitializationError?: Error | null };
+      if (preferredId) {
+        const listed = await listCurrentSpaces(userId);
+        if (!listed.some((space) => space.id === preferredId)) {
+          throw new Error('新空间未出现在你的成员列表中，请重试。');
+        }
+        result = { spaces: listed, selectedSpaceId: preferredId };
+      } else {
+        result = await bootstrapSpaces(userId, window.localStorage, {
+          ensurePersonalSpace: ensurePersonalSpace.current,
+          listCurrentSpaces: () => listCurrentSpaces(userId),
+          currentSelectionId: selectedSpaceId,
+        });
+      }
+      if (!requestGuard.current.isCurrent(currentRequest)) return false;
+      setSpaces(result.spaces);
+      setSelectedSpaceId(result.selectedSpaceId);
+      if (!preferredId) setPersonalInitializationError(result.personalInitializationError ?? null);
+      writeSelectedSpaceId(window.localStorage, userId, result.selectedSpaceId);
+      setShowSpaceSelector(false);
+      return true;
+    } catch (loadError) {
+      if (!requestGuard.current.isCurrent(currentRequest)) return false;
+      setError(getErrorMessage(loadError));
+      return false;
+    } finally {
+      if (requestGuard.current.isCurrent(currentRequest)) setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void loadSpaces();
+    void registerPushServiceWorker().catch((registrationError) => {
+      console.warn('Push service worker registration failed.', getErrorMessage(registrationError));
+    });
+    return () => { requestGuard.current.invalidate(); };
+  }, [userId]);
+
+  function selectSpace(spaceId: string) {
+    if (!spaces.some((space) => space.id === spaceId)) return;
+    requestGuard.current.invalidate();
+    setLoading(false);
+    setSelectedSpaceId(spaceId);
+    writeSelectedSpaceId(window.localStorage, userId, spaceId);
+    setShowSpaceSelector(false);
+  }
+
+  async function openSpaceSelector() {
+    const currentRequest = requestGuard.current.begin();
+    setError('');
+    try {
+      const listed = await listCurrentSpaces(userId);
+      const validatedId = chooseSelectedSpaceId(listed, selectedSpaceId);
+      if (!validatedId) {
+        if (requestGuard.current.isCurrent(currentRequest)) {
+          setSpaces([]);
+          setSelectedSpaceId(null);
+        }
+        throw new Error('未找到可用空间，请重新加载。');
+      }
+      if (!requestGuard.current.isCurrent(currentRequest)) return;
+      setSpaces(listed);
+      setSelectedSpaceId(validatedId);
+      writeSelectedSpaceId(window.localStorage, userId, validatedId);
+      setShowSpaceSelector(true);
+    } catch (refreshError) {
+      if (requestGuard.current.isCurrent(currentRequest)) setError(getErrorMessage(refreshError));
+    }
+  }
+
+  function updateSpace(updated: Space) {
+    setSpaces((current) => current.map((space) => space.id === updated.id ? { ...space, ...updated } : space));
+  }
+
+  const selectedSpace = spaces.find((space) => space.id === selectedSpaceId) ?? null;
+  if (loading && !selectedSpace) return <FullScreenMessage title="正在载入" body="正在确认你的空间。" />;
+  if (!selectedSpace) {
+    return (
+      <main className="min-h-screen bg-mist px-5 py-10">
+        <div className="mx-auto max-w-md">
+          <Notice tone="error" message={error || '未找到可用空间。'} />
+          <button className="mt-4 h-11 rounded-lg bg-teal px-5 font-semibold text-white" type="button" onClick={() => void loadSpaces()}>重试</button>
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <>
+      {personalInitializationError && (
+        <div className="bg-mist px-4 pt-4">
+          <div className="mx-auto max-w-3xl rounded-lg border border-amber/40 bg-white px-4 py-3 text-sm text-ink shadow-soft" role="alert">
+            <p className="font-semibold">我的空间暂时没有初始化成功。</p>
+            <p className="mt-1">已有共享空间仍可正常使用。</p>
+            <button className="mt-2 min-h-11 font-semibold text-teal disabled:opacity-60" type="button" disabled={loading} onClick={() => void loadSpaces()}>{loading ? '重试中…' : '重试初始化'}</button>
+          </div>
+        </div>
+      )}
+      <CurrentSpaceApp
+        key={selectedSpaceId}
+        session={session}
+        space={selectedSpace}
+        onSpaceUpdate={updateSpace}
+        onSpaceSelectorOpen={() => void openSpaceSelector()}
+      />
+      {showSpaceSelector && (
+        <SpaceSelector
+          spaces={spaces}
+          selectedSpaceId={selectedSpaceId!}
+          onSelect={selectSpace}
+          onClose={() => setShowSpaceSelector(false)}
+          onSharedReady={(spaceId) => loadSpaces(spaceId)}
+        />
+      )}
+      {error && <p className="fixed bottom-4 left-4 right-4 z-30 rounded-lg bg-coral px-4 py-3 text-sm text-white" role="alert">{error}</p>}
+    </>
+  );
+}
+
+export function CurrentSpaceApp({ session, space, onSpaceUpdate, onSpaceSelectorOpen }: {
+  session: Session;
+  space: CurrentSpace;
+  onSpaceUpdate: (space: Space) => void;
+  onSpaceSelectorOpen: () => void;
+}) {
+  const userId = session.user.id;
   const [screen, setScreen] = useState<TasksScreen>('calendar');
-  const [space, setSpace] = useState<Space | null>(null);
   const [members, setMembers] = useState<SpaceMember[]>([]);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [occurrenceExceptions, setOccurrenceExceptions] = useState<EventOccurrenceException[]>([]);
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [viewMode, setViewMode] = useState<ViewMode>('today');
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [editingTarget, setEditingTarget] = useState<EventEditTarget | null>(null);
   const [showNewEvent, setShowNewEvent] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [memberMessage, setMemberMessage] = useState('');
+  const memberRequestGuard = useRef(createRequestGuard());
+  const eventRequestGuard = useRef(createRequestGuard());
 
   const partner = members.find((member) => member.user_id !== userId) ?? null;
 
-  async function loadSpace() {
-    setLoading(true);
-    setError('');
-
-    const { data, error: loadError } = await supabase
-      .from('spaces')
-      .select('*')
-      .limit(1)
-      .maybeSingle();
-
-    if (loadError) {
-      setError(loadError.message);
-    }
-
-    setSpace(data);
-    setLoading(false);
-  }
-
   async function loadMembers(spaceId: string) {
+    const currentRequest = memberRequestGuard.current.begin();
     const { data, error: memberError } = await supabase
       .from('space_members')
       .select('space_id,user_id,role,joined_at,profiles(display_name)')
@@ -417,6 +587,7 @@ function CalendarApp({ session }: { session: Session }) {
       .order('joined_at', { ascending: true })
       .order('user_id', { ascending: true });
 
+    if (!memberRequestGuard.current.isCurrent(currentRequest)) return;
     if (memberError) {
       setError(memberError.message);
       return;
@@ -433,12 +604,14 @@ function CalendarApp({ session }: { session: Session }) {
   }
 
   async function loadEvents(spaceId: string) {
+    const currentRequest = eventRequestGuard.current.begin();
     const { data, error: eventError } = await supabase
       .from('events')
       .select('*')
       .eq('space_id', spaceId)
       .order('starts_at', { ascending: true });
 
+    if (!eventRequestGuard.current.isCurrent(currentRequest)) return;
     if (eventError) {
       setError(eventError.message);
       throw eventError;
@@ -458,6 +631,7 @@ function CalendarApp({ session }: { session: Session }) {
       .select('*')
       .in('event_id', eventIds);
 
+    if (!eventRequestGuard.current.isCurrent(currentRequest)) return;
     if (exceptionError) {
       setError(exceptionError.message);
       throw exceptionError;
@@ -468,20 +642,6 @@ function CalendarApp({ session }: { session: Session }) {
   }
 
   useEffect(() => {
-    void loadSpace();
-    void registerPushServiceWorker().catch((registrationError) => {
-      console.warn('Push service worker registration failed.', getErrorMessage(registrationError));
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!space) {
-      setMembers([]);
-      setEvents([]);
-      setOccurrenceExceptions([]);
-      return;
-    }
-
     void loadMembers(space.id);
     void loadEvents(space.id).catch(() => undefined);
 
@@ -495,9 +655,11 @@ function CalendarApp({ session }: { session: Session }) {
       .subscribe();
 
     return () => {
+      memberRequestGuard.current.invalidate();
+      eventRequestGuard.current.invalidate();
       void supabase.removeChannel(channel);
     };
-  }, [space?.id]);
+  }, [space.id]);
 
   async function signOut() {
     setError('');
@@ -520,14 +682,6 @@ function CalendarApp({ session }: { session: Session }) {
     }
   }
 
-  if (loading) {
-    return <FullScreenMessage title="正在载入" body="正在读取你的共享空间。" />;
-  }
-
-  if (!space) {
-    return <OnboardingPage onReady={loadSpace} />;
-  }
-
   return (
     <main className="min-h-screen bg-mist text-ink">
       <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col">
@@ -536,12 +690,12 @@ function CalendarApp({ session }: { session: Session }) {
         <header className="sticky top-0 z-10 border-b border-ink/10 bg-mist/95 px-4 pb-3 pt-4 backdrop-blur">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <button className="inline-flex min-h-11 max-w-full items-center gap-1 rounded-full bg-white px-2 text-left text-xs font-semibold text-teal shadow-sm sm:text-sm" type="button" onClick={() => setScreen('hub')} aria-label={`打开共享空间 ${space.name}`}>
+              <button className="inline-flex min-h-11 max-w-full items-center gap-1 rounded-full bg-white px-2 text-left text-xs font-semibold text-teal shadow-sm sm:text-sm" type="button" onClick={() => setScreen('hub')} aria-label={`打开${space.kind === 'personal' ? '我的空间' : `共享空间 ${space.name}`}`}>
                 <Users size={15} className="shrink-0" aria-hidden="true" />
-                <span className="shrink-0 whitespace-nowrap">共享空间 ·</span>
-                <span className="min-w-0 truncate">{space.name}</span>
+                <span className="min-w-0 truncate">{space.kind === 'personal' ? '👤 我的空间' : `共享空间 · ${space.name}`}</span>
                 <ChevronRight size={15} className="shrink-0" aria-hidden="true" />
               </button>
+              <button className="ml-2 min-h-11 rounded-lg px-2 text-sm font-semibold text-teal" type="button" onClick={onSpaceSelectorOpen}>切换空间</button>
               <h1 className="text-2xl font-bold">{formatMonth(selectedDate)}</h1>
               <button className="mt-1 inline-flex items-center gap-1 text-sm font-semibold text-teal" type="button" onClick={() => setShowMembers(true)}>
                 <Users size={15} />
@@ -590,7 +744,7 @@ function CalendarApp({ session }: { session: Session }) {
         <section className="flex-1 px-4 py-4 safe-bottom">
           {error && <Notice tone="error" message={error} />}
           {memberMessage && <Notice tone="success" message={memberMessage} />}
-          <InvitePanel space={space} onSpaceChange={setSpace} />
+          {space.kind === 'shared' && <InvitePanel space={space} onSpaceChange={onSpaceUpdate} />}
           <CalendarViews
             events={events}
             occurrenceExceptions={occurrenceExceptions}
@@ -609,13 +763,15 @@ function CalendarApp({ session }: { session: Session }) {
           </>
         )}
         <TasksArea
+          key={space.id}
           screen={screen}
           onScreenChange={setScreen}
           space={space}
           members={members}
           userId={userId}
-          invitePanel={<InvitePanel space={space} onSpaceChange={setSpace} />}
+          invitePanel={space.kind === 'shared' ? <InvitePanel space={space} onSpaceChange={onSpaceUpdate} /> : null}
           onMembersOpen={() => setShowMembers(true)}
+          onSpaceSelectorOpen={onSpaceSelectorOpen}
         />
       </div>
 
@@ -659,56 +815,88 @@ function Notice({ tone, message }: { tone: 'error' | 'success'; message: string 
   );
 }
 
-function OnboardingPage({ onReady }: { onReady: () => Promise<void> }) {
+export function SpaceSelector({ spaces, selectedSpaceId, onSelect, onClose, onSharedReady }: {
+  spaces: CurrentSpace[];
+  selectedSpaceId: string;
+  onSelect: (spaceId: string) => void;
+  onClose: () => void;
+  onSharedReady: (spaceId: string) => Promise<boolean>;
+}) {
+  const [busy, setBusy] = useState(false);
+  return (
+    <div className="fixed inset-0 z-20 flex items-end bg-ink/35 md:items-center md:px-4 md:py-6">
+      <section className="mx-auto max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-t-2xl bg-mist p-5 shadow-soft safe-bottom md:rounded-lg" role="dialog" aria-modal="true" aria-labelledby="space-selector-title">
+        <div className="flex items-center justify-between gap-3">
+          <h2 id="space-selector-title" className="text-xl font-bold">切换空间</h2>
+          <button className="grid h-11 w-11 place-items-center rounded-lg bg-white disabled:opacity-60" type="button" onClick={onClose} disabled={busy} aria-label="关闭空间选择器"><X size={20} /></button>
+        </div>
+        <div className="mt-4 space-y-2">
+          {spaces.map((space) => (
+            <button key={space.id} className={`flex min-h-14 w-full items-center justify-between gap-3 rounded-lg px-4 text-left shadow-sm disabled:opacity-60 ${space.id === selectedSpaceId ? 'bg-teal text-white' : 'bg-white text-ink'}`} type="button" onClick={() => onSelect(space.id)} disabled={busy} aria-current={space.id === selectedSpaceId ? 'true' : undefined}>
+              <span className="min-w-0 truncate font-semibold">{space.kind === 'personal' ? '👤 我的空间' : space.name}</span>
+              {space.id === selectedSpaceId && <span className="shrink-0 text-sm">当前</span>}
+            </button>
+          ))}
+        </div>
+        <SharedSpaceForms onReady={onSharedReady} busy={busy} onBusyChange={setBusy} />
+      </section>
+    </div>
+  );
+}
+
+function SharedSpaceForms({ onReady, busy, onBusyChange }: {
+  onReady: (spaceId: string) => Promise<boolean>;
+  busy: boolean;
+  onBusyChange: (busy: boolean) => void;
+}) {
   const [spaceName, setSpaceName] = useState('我们的日历');
   const [inviteCode, setInviteCode] = useState('');
-  const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
 
   async function createSpace(event: React.FormEvent) {
     event.preventDefault();
-    setBusy(true);
+    onBusyChange(true);
     setMessage('');
 
-    const { error } = await supabase.rpc('create_space_with_invite', { space_name: spaceName });
-    setBusy(false);
-
-    if (error) {
-      setMessage(error.message);
-      return;
+    try {
+      if (!await completeSharedSpaceAction('create', spaceName, async (method, args) => await supabase.rpc(method, args), onReady)) {
+        setMessage('空间已创建，但成员列表暂未刷新，请重试。');
+      }
+    } catch (createError) {
+      setMessage(getErrorMessage(createError));
+    } finally {
+      onBusyChange(false);
     }
-
-    await onReady();
   }
 
   async function joinSpace(event: React.FormEvent) {
     event.preventDefault();
-    setBusy(true);
+    onBusyChange(true);
     setMessage('');
 
-    const { error } = await supabase.rpc('join_space_by_invite_code', { code: inviteCode.trim().toUpperCase() });
-    setBusy(false);
-
-    if (error) {
-      setMessage(error.message);
-      return;
+    try {
+      if (!await completeSharedSpaceAction('join', inviteCode, async (method, args) => await supabase.rpc(method, args), onReady)) {
+        setMessage('已加入空间，但成员列表暂未刷新，请重试。');
+      }
+    } catch (joinError) {
+      setMessage(getErrorMessage(joinError));
+    } finally {
+      onBusyChange(false);
     }
-
-    await onReady();
   }
 
   return (
-    <main className="min-h-screen bg-mist px-5 py-8">
-      <section className="mx-auto max-w-md">
-        <h1 className="text-3xl font-bold text-ink">开始共享</h1>
-        <p className="mt-2 text-sm leading-6 text-ink/65">创建一个两人空间，或输入对方给你的邀请码加入。</p>
+    <div className="mt-6 border-t border-ink/10 pt-4">
+        <p className="text-sm leading-6 text-ink/65">创建两人共享空间，或输入邀请码加入。</p>
 
         {message && <div className="mt-5"><Notice tone="error" message={message} /></div>}
 
-        <form onSubmit={createSpace} className="mt-6 rounded-lg bg-white p-5 shadow-soft">
+        <form onSubmit={createSpace} className="mt-4 rounded-lg bg-white p-5 shadow-soft">
           <h2 className="text-lg font-bold">创建共享空间</h2>
+          <label className="mt-4 block text-sm font-semibold" htmlFor="shared-space-name">空间名称</label>
           <input
-            className="mt-4 w-full rounded-lg border border-ink/15 px-4 py-3 outline-none focus:border-teal"
+            id="shared-space-name"
+            className="mt-2 w-full rounded-lg border border-ink/15 px-4 py-3 outline-none focus:border-teal"
             value={spaceName}
             onChange={(event) => setSpaceName(event.target.value)}
             required
@@ -720,8 +908,10 @@ function OnboardingPage({ onReady }: { onReady: () => Promise<void> }) {
 
         <form onSubmit={joinSpace} className="mt-4 rounded-lg bg-white p-5 shadow-soft">
           <h2 className="text-lg font-bold">加入空间</h2>
+          <label className="mt-4 block text-sm font-semibold" htmlFor="shared-invite-code">邀请码</label>
           <input
-            className="mt-4 w-full rounded-lg border border-ink/15 px-4 py-3 uppercase tracking-wide outline-none focus:border-teal"
+            id="shared-invite-code"
+            className="mt-2 w-full rounded-lg border border-ink/15 px-4 py-3 uppercase tracking-wide outline-none focus:border-teal"
             value={inviteCode}
             onChange={(event) => setInviteCode(event.target.value)}
             placeholder="输入邀请码"
@@ -731,8 +921,7 @@ function OnboardingPage({ onReady }: { onReady: () => Promise<void> }) {
             加入空间
           </button>
         </form>
-      </section>
-    </main>
+    </div>
   );
 }
 
@@ -916,7 +1105,7 @@ function EventCard({ occurrence, members, userId, onEdit }: { occurrence: Calend
   );
 }
 
-function EventSheet({
+export function EventSheet({
   target,
   space,
   userId,
@@ -1103,9 +1292,7 @@ function EventSheet({
       }
       result = await supabase.from('events').update(updatePayload).eq('id', event.id);
     } else {
-      const ownerUserId = draft.audience === 'shared' ? null : draft.audience === 'mine' ? userId : partnerId;
-
-      if (draft.audience === 'partner' && !partnerId) {
+      if (space.kind === 'shared' && draft.audience === 'partner' && !partnerId) {
         setBusy(false);
         setError('另一位成员加入空间后，才能创建其个人日程。');
         return;
@@ -1114,8 +1301,7 @@ function EventSheet({
       result = await supabase.from('events').insert({
         ...contentPayload,
         space_id: space.id,
-        scope: draft.audience === 'shared' ? 'shared' : 'personal',
-        owner_user_id: ownerUserId,
+        ...newEventIdentity(space.kind, draft.audience, userId, partnerId),
       });
     }
 
@@ -1185,7 +1371,7 @@ function EventSheet({
             <input className="w-full rounded-lg border border-ink/15 px-4 py-3 outline-none focus:border-teal" required value={draft.title} onChange={(inputEvent) => setDraft({ ...draft, title: inputEvent.target.value })} />
           </Field>
 
-          <Field label="归属">
+          {space.kind === 'shared' && <Field label="归属">
             <div className="grid grid-cols-3 gap-2">
               {(['mine', 'partner', 'shared'] as EventAudience[]).map((audience) => (
                 <button
@@ -1199,7 +1385,7 @@ function EventSheet({
                 </button>
               ))}
             </div>
-          </Field>
+          </Field>}
 
           <Field label="开始时间">
             <input className="w-full rounded-lg border border-ink/15 px-4 py-3 outline-none focus:border-teal" type="datetime-local" required value={draft.startsAt} onChange={(inputEvent) => updateStart(inputEvent.target.value)} />
