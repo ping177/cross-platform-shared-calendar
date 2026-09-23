@@ -11,6 +11,8 @@ const patchPath = new URL(
 const schema = readFileSync(schemaPath, 'utf8');
 const patchExists = existsSync(patchPath);
 const patch = patchExists ? readFileSync(patchPath, 'utf8') : '';
+const correctionPath = new URL('../supabase/patches/2026-09-23-v0.1.9-task-status-ownership.sql', import.meta.url);
+const correction = existsSync(correctionPath) ? readFileSync(correctionPath, 'utf8') : '';
 
 const expectedColumns = [
   'id',
@@ -93,6 +95,15 @@ for (const [label, sql] of [['bootstrap schema', schema], ['forward patch', patc
 
     assert.match(sql, /grant select, insert, update, delete on table public\.tasks to authenticated/i);
     assert.match(sql, /alter publication supabase_realtime add table public\.tasks/i);
+    assert.doesNotMatch(sql, /create or replace function public\.(?:create|update|delete)_task/i);
+  });
+}
+
+for (const [label, sql] of [['bootstrap schema', schema], ['status corrective patch', correction]] as const) {
+  test(`${label} enforces status ownership from the old assignment`, () => {
+    assert.match(sql, /function public\.enforce_task_status_owner\(\)/i);
+    assert.match(sql, /old\.status is distinct from new\.status[\s\S]*old\.assigned_to_user_id is not null[\s\S]*old\.assigned_to_user_id is distinct from auth\.uid\(\)/i);
+    assert.match(sql, /create trigger tasks_enforce_status_owner[\s\S]*before update on public\.tasks[\s\S]*execute function public\.enforce_task_status_owner\(\)/i);
     assert.doesNotMatch(sql, /create or replace function public\.(?:create|update|delete)_task/i);
   });
 }

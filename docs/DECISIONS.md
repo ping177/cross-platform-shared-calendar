@@ -83,10 +83,10 @@
 
 ## v0.1.9 Shared Tasks MVP Scope Freeze and Slice 1 Foundation
 
-- Status is `SCOPE FROZEN / SLICE 1 IMPLEMENTED / LOCAL VERIFICATION PASS / SLICE 2 NOT STARTED`. The canonical detailed contract is `docs/v0.1.9_SHARED_TASKS_SPEC.md`; later slices still require separate approval.
+- Status is `SLICE 1 IMPLEMENTED / LOCAL VERIFICATION PASS / PRODUCTION BACKEND FOUNDATION APPLIED / POSTFLIGHT VERIFIED; SLICE 2 IMPLEMENTED / MANUAL AUTH ACCEPTANCE PASS; SLICE 3 NOT STARTED`. The canonical detailed contract is `docs/v0.1.9_SHARED_TASKS_SPEC.md`; Slice 3 still requires separate approval. v0.1.8 remains the latest accepted user-facing Production capability.
 - A Task means something that remains to be completed; an Event means when something happens. Every Task belongs to exactly one explicit Space, and a Task due date never creates or mutates an Event.
-- `created_by` is immutable creator attribution only. Assignment is responsibility, not authorization: a current same-Space member ID identifies the responsible member, while null means shared responsibility.
-- Every current Space member may view, edit, assign, complete, reopen, and delete every Task. Former and non-members have no access. RLS, database constraints, membership validation, and immutable identity rules remain authoritative.
+- `created_by` is immutable creator attribution only. Assignment identifies responsibility: null means shared; a current same-Space member ID owns status transitions while not restricting collaborative visibility, editing, reassignment, or deletion.
+- Every current Space member may view, edit title/due date, reassign, and delete every Task. Shared Task complete/reopen is open to any current member; assigned Task complete/reopen belongs only to its current assignee. Former and non-members have no access. RLS plus a database trigger checking `OLD.assigned_to_user_id` remain authoritative.
 - Status is exactly `open` or `completed`; v0.1.9 stores no completion actor, timestamp, or history. `due_on` is an optional PostgreSQL `date` with no time or timezone.
 - v0.1.9 adds only `public.tasks` with `id`, `space_id`, `created_by`, `assigned_to_user_id`, `title`, `status`, `due_on`, `created_at`, and `updated_at`. It adds no Task scope, description, reminder, recurrence, priority, tags, ordering, JSON config, or Event foreign key.
 - If an assigned member leaves the Space, the Task becomes shared. The actual local Supabase PostgreSQL 17.6 target supports the chosen composite FK `(space_id, assigned_to_user_id) → space_members(space_id, user_id)` with column-specific `ON DELETE SET NULL (assigned_to_user_id)`, so the Task and `space_id` survive without a cleanup trigger.
@@ -94,7 +94,15 @@
 - Task CRUD should use direct Supabase/PostgREST. Do not add Task CRUD RPCs without a demonstrated atomicity requirement. Realtime reuses the existing Space-filtered Supabase pattern and compatible filtered-delete replica identity.
 - Decision: `MULTISPACE_NOT_REQUIRED_FOR_V019`. Explicit `space_id` keeps Task identity future-compatible; v0.1.9 does not change current membership lifecycle, add a Space selector, or implement Multi-space.
 - Task Reminder is deferred. v0.1.9 does not modify Event Reminder persistence, sender, ledger, Cron, Web Push, recipients, or recurrence projection, and does not reopen v0.1.8.
-- Implementation is bounded to Slice 1 persistence/authorization, amended Slice 2 current-Space CRUD/UI/Realtime, and separately authorized Slice 3 Production acceptance/closeout. The earlier top-level `Calendar / Tasks` switch is superseded by the minimum reusable current-Space / Space Hub entry. Slice 2 has not started.
+- Implementation is bounded to Slice 1 persistence/authorization, amended Slice 2 current-Space CRUD/UI/Realtime, and separately authorized Slice 3 Production acceptance/closeout. The earlier top-level `Calendar / Tasks` switch is superseded by the minimum reusable current-Space / Space Hub entry. Slice 2 frontend passed user-run authenticated acceptance locally and awaits separately approved deployment.
+- **2026-09-23 status-ownership correction:** Real A/B acceptance found that A could complete a Task assigned to B under the former all-member status rule. The product rule now requires A to reassign B's Task to A first, then complete in a second UPDATE. A same-statement reassignment plus status transition is rejected against the old assignee. The small corrective trigger was applied to Production after local tests and postflight; existing Task RLS and ordinary collaborative edits remain unchanged. This does not close Slice 2 acceptance.
+
+## Authenticated Integration and backend-first rollout — 2026-09-23
+
+- Before requesting any real-login, A/B, Realtime, or authenticated mobile/PWA manual acceptance, Codex must verify the frontend's actual backend environment, the backend's required schema/RPC/Edge Function capabilities, and feature-version compatibility. A mismatch blocks manual acceptance.
+- A reviewed, tested, backward-compatible additive backend change may reach Production first, followed by backend postflight and user-run real-account acceptance of the local new frontend against Production. Frontend commit/push and Vercel rollout wait until that acceptance passes and separate Git authorization is given.
+- Frontend defects remain local; backend corrections require a new reviewed forward corrective migration. Applied Production migrations are not rewritten, and Production is not casually rolled back or reset. Breaking/destructive migrations require a separate rollout, compatibility, and rollback plan.
+- Codex owns automated checks and environment alignment. The user owns Magic Link/OTP, A/B real-account, authenticated browser-session, and iPhone/Android/PWA acceptance in real browsers/devices. The 2026-09-23 Slice 1 Production Task foundation postflight passed; this is not Slice 2 or v0.1.9 user-facing Production acceptance.
 
 ## Shared Life Architecture Freeze — 2026-09-23
 

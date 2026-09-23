@@ -12,11 +12,11 @@ v0.1.9 — Shared Tasks MVP
 
 ## Current status
 
-`SCOPE FROZEN / SLICE 1 IMPLEMENTED / LOCAL VERIFICATION PASS / V019_SLICE2_UI_FROZEN / V019_SLICE2_IMPLEMENTATION_NOT_STARTED`. Shared Life 长期架构仍仅是未来方向；v0.1.9 Slice 2 当前 Space Hub、Tasks 与 Completed Tasks 的 docs-only UI Freeze 已 review 通过，实施尚未开始。Slice 1 本地 PASS 保持有效。
+Slice 1: `IMPLEMENTED / LOCAL VERIFICATION PASS; PRODUCTION BACKEND FOUNDATION APPLIED / POSTFLIGHT VERIFIED`. Slice 2: `IMPLEMENTED / MANUAL AUTH ACCEPTANCE PASS`. Slice 3: `NOT STARTED`. v0.1.9 frontend 尚未上线；v0.1.8 仍是最新已验收的用户可见 Production capability。
 
 ## Latest completed
 
-Completed the docs-only v0.1.9 Slice 2 UI Freeze: Calendar header Space-name entry, minimal current Space Hub, Open/Completed pages, Task Sheet/actions, member fallback, narrow-mobile behavior, and two-account Realtime acceptance steps. `v0.1.9 Slice 1 — Task Persistence and Authorization` remains implemented with 58/58 focused pgTAP, 257/257 full database regression, and 14/14 schema-contract tests passing locally. The latest deployed capability remains `v0.1.8 — Mobile Push Reminder = CLOSED / PASS`; no v0.1.9 artifact has been applied to Production.
+User-run real A/B and 320px browser acceptance passed for Calendar → Space Hub → Tasks navigation/state preservation, Task CRUD and no-refresh Realtime, non-creator collaboration, Shared/Assigned status ownership, confirmed Delete, and mobile Sheets. The clearer Calendar Space entry passed. Slice 1 Task foundation and the status-ownership corrective patch were applied to Production with passing postflight; Slice 2 frontend remains local. Final focused Task Node 16/16, full Node 185/185, focused DB 58/58 + 15/15, full DB 272/272, build, and diff check passed; details are in `docs/TESTING.md`.
 
 ## Deployment
 
@@ -24,7 +24,7 @@ Status: public_deployed
 Public URL: https://cross-platform-shared-calendar.vercel.app/
 Provider: Vercel
 Backend: Supabase Free
-Notes: 当前公网版本包含已验收的 ordinary 与 recurring Reminder。`send-test-push` 保持 ACTIVE v4 reviewed-equivalent；`send-reminders` 为 ACTIVE v2 / `verify_jwt=false`。Vault/secret/Cron 未修改，唯一 once-per-minute scheduler 保持健康。Mac、iPhone 与 Android Studio Emulator 的 final cross-platform acceptance 已完成；v0.1.8 为 `CLOSED / PASS`。
+Notes: 当前公网前端仍是已验收的 v0.1.8 ordinary 与 recurring Reminder capability。Production Supabase 已有 v0.1.9 Slice 1 Task foundation 和 Slice 2 status-ownership corrective trigger，均 postflight PASS；Task backend foundation ahead of frontend。Slice 2 本地真实账号验收 PASS，但 frontend 尚未 push 或 Vercel 部署，v0.1.9 用户可见 Production capability 未上线/验收。`send-test-push` 保持 ACTIVE v4 reviewed-equivalent；`send-reminders` 为 ACTIVE v2 / `verify_jwt=false`。Vault/secret/Cron 未修改，唯一 once-per-minute scheduler 保持健康。
 
 ## Version Index
 
@@ -49,7 +49,7 @@ Notes: 当前公网版本包含已验收的 ordinary 与 recurring Reminder。`s
 - v0.1.8 — Mobile Push Reminder（CLOSED / PASS）
 - v0.1.8.1 — Push Infrastructure Foundation（CLOSED / PASS；Desktop + iPhone + Android Studio Emulator verified）
 - v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（Slice A/B/C CLOSED / PASS；P3A C1、P3B manual E2E、P3C automatic scheduler E2E complete）
-- v0.1.9 — Shared Tasks MVP（Scope Frozen；Slice 1 Implemented / Local Verification Pass；Slice 2 UI Frozen / Implementation Not Started）
+- v0.1.9 — Shared Tasks MVP（Slice 1 local PASS / Production backend foundation applied and verified；Slice 2 implemented / manual auth acceptance PASS；Slice 3 not started）
 
 ## Last verified
 
@@ -57,7 +57,7 @@ Notes: 当前公网版本包含已验收的 ordinary 与 recurring Reminder。`s
 
 ## Next Action
 
-Await separate explicit authorization to begin v0.1.9 Slice 2 implementation under the reviewed UI Freeze.
+Review Slice 2 closeout and obtain explicit approval before Slice 3 frontend deployment / Production acceptance.
 
 ## Blockers
 
@@ -75,11 +75,11 @@ Await separate explicit authorization to begin v0.1.9 Slice 2 implementation und
 - README is the project entrypoint; detailed smoke checklists and production validation records live in `docs/TESTING.md`.
 - Android compatibility smoke test is complete for Xiaomi 14 / Android 16 / Chrome on mobile network.
 - v0.1 is a Web/PWA, not native iOS / Android.
-- v0.1.9 canonical scope is `docs/v0.1.9_SHARED_TASKS_SPEC.md`; Slice 1 is implemented/local PASS, while Slice 2 UI is frozen for review and implementation has not started.
+- v0.1.9 canonical scope is `docs/v0.1.9_SHARED_TASKS_SPEC.md`; Slice 1 backend is Production applied/postflight verified, and Slice 2 local UI passed user-run authenticated acceptance. Slice 3 has not started.
 - Long-term Shared Life architecture is frozen in `docs/SHARED_LIFE_ARCHITECTURE.md`: `首页 / 日历 / 空间 / 我的`, Personal plus multiple Shared Spaces, per-Space optional modules, Calendar Sources, privacy-confirmed future global create, and the revised directional roadmap. These future capabilities are not implemented by this docs freeze.
-- `V019_SLICE2_UI_FROZEN` / `V019_SLICE2_IMPLEMENTATION_NOT_STARTED`: Calendar header Space name opens the current Space Hub; its only module entry is Tasks. Open Tasks and separate Completed Tasks use the existing Space-scoped contract. Empty `profiles.display_name` may use contextual `我 / 对方` only in the current two-member v0.1.9 UI; this is not a durable partner identity, and future Multi-space / multi-member UI uses generic member display logic. This supersedes a top-level `Calendar / Tasks` switch; Personal Space, Multi-space, module enablement, full navigation, aggregation, and global create remain outside v0.1.9.
+- `V019_SLICE2_UI_FROZEN` / `SLICE 2 IMPLEMENTED / MANUAL AUTH ACCEPTANCE PASS`: Calendar header `共享空间 · {space.name}` opens the current Space Hub; its only module entry is Tasks. Open Tasks and separate Completed Tasks use the existing Space-scoped contract. Empty `profiles.display_name` may use contextual `我 / 对方` only in the current two-member v0.1.9 UI; this is not a durable partner identity, and future Multi-space / multi-member UI uses generic member display logic. Space-entry navigation and 320px layout passed user-run acceptance; extreme-width name ellipsis is accepted.
 - Slice 1 uses direct PostgREST CRUD with four member-scoped RLS policies, no Task RPC, one exact-order list index, and a PostgreSQL 17.6-verified composite FK whose column-specific delete action clears only `assigned_to_user_id` when a member leaves.
-- A Task is Space-scoped work that remains to be completed. Assignment is responsibility, not access control; null assignee means shared. All current Space members collaborate, while RLS/database invariants remain authoritative.
+- A Task is Space-scoped work that remains to be completed. Assignment does not restrict visibility, ordinary edits, reassignment, or deletion; null means shared. Shared status transitions belong to any current member, while assigned status transitions require the assignee from before the UPDATE. A takeover and completion require separate UPDATEs; RLS and the corrective DB trigger remain authoritative.
 - Task status is only `open` / `completed`; `due_on` is optional date-only metadata. v0.1.9 has no completion audit, Task Reminder, recurrence, Task/Event dual persistence, Multi-space implementation, or UI overhaul.
 - Multi-space decision is `MULTISPACE_NOT_REQUIRED_FOR_V019`. Task persistence must always use explicit `space_id` and introduce no new one-space-only assumption.
 - Event ownership uses stable `scope + owner_user_id`; UI labels are derived from the current user.
@@ -120,8 +120,8 @@ Await separate explicit authorization to begin v0.1.9 Slice 2 implementation und
 - Future consideration — Web/PWA Push delivery precision: semantic Reminder due calculation remains exact, while once-per-minute `pg_cron` + async `pg_net` + Web Push may occasionally add sub-minute to approximately one-minute visible delivery latency. The observed recurring example had semantic due 11:45 and claim/finalize around 11:46; this is not a due-calculation defect. v0.1.8 adds no `-60s` early-dispatch allowance and keeps ordinary/recurring timing under the same semantic rule. Revisit only if real-use feedback shows material UX impact or a future native iOS/Android app adopts OS-level local notification scheduling.
 - Future consideration — physical Android heads-up presentation: functional delivery passed on Android Studio Emulator, including sound and notification-shade presence, but no heads-up banner was observed and physical hardware presentation was not validated. This may be casually revalidated on a physical Android device later; it is non-blocking and does not reopen v0.1.8.
 - v0.1.8 excludes Email reminder delivery, SMS, Bark, multiple reminders, arbitrary custom minutes, snooze, sound customization, notification inbox/history, native alarms, and per-user reminder preferences. Email OTP authentication remains unchanged.
-- `v0.1.9 Shared Tasks` Slice 1 is implemented and verified locally; Slice 2 and Production rollout have not started. The directional roadmap now places Personal Space/Multi-space/module enablement at v0.1.10, navigation/aggregation at v0.1.11, Lists at v0.1.12, Important Dates at v0.1.13, Review at v0.1.14, and Calendar Sources at v0.1.15. Version-specific implementation scope still requires review and approval; Native remains a decision gate.
+- `v0.1.9 Shared Tasks` Slice 1 backend foundation is Production applied/postflight verified; Slice 2 frontend passed local authenticated manual acceptance but is not deployed; Slice 3 full Production acceptance has not started. The directional roadmap places Personal Space/Multi-space/module enablement at v0.1.10, navigation/aggregation at v0.1.11, Lists at v0.1.12, Important Dates at v0.1.13, Review at v0.1.14, and Calendar Sources at v0.1.15.
 
 ## Handoff Prompt
 
-Shared Life long-term architecture is frozen in `docs/SHARED_LIFE_ARCHITECTURE.md`. v0.1.9 Shared Tasks remains `SCOPE FROZEN / SLICE 1 IMPLEMENTED / LOCAL VERIFICATION PASS / SLICE 2 NOT STARTED`; its amended Slice 2 UI scope is in `docs/v0.1.9_SHARED_TASKS_SPEC.md`. v0.1.8 remains the latest deployed `CLOSED / PASS` capability. Next: review the amended v0.1.9 Slice 2 UI scope and obtain explicit approval before implementation; keep future Space/navigation architecture and Production rollout separate.
+Shared Life long-term architecture is frozen in `docs/SHARED_LIFE_ARCHITECTURE.md`. v0.1.9 Slice 1 Task backend and the Slice 2 status-ownership corrective trigger are Production applied/postflight verified; Slice 2 local frontend passed user-run authenticated A/B, navigation, Realtime, and 320px acceptance. The Production backend is ahead of the Vercel frontend; v0.1.8 remains the latest accepted user-facing capability. Slice 3 is not started. Next: review Slice 2 closeout and obtain explicit approval before Slice 3 frontend deployment / Production acceptance.

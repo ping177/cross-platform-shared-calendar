@@ -2,9 +2,44 @@
 
 ## v0.1.9 Shared Tasks MVP Acceptance Plan
 
-Status: `SCOPE FROZEN / SLICE 1 IMPLEMENTED / LOCAL VERIFICATION PASS / SLICE 2 NOT STARTED`. The canonical behavior and boundaries are defined in [v0.1.9 Shared Tasks Spec](./v0.1.9_SHARED_TASKS_SPEC.md). Slice 1 claims are local-only; Production and frontend acceptance remain pending separately authorized slices.
+Status: `SLICE 1 IMPLEMENTED / LOCAL VERIFICATION PASS / PRODUCTION BACKEND FOUNDATION APPLIED / POSTFLIGHT VERIFIED; SLICE 2 IMPLEMENTED / MANUAL AUTH ACCEPTANCE PASS; SLICE 3 NOT STARTED`. The canonical behavior and boundaries are defined in [v0.1.9 Shared Tasks Spec](./v0.1.9_SHARED_TASKS_SPEC.md). v0.1.8 remains the latest accepted user-facing Production capability; the v0.1.9 frontend is not deployed.
 
-Slice 2 design checkpoint: `V019_SLICE2_UI_FROZEN` / `V019_SLICE2_IMPLEMENTATION_NOT_STARTED`. The checklist below is for future implementation acceptance; it is not a claim that the UI exists or has passed browser testing.
+Slice 2 UI is implemented locally. The original all-member complete/reopen rule was corrected after real A/B acceptance found A could complete B's assigned Task. The user completed real A/B and 320px browser acceptance after the correction and Space-entry fix; Codex did not drive authenticated sessions. Final automated results are recorded below.
+
+### Slice 2 real-browser manual acceptance — PASS (user-reported, 2026-09-23)
+
+- Navigation: the Calendar header `👥 共享空间 · {space.name} ›` was recognizable as the current Space entry; Calendar → Space Hub → Tasks worked. Returning to Calendar preserved the selected date and Today/Week/Month view.
+- CRUD/Realtime: A created a Shared Task and B saw it without refresh. A's title, assignee, and due-date edits synchronized to B without refresh. Complete, Reopen, and Delete synchronized in real time; Delete required a second confirmation. A current Space member other than the creator could edit and delete.
+- Status ownership: either current member could Complete/Reopen Shared Tasks. For a Task assigned to B, A could neither Complete nor Reopen after completion, while B could do both. A could reassign the Task to A, then Complete in a separate action. The same-UPDATE reassignment-plus-status bypass is separately rejected by the focused database test; the UI follows the two-step flow.
+- Mobile: the Space Hub and Tasks page worked at 320px; Create/Edit Task Sheets had no material horizontal overflow, blocked controls, or unreachable actions. Ellipsis on the dynamic Space name at extreme narrow width was accepted and is not a blocker.
+- This acceptance covered the local new frontend against the aligned Production Task backend. It is Slice 2 acceptance, not Vercel/frontend Production deployment or Slice 3 acceptance.
+
+### Slice 2 final automated verification — PASS
+
+- Focused Task frontend/schema-contract Node tests: 16/16 PASS.
+- Focused Task foundation pgTAP: 58/58 PASS; focused status-ownership pgTAP: 15/15 PASS.
+- Existing Node regression suite: 185/185 PASS. All eight local database regression suites: 272/272 PASS.
+- `npm run build`: PASS. `git diff --check`: PASS.
+- No frontend Production deployment or Slice 3 acceptance was performed by these checks.
+
+### Authenticated Integration Readiness Gate and backend-first sequence
+
+- Before any real-login, A/B, Realtime, or authenticated mobile/PWA manual test, Codex verifies the frontend's actual backend target, the target's required schema/RPC/Edge Function capabilities, and frontend/backend feature-version compatibility. A mismatch blocks the request for browser acceptance.
+- For a reviewed, tested, backward-compatible additive backend change: apply the backend first, complete backend postflight, then test the local new frontend against the Production backend with real accounts. After manual acceptance passes, request explicit authorization before committing/pushing the frontend for Vercel.
+- Frontend defects remain local until fixed and retested. Backend corrections use a new reviewed forward migration; do not edit the already-applied Production migration, casually rollback, or reset the database. Breaking/destructive changes need their own rollout, compatibility, and rollback plan.
+- Codex runs automated checks and this environment gate. The user runs Magic Link/OTP, A/B real-account, logged-in browser-session, and iPhone/Android/PWA acceptance on real browsers/devices. No Auth bypass or Codex-controlled authenticated browser testing.
+
+### Slice 1 Production backend alignment — 2026-09-23
+
+- The reviewed Slice 1 patch was unchanged from HEAD. The local 5175 frontend's remote target matched the CLI-linked Production project. Preflight found PostgreSQL 17.6, required Space/member helpers and composite uniqueness, and no Task table/function/index/publication entry.
+- Applied only `supabase/patches/2026-09-22-v0.1.9-shared-tasks-slice1.sql`. Postflight verified nine columns, six expected constraints, the column-specific same-Space assignment FK, four member RLS policies, immutable-identity and `updated_at` triggers, CRUD grant, list index, Realtime publication, `REPLICA IDENTITY FULL`, and exactly zero Task rows. The non-Task public schema fingerprint was unchanged; an unauthenticated, read-only zero-row PostgREST request returned HTTP 200.
+- At this backend-alignment checkpoint, the Vercel frontend was not deployed and manual acceptance was still pending; the later Slice 2 acceptance result is recorded above. Full Production acceptance remains pending.
+
+### Slice 2 Task status-ownership correction — 2026-09-23
+
+- TDD reproduction: before the corrective trigger, A's status UPDATE and same-UPDATE B→A reassignment plus completion succeeded incorrectly; 3/14 focused pgTAP assertions failed. After applying the reviewed corrective patch locally, focused pgTAP passed 15/15 and all eight database suites passed 272/272. Existing non-member and collaborative CRUD regressions remained green.
+- The database checks `OLD.assigned_to_user_id` only when `status` changes. Shared Tasks allow any current Space member to complete/reopen under existing RLS; assigned Tasks require the current assignee. Title, due date, and assignment edits remain collaborative. A takeover requires a separate reassignment UPDATE before the new assignee changes status.
+- Applied only `supabase/patches/2026-09-23-v0.1.9-task-status-ownership.sql` to Production after a clean preflight: PostgreSQL 17.6, original nine columns/six constraints/four RLS policies/two triggers intact, correction absent, zero Task rows. Postflight confirmed the new BEFORE UPDATE trigger enabled and function bound to OLD assignment; prior schema fingerprint unchanged, existing Task data untouched, zero rows. The 5175 frontend still targets the linked Production backend; no frontend deploy or real-account Codex browser test occurred.
 
 ### Slice 1 — Task persistence and authorization — LOCAL PASS
 
@@ -27,23 +62,24 @@ Slice 2 design checkpoint: `V019_SLICE2_UI_FROZEN` / `V019_SLICE2_IMPLEMENTATION
 
 ### Slice 2 — Minimal CRUD, UI, and Realtime
 
+- **Space-entry discoverability defect resolved and manually accepted:** Calendar header presents an icon-labeled `共享空间 · {space.name}` control with a chevron. User-run acceptance confirmed the entire pill opens the Hub, returning keeps the selected date and Today/Week/Month view, and extreme-width ellipsis does not block 320px use.
 - At `http://127.0.0.1:5175`, start in Calendar. Tap its header Space name, confirm the Hub shows the actual Space name, member count/action, existing invite copy/rotate controls, and only one `Tasks / N 项待完成` module row. Go Hub → Tasks → Completed Tasks and back through each header. Confirm Calendar returns to its former date/view and existing Calendar controls/InvitePanel still work. No old top-level `Calendar / Tasks` switch, full navigation, or future-module placeholders appear.
-- Confirm Tasks shows only Open rows, live `待完成 · N`, page-local `+`, assignment/date secondary labels, and one `已完成 · N >` entry. Completed page shows every completed row with view/edit, `重新打开`, and delete through its edit Sheet; the main page does not expand completed rows. Check that a list exceeding a server row limit is not silently truncated, without adding pagination UI. Test both empty lists and zero counts.
+- Confirm Tasks shows only Open rows, live `待完成 · N`, page-local `+`, assignment/date secondary labels, and one `已完成 · N >` entry. Completed page shows every completed row with view/edit and delete through its edit Sheet; `重新打开` appears only for Shared or self-assigned Tasks. The main page does not expand completed rows. Check that a list exceeding a server row limit is not silently truncated, without adding pagination UI. Test both empty lists and zero counts.
 - Confirm Open ordering by `due_on` ascending, nulls last, then `created_at` and `id` ascending; equal-date and no-date fixtures should be deterministic. Completed uses the same stable ordering and makes no completion-recency claim.
 - Confirm `+` opens the existing-style bottom Sheet with exactly title, assignment, and optional date; create defaults to Shared and no date. Edit preserves status while changing those fields. Title is trimmed and constrained to 1–200 characters; failures stay visible with input intact. Date can be set and cleared. Close/cancel discards unsaved changes.
-- Confirm the left Open circle completes without opening edit and moves the row to Completed; tapping the title opens edit without completing. `重新打开` returns it to the sorted Open list. Delete exists only inside edit, requires a named second confirmation, and cancel leaves the Task intact. A failed write does not leave a false completed/deleted state.
+- Confirm an eligible left Open circle completes without opening edit and moves the row to Completed; tapping any Task title opens edit without completing. `重新打开` returns an eligible Task to the sorted Open list. For a Task assigned to the other member, neither status control is clickable, but title/due date/assignment editing remains available. Delete exists only inside edit, requires a named second confirmation, and cancel leaves the Task intact. A failed write does not leave a false completed/deleted state.
 - Confirm assignment shows `共同` plus only real current Space members. Prefer `profiles.display_name`; in the current two-member v0.1.9 UI, when it is empty use contextual `我` / `对方` labels relative to each signed-in account. Verify those labels are presentation only and writes use member IDs. One-member Space shows no invented partner; no email/Auth metadata label is displayed. Future Multi-space / multi-member display must use generic member logic, not a persisted `partner` identity.
 - At 320px narrow mobile width and a typical mobile viewport, verify one column, wrapped titles, distinct circle/title/reopen targets, readable count/chevrons, no horizontal scrolling, Sheet keyboard/safe-area behavior, and keyboard/accessibility labels for icon controls.
 - With A and B independently authenticated in the same Space, open Hub/Tasks in both and do not refresh either session: (1) A creates an open Task and B sees the row plus Open/Hub counts; (2) B edits title and A sees it; (3) A assigns to B, then Shared, and B sees each change; (4) B sets then clears a due date and A sees both values and resulting order; (5) A completes via circle and B sees the row leave Open and appear in Completed with both counts updated; (6) B reopens and A sees it return to Open; (7) A deletes through edit and confirmation and B sees it disappear from both lists/counts. Reverse A/B writer roles on a second Task. Verify no manual reload, including when the observer is on Hub or Completed.
+- Corrective re-acceptance with A/B real sessions: create a Task assigned to B. A sees no clickable Complete/Reopen control but can edit title/due date and reassign. B can Complete and Reopen. A may reassign B→A and then Complete in a separate action; one UPDATE combining reassignment and completion must be rejected by the database. Repeat Shared Task Complete/Reopen from both accounts. Verify all results synchronize without refresh.
 - Verify a non-member cannot receive or query another Space's Tasks and Realtime does not bypass RLS.
 - Run focused Task Node tests, the full relevant frontend regression suite, `npm run build`, and authenticated desktop/narrow-mobile smoke at `http://127.0.0.1:5175`.
 
 ### Slice 3 — Production acceptance and closeout
 
 - Requires separate Production/deployment approval after Slice 1 and Slice 2 acceptance.
-- Before applying the reviewed patch, verify the Production Supabase PostgreSQL environment supports the column-specific `ON DELETE SET NULL (assigned_to_user_id)` behavior used by the composite assignee foreign key. This rollout preflight is not a Slice 1 blocker.
-- Preflight the canonical Production prerequisites and apply only the reviewed incremental Task patch.
-- Postflight the Task table, constraints, index, immutable identity, RLS/grants, Realtime publication, replica identity, and unchanged Event/Reminder fingerprints.
+- The authorized backend-first Slice 1 Production patch and structural postflight are recorded above; do not reapply it.
+- Before any frontend deployment, review the user-run Slice 2 authenticated acceptance evidence and obtain separate approval for Slice 3.
 - Deploy only the compatible reviewed frontend.
 - In two authenticated Production sessions, verify Task create/edit/assign/complete/reopen/delete persistence and Realtime, plus non-member/RLS isolation and supported mobile layout.
 - Confirm Task due dates do not create Events and no Task enters Reminder persistence, sender, ledger, Cron, or Web Push paths.

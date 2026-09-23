@@ -221,6 +221,22 @@ begin
 end;
 $$;
 
+create or replace function public.enforce_task_status_owner()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  if old.status is distinct from new.status
+    and old.assigned_to_user_id is not null
+    and old.assigned_to_user_id is distinct from auth.uid() then
+    raise exception 'Only the current Task assignee may change status';
+  end if;
+
+  return new;
+end;
+$$;
+
 alter table public.events
   add constraint events_series_id_fkey foreign key (series_id) references public.events(id) on delete restrict,
   add constraint events_parent_event_id_fkey foreign key (parent_event_id) references public.events(id) on delete restrict;
@@ -264,6 +280,11 @@ drop trigger if exists tasks_validate_identity on public.tasks;
 create trigger tasks_validate_identity
 before update on public.tasks
 for each row execute function public.validate_task_identity();
+
+drop trigger if exists tasks_enforce_status_owner on public.tasks;
+create trigger tasks_enforce_status_owner
+before update on public.tasks
+for each row execute function public.enforce_task_status_owner();
 
 drop trigger if exists tasks_touch_updated_at on public.tasks;
 create trigger tasks_touch_updated_at

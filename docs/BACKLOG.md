@@ -64,12 +64,12 @@ Future compatibility:
 
 ### v0.1.9 — Shared Tasks MVP
 
-Status: `SCOPE FROZEN / SLICE 1 IMPLEMENTED / LOCAL VERIFICATION PASS / SLICE 2 NOT STARTED`. Review the amended Slice 2 UI scope and obtain explicit approval before implementation. Canonical Task scope: [v0.1.9 Shared Tasks Spec](./v0.1.9_SHARED_TASKS_SPEC.md); long-term model: [Shared Life Architecture Freeze](./SHARED_LIFE_ARCHITECTURE.md).
+Status: `SLICE 1 IMPLEMENTED / LOCAL VERIFICATION PASS / PRODUCTION BACKEND FOUNDATION APPLIED / POSTFLIGHT VERIFIED; SLICE 2 IMPLEMENTED / MANUAL AUTH ACCEPTANCE PASS; SLICE 3 NOT STARTED`. The backend foundation is ahead of the Vercel frontend; v0.1.8 remains the latest accepted user-facing Production capability. Canonical Task scope: [v0.1.9 Shared Tasks Spec](./v0.1.9_SHARED_TASKS_SPEC.md); long-term model: [Shared Life Architecture Freeze](./SHARED_LIFE_ARCHITECTURE.md).
 
 In scope:
 
 - One Space-scoped `tasks` product table with creator attribution, same-Space member/shared assignment, title, `open` / `completed`, optional date-only `due_on`, and timestamps.
-- Collaborative household permissions: all current Space members can view, edit, reassign, complete, reopen, and delete Tasks; RLS and database invariants remain authoritative.
+- Collaborative household permissions: all current Space members can view, edit title/due date, reassign, and delete Tasks. Shared Tasks may be completed/reopened by any current member; assigned Tasks only by the current assignee, enforced by a corrective DB trigger against the old assignment. A takeover requires reassignment and status change in separate UPDATEs.
 - Assigned-member departure converts the assignment to shared through the locally verified composite FK with column-specific `ON DELETE SET NULL (assigned_to_user_id)`.
 - Existing Supabase/PostgREST CRUD and Space-filtered Realtime patterns.
 - A minimum current-Space / Space Hub entry to Tasks, open Tasks and separate Completed history, create/edit/delete confirmation, complete/reopen, assignment, and optional due date. The former top-level `Calendar / Tasks` switch is superseded.
@@ -77,9 +77,9 @@ In scope:
 
 Implementation slices:
 
-1. **Task persistence and authorization — IMPLEMENTED / LOCAL VERIFICATION PASS:** schema/incremental patch, constraints, assignment/member-leave semantics, immutable identity, RLS/grants, Realtime/replica identity, and focused database tests. No UI or Production rollout.
-2. **Current-Space Tasks CRUD, UI, and Realtime — NOT STARTED:** frontend Task model, bounded current-Space / Space Hub entry, CRUD, completion/reopen, assignment, due date, deterministic grouping/order, and authenticated two-session validation. Requires review of amended UI scope and explicit approval. No Personal Space, Multi-space, module enablement, full navigation, aggregation, or global create.
-3. **Production acceptance and closeout:** only after separate approval, apply reviewed artifacts and run bounded Production CRUD/Realtime/RLS/mobile acceptance. Fix only concrete acceptance defects.
+1. **Task persistence and authorization — PRODUCTION APPLIED / POSTFLIGHT VERIFIED:** schema/incremental patch, constraints, assignment/member-leave semantics, immutable identity, RLS/grants, Realtime/replica identity, and focused database tests. Backend foundation is now present in Production.
+2. **Current-Space Tasks CRUD, UI, and Realtime — IMPLEMENTED / MANUAL AUTH ACCEPTANCE PASS:** frontend Task model, bounded Space Hub, CRUD, assignee-owned completion/reopen, assignment, due date, deterministic grouping/order, and user-run two-session validation. The status-ownership corrective backend patch is applied/postflight verified in Production. Calendar header Space-entry discoverability and 320px navigation passed. No Personal Space, Multi-space, module enablement, full navigation, aggregation, or global create.
+3. **Production acceptance and closeout — NOT STARTED:** only after separate approval, review authenticated evidence and deploy only the compatible frontend. Fix only concrete acceptance defects.
 
 Explicitly deferred:
 
@@ -91,7 +91,7 @@ Explicitly deferred:
 
 The long-term relationships are frozen in [Shared Life Architecture Freeze](./SHARED_LIFE_ARCHITECTURE.md). The version rows below are directional; implementation scope, permissions, and rollout still require version-specific review and approval.
 
-- v0.1.9 — Shared Tasks; Slice 1 local PASS, Slice 2 not started.
+- v0.1.9 — Shared Tasks; Slice 1 local/Production backend PASS, Slice 2 implemented/manual auth acceptance PASS, Slice 3 not started.
 - v0.1.10 — Personal Space + Multi-space + Module Enablement Foundation.
 - v0.1.11 — Navigation + Aggregation Experience.
 - v0.1.12 — Shared Lists.

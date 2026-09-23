@@ -16,6 +16,7 @@ import {
 import { MemberSheet } from './components/MemberSheet';
 import { NotificationSettings } from './components/NotificationSettings';
 import { RecurrenceControls } from './components/RecurrenceControls';
+import { TasksArea, type TasksScreen } from './components/TasksArea';
 import { calendarVisibleRange } from './lib/calendar-display';
 import { draftFromEditTarget, type EventDraft } from './lib/event-edit-draft';
 import {
@@ -373,6 +374,7 @@ function AuthPage() {
 
 function CalendarApp({ session }: { session: Session }) {
   const userId = session.user.id;
+  const [screen, setScreen] = useState<TasksScreen>('calendar');
   const [space, setSpace] = useState<Space | null>(null);
   const [members, setMembers] = useState<SpaceMember[]>([]);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -529,10 +531,17 @@ function CalendarApp({ session }: { session: Session }) {
   return (
     <main className="min-h-screen bg-mist text-ink">
       <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col">
+        {screen === 'calendar' && (
+          <>
         <header className="sticky top-0 z-10 border-b border-ink/10 bg-mist/95 px-4 pb-3 pt-4 backdrop-blur">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <p className="truncate text-sm text-ink/60">{space.name}</p>
+              <button className="inline-flex min-h-11 max-w-full items-center gap-1 rounded-full bg-white px-2 text-left text-xs font-semibold text-teal shadow-sm sm:text-sm" type="button" onClick={() => setScreen('hub')} aria-label={`打开共享空间 ${space.name}`}>
+                <Users size={15} className="shrink-0" aria-hidden="true" />
+                <span className="shrink-0 whitespace-nowrap">共享空间 ·</span>
+                <span className="min-w-0 truncate">{space.name}</span>
+                <ChevronRight size={15} className="shrink-0" aria-hidden="true" />
+              </button>
               <h1 className="text-2xl font-bold">{formatMonth(selectedDate)}</h1>
               <button className="mt-1 inline-flex items-center gap-1 text-sm font-semibold text-teal" type="button" onClick={() => setShowMembers(true)}>
                 <Users size={15} />
@@ -597,6 +606,17 @@ function CalendarApp({ session }: { session: Session }) {
             onSelectDate={setSelectedDate}
           />
         </section>
+          </>
+        )}
+        <TasksArea
+          screen={screen}
+          onScreenChange={setScreen}
+          space={space}
+          members={members}
+          userId={userId}
+          invitePanel={<InvitePanel space={space} onSpaceChange={setSpace} />}
+          onMembersOpen={() => setShowMembers(true)}
+        />
       </div>
 
       {(showNewEvent || editingTarget) && (

@@ -23,6 +23,13 @@
 - Local APIs should prefer `127.0.0.1`.
 - Do not silently change dev ports. If a dev port changes, mention that `project-command-center/config/projects.json` may also need updating.
 
+## Authenticated Integration Readiness Gate
+
+- Before asking the user to run any real-login, two-account, Realtime, mobile, or PWA manual acceptance, verify which backend the current frontend actually targets, that backend's required schema/RPC/Edge Function capabilities, and frontend/backend feature-version compatibility. If they do not align, stop before browser acceptance.
+- For reviewed, tested, backward-compatible additive backend changes, deploy the backend first, verify its postflight, then have the user test the local new frontend against the Production backend. Commit/push the frontend for Vercel only after manual acceptance passes and the user explicitly authorizes Git actions.
+- If acceptance finds a frontend defect, continue local frontend fixes. If the backend needs correction, use a new reviewed forward corrective migration; do not assume the applied Production migration can be edited, and do not casually rollback or reset Production. Breaking/destructive migrations require a separate rollout, compatibility, and rollback plan.
+- Codex owns automated verification and the environment alignment gate. The user performs Magic Link/OTP, A/B real-account, authenticated browser-session, and iPhone/Android/PWA manual acceptance in real browsers/devices; Codex must not drive those logged-in sessions.
+
 ## Project Command Center Compatibility
 
 Before starting a task, read the relevant project context when available:

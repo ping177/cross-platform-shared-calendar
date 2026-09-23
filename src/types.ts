@@ -18,6 +18,18 @@ export type SpaceMember = {
   } | null;
 };
 
+export type Task = {
+  id: string;
+  space_id: string;
+  created_by: string;
+  assigned_to_user_id: string | null;
+  title: string;
+  status: 'open' | 'completed';
+  due_on: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type DailyRecurrenceRule = {
   version: 1;
   frequency: 'daily';
