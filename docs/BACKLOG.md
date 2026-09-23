@@ -91,12 +91,22 @@ Explicitly deferred:
 - Task Archive and an `archive` status; Completed Tasks remain in a separate history section with reopen and delete.
 - `completed_at`, `completed_by`, completion history, description, Task scope, and Task/Event dual persistence.
 
+## Next Frozen Scope — v0.1.10 Foundation
+
+Status: Scope / Architecture Freeze `CLOSED / READY FOR IMPLEMENTATION`; implementation `NOT STARTED`. v0.1.9 remains `CLOSED / PASS` in Production. Canonical decisions and rollout boundaries are in [Shared Life Architecture Freeze](./SHARED_LIFE_ARCHITECTURE.md).
+
+1. **Slice 1 — Data / permission foundation:** `spaces.kind`, partial personal-owner uniqueness, sole-owner membership invariant, removal of user-wide membership uniqueness, Shared create/join compatibility and two-member capacity, `space_modules`, owner-only toggle RPC, and database Task mutation guard. Verify schema/patch parity, RLS/RPC contracts, and actual Production preflight before any rollout. Backend capability may go first; no automatic Personal Space creation or bulk backfill while the old frontend remains the accepted UI.
+2. **Slice 2 — Selected/current Space vertical flow:** compatible frontend calls idempotent `ensure_personal_space()` per user, lists/switches member Spaces, keeps an explicit membership-validated `selectedSpaceId`, and scopes Event/Task/member/module data plus Realtime to it. Preserve the existing Shared Space selection on first upgrade and use Personal Space when no Shared Space exists. Clear and guard old requests/subscriptions during switching. Real authenticated acceptance follows the backend/frontend compatibility gate; only afterward consider bulk backfill of older accounts.
+3. **Slice 3 — Tasks module enablement + UI text closeout:** Calendar stays implicit; Tasks toggles per Space under owner authority, with historical SELECT preserved and all mutations blocked while disabled. Re-enable restores data. Only Tasks has a visible toggle. Change user-visible `Task / Tasks` wording to Chinese “任务” without renaming internal identifiers or adding full i18n.
+
+No Event/Task identity, v0.1.9 Task authorization, v0.1.8 Reminder, recurrence, or Production capability is redesigned. Shared Space three-plus-member support, final four-destination navigation, cross-Space aggregation, global `+`, Calendar multi-Space overlay, Lists/Important Dates/Review implementation, External Calendar Sources, UI redesign, and Native App remain deferred to v0.1.11 or later.
+
 ## Directional Roadmap — Shared Life Architecture Frozen
 
-The long-term relationships are frozen in [Shared Life Architecture Freeze](./SHARED_LIFE_ARCHITECTURE.md). The version rows below are directional; implementation scope, permissions, and rollout still require version-specific review and approval.
+The long-term relationships and v0.1.10 scope are frozen in [Shared Life Architecture Freeze](./SHARED_LIFE_ARCHITECTURE.md). Later version rows remain directional and require their own scope review.
 
 - v0.1.9 — Shared Tasks; Slice 1/2/3 CLOSED / PASS; Production backend and frontend accepted.
-- v0.1.10 — Personal Space + Multi-space + Module Enablement Foundation; scope/design work next, implementation not started. At version start, unify user-visible `Task / Tasks` copy as Chinese “任务”: Tasks → 任务, Completed Tasks → 已完成任务, Create Task → 新建任务, Edit Task → 编辑任务. Change UI copy only; keep database tables, TypeScript types, filenames, and internal identifiers. Do not add full i18n in this version; formal Chinese/English switching remains for a future product stage.
+- v0.1.10 — Personal Space + Multi-space + Module Enablement Foundation; Scope / Architecture Freeze `CLOSED / READY FOR IMPLEMENTATION`, implementation `NOT STARTED`. User-visible `Task / Tasks` copy becomes Chinese “任务” in Slice 3; internal names stay unchanged and full i18n remains future work.
 - v0.1.11 — Navigation + Aggregation Experience.
 - v0.1.12 — Shared Lists.
 - v0.1.13 — Important Dates.
@@ -115,7 +125,7 @@ The long-term relationships are frozen in [Shared Life Architecture Freeze](./SH
 
 - Deferred: do not add a `delete_logical_series` frontend entry point. The permission-checked backend RPC remains available for controlled operational use, but deleting an entire logical lineage is high-impact and needs a separately approved product/UX scope, including explicit copy and safeguards.
 - Space member management and invitation experience improvements.
-- Multi-space is a directional v0.1.10 foundation, with implementation details still to be frozen; do not bind Push Subscriptions to a Space.
+- Multi-space v0.1.10 scope is frozen above; do not bind Push Subscriptions to a Space.
 - Reconsider `space_members.nickname` only after multi-space support creates a real per-space naming need.
 - Add countdowns.
 

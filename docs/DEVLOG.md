@@ -1,5 +1,12 @@
 # Development Log
 
+# 2026-09-23 - v0.1.10 Scope / Architecture Freeze
+
+- Closed the repository-first Personal Space, Multi-space, and Module Enablement scope review as `CLOSED / READY FOR IMPLEMENTATION`. v0.1.10 implementation remains `NOT STARTED`; v0.1.9 remains `CLOSED / PASS` and the latest accepted Production capability.
+- Froze partial Personal Space uniqueness (`UNIQUE(created_by) WHERE kind = 'personal'`), sole-owner membership enforcement, Personal Event/Task semantics, the existing Shared two-member limit, explicit selected-Space isolation, and Space-level Tasks enablement with preserved historical SELECT and blocked mutations while disabled. The detailed contract and three implementation slices are in `docs/SHARED_LIFE_ARCHITECTURE.md`.
+- Froze staged rollout: backend capability may go first, but no automatic Personal Space creation or bulk backfill precedes compatible frontend readiness. The new frontend later calls idempotent `ensure_personal_space()` per user; older-account bulk backfill is considered only after real authenticated acceptance. This repository audit did not verify Production schema/index/RPC/RLS; preflight and rollout have not started.
+- Updated governance/architecture docs only. No business code, SQL/schema, dependencies, Production, or external project files changed. Docs-only verification: `git diff --check`; no build or runtime test was needed.
+
 # 2026-09-23 - v0.1.9 Shared Tasks MVP Final Closeout
 
 - User-reported Production acceptance passed after the Vercel frontend deployment: Production page and existing Calendar worked; `👥 共享空间 · {space.name} ›` opened Space Hub → Tasks. Desktop A/B sessions saw Shared Task creation and title/assignment/due-date edits without refresh. Shared status transitions worked for either member; assigned transitions worked only for the assignee, with disabled controls for the other member. A member could reassign to self and then complete. Complete, Reopen, and confirmed Delete synchronized; Completed page worked.
