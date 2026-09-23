@@ -25,8 +25,9 @@ Status: `SCOPE FROZEN / SLICE 1 IMPLEMENTED / LOCAL VERIFICATION PASS / SLICE 2 
 
 ### Slice 2 — Minimal CRUD, UI, and Realtime
 
-- Verify the `Calendar / Tasks` switch preserves all existing Calendar behavior and does not add routing or design-system scope.
+- Verify Tasks are reachable through the existing/current Space context with only the minimum reusable current-Space / Space Hub entry. The old top-level `Calendar / Tasks` switch is superseded; no full four-destination navigation, Personal Space, Multi-space, module enablement, aggregation, or global create is part of Slice 2.
 - Verify open Tasks are primary; completed Tasks remain visible in a secondary section and can be reopened.
+- Verify completed history supports delete as well as reopen, without an `archive` status.
 - Verify create/edit/delete-confirmation, complete/reopen, member/shared assignment, optional native date input, persistence after reload, and database error handling.
 - Verify title input trims for usability while the database remains authoritative for the 1–200-character canonical invariant.
 - Verify one-member Spaces show only the current member plus shared and never invent another member.

@@ -64,7 +64,7 @@ Future compatibility:
 
 ### v0.1.9 — Shared Tasks MVP
 
-Status: `SCOPE FROZEN / SLICE 1 IMPLEMENTED / LOCAL VERIFICATION PASS / SLICE 2 NOT STARTED`. Review Slice 1 evidence and obtain explicit approval before Slice 2. Canonical scope: [v0.1.9 Shared Tasks Spec](./v0.1.9_SHARED_TASKS_SPEC.md).
+Status: `SCOPE FROZEN / SLICE 1 IMPLEMENTED / LOCAL VERIFICATION PASS / SLICE 2 NOT STARTED`. Review the amended Slice 2 UI scope and obtain explicit approval before implementation. Canonical Task scope: [v0.1.9 Shared Tasks Spec](./v0.1.9_SHARED_TASKS_SPEC.md); long-term model: [Shared Life Architecture Freeze](./SHARED_LIFE_ARCHITECTURE.md).
 
 In scope:
 
@@ -72,27 +72,34 @@ In scope:
 - Collaborative household permissions: all current Space members can view, edit, reassign, complete, reopen, and delete Tasks; RLS and database invariants remain authoritative.
 - Assigned-member departure converts the assignment to shared through the locally verified composite FK with column-specific `ON DELETE SET NULL (assigned_to_user_id)`.
 - Existing Supabase/PostgREST CRUD and Space-filtered Realtime patterns.
-- A minimal `Calendar / Tasks` module switch, open/completed sections, create/edit/delete confirmation, complete/reopen, assignment, and optional due date.
+- A minimum current-Space / Space Hub entry to Tasks, open Tasks and separate Completed history, create/edit/delete confirmation, complete/reopen, assignment, and optional due date. The former top-level `Calendar / Tasks` switch is superseded.
 - Decision `MULTISPACE_NOT_REQUIRED_FOR_V019`; explicit `space_id` preserves future compatibility without implementing Multi-space.
 
 Implementation slices:
 
 1. **Task persistence and authorization — IMPLEMENTED / LOCAL VERIFICATION PASS:** schema/incremental patch, constraints, assignment/member-leave semantics, immutable identity, RLS/grants, Realtime/replica identity, and focused database tests. No UI or Production rollout.
-2. **Minimal CRUD, UI, and Realtime:** frontend Task model, bounded Tasks module, CRUD, completion/reopen, assignment, due date, deterministic grouping/order, and authenticated two-session validation.
+2. **Current-Space Tasks CRUD, UI, and Realtime — NOT STARTED:** frontend Task model, bounded current-Space / Space Hub entry, CRUD, completion/reopen, assignment, due date, deterministic grouping/order, and authenticated two-session validation. Requires review of amended UI scope and explicit approval. No Personal Space, Multi-space, module enablement, full navigation, aggregation, or global create.
 3. **Production acceptance and closeout:** only after separate approval, apply reviewed artifacts and run bounded Production CRUD/Realtime/RLS/mobile acceptance. Fix only concrete acceptance defects.
 
 Explicitly deferred:
 
 - Task Reminder, recurring Tasks, subtasks, priority, tags, comments, attachments, analytics, custom ordering, Shared Lists semantics, Event generation, Multi-space implementation, and UI/UX overhaul.
+- Task Archive and an `archive` status; Completed Tasks remain in a separate history section with reopen and delete.
 - `completed_at`, `completed_by`, completion history, description, Task scope, and Task/Event dual persistence.
 
-## Directional Roadmap — Architecture Not Frozen
+## Directional Roadmap — Shared Life Architecture Frozen
 
-- v0.1.10 — Shared Lists.
-- v0.1.11 — Important Dates / Anniversaries.
-- v0.1.12 — Tags / Color = Who.
-- UI/UX overhaul remains deferred until a Design System is defined.
-- These future versions are roadmap directions only. Their product scope and architecture require separate review and approval.
+The long-term relationships are frozen in [Shared Life Architecture Freeze](./SHARED_LIFE_ARCHITECTURE.md). The version rows below are directional; implementation scope, permissions, and rollout still require version-specific review and approval.
+
+- v0.1.9 — Shared Tasks; Slice 1 local PASS, Slice 2 not started.
+- v0.1.10 — Personal Space + Multi-space + Module Enablement Foundation.
+- v0.1.11 — Navigation + Aggregation Experience.
+- v0.1.12 — Shared Lists.
+- v0.1.13 — Important Dates.
+- v0.1.14 — Structured Review / Check-in.
+- v0.1.15 — Calendar Sources v1.
+- Future without a committed version: Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules.
+- Native: decision gate only; no committed implementation version.
 
 ## P1 - Near-Term Product Polish
 
@@ -104,19 +111,17 @@ Explicitly deferred:
 
 - Deferred: do not add a `delete_logical_series` frontend entry point. The permission-checked backend RPC remains available for controlled operational use, but deleting an entire logical lineage is high-impact and needs a separately approved product/UX scope, including explicit copy and safeguards.
 - Space member management and invitation experience improvements.
-- Evaluate multi-member or multi-space expansion beyond the current two-person v0.1 model; do not bind Push Subscriptions to a Space if this direction is later approved.
+- Multi-space is a directional v0.1.10 foundation, with implementation details still to be frozen; do not bind Push Subscriptions to a Space.
 - Reconsider `space_members.nickname` only after multi-space support creates a real per-space naming need.
 - Add countdowns.
 
 ## P3 - Long-Term Directions
 
 - Re-evaluate Supabase Pro if the project becomes a formal service that must stay online long term.
-- Native iOS / Android apps.
-- App Store / Play Store distribution.
+- Native iOS / Android app feasibility and distribution remain behind a decision gate, without an implementation version.
 - Paid or account-tier model.
-- External calendar import/export.
-- External calendar sync options such as Apple Calendar, Google Calendar, or CalDAV.
-- `Shared Life Space / 共享生活空间` remains the long-term product vision; the directional roadmap above does not by itself approve implementation.
+- External calendar import/export and richer Google, Apple/System, or CalDAV integration follow the Calendar Sources architecture but need separate scope.
+- `Shared Life Space / 共享生活空间` is the frozen long-term architecture; the directional roadmap above does not by itself approve implementation.
 
 ## Completed and Deferred History
 

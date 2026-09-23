@@ -94,7 +94,19 @@
 - Task CRUD should use direct Supabase/PostgREST. Do not add Task CRUD RPCs without a demonstrated atomicity requirement. Realtime reuses the existing Space-filtered Supabase pattern and compatible filtered-delete replica identity.
 - Decision: `MULTISPACE_NOT_REQUIRED_FOR_V019`. Explicit `space_id` keeps Task identity future-compatible; v0.1.9 does not change current membership lifecycle, add a Space selector, or implement Multi-space.
 - Task Reminder is deferred. v0.1.9 does not modify Event Reminder persistence, sender, ledger, Cron, Web Push, recipients, or recurrence projection, and does not reopen v0.1.8.
-- Implementation is bounded to Slice 1 persistence/authorization, Slice 2 minimal CRUD/UI/Realtime, and separately authorized Slice 3 Production acceptance/closeout.
+- Implementation is bounded to Slice 1 persistence/authorization, amended Slice 2 current-Space CRUD/UI/Realtime, and separately authorized Slice 3 Production acceptance/closeout. The earlier top-level `Calendar / Tasks` switch is superseded by the minimum reusable current-Space / Space Hub entry. Slice 2 has not started.
+
+## Shared Life Architecture Freeze — 2026-09-23
+
+The canonical long-term model and roadmap are in [Shared Life Architecture Freeze](./SHARED_LIFE_ARCHITECTURE.md). This is a docs-only architecture decision, not an implementation or deployment milestone.
+
+- First-level navigation is `首页 / 日历 / 空间 / 我的`: cross-module Home with future global create, Calendar time/source aggregation, Personal and Shared Spaces with modules, and personal account/device/settings respectively. The full navigation is not part of v0.1.9.
+- Each user will have one genuinely private Personal Space and may join multiple Shared Spaces. Each business object has one canonical Space; views may aggregate Spaces. An Event marked `personal` inside a Shared Space remains visible to that Space's members and is distinct from Personal Space content.
+- Each Space has Calendar as its core and may enable Tasks, Lists, Important Dates, structured Review / Check-in, Memo, or later modules. Enablement is per Space; disabling hides a module without deleting its data, and re-enabling restores visibility. Permanent data deletion is deferred; enable/disable authority remains open for v0.1.10 implementation design.
+- Calendar Sources may be Space-backed or global/external, including Chinese holidays and adjusted workdays, ICS, and later Google or Apple/System calendars. External sources need no owning Space; views may overlay or filter Space Calendars.
+- Future global create supports Event, Task, List, Important Date, and Memo; Wishlist is a List type. Default target follows a specific Space or sole Calendar Space filter, otherwise Personal Space. The form exposes a selectable target, the action names it, and a second target confirmation precedes the write.
+- Event and Task retain distinct semantics. Task due dates may later be projected read-only into Calendar. Review / Check-in is structured content with period, Focus, Wins, Problems, next plan, and historical continuity; voice input is a goal without a frozen technical approach. Task Archive is deferred; v0.1.9 Completed remains reopenable/deletable history without a new status.
+- Directional versions now place Personal Space/Multi-space/module enablement at v0.1.10, navigation/aggregation at v0.1.11, Lists at v0.1.12, Important Dates at v0.1.13, Review at v0.1.14, and Calendar Sources v1 at v0.1.15. Native remains a decision gate without a committed implementation version.
 
 ## PWA
 

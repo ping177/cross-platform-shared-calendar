@@ -1,5 +1,12 @@
 # Development Log
 
+# 2026-09-23 - Shared Life Architecture Docs-Only Freeze
+
+- Froze the long-term `首页 / 日历 / 空间 / 我的` navigation, Personal and multiple Shared Spaces with single canonical ownership per object, per-Space Calendar core and optional module enablement, Space-backed and global/external Calendar Sources, and the privacy-confirmed future global create flow in `docs/SHARED_LIFE_ARCHITECTURE.md`. Review / Check-in is distinct structured content; voice technology and Task Archive remain deferred.
+- Revised the directional roadmap to v0.1.10 Personal Space/Multi-space/module enablement, v0.1.11 navigation/aggregation, v0.1.12 Lists, v0.1.13 Important Dates, v0.1.14 Review, and v0.1.15 Calendar Sources. Native has a decision gate rather than an implementation version.
+- Amended v0.1.9 Slice 2 to reach Tasks through the existing current Space and a bounded reusable Space Hub entry. The former top-level `Calendar / Tasks` switch is superseded. Slice 1 remains locally verified; Slice 2 remains not started and requires explicit approval of this amended UI scope.
+- This change updates governance/design documentation only. Business code, SQL/schema/RLS, dependencies, Production, deployment, and the accepted v0.1.8 Reminder capability remain unchanged. `git diff --check` passed; runtime tests and build were not required for a docs-only freeze.
+
 # 2026-09-22 - v0.1.9 Slice 1 Task Persistence and Authorization
 
 - Implemented the local-only `public.tasks` foundation in both `supabase/schema.sql` and the additive `2026-09-22-v0.1.9-shared-tasks-slice1.sql` patch. The table contains exactly the nine frozen fields, deterministic title/status constraints, date-only `due_on`, shared timestamp handling, immutable `space_id` / `created_by`, direct authenticated CRUD grants, four member-scoped RLS policies, `REPLICA IDENTITY FULL`, and existing-publication Realtime membership. No Task CRUD RPC was added.

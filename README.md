@@ -6,8 +6,8 @@ Production URL: https://cross-platform-shared-calendar.vercel.app/
 
 ## 当前阶段
 
-- 当前版本：`v0.1.9 — Shared Tasks MVP`，状态为 `SCOPE FROZEN / IMPLEMENTATION NOT STARTED`。产品、数据、权限、Realtime、Calendar/Reminder 边界、Multi-space 决策与三个 bounded implementation slices 已冻结；进入 Slice 1 前仍需要明确 implementation approval。完整规范见 [v0.1.9 Shared Tasks Spec](./docs/v0.1.9_SHARED_TASKS_SPEC.md)。
-- 最新完成并上线的产品线仍是 `v0.1.8 — Mobile Push Reminder`。Push Infrastructure、ordinary Reminder delivery、Slice 3 Recurrence Reminder Integration 与 final cross-platform acceptance 均为 `CLOSED / PASS`；本次 v0.1.9 scope freeze 未修改或 reopen Reminder architecture。
+- 当前版本：`v0.1.9 — Shared Tasks MVP`，状态为 `SCOPE FROZEN / SLICE 1 IMPLEMENTED / LOCAL VERIFICATION PASS / SLICE 2 NOT STARTED`。下一步是审阅修订后的 current-Space Tasks UI 范围，并取得明确批准后再实施 Slice 2。Task 规范见 [v0.1.9 Shared Tasks Spec](./docs/v0.1.9_SHARED_TASKS_SPEC.md)；长期导航、Space 模型和方向性路线图见 [Shared Life Architecture Freeze](./docs/SHARED_LIFE_ARCHITECTURE.md)。
+- 最新完成并上线的产品线仍是 `v0.1.8 — Mobile Push Reminder`。Push Infrastructure、ordinary Reminder delivery、Slice 3 Recurrence Reminder Integration 与 final cross-platform acceptance 均为 `CLOSED / PASS`；v0.1.9 Slice 1 仅完成本地验证，尚未部署。
 - v0.1.8 Slice 1 已实现并验证 Push-only Service Worker、明确用户操作触发的 notification permission flow、`user + installation` subscription persistence/lifecycle，以及带安全 upstream diagnostics 的 authenticated test-push Edge Function。
 - Desktop Chrome/macOS 与 iPhone installed PWA 的真实 Push / automatic Reminder 验收已通过。Android Studio Emulator 的 notification permission/subscription、`send-test-push`、ordinary automatic Reminder、声音与 notification-shade delivery 均通过；未观察到 heads-up banner，且未在实体 Android 硬件上验证该展示行为，这不是 v0.1.8 blocker。
 - v0.1.8 Slice 2 已冻结一个 nullable `events.reminder_kind`、per-event canonical IANA `events.time_zone`、新建 timed 默认提前 10 分钟、新建 all-day 默认当天 08:00、历史事件不自动开启提醒，以及普通事件的 past-due / grace / edit-recalculation 规则。
@@ -25,13 +25,13 @@ Production URL: https://cross-platform-shared-calendar.vercel.app/
 - 成员显示名称与空间成员列表；个人日程显示成员名称，shared 日程显示「共同」
 - 基础 PWA：manifest、mobile meta、可添加到主屏幕
 
-下一阶段已冻结但尚未实现：Shared Tasks MVP，包括 Space-scoped Task、member/shared assignment、open/completed、optional date-only due date、最小 CRUD UI 与 Realtime。Task 不自动创建 Calendar Event，也不接入 Reminder。
+Shared Tasks MVP 的 Space-scoped persistence、member/shared assignment、`open/completed` 与 optional date-only due date 已在 Slice 1 本地实现并验证。Slice 2 的当前 Space 下最小 CRUD UI 与 Realtime 尚未开始。Task 不自动创建 Calendar Event，也不接入 Reminder。
 
 ## 暂不做
 
 - Apple Calendar / Google Calendar / CalDAV / 系统日历同步
 - 原生 iOS / Android App
-- 多团队/多空间切换
+- v0.1.9 内的 Personal Space、多空间切换、模块开关与完整四栏导航（后续方向见架构文档）
 - Shared Lists、Task Reminder、recurring Tasks、纪念日、聊天、相册
 - 复杂 service worker 离线缓存
 
@@ -76,7 +76,7 @@ Production URL: https://cross-platform-shared-calendar.vercel.app/
 
 该文件包含：
 
-- `profiles`、`spaces`、`space_members`、`events`
+- `profiles`、`spaces`、`space_members`、`events`、`tasks` 等当前 bootstrap 表
 - indexes
 - RLS policies
 - `create_space_with_invite(space_name text)`
