@@ -12,7 +12,7 @@ v0.1.9 — Shared Tasks MVP
 
 ## Current status
 
-Slice 1: `IMPLEMENTED / LOCAL VERIFICATION PASS; PRODUCTION BACKEND FOUNDATION APPLIED / POSTFLIGHT VERIFIED`. Slice 2: `IMPLEMENTED / MANUAL AUTH ACCEPTANCE PASS`. Slice 3: `NOT STARTED`. v0.1.9 frontend 尚未上线；v0.1.8 仍是最新已验收的用户可见 Production capability。
+Slice 1: `IMPLEMENTED / LOCAL VERIFICATION PASS; PRODUCTION BACKEND FOUNDATION APPLIED / POSTFLIGHT VERIFIED`. Slice 2: `IMPLEMENTED / MANUAL AUTH ACCEPTANCE PASS`. Slice 3: `ROLLOUT AUTHORIZED / IN PROGRESS`. v0.1.9 frontend Production deployment 与用户手工验收待确认；v0.1.8 仍是最新已验收的用户可见 Production capability。
 
 ## Latest completed
 
@@ -24,7 +24,7 @@ Status: public_deployed
 Public URL: https://cross-platform-shared-calendar.vercel.app/
 Provider: Vercel
 Backend: Supabase Free
-Notes: 当前公网前端仍是已验收的 v0.1.8 ordinary 与 recurring Reminder capability。Production Supabase 已有 v0.1.9 Slice 1 Task foundation 和 Slice 2 status-ownership corrective trigger，均 postflight PASS；Task backend foundation ahead of frontend。Slice 2 本地真实账号验收 PASS，但 frontend 尚未 push 或 Vercel 部署，v0.1.9 用户可见 Production capability 未上线/验收。`send-test-push` 保持 ACTIVE v4 reviewed-equivalent；`send-reminders` 为 ACTIVE v2 / `verify_jwt=false`。Vault/secret/Cron 未修改，唯一 once-per-minute scheduler 保持健康。
+Notes: v0.1.9 Slice 3 frontend rollout 已获授权，Vercel deployment Ready 与用户手工 Production 验收尚待确认；v0.1.8 仍是最新已验收的用户可见 Production capability。Production Supabase 已有 v0.1.9 Slice 1 Task foundation 和 Slice 2 status-ownership corrective trigger，均 postflight PASS；Slice 2 本地真实账号验收 PASS。`send-test-push` 保持 ACTIVE v4 reviewed-equivalent；`send-reminders` 为 ACTIVE v2 / `verify_jwt=false`。Vault/secret/Cron 未修改，唯一 once-per-minute scheduler 保持健康。
 
 ## Version Index
 
@@ -49,7 +49,7 @@ Notes: 当前公网前端仍是已验收的 v0.1.8 ordinary 与 recurring Remind
 - v0.1.8 — Mobile Push Reminder（CLOSED / PASS）
 - v0.1.8.1 — Push Infrastructure Foundation（CLOSED / PASS；Desktop + iPhone + Android Studio Emulator verified）
 - v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（Slice A/B/C CLOSED / PASS；P3A C1、P3B manual E2E、P3C automatic scheduler E2E complete）
-- v0.1.9 — Shared Tasks MVP（Slice 1 local PASS / Production backend foundation applied and verified；Slice 2 implemented / manual auth acceptance PASS；Slice 3 not started）
+- v0.1.9 — Shared Tasks MVP（Slice 1 local PASS / Production backend foundation applied and verified；Slice 2 implemented / manual auth acceptance PASS；Slice 3 rollout authorized / in progress）
 
 ## Last verified
 
@@ -57,7 +57,7 @@ Notes: 当前公网前端仍是已验收的 v0.1.8 ordinary 与 recurring Remind
 
 ## Next Action
 
-Review Slice 2 closeout and obtain explicit approval before Slice 3 frontend deployment / Production acceptance.
+Push reviewed Slice 2 frontend, verify Vercel deployment, then perform user-run Production acceptance.
 
 ## Blockers
 
@@ -75,7 +75,7 @@ Review Slice 2 closeout and obtain explicit approval before Slice 3 frontend dep
 - README is the project entrypoint; detailed smoke checklists and production validation records live in `docs/TESTING.md`.
 - Android compatibility smoke test is complete for Xiaomi 14 / Android 16 / Chrome on mobile network.
 - v0.1 is a Web/PWA, not native iOS / Android.
-- v0.1.9 canonical scope is `docs/v0.1.9_SHARED_TASKS_SPEC.md`; Slice 1 backend is Production applied/postflight verified, and Slice 2 local UI passed user-run authenticated acceptance. Slice 3 has not started.
+- v0.1.9 canonical scope is `docs/v0.1.9_SHARED_TASKS_SPEC.md`; Slice 1 backend is Production applied/postflight verified, and Slice 2 local UI passed user-run authenticated acceptance. Slice 3 rollout is authorized and in progress; Production manual acceptance remains pending.
 - Long-term Shared Life architecture is frozen in `docs/SHARED_LIFE_ARCHITECTURE.md`: `首页 / 日历 / 空间 / 我的`, Personal plus multiple Shared Spaces, per-Space optional modules, Calendar Sources, privacy-confirmed future global create, and the revised directional roadmap. These future capabilities are not implemented by this docs freeze.
 - `V019_SLICE2_UI_FROZEN` / `SLICE 2 IMPLEMENTED / MANUAL AUTH ACCEPTANCE PASS`: Calendar header `共享空间 · {space.name}` opens the current Space Hub; its only module entry is Tasks. Open Tasks and separate Completed Tasks use the existing Space-scoped contract. Empty `profiles.display_name` may use contextual `我 / 对方` only in the current two-member v0.1.9 UI; this is not a durable partner identity, and future Multi-space / multi-member UI uses generic member display logic. Space-entry navigation and 320px layout passed user-run acceptance; extreme-width name ellipsis is accepted.
 - Slice 1 uses direct PostgREST CRUD with four member-scoped RLS policies, no Task RPC, one exact-order list index, and a PostgreSQL 17.6-verified composite FK whose column-specific delete action clears only `assigned_to_user_id` when a member leaves.

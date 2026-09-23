@@ -1,5 +1,10 @@
 # Development Log
 
+# 2026-09-23 - v0.1.9 Slice 3 Rollout Authorization
+
+- User explicitly authorized the reviewed Slice 2 frontend rollout on `main`. Slice 3 is `ROLLOUT AUTHORIZED / IN PROGRESS`; Vercel deployment readiness and user-run Production acceptance are pending. v0.1.8 remains the latest accepted user-visible Production capability.
+- Pre-push plan: create this minimal docs-only state update, push `main` normally, verify remote alignment, and stop at `PRODUCTION_MANUAL_ACCEPTANCE_CHECKPOINT`. No schema/RLS, business code, dependency, or authenticated browser change is part of this update.
+
 # 2026-09-23 - v0.1.9 Slice 2 Manual Acceptance and Local Closeout
 
 - User-run real A/B browser acceptance passed after the status-ownership correction and clearer Space entry. The `👥 共享空间 · {space.name} ›` control led Calendar → Space Hub → Tasks and returning preserved the date and Today/Week/Month view. A-created Shared Tasks and A edits to title, assignee, and due date reached B without refresh; Complete, Reopen, and Delete also synchronized. Delete required confirmation, and a non-creator current member could edit and delete.
