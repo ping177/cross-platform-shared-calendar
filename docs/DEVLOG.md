@@ -1,5 +1,11 @@
 # Development Log
 
+# 2026-09-24 - v0.1.11 Slice 2 Aggregate Calendar — Production Closeout
+
+- User-run bounded Production smoke passed on `https://cross-platform-shared-calendar.vercel.app/`: the deployed frontend includes Slice 2; all/one aggregation and create behavior, Event Space context, Today/Week/Month navigation and current-period actions, Hub → Calendar filter, rapid-filter stale-data isolation, and A/B Realtime create/update/delete passed.
+- Slice 2 is `CLOSED / PASS` after local implementation, automated verification, local authenticated acceptance, Production frontend rollout and bounded Production smoke. This frontend-only Slice made no backend rollout.
+- Dedicated iPhone Safari, installed PWA and final 320px device checks remain `DEFERRED / NOT RUN`; second Shared Space coverage is `N/A / NOT RUN`. These are recorded coverage limits, not blockers. Overall v0.1.11 remains `IN PROGRESS`; Slices 3–4 are `NOT STARTED`.
+
 # 2026-09-24 - v0.1.11 Slice 2 Final Local Closeout Review
 
 - User-run authenticated functional checks 1–10 and Today/Week/Month navigation revalidation passed. Calendar Header UI is frozen. Slice 2 device checks 11–13 remain `DEFERRED / NOT RUN`; second Shared Space check 14 is `N/A / NOT RUN`.

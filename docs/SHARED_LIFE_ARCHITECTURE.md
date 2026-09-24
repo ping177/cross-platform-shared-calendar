@@ -1,6 +1,6 @@
 # Shared Life Architecture Freeze
 
-Status: `ARCHITECTURE FROZEN`; v0.1.10: `CLOSED / PASS`; v0.1.11: `IN PROGRESS / SLICE 1 CLOSED / SLICE 2 LOCAL IMPLEMENTATION`. The canonical v0.1.11 contract is [Navigation + Aggregation Experience Specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md).
+Status: `ARCHITECTURE FROZEN`; v0.1.10: `CLOSED / PASS`; v0.1.11: `IN PROGRESS / SLICE 1 CLOSED / SLICE 2 CLOSED / PASS`. The canonical v0.1.11 contract is [Navigation + Aggregation Experience Specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md).
 
 This document freezes the long-term product model and navigation direction plus the reviewed v0.1.10 foundation scope. It does not change the accepted v0.1.9 Production capability. Later roadmap versions remain directional and need their own scope review.
 
