@@ -1,5 +1,65 @@
 # Development Log
 
+# 2026-09-24 - v0.1.11 Slice 2 Final Local Closeout Review
+
+- User-run authenticated functional checks 1–10 and Today/Week/Month navigation revalidation passed. Calendar Header UI is frozen. Slice 2 device checks 11–13 remain `DEFERRED / NOT RUN`; second Shared Space check 14 is `N/A / NOT RUN`.
+- Final code, scope and Git-hygiene review found no blocker or out-of-scope implementation. Focused Node tests 16/16, full Node tests 228/228, `npm run build` and `git diff --check` passed. No backend, dependency, secret, build-artifact, or unrelated file is in the change set.
+- Slice 2 local implementation and acceptance are ready for commit; Production rollout and bounded smoke remain pending. Overall v0.1.11 remains `IN PROGRESS`, and Slice 2 is not `CLOSED / PASS`.
+
+# 2026-09-24 - v0.1.11 Slice 2 Calendar-Month Navigation Acceptance Fix
+
+- User manually revalidated Today previous/next day, repeated navigation and `回到今天`: `PASS`; Week previous/next week: `PASS`.
+- Month arrows now move exactly one calendar month rather than a fixed 30 days. A small local-date helper preserves the day when possible and clamps to the destination month's last day, including leap years and year boundaries. Header UI, Today/Week navigation and current-period actions are unchanged.
+- Focused Node tests, full Node tests, build and diff check passed. Month navigation awaits final user revalidation. Checks 1–10 remain `PASS`; 11 iPhone Safari, 12 installed PWA and 13 final 320px device check are `DEFERRED / NOT RUN`; 14 second Shared Space is `N/A / NOT RUN`. Slice 2 remains `IN PROGRESS / MANUAL_AUTH_ACCEPTANCE`; no commit, push or deployment occurred.
+
+# 2026-09-24 - v0.1.11 Slice 2 Today Navigation Functional Acceptance Fix
+
+- User-run functional checks 1–10: `PASS`, with a Today arrow defect found during acceptance. `CalendarDateNavigation` used the Week `±7` fallback for Today; the arrows now use `±1` day for Today while Week `±7` and Month `±30` remain unchanged. The always-visible current-period action and Header layout are unchanged.
+- Focused tests cover single and repeated Today arrows, Week arrows, existing Month month-end behavior, and all three current-period actions. Full Node suite, build and diff check passed.
+- Manual functional revalidation remains pending. Checks 11 iPhone Safari, 12 installed PWA and 13 final 320px device check are `DEFERRED / NOT RUN`; check 14 second Shared Space is `N/A / NOT RUN`. Slice 2 remains `IN PROGRESS / MANUAL_AUTH_ACCEPTANCE`. No commit, push or deployment occurred.
+
+# 2026-09-24 - v0.1.11 Slice 2 Calendar Header Final Acceptance Fix
+
+- Kept the accepted bounded, equal-width Space/View selector row and moved the current-period action between the unchanged date arrows.
+- `回到今天` / `回到本周` / `回到本月` now always appears for its view and returns to today, including when the selected date is already in the current period. Removed the period-comparison logic used only to hide this button.
+- Focused Node tests, full Node tests, build and diff check passed. Manual functional acceptance remains pending; Calendar Header styling is frozen unless acceptance finds a functional bug. No backend, dependency, commit, push or deployment change was made.
+
+# 2026-09-24 - v0.1.11 Slice 2 Calendar Header Compact-Row Acceptance Fix
+
+- User-run acceptance requested removal of the visible `空间` / `视图` captions and placement of the conditional current-period action beside both selectors.
+- The two accessible selectors now show only their current values and chevrons. A bounded, shrinkable two-column selector group shares the header row with the optional right-aligned current-period action; the unchanged previous/next arrows occupy the row below. At narrow widths, long Space names truncate while each control retains its touch height.
+- Focused Node tests 17/17, full Node tests 228/228, `npm run build` and `git diff --check` passed. Structural tests cover the shared bounded row, accessible selector names, hidden/visible current-period action, and separate date arrows; user-run device revalidation remains pending.
+- Slice 2 remains `IN PROGRESS / MANUAL AUTH ACCEPTANCE`; the changed header awaits user revalidation. No backend, dependency, commit, push or deployment change was made.
+
+# 2026-09-24 - v0.1.11 Slice 2 Calendar Header Period-Action Acceptance Fix
+
+- User-run acceptance requested equal-width, left-aligned Space/View selectors and a current-period return action only when Calendar displays a different day, week or month.
+- The header now uses a bounded two-column grid; both selectors share the same width and long Space names remain truncated. A small date-navigation component reuses the existing selected date, view mode, Monday week start and arrow offsets; it conditionally shows `回到今天` / `回到本周` / `回到本月` and keeps both arrows available.
+- Focused Node tests 17/17, full Node tests 228/228, `npm run build` and `git diff --check` passed. Structural layout coverage checks the bounded equal-width grid and truncated Space name; user-run 320px/device acceptance remains pending.
+- Slice 2 remains `IN PROGRESS / MANUAL AUTH ACCEPTANCE`; this local UI change awaits user revalidation. No backend, dependency, commit, push or deployment change was made.
+
+# 2026-09-24 - v0.1.11 Slice 2 Calendar View and Create-Label Acceptance Fix
+
+- The user confirmed the prior Space-filter Sheet on desktop, then identified a remaining Shared Space type prefix in the new Event Sheet and the always-visible three-button Today/Week/Month switcher.
+- New Event Sheet `保存到` now displays `space.name` directly. Calendar Space and view controls share one compact header row; the new view Sheet selects the existing `today | week | month` state. Both selectors use one open-Sheet state, so they cannot stack; Escape, backdrop, close button and option selection close the active Sheet. Date, filter, selected Space, Event mutation, recurrence and Realtime contracts remain unchanged.
+- Focused Node tests 16/16, full Node tests 227/227, `npm run build` and `git diff --check` passed. The selector row uses a shrinkable Space label and fixed-width view control for narrow screens; real-device confirmation remains user-owned.
+- Slice 2 remains `IN PROGRESS / MANUAL AUTH ACCEPTANCE`; the changed UI awaits user revalidation. No backend, dependency, commit, push or deployment change was made.
+
+# 2026-09-24 - v0.1.11 Slice 2 Calendar Filter Manual-Acceptance Fix
+
+- User-run acceptance confirmed `all` has no Event create action and single Personal/Shared filters retain create. Feedback identified repeated Space-type prefixes and an unscalable horizontal pill row.
+- Replaced that row with one current-filter control and a mobile bottom Sheet. Filter choices show each Space's own name, select only `all | {spaceId}`, close after selection, and leave `selectedSpaceId` and Event create rules unchanged. The Sheet reuses existing safe-area, bounded scrolling and desktop-width patterns.
+- Focused Node tests 15/15, full Node tests 226/226, `npm run build`, and `git diff --check` passed. Static width review covered the 320px, iPhone-width and desktop layout rules; real-device re-acceptance remains with the user.
+- Slice 2 remains `IN PROGRESS / MANUAL AUTH ACCEPTANCE`; the user must recheck the changed UI in real browsers/devices. No backend, dependency, commit, push or deployment change was made.
+
+# 2026-09-24 - v0.1.11 Slice 2 Aggregate Calendar — Local Implementation / Manual Acceptance Pending
+
+- Implemented the independent session-only `all | {spaceId}` Calendar filter. `all` has no Event create action; a single-Space filter uses the existing Event Sheet with an explicit `保存到` target and membership checks at open/submit. Hub → 查看日历 selects its Space without changing `selectedSpaceId`.
+- Added complete per-Space Event reads with 500-row exact-count pages and stable ID order, bounded recurring Event-ID exception batches with complete pagination, source-Space member context, canonical recurrence projection, source labels, and whole-Calendar error/retry instead of partial results. Existing Event/recurrence/Reminder mutation semantics remain; successful mutation closes the Sheet before starting an authoritative refresh.
+- Calendar-only Realtime keeps one existing `space_id=eq.<id>` channel per visible Space, waits for subscriptions before initial read, coalesces bursts, invalidates dirty/stale reads, and tears down on filter, membership, account or tab change. No backend/schema/RPC/RLS/publication or dependency change was made.
+- Focused Node tests and full Node suite passed; `npm run build` and `git diff --check` passed. Read-only environment alignment matched the frontend Supabase URL to the linked project and confirmed the existing Event/exception tables, RLS, four recurrence RPCs, Event publication and FULL replica identity. No credentials, authenticated sessions, Production business data, commit, push or deployment were used.
+- Slice 2 is not `CLOSED / PASS`. Next: user-run authenticated Calendar acceptance at the manual checkpoint; address any findings before separate Git/deployment authorization.
+
 # 2026-09-24 - v0.1.11 Slice 1 Navigation Foundation — Production Acceptance Closeout — CLOSED / PASS
 
 - Automated verification and final code review passed: Node tests 213/213 and `npm run build`.

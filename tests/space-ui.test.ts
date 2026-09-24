@@ -19,7 +19,7 @@ test('static Personal and Shared Space UI follows the frozen form and Hub bounda
     const { TaskSheet } = await vite.ssrLoadModule('/src/components/TaskSheet.tsx');
     const { TasksArea } = await vite.ssrLoadModule('/src/components/TasksArea.tsx');
     const noop = () => undefined;
-    const eventProps = { target: null, userId: 'user-a', members, partnerId: null, onClose: noop, onSaved: noop };
+    const eventProps = { target: null, userId: 'user-a', members, partnerId: null, onClose: noop, onSaved: noop, validateCreateTarget: async () => true };
     const personalEvent = renderToStaticMarkup(React.createElement(EventSheet, { ...eventProps, space: personal }));
     const sharedEvent = renderToStaticMarkup(React.createElement(EventSheet, { ...eventProps, space: shared }));
     assert.doesNotMatch(personalEvent, /归属|对方/);
@@ -37,7 +37,7 @@ test('static Personal and Shared Space UI follows the frozen form and Hub bounda
     assert.doesNotMatch(editTask, /\bTasks?\b/);
 
     const session = { user: { id: 'user-a' } } as Session;
-    const appProps = { session, onSpaceUpdate: noop, screen: 'hub', onScreenChange: noop, onHubBack: noop, selectedDate: new Date('2026-09-24'), onSelectedDateChange: noop, viewMode: 'today', onViewModeChange: noop };
+    const appProps = { session, onSpaceUpdate: noop, screen: 'hub', onScreenChange: noop, onHubBack: noop, selectedDate: new Date('2026-09-24'), onSelectedDateChange: noop, viewMode: 'today', onViewModeChange: noop, spaces: [shared], allSpaces: [personal, shared], calendarFilter: { spaceId: shared.id }, onCalendarFilterChange: noop };
     const personalHub = renderToStaticMarkup(React.createElement(CurrentSpaceApp, { ...appProps, space: personal }));
     const sharedHub = renderToStaticMarkup(React.createElement(CurrentSpaceApp, { ...appProps, space: shared }));
     assert.doesNotMatch(personalHub, /邀请码|SECRET/);

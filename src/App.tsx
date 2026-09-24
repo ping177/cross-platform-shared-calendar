@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { Session } from '@supabase/supabase-js';
 import {
   CalendarDays,
+  Check,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Copy,
@@ -16,6 +19,8 @@ import { MyPage } from './components/MyPage';
 import { RecurrenceControls } from './components/RecurrenceControls';
 import { TasksArea, type TasksScreen } from './components/TasksArea';
 import { calendarVisibleRange } from './lib/calendar-display';
+import { calendarSpaces, readAggregateCalendar, spaceLabel, validCalendarFilter, type CalendarFilter } from './lib/aggregate-calendar';
+import { createCalendarReadLoop } from './lib/calendar-refresh';
 import { draftFromEditTarget, type EventDraft } from './lib/event-edit-draft';
 import {
   buildEventUpdatePayload,
@@ -51,6 +56,7 @@ import {
 import {
   addDays,
   addHours,
+  addMonths,
   formatDay,
   formatMonth,
   formatTime,
@@ -413,10 +419,23 @@ async function listCurrentSpaces(userId: string): Promise<CurrentSpace[]> {
   return spaces;
 }
 
+async function readSpaceMembers(spaceId: string): Promise<SpaceMember[]> {
+  const { data, error } = await supabase.from('space_members')
+    .select('space_id,user_id,role,joined_at,profiles(display_name)')
+    .eq('space_id', spaceId)
+    .order('joined_at', { ascending: true })
+    .order('user_id', { ascending: true });
+  if (error) throw error;
+  return ((data ?? []) as Array<Omit<SpaceMember, 'profiles'> & { profiles?: { display_name: string | null }[] | { display_name: string | null } | null }>).map(
+    (member) => ({ ...member, profiles: Array.isArray(member.profiles) ? member.profiles[0] ?? null : member.profiles ?? null }),
+  );
+}
+
 function CalendarApp({ session }: { session: Session }) {
   const userId = session.user.id;
   const [spaces, setSpaces] = useState<CurrentSpace[]>([]);
   const [selectedSpaceId, setSelectedSpaceId] = useState<string | null>(null);
+  const [calendarFilter, setCalendarFilter] = useState<CalendarFilter>('all');
   const [navigation, setNavigation] = useState(initialNavigation);
   const [spaceListStatus, setSpaceListStatus] = useState<'loading' | 'ready' | 'error'>('ready');
   const [spaceActionBusy, setSpaceActionBusy] = useState(false);
@@ -453,9 +472,11 @@ function CalendarApp({ session }: { session: Session }) {
       if (!requestGuard.current.isCurrent(currentRequest)) return false;
       setSpaces(result.spaces);
       if (selectedSpaceId && selectedSpaceId !== result.selectedSpaceId) {
-        setSelectedDate(new Date());
-        setViewMode('today');
-        setNavigation((current) => selectTab(current, 'spaces'));
+        if (navigation.tab !== 'calendar') {
+          setSelectedDate(new Date());
+          setViewMode('today');
+        }
+        setNavigation((current) => current.tab === 'calendar' ? current : selectTab(current, 'spaces'));
       }
       setSelectedSpaceId(result.selectedSpaceId);
       if (!preferredId) setPersonalInitializationError(result.personalInitializationError ?? null);
@@ -531,9 +552,11 @@ function CalendarApp({ session }: { session: Session }) {
       if (!requestGuard.current.isCurrent(currentRequest)) return;
       setSpaces(listed);
       if (selectedSpaceId !== validatedId) {
-        setSelectedDate(new Date());
-        setViewMode('today');
-        setNavigation((current) => selectTab(current, 'spaces'));
+        if (navigation.tab !== 'calendar') {
+          setSelectedDate(new Date());
+          setViewMode('today');
+        }
+        setNavigation((current) => current.tab === 'calendar' ? current : selectTab(current, 'spaces'));
       }
       setSelectedSpaceId(validatedId);
       writeSelectedSpaceId(window.localStorage, userId, validatedId);
@@ -551,6 +574,7 @@ function CalendarApp({ session }: { session: Session }) {
     requestGuard.current.invalidate();
     setNavigation((current) => selectTab(current, tab));
     if (tab === 'spaces') void refreshSpaces();
+    if (tab === 'calendar') void refreshSpaces();
   }
 
   async function sharedSpaceReady(spaceId: string) {
@@ -564,6 +588,11 @@ function CalendarApp({ session }: { session: Session }) {
   }
 
   const selectedSpace = spaces.find((space) => space.id === selectedSpaceId) ?? null;
+  const validFilter = validCalendarFilter(calendarFilter, spaces);
+  const visibleCalendarSpaces = calendarSpaces(spaces, validFilter);
+  useEffect(() => {
+    if (validFilter !== calendarFilter) setCalendarFilter('all');
+  }, [validFilter, calendarFilter]);
   if (loading && !selectedSpace) return <FullScreenMessage title="正在载入" body="正在确认你的空间。" />;
   if (!selectedSpace) {
     return (
@@ -599,13 +628,23 @@ function CalendarApp({ session }: { session: Session }) {
             />
           : <SpaceListPending status={spaceListStatus} onRetry={() => void refreshSpaces()} />
       )}
-      {(navigation.tab === 'calendar' || (navigation.tab === 'spaces' && navigation.spaceScreen !== 'list')) && (
+      {navigation.tab === 'calendar' && spaceListStatus !== 'ready' && <SpaceListPending status={spaceListStatus} onRetry={() => void refreshSpaces()} />}
+      {((navigation.tab === 'calendar' && spaceListStatus === 'ready') || (navigation.tab === 'spaces' && navigation.spaceScreen !== 'list')) && (
         <CurrentSpaceApp
-          key={`${selectedSpaceId}:${navigation.tab}`}
+          key={navigation.tab === 'calendar' ? `calendar:${validFilter === 'all' ? 'all' : validFilter.spaceId}:${visibleCalendarSpaces.map((item) => item.id).join(',')}` : `spaces:${selectedSpaceId}`}
           session={session}
           space={selectedSpace}
+          spaces={visibleCalendarSpaces}
+          allSpaces={spaces}
+          calendarFilter={validFilter}
+          onCalendarFilterChange={setCalendarFilter}
           screen={navigation.tab === 'calendar' ? 'calendar' : navigation.spaceScreen as TasksScreen}
-          onScreenChange={(screen) => setNavigation((current) => screen === 'calendar' ? openCalendar(current) : openSpaceScreen(current, screen))}
+          onScreenChange={(screen) => {
+            if (screen === 'calendar') {
+              setCalendarFilter({ spaceId: selectedSpace.id });
+              setNavigation((current) => openCalendar(current));
+            } else setNavigation((current) => openSpaceScreen(current, screen));
+          }}
           onHubBack={() => setNavigation((current) => selectTab(current, 'spaces'))}
           selectedDate={selectedDate}
           onSelectedDateChange={setSelectedDate}
@@ -631,9 +670,120 @@ function SpaceListPending({ status, onRetry }: { status: 'loading' | 'error'; on
   );
 }
 
-export function CurrentSpaceApp({ session, space, screen, onScreenChange, onHubBack, selectedDate, onSelectedDateChange, viewMode, onViewModeChange, onSpaceUpdate }: {
+function calendarPickerSheet(title: string, titleId: string, onClose: () => void, choices: React.ReactNode) {
+  const sheet = (
+    <div className="fixed inset-0 z-30 flex items-end bg-ink/35 md:items-center md:px-4" role="dialog" aria-modal="true" aria-labelledby={titleId} onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+      <section className="w-full min-w-0 max-h-[80dvh] overflow-y-auto overscroll-contain rounded-t-2xl bg-white p-5 shadow-soft safe-bottom md:mx-auto md:max-w-md md:rounded-lg">
+        <div className="flex items-center justify-between gap-3">
+          <h2 id={titleId} className="text-lg font-bold">{title}</h2>
+          <button type="button" className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-mist" aria-label={`关闭${title}`} onClick={onClose}><X size={20} /></button>
+        </div>
+        <div className="mt-4 space-y-1">{choices}</div>
+      </section>
+    </div>
+  );
+  return typeof document === 'undefined' ? sheet : createPortal(sheet, document.body);
+}
+
+export function CalendarFilterPicker({ spaces, filter, open, onOpen, onClose, onSelect }: {
+  spaces: CurrentSpace[];
+  filter: CalendarFilter;
+  open: boolean;
+  onOpen: () => void;
+  onClose: () => void;
+  onSelect: (filter: CalendarFilter) => void;
+}) {
+  const selectedName = filter === 'all' ? '全部空间' : spaces.find((item) => item.id === filter.spaceId)?.name ?? '全部空间';
+  function choose(next: CalendarFilter) {
+    onSelect(next);
+    onClose();
+  }
+
+  const sheet = open && calendarPickerSheet('筛选日历', 'calendar-filter-title', onClose, <>
+    <button type="button" className="flex min-h-12 w-full min-w-0 items-center gap-3 rounded-lg px-3 text-left font-semibold hover:bg-mist" aria-label="筛选：全部空间" aria-pressed={filter === 'all'} onClick={() => choose('all')}>
+      <Check size={18} className={`shrink-0 ${filter === 'all' ? 'text-teal' : 'invisible'}`} aria-hidden="true" />
+      <span className="min-w-0 truncate">全部空间</span>
+    </button>
+    {spaces.map((item) => (
+      <button key={item.id} type="button" className="flex min-h-12 w-full min-w-0 items-center gap-3 rounded-lg px-3 text-left font-semibold hover:bg-mist" aria-label={`筛选：${item.name}`} aria-pressed={filter !== 'all' && filter.spaceId === item.id} onClick={() => choose({ spaceId: item.id })}>
+        <Check size={18} className={`shrink-0 ${filter !== 'all' && filter.spaceId === item.id ? 'text-teal' : 'invisible'}`} aria-hidden="true" />
+        <span className="min-w-0 break-all">{item.name}</span>
+      </button>
+    ))}
+  </>);
+
+  return (
+    <>
+      <button type="button" className="flex h-11 w-full min-w-0 items-center gap-2 rounded-lg bg-white px-3 text-sm font-semibold text-ink shadow-sm" aria-label="筛选日历" aria-haspopup="dialog" aria-expanded={open} onClick={onOpen}>
+        <span className="min-w-0 flex-1 truncate text-left">{selectedName}</span>
+        <ChevronDown size={16} className="shrink-0" aria-hidden="true" />
+      </button>
+      {sheet}
+    </>
+  );
+}
+
+export function CalendarViewPicker({ mode, open, onOpen, onClose, onSelect }: {
+  mode: ViewMode;
+  open: boolean;
+  onOpen: () => void;
+  onClose: () => void;
+  onSelect: (mode: ViewMode) => void;
+}) {
+  function choose(next: ViewMode) {
+    onSelect(next);
+    onClose();
+  }
+  const sheet = open && calendarPickerSheet('选择视图', 'calendar-view-title', onClose,
+    (Object.keys(viewLabels) as ViewMode[]).map((option) => (
+      <button key={option} type="button" className="flex min-h-12 w-full min-w-0 items-center gap-3 rounded-lg px-3 text-left font-semibold hover:bg-mist" aria-label={`视图：${viewLabels[option]}`} aria-pressed={mode === option} onClick={() => choose(option)}>
+        <Check size={18} className={`shrink-0 ${mode === option ? 'text-teal' : 'invisible'}`} aria-hidden="true" />
+        <span>{viewLabels[option]}</span>
+      </button>
+    )),
+  );
+  return (
+    <>
+      <button type="button" className="flex h-11 w-full min-w-0 items-center gap-2 rounded-lg bg-white px-3 text-sm font-semibold text-ink shadow-sm" aria-label="选择日历视图" aria-haspopup="dialog" aria-expanded={open} onClick={onOpen}>
+        <span className="min-w-0 flex-1 truncate text-left">{viewLabels[mode]}</span>
+        <ChevronDown size={16} className="shrink-0" aria-hidden="true" />
+      </button>
+      {sheet}
+    </>
+  );
+}
+
+export function CalendarDateNavigation({ selectedDate, viewMode, onSelectedDateChange, today = new Date() }: {
+  selectedDate: Date;
+  viewMode: ViewMode;
+  onSelectedDateChange: (date: Date) => void;
+  today?: Date;
+}) {
+  const currentPeriodLabel = viewMode === 'today' ? '回到今天' : viewMode === 'week' ? '回到本周' : '回到本月';
+  const stepDays = viewMode === 'today' ? 1 : 7;
+  const navigate = (direction: -1 | 1) => onSelectedDateChange(viewMode === 'month' ? addMonths(selectedDate, direction) : addDays(selectedDate, direction * stepDays));
+  return (
+    <div className="mt-3 flex items-center justify-between">
+      <button className="grid h-10 w-10 place-items-center rounded-lg bg-white" type="button" onClick={() => navigate(-1)} aria-label="上一段">
+        <ChevronLeft size={18} />
+      </button>
+      <button className="h-10 rounded-lg bg-white px-4 text-sm font-semibold" type="button" onClick={() => onSelectedDateChange(today)} aria-label={currentPeriodLabel}>
+        {currentPeriodLabel}
+      </button>
+      <button className="grid h-10 w-10 place-items-center rounded-lg bg-white" type="button" onClick={() => navigate(1)} aria-label="下一段">
+        <ChevronRight size={18} />
+      </button>
+    </div>
+  );
+}
+
+export function CurrentSpaceApp({ session, space, spaces, allSpaces, calendarFilter, onCalendarFilterChange, screen, onScreenChange, onHubBack, selectedDate, onSelectedDateChange, viewMode, onViewModeChange, onSpaceUpdate }: {
   session: Session;
   space: CurrentSpace;
+  spaces: CurrentSpace[];
+  allSpaces: CurrentSpace[];
+  calendarFilter: CalendarFilter;
+  onCalendarFilterChange: (filter: CalendarFilter) => void;
   screen: TasksScreen;
   onScreenChange: (screen: TasksScreen) => void;
   onHubBack: () => void;
@@ -647,9 +797,15 @@ export function CurrentSpaceApp({ session, space, screen, onScreenChange, onHubB
   const [members, setMembers] = useState<SpaceMember[]>([]);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [occurrenceExceptions, setOccurrenceExceptions] = useState<EventOccurrenceException[]>([]);
+  const [membersBySpaceId, setMembersBySpaceId] = useState<Record<string, SpaceMember[]>>({});
+  const [calendarStatus, setCalendarStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const [calendarError, setCalendarError] = useState('');
+  const [syncError, setSyncError] = useState('');
+  const [calendarRetry, setCalendarRetry] = useState(0);
   const [error, setError] = useState('');
   const [editingTarget, setEditingTarget] = useState<EventEditTarget | null>(null);
   const [showNewEvent, setShowNewEvent] = useState(false);
+  const [openCalendarSelector, setOpenCalendarSelector] = useState<'space' | 'view' | null>(null);
   const [showMembers, setShowMembers] = useState(false);
   const [tasksModuleState, setTasksModuleState] = useState<TasksModuleState>('loading');
   const [tasksModuleError, setTasksModuleError] = useState('');
@@ -658,8 +814,26 @@ export function CurrentSpaceApp({ session, space, screen, onScreenChange, onHubB
   const eventRequestGuard = useRef(createRequestGuard());
   const moduleRequestGuard = useRef(createRequestGuard());
   const moduleToggleGuard = useRef(createTasksModuleToggleGuard());
+  const createGuard = useRef(createRequestGuard());
+  const reloadCalendar = useRef<() => void>(() => undefined);
 
-  const partner = members.find((member) => member.user_id !== userId) ?? null;
+  const sheetSpace = editingTarget
+    ? allSpaces.find((item) => item.id === editingTarget.event.space_id) ?? null
+    : calendarFilter === 'all' ? null : allSpaces.find((item) => item.id === calendarFilter.spaceId) ?? null;
+  const sheetMembers = sheetSpace ? membersBySpaceId[sheetSpace.id] ?? [] : [];
+  const sheetPartner = sheetMembers.find((member) => member.user_id !== userId) ?? null;
+  const visibleExpansion = useMemo(
+    () => expandRecurringEvents(events, calendarVisibleRange(viewMode, selectedDate), occurrenceExceptions),
+    [events, occurrenceExceptions, selectedDate, viewMode],
+  );
+  const projectionError = calendarStatus === 'success' && visibleExpansion.errors.length > 0;
+
+  useEffect(() => {
+    if (!openCalendarSelector) return;
+    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') setOpenCalendarSelector(null); };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [openCalendarSelector]);
 
   async function readTasksModuleState(spaceId: string) {
     const result = await supabase.from('space_modules')
@@ -717,94 +891,133 @@ export function CurrentSpaceApp({ session, space, screen, onScreenChange, onHubB
 
   async function loadMembers(spaceId: string) {
     const currentRequest = memberRequestGuard.current.begin();
-    const { data, error: memberError } = await supabase
-      .from('space_members')
-      .select('space_id,user_id,role,joined_at,profiles(display_name)')
-      .eq('space_id', spaceId)
-      .order('joined_at', { ascending: true })
-      .order('user_id', { ascending: true });
-
-    if (!memberRequestGuard.current.isCurrent(currentRequest)) return;
-    if (memberError) {
-      setError(memberError.message);
-      return;
+    try {
+      const loaded = await readSpaceMembers(spaceId);
+      if (memberRequestGuard.current.isCurrent(currentRequest)) setMembers(loaded);
+    } catch (memberError) {
+      if (memberRequestGuard.current.isCurrent(currentRequest)) setError(getErrorMessage(memberError));
     }
-
-    setMembers(
-      ((data ?? []) as Array<Omit<SpaceMember, 'profiles'> & { profiles?: { display_name: string | null }[] | { display_name: string | null } | null }>).map(
-        (member) => ({
-          ...member,
-          profiles: Array.isArray(member.profiles) ? member.profiles[0] ?? null : member.profiles ?? null,
-        }),
-      ),
-    );
-  }
-
-  async function loadEvents(spaceId: string) {
-    const currentRequest = eventRequestGuard.current.begin();
-    const { data, error: eventError } = await supabase
-      .from('events')
-      .select('*')
-      .eq('space_id', spaceId)
-      .order('starts_at', { ascending: true });
-
-    if (!eventRequestGuard.current.isCurrent(currentRequest)) return;
-    if (eventError) {
-      setError(eventError.message);
-      throw eventError;
-    }
-
-    const loadedEvents = (data ?? []) as CalendarEvent[];
-    const eventIds = loadedEvents.map((event) => event.id);
-
-    if (eventIds.length === 0) {
-      setEvents(loadedEvents);
-      setOccurrenceExceptions([]);
-      return;
-    }
-
-    const { data: exceptionData, error: exceptionError } = await supabase
-      .from('event_occurrence_exceptions')
-      .select('*')
-      .in('event_id', eventIds);
-
-    if (!eventRequestGuard.current.isCurrent(currentRequest)) return;
-    if (exceptionError) {
-      setError(exceptionError.message);
-      throw exceptionError;
-    }
-
-    setEvents(loadedEvents);
-    setOccurrenceExceptions((exceptionData ?? []) as EventOccurrenceException[]);
   }
 
   useEffect(() => {
-    void loadMembers(space.id);
-    void loadEvents(space.id).catch(() => undefined);
-    void loadTasksModuleState(space.id);
-
-    const channel = supabase
-      .channel(`events:${space.id}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'events', filter: `space_id=eq.${space.id}` },
-        () => void loadEvents(space.id).catch(() => undefined),
-      )
-      .subscribe();
-
+    if (screen !== 'calendar') {
+      void loadMembers(space.id);
+      void loadTasksModuleState(space.id);
+    }
     return () => {
       memberRequestGuard.current.invalidate();
-      eventRequestGuard.current.invalidate();
       moduleRequestGuard.current.invalidate();
-      void supabase.removeChannel(channel);
     };
-  }, [space.id]);
+  }, [space.id, screen]);
+
+  const visibleSpaceIds = spaces.map((item) => item.id).join(',');
+  useEffect(() => {
+    if (screen !== 'calendar') return;
+    let active = true;
+    let subscribed = false;
+    const connected = new Set<string>();
+    const channels: ReturnType<typeof supabase.channel>[] = [];
+
+    const readLoop = createCalendarReadLoop(async (isCurrent) => {
+      const request = eventRequestGuard.current.begin();
+      setCalendarStatus('loading');
+      setCalendarError('');
+      const loaded = await readAggregateCalendar(spaces, {
+          eventPage: async (spaceId, start, end) => {
+            const result = await supabase.from('events').select('*', { count: 'exact' })
+              .eq('space_id', spaceId).order('id').range(start, end);
+            return { data: result.data as CalendarEvent[] | null, count: result.count, error: result.error };
+          },
+          exceptionPage: async (eventIds, start, end) => {
+            const result = await supabase.from('event_occurrence_exceptions').select('*', { count: 'exact' })
+              .in('event_id', eventIds).order('event_id').order('occurrence_date').order('id').range(start, end);
+            return { data: result.data as EventOccurrenceException[] | null, count: result.count, error: result.error };
+          },
+          members: readSpaceMembers,
+      });
+      if (!isCurrent() || !eventRequestGuard.current.isCurrent(request)) return;
+      setEvents(loaded.events);
+      setOccurrenceExceptions(loaded.exceptions);
+      setMembersBySpaceId(loaded.membersBySpaceId);
+      setCalendarStatus('success');
+    }, (readError) => {
+      setCalendarError(getErrorMessage(readError));
+      setCalendarStatus('error');
+    });
+
+    function changed() {
+      if (!active) return;
+      eventRequestGuard.current.invalidate();
+      setCalendarStatus('loading');
+      readLoop.change();
+    }
+
+    reloadCalendar.current = changed;
+    setCalendarStatus('loading');
+    setSyncError('');
+    for (const visibleSpace of spaces) {
+      const channel = supabase.channel(`calendar-events:${visibleSpace.id}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'events', filter: `space_id=eq.${visibleSpace.id}` }, changed)
+        .subscribe((status) => {
+          if (!active) return;
+          if (status === 'SUBSCRIBED') {
+            const wasConnected = connected.has(visibleSpace.id);
+            connected.add(visibleSpace.id);
+            if (connected.size === spaces.length && !subscribed) {
+              subscribed = true;
+              readLoop.start();
+            } else if (!wasConnected && subscribed) changed();
+            if (connected.size === spaces.length) setSyncError('');
+          } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+            connected.delete(visibleSpace.id);
+            subscribed = false;
+            readLoop.pause();
+            eventRequestGuard.current.invalidate();
+            setSyncError('日程实时同步暂不可用，请重试。');
+            setCalendarStatus('error');
+          }
+        });
+      channels.push(channel);
+    }
+    if (spaces.length === 0) {
+      setCalendarError('未找到可用空间，请重试。');
+      setCalendarStatus('error');
+    }
+    return () => {
+      active = false;
+      reloadCalendar.current = () => undefined;
+      readLoop.stop();
+      eventRequestGuard.current.invalidate();
+      createGuard.current.invalidate();
+      for (const channel of channels) void supabase.removeChannel(channel);
+    };
+  }, [screen, visibleSpaceIds, calendarRetry]);
 
   useEffect(() => {
     if (tasksModuleState !== 'enabled' && (screen === 'tasks' || screen === 'completed')) onScreenChange('hub');
   }, [tasksModuleState, screen, onScreenChange]);
 
   const visibleTasksModuleState: TasksModuleState = tasksModuleBusy ? 'loading' : tasksModuleState;
+
+  async function verifyCreateTarget(spaceId: string) {
+    const listed = await listCurrentSpaces(userId);
+    return listed.some((item) => item.id === spaceId);
+  }
+
+  async function openNewEvent() {
+    if (calendarFilter === 'all' || calendarStatus !== 'success' || projectionError) return;
+    const targetId = calendarFilter.spaceId;
+    const request = createGuard.current.begin();
+    try {
+      if (!await verifyCreateTarget(targetId)) throw new Error('此空间已不在你的成员列表中，请重新选择。');
+      if (createGuard.current.isCurrent(request)) setShowNewEvent(true);
+    } catch (createError) {
+      if (createGuard.current.isCurrent(request)) {
+        setCalendarError(getErrorMessage(createError));
+        setCalendarStatus('error');
+      }
+    }
+  }
 
   return (
     <main className="min-h-screen bg-mist text-ink">
@@ -814,51 +1027,38 @@ export function CurrentSpaceApp({ session, space, screen, onScreenChange, onHubB
         <header className="sticky top-0 z-10 border-b border-ink/10 bg-mist/95 px-4 pb-3 pt-4 backdrop-blur">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <div className="inline-flex min-h-11 max-w-full items-center gap-1 rounded-full bg-white px-2 text-left text-xs font-semibold text-teal shadow-sm sm:text-sm" aria-label={`当前空间：${space.kind === 'personal' ? '我的空间' : space.name}`}>
-                <Users size={15} className="shrink-0" aria-hidden="true" />
-                <span className="min-w-0 truncate">{space.kind === 'personal' ? '👤 我的空间' : `共享空间 · ${space.name}`}</span>
-              </div>
+              <p className="text-xs font-semibold text-teal">日历</p>
               <h1 className="text-2xl font-bold">{formatMonth(selectedDate)}</h1>
             </div>
             <div className="flex items-center gap-2">
-              <button className="grid h-10 w-10 place-items-center rounded-lg bg-teal text-white shadow-sm" type="button" onClick={() => setShowNewEvent(true)} aria-label="新建日程">
+              {calendarFilter !== 'all' && !projectionError && <button className="grid h-10 w-10 place-items-center rounded-lg bg-teal text-white shadow-sm disabled:opacity-50" type="button" disabled={calendarStatus !== 'success'} onClick={() => void openNewEvent()} aria-label="新建日程">
                 <Plus size={20} />
-              </button>
+              </button>}
             </div>
           </div>
 
-          <div className="mt-4 grid grid-cols-3 gap-2 rounded-lg bg-white p-1 shadow-sm">
-            {(Object.keys(viewLabels) as ViewMode[]).map((mode) => (
-              <button
-                key={mode}
-                type="button"
-                className={`h-10 rounded-md text-sm font-semibold ${viewMode === mode ? 'bg-teal text-white' : 'text-ink/70'}`}
-                onClick={() => onViewModeChange(mode)}
-              >
-                {viewLabels[mode]}
-              </button>
-            ))}
+          <div className="mt-3 grid w-full max-w-sm grid-cols-2 gap-2">
+            <div className="min-w-0">
+              <CalendarFilterPicker spaces={allSpaces} filter={calendarFilter} open={openCalendarSelector === 'space'} onOpen={() => setOpenCalendarSelector('space')} onClose={() => setOpenCalendarSelector(null)} onSelect={onCalendarFilterChange} />
+            </div>
+            <div className="min-w-0">
+              <CalendarViewPicker mode={viewMode} open={openCalendarSelector === 'view'} onOpen={() => setOpenCalendarSelector('view')} onClose={() => setOpenCalendarSelector(null)} onSelect={onViewModeChange} />
+            </div>
           </div>
 
-          <div className="mt-3 flex items-center justify-between">
-            <button className="grid h-10 w-10 place-items-center rounded-lg bg-white" type="button" onClick={() => onSelectedDateChange(addDays(selectedDate, viewMode === 'month' ? -30 : -7))} aria-label="上一段">
-              <ChevronLeft size={18} />
-            </button>
-            <button className="h-10 rounded-lg bg-white px-4 text-sm font-semibold" type="button" onClick={() => onSelectedDateChange(new Date())}>
-              回到今天
-            </button>
-            <button className="grid h-10 w-10 place-items-center rounded-lg bg-white" type="button" onClick={() => onSelectedDateChange(addDays(selectedDate, viewMode === 'month' ? 30 : 7))} aria-label="下一段">
-              <ChevronRight size={18} />
-            </button>
-          </div>
+          <CalendarDateNavigation selectedDate={selectedDate} viewMode={viewMode} onSelectedDateChange={onSelectedDateChange} />
         </header>
 
         <section className="flex-1 px-4 py-4 safe-bottom">
-          {error && <Notice tone="error" message={error} />}
-          <CalendarViews
-            events={events}
-            occurrenceExceptions={occurrenceExceptions}
-            members={members}
+          {syncError && <Notice tone="error" message={syncError} />}
+          {calendarStatus === 'loading' && <p role="status">正在读取日程…</p>}
+          {calendarStatus === 'error' && <div role="alert"><Notice tone="error" message={calendarError || syncError || '日历读取失败，请重试。'} /><button type="button" className="min-h-11 rounded-lg bg-teal px-4 font-semibold text-white" onClick={() => setCalendarRetry((value) => value + 1)}>重试</button></div>}
+          {projectionError && <div role="alert"><Notice tone="error" message="重复日程无法完整显示，请重试。" /><button type="button" className="min-h-11 rounded-lg bg-teal px-4 font-semibold text-white" onClick={() => setCalendarRetry((value) => value + 1)}>重试</button></div>}
+          {calendarStatus === 'success' && !projectionError && <CalendarViews
+            expansion={visibleExpansion}
+            membersBySpaceId={membersBySpaceId}
+            spacesById={Object.fromEntries(allSpaces.map((item) => [item.id, item]))}
+            showSpaceLabel={calendarFilter === 'all'}
             selectedDate={selectedDate}
             viewMode={viewMode}
             userId={userId}
@@ -868,7 +1068,7 @@ export function CurrentSpaceApp({ session, space, screen, onScreenChange, onHubB
                 : eventEditTargetForOccurrence(occurrence),
             )}
             onSelectDate={onSelectedDateChange}
-          />
+          />}
         </section>
           </>
         )}
@@ -891,18 +1091,20 @@ export function CurrentSpaceApp({ session, space, screen, onScreenChange, onHubB
         />
       </div>
 
-      {(showNewEvent || editingTarget) && (
+      {(showNewEvent || editingTarget) && sheetSpace && sheetMembers.length > 0 && (
         <EventSheet
           target={editingTarget}
-          space={space}
+          space={sheetSpace}
           userId={userId}
-          members={members}
-          partnerId={partner?.user_id ?? null}
+          members={sheetMembers}
+          partnerId={sheetPartner?.user_id ?? null}
           onClose={() => {
             setShowNewEvent(false);
             setEditingTarget(null);
           }}
-          onSaved={() => loadEvents(space.id)}
+          onSaved={() => reloadCalendar.current()}
+          validateCreateTarget={() => verifyCreateTarget(sheetSpace.id)}
+          showSourceSpace={calendarFilter === 'all'}
         />
       )}
 
@@ -1092,37 +1294,32 @@ function InvitePanel({ space, onSpaceChange }: { space: Space; onSpaceChange: (s
   );
 }
 
-function CalendarViews({
-  events,
-  occurrenceExceptions,
-  members,
+export function CalendarViews({
+  expansion,
+  membersBySpaceId,
+  spacesById,
+  showSpaceLabel,
   selectedDate,
   viewMode,
   userId,
   onEdit,
   onSelectDate,
 }: {
-  events: CalendarEvent[];
-  occurrenceExceptions: EventOccurrenceException[];
-  members: SpaceMember[];
+  expansion: ReturnType<typeof expandRecurringEvents>;
+  membersBySpaceId: Record<string, SpaceMember[]>;
+  spacesById: Record<string, CurrentSpace>;
+  showSpaceLabel: boolean;
   selectedDate: Date;
   viewMode: ViewMode;
   userId: string;
   onEdit: (occurrence: CalendarOccurrence) => void;
   onSelectDate: (date: Date) => void;
 }) {
-  const expansion = useMemo(
-    () => expandRecurringEvents(events, calendarVisibleRange(viewMode, selectedDate), occurrenceExceptions),
-    [events, occurrenceExceptions, selectedDate, viewMode],
-  );
-
-  const expansionError = expansion.errors.length > 0 ? '部分重复日程无法在当前范围内显示。' : null;
-
+  if (expansion.errors.length > 0) return <Notice tone="error" message="重复日程无法完整显示，请重试。" />;
   if (viewMode === 'month') {
     return (
       <>
-        {expansionError && <p className="rounded-lg border border-coral/30 bg-coral/10 px-4 py-3 text-sm text-coral">{expansionError}</p>}
-        <MonthView occurrences={expansion.occurrences} members={members} selectedDate={selectedDate} userId={userId} onEdit={onEdit} onSelectDate={onSelectDate} />
+        <MonthView occurrences={expansion.occurrences} membersBySpaceId={membersBySpaceId} spacesById={spacesById} showSpaceLabel={showSpaceLabel} selectedDate={selectedDate} userId={userId} onEdit={onEdit} onSelectDate={onSelectDate} />
       </>
     );
   }
@@ -1131,11 +1328,10 @@ function CalendarViews({
 
   return (
     <div className="space-y-4">
-      {expansionError && <p className="rounded-lg border border-coral/30 bg-coral/10 px-4 py-3 text-sm text-coral">{expansionError}</p>}
       {days.map((day) => {
         const dayOccurrences = sortOccurrences(expansion.occurrences.filter((occurrence) => occurrenceFallsOnDay(occurrence, day)));
         return (
-          <DaySection key={day.toISOString()} day={day} occurrences={dayOccurrences} members={members} userId={userId} onEdit={onEdit} />
+          <DaySection key={day.toISOString()} day={day} occurrences={dayOccurrences} membersBySpaceId={membersBySpaceId} spacesById={spacesById} showSpaceLabel={showSpaceLabel} userId={userId} onEdit={onEdit} />
         );
       })}
     </div>
@@ -1144,14 +1340,18 @@ function CalendarViews({
 
 function MonthView({
   occurrences,
-  members,
+  membersBySpaceId,
+  spacesById,
+  showSpaceLabel,
   selectedDate,
   userId,
   onEdit,
   onSelectDate,
 }: {
   occurrences: CalendarOccurrence[];
-  members: SpaceMember[];
+  membersBySpaceId: Record<string, SpaceMember[]>;
+  spacesById: Record<string, CurrentSpace>;
+  showSpaceLabel: boolean;
   selectedDate: Date;
   userId: string;
   onEdit: (occurrence: CalendarOccurrence) => void;
@@ -1187,12 +1387,12 @@ function MonthView({
           })}
         </div>
       </section>
-      <DaySection day={selectedDate} occurrences={selectedOccurrences} members={members} userId={userId} onEdit={onEdit} />
+      <DaySection day={selectedDate} occurrences={selectedOccurrences} membersBySpaceId={membersBySpaceId} spacesById={spacesById} showSpaceLabel={showSpaceLabel} userId={userId} onEdit={onEdit} />
     </div>
   );
 }
 
-function DaySection({ day, occurrences, members, userId, onEdit }: { day: Date; occurrences: CalendarOccurrence[]; members: SpaceMember[]; userId: string; onEdit: (occurrence: CalendarOccurrence) => void }) {
+function DaySection({ day, occurrences, membersBySpaceId, spacesById, showSpaceLabel, userId, onEdit }: { day: Date; occurrences: CalendarOccurrence[]; membersBySpaceId: Record<string, SpaceMember[]>; spacesById: Record<string, CurrentSpace>; showSpaceLabel: boolean; userId: string; onEdit: (occurrence: CalendarOccurrence) => void }) {
   return (
     <section>
       <h2 className="mb-2 text-sm font-bold text-ink/60">{formatDay(day)}</h2>
@@ -1201,7 +1401,7 @@ function DaySection({ day, occurrences, members, userId, onEdit }: { day: Date; 
       ) : (
         <div className="space-y-2">
           {occurrences.map((occurrence) => (
-            <EventCard key={occurrence.occurrence_id} occurrence={occurrence} members={members} userId={userId} onEdit={onEdit} />
+            <EventCard key={occurrence.occurrence_id} occurrence={occurrence} members={membersBySpaceId[occurrence.source_event.space_id] ?? []} sourceSpace={spacesById[occurrence.source_event.space_id]} showSpaceLabel={showSpaceLabel} userId={userId} onEdit={onEdit} />
           ))}
         </div>
       )}
@@ -1209,7 +1409,7 @@ function DaySection({ day, occurrences, members, userId, onEdit }: { day: Date; 
   );
 }
 
-function EventCard({ occurrence, members, userId, onEdit }: { occurrence: CalendarOccurrence; members: SpaceMember[]; userId: string; onEdit: (occurrence: CalendarOccurrence) => void }) {
+function EventCard({ occurrence, members, sourceSpace, showSpaceLabel, userId, onEdit }: { occurrence: CalendarOccurrence; members: SpaceMember[]; sourceSpace: CurrentSpace; showSpaceLabel: boolean; userId: string; onEdit: (occurrence: CalendarOccurrence) => void }) {
   const event = occurrence.source_event;
   const audience = audienceFromEvent(event, userId);
 
@@ -1226,6 +1426,7 @@ function EventCard({ occurrence, members, userId, onEdit }: { occurrence: Calend
         {formatTime(occurrence.occurrence_starts_at, occurrence.all_day)}
         {occurrence.occurrence_ends_at && !occurrence.all_day ? ` - ${formatTime(occurrence.occurrence_ends_at, false)}` : ''}
       </p>
+      {showSpaceLabel && <p className="mt-2 text-xs font-semibold text-teal">{spaceLabel(sourceSpace)}</p>}
     </button>
   );
 }
@@ -1238,6 +1439,8 @@ export function EventSheet({
   partnerId,
   onClose,
   onSaved,
+  validateCreateTarget,
+  showSourceSpace = false,
 }: {
   target: EventEditTarget | null;
   space: Space;
@@ -1245,7 +1448,9 @@ export function EventSheet({
   members: SpaceMember[];
   partnerId: string | null;
   onClose: () => void;
-  onSaved: () => Promise<void> | void;
+  onSaved: () => void;
+  validateCreateTarget: () => Promise<boolean>;
+  showSourceSpace?: boolean;
 }) {
   const event = target?.event ?? null;
   const occurrenceId = target?.kind === 'occurrence' ? target.occurrence.occurrence_id : null;
@@ -1281,14 +1486,10 @@ export function EventSheet({
     setPendingOccurrenceAction(null);
   }, [event?.id, occurrenceId, userId]);
 
-  async function completeSuccessfulMutation() {
-    try {
-      await onSaved();
-      onClose();
-    } catch (refreshError) {
-      setBusy(false);
-      setError(getErrorMessage(refreshError));
-    }
+  function completeSuccessfulMutation() {
+    setBusy(false);
+    onClose();
+    onSaved();
   }
 
   function updateStart(value: string) {
@@ -1348,7 +1549,7 @@ export function EventSheet({
         return;
       }
 
-      await completeSuccessfulMutation();
+      completeSuccessfulMutation();
     } catch (mutationError) {
       setBusy(false);
       setPendingOccurrenceAction(null);
@@ -1412,11 +1613,18 @@ export function EventSheet({
         fromDateInputValue,
       );
       if (Object.keys(updatePayload).length === 0) {
-        await completeSuccessfulMutation();
+        completeSuccessfulMutation();
         return;
       }
       result = await supabase.from('events').update(updatePayload).eq('id', event.id);
     } else {
+      try {
+        if (!await validateCreateTarget()) throw new Error('此空间已不在你的成员列表中，请重新选择。');
+      } catch (targetError) {
+        setBusy(false);
+        setError(getErrorMessage(targetError));
+        return;
+      }
       if (space.kind === 'shared' && draft.audience === 'partner' && !partnerId) {
         setBusy(false);
         setError('另一位成员加入空间后，才能创建其个人日程。');
@@ -1436,7 +1644,7 @@ export function EventSheet({
       return;
     }
 
-    await completeSuccessfulMutation();
+    completeSuccessfulMutation();
   }
 
   async function deleteEvent() {
@@ -1459,7 +1667,7 @@ export function EventSheet({
       return;
     }
 
-    await completeSuccessfulMutation();
+    completeSuccessfulMutation();
   }
 
   return (
@@ -1473,6 +1681,8 @@ export function EventSheet({
         </div>
 
         {error && <div className="mt-4"><Notice tone="error" message={error} /></div>}
+        {event && showSourceSpace && <p className="mt-3 text-sm font-semibold text-teal">所属空间：{spaceLabel(space)}</p>}
+        {!event && <p className="mt-3 text-sm font-semibold text-teal">保存到：{space.name}</p>}
 
         {event && !canManage ? (
           <div className="mt-5 space-y-4">

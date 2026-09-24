@@ -56,6 +56,14 @@ export function addDays(date: Date, days: number) {
   return next;
 }
 
+export function addMonths(date: Date, months: number) {
+  const next = new Date(date);
+  next.setDate(1);
+  next.setMonth(next.getMonth() + months);
+  next.setDate(Math.min(date.getDate(), endOfMonth(next).getDate()));
+  return next;
+}
+
 export function addHours(date: Date, hours: number) {
   const next = new Date(date);
   next.setHours(next.getHours() + hours);

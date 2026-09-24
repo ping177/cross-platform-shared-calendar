@@ -133,6 +133,7 @@ The canonical long-term model and roadmap are in [Shared Life Architecture Freez
 - `selectedSpaceId` remains the concrete current Space, while Calendar uses an independent all/one-Space filter derived against validated memberships. Home aggregates all visible Spaces. Every aggregate item returns to its canonical Event/Task and corresponding Space context; no duplicate persistence, aggregate editor or backend service is introduced.
 - Slice 1 exposes no temporary selected-Space Home. Aggregate Realtime exists only for the active view and tears down on exit/filter/membership/account changes. Personal plus the existing Shared Space suffices for acceptance; no extra Production Shared Space is created just for testing.
 - Global create offers Event/Task only and requires a visible, membership-valid target plus a second target confirmation. There is no silent Shared fallback; Task targets require an authoritative `tasks enabled=true` state, and zero valid targets means creation is unavailable before opening the Sheet. The authenticated integration readiness gate remains mandatory before real-account acceptance.
+- Slice 2 Calendar `all` deliberately offers no Event create action. A single-Space filter creates only in that explicitly filtered Space, shows `保存到：<Space>`, and checks membership at Sheet open and submit. Hub → 查看日历 sets the single-Space filter while leaving `selectedSpaceId` unchanged. This does not pull Slice 4 global create or its target selector into Slice 2.
 
 ## PWA
 

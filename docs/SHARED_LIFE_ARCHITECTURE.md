@@ -1,6 +1,6 @@
 # Shared Life Architecture Freeze
 
-Status: `ARCHITECTURE FROZEN`; v0.1.10: `CLOSED / PASS`; v0.1.11: `DESIGN FROZEN / IMPLEMENTATION NOT STARTED`. The canonical v0.1.11 contract is [Navigation + Aggregation Experience Specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md).
+Status: `ARCHITECTURE FROZEN`; v0.1.10: `CLOSED / PASS`; v0.1.11: `IN PROGRESS / SLICE 1 CLOSED / SLICE 2 LOCAL IMPLEMENTATION`. The canonical v0.1.11 contract is [Navigation + Aggregation Experience Specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md).
 
 This document freezes the long-term product model and navigation direction plus the reviewed v0.1.10 foundation scope. It does not change the accepted v0.1.9 Production capability. Later roadmap versions remain directional and need their own scope review.
 
@@ -15,7 +15,7 @@ The long-term first-level navigation is `首页 / 日历 / 空间 / 我的`.
 | 空间 | Personal and Shared Spaces with their content modules |
 | 我的 | Profile, account, notifications, devices, and settings |
 
-The complete four-destination navigation is scoped for v0.1.11; it is not yet implemented or deployed.
+The complete four-destination navigation is scoped for v0.1.11. Slice 1's three destinations are deployed; Home remains reserved for Slice 3.
 
 ## Spaces and Canonical Ownership
 
@@ -80,7 +80,7 @@ Deferred to v0.1.11 or later: final `首页 / 日历 / 空间 / 我的` navigati
 
 ## v0.1.11 Design Freeze — 2026-09-24
 
-The accepted four-slice scope, state contract, active-view Realtime lifecycle, canonical item navigation, global-create privacy rules and deferred list are frozen in [v0.1.11 Navigation + Aggregation Experience Specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md). This is a design milestone only; v0.1.11 business implementation and deployment have not started. In particular, Slice 1 must not ship a temporary Home driven by `selectedSpaceId`; user-visible Home begins only with the all-Spaces aggregation of Slice 3. No second Shared Space is required solely for acceptance.
+The accepted four-slice scope, state contract, active-view Realtime lifecycle, canonical item navigation, global-create privacy rules and deferred list are frozen in [v0.1.11 Navigation + Aggregation Experience Specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md). At this design milestone, v0.1.11 business implementation and deployment had not started. Slice 1 later shipped without a temporary Home driven by `selectedSpaceId`; user-visible Home begins only with the all-Spaces aggregation of Slice 3. No second Shared Space is required solely for acceptance.
 
 ## Calendar Sources
 

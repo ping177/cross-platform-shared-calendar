@@ -105,10 +105,10 @@ No Event/Task identity, v0.1.9 Task authorization, v0.1.8 Reminder, recurrence, 
 
 ## v0.1.11 Navigation + Aggregation Experience — IN PROGRESS / DESIGN FROZEN
 
-Slice 1 Navigation Foundation is `CLOSED / PASS` after automated verification, final review, desktop authenticated acceptance, confirmed Production frontend rollout, and post-deploy iPhone Safari / installed PWA acceptance. The Production frontend shows `日历 / 空间 / 我的`; the rollout was frontend-only and made no backend/schema/RPC changes. Overall v0.1.11 remains `IN PROGRESS`; Slices 2–4 have not started. The canonical scope and acceptance criteria are in [v0.1.11 Navigation + Aggregation Experience Specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md). Home remains reserved for Slice 3 aggregate semantics.
+Slice 1 Navigation Foundation is `CLOSED / PASS` after automated verification, final review, desktop authenticated acceptance, confirmed Production frontend rollout, and post-deploy iPhone Safari / installed PWA acceptance. The Production frontend shows `日历 / 空间 / 我的`. Slice 2 Aggregate Calendar is implemented and authenticated-functionally accepted locally; Production rollout and smoke verification remain pending, while its iPhone Safari, installed PWA and final 320px checks are deferred. Overall v0.1.11 remains `IN PROGRESS`; Slices 3–4 have not started. The canonical scope and acceptance criteria are in [v0.1.11 Navigation + Aggregation Experience Specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md). Home remains reserved for Slice 3 aggregate semantics.
 
 1. **Slice 1 — Navigation Foundation — CLOSED / PASS:** final shell, Space/Hub and My integration; no Event/Task aggregation, global create or user-visible Home until its final aggregate semantics exist.
-2. **Slice 2 — Aggregate Calendar — NOT STARTED:** membership-visible Events, all/one-Space filter, Space/member attribution, recurrence/exceptions, complete reads, stale guards and bounded active-view Realtime. Personal + existing Shared suffices for acceptance; Shared ↔ Shared is `N/A` when unavailable.
+2. **Slice 2 — Aggregate Calendar — LOCAL IMPLEMENTATION / FUNCTIONAL ACCEPTANCE PASS / PRODUCTION PENDING:** membership-visible Events, all/one-Space filter, Space/member attribution, recurrence/exceptions, complete reads, stale guards and bounded active-view Realtime. Personal + existing Shared passed functional acceptance; second Shared Space is `N/A / NOT RUN`. Slice 2 device checks 11–13 are `DEFERRED / NOT RUN`.
 3. **Slice 3 — Home Aggregation — NOT STARTED:** limited all-Space Event/attention-needed Task summaries, authoritative Tasks-module filtering and canonical item navigation; no dashboard framework.
 4. **Slice 4 — Global Create Safety — NOT STARTED:** Event/Task-only `+`, explicit target, second confirmation, membership/module revalidation, zero-valid-Task-target and Personal initialization failure handling; reuse existing Sheets.
 
@@ -120,7 +120,7 @@ The long-term relationships and v0.1.10 scope are frozen in [Shared Life Archite
 
 - v0.1.9 — Shared Tasks; Slice 1/2/3 CLOSED / PASS; Production backend and frontend accepted.
 - v0.1.10 — Personal Space + Multi-space + Module Enablement Foundation; Slice 1 `PRODUCTION BACKEND ROLLOUT PASS`, Slice 2/3 and overall `CLOSED / PASS`.
-- v0.1.11 — Navigation + Aggregation Experience (`IN PROGRESS / DESIGN FROZEN / SLICE 1 CLOSED / PASS after automated, desktop, Production rollout, iPhone Safari and installed PWA acceptance / Slices 2–4 NOT STARTED`; next: Slice 2 Aggregate Calendar planning / review).
+- v0.1.11 — Navigation + Aggregation Experience (`IN PROGRESS / DESIGN FROZEN / SLICE 1 CLOSED / PASS / SLICE 2 LOCAL FUNCTIONAL ACCEPTANCE PASS, PRODUCTION PENDING / Slices 3–4 NOT STARTED`; next: accepted Slice 2 frontend rollout and bounded Production smoke).
 - v0.1.12 — Shared Lists.
 - v0.1.13 — Important Dates.
 - v0.1.14 — Structured Review / Check-in.

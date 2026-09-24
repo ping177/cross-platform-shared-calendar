@@ -12,11 +12,11 @@ v0.1.11
 
 ## Current status
 
-v0.1.11 is `IN PROGRESS / DESIGN FROZEN`. Slice 1 — Navigation Foundation is `CLOSED / PASS`: local implementation, automated verification, final review, desktop authenticated acceptance, Production frontend rollout, and post-deploy iPhone Safari / installed PWA acceptance all passed. The Production frontend includes Slice 1's `日历 / 空间 / 我的` navigation; the backend remains unchanged from v0.1.10, with no Slice 1 schema/RPC changes. Slices 2–4 have not started. Home remains reserved for Slice 3. The v0.1.10 foundation remains `CLOSED / PASS`.
+v0.1.11 is `IN PROGRESS / DESIGN FROZEN`. Slice 1 Navigation Foundation is `CLOSED / PASS` and deployed. Slice 2 Aggregate Calendar implementation, automated verification and local authenticated functional acceptance are `PASS`; Production rollout and smoke verification remain pending. Slice 2 iPhone Safari, installed PWA and final 320px device checks are `DEFERRED / NOT RUN`. Slices 3–4 have not started. The Production frontend still serves Slice 1, and the backend remains unchanged from v0.1.10. Home remains reserved for Slice 3; v0.1.10 remains `CLOSED / PASS`.
 
 ## Latest completed
 
-v0.1.11 Slice 1 Navigation Foundation is `CLOSED / PASS`. Node tests 213/213, `npm run build`, and final code review passed. User-run desktop authenticated acceptance passed for navigation, Personal/Shared Space flows, Tasks and module data retention, My settings, remembered selection, and logout/relogin without old-state leakage. The user confirmed the Production URL displays the Slice 1 navigation; post-deploy iPhone Safari and installed PWA acceptance passed, including Personal ↔ Shared, Event/Task Sheets, safe area, and bottom navigation. Production rollout was frontend-only; no Slice 1 backend/schema/RPC changes were made. Overall v0.1.11 remains `IN PROGRESS`; Slices 2–4 have not started.
+Slice 2 Aggregate Calendar is implemented locally under Option A: `all` has no create action; a single Space filter uses the existing Event Sheet with an explicit target and membership recheck. Complete Event/exception reads, per-Space members, canonical recurrence/edit reuse, fail-closed display and active-view Realtime passed automated checks and the read-only frontend/backend readiness gate. User-run authenticated functional checks 1–10 are `PASS`, including Today/Week/Month navigation and current-period actions. Checks 11 iPhone Safari, 12 installed PWA and 13 final 320px device check are `DEFERRED / NOT RUN`; check 14 second Shared Space is `N/A / NOT RUN`. Slice 2 awaits Production rollout and smoke verification before closeout; Slice 1 remains `CLOSED / PASS` in Production.
 
 ## Deployment
 
@@ -24,7 +24,7 @@ Status: public_deployed
 Public URL: https://cross-platform-shared-calendar.vercel.app/
 Provider: Vercel
 Backend: Supabase Free
-Notes: Current Production frontend includes v0.1.11 Slice 1 Navigation Foundation; the user confirmed the Production URL displays the new navigation and post-deploy iPhone Safari / installed PWA acceptance passed. Slice 1 was a frontend-only rollout; backend remains unchanged from v0.1.10, with no schema/RPC changes. Overall v0.1.11 remains `IN PROGRESS` while Slices 2–4 are not started. Historical v0.1.10 frontend deployment `6630561119` from implementation commit `d14b73f898b3015564960a91c4e17035ee0f8272` succeeded and passed unauthenticated verification; docs closeout deployment `6630642529` succeeded with the same business bundle. User-run authenticated Production acceptance passed for Personal / Shared owner controls, Shared member refresh behavior, data retention, cross-Space isolation, and iPhone/PWA. Before acceptance, read-only counts found 4 Spaces, all with Tasks enabled; deploy performed no module toggle. `space_modules` has no Realtime publication: an already-open member page may temporarily show the old Tasks entry until refresh / re-entry, while database policy immediately rejects disabled Task writes. This is a known characteristic / future consideration, not a blocker. The full v0.1.10 foundation is `CLOSED / PASS`. `send-test-push` remains ACTIVE v4 reviewed-equivalent; `send-reminders` remains ACTIVE v2 / `verify_jwt=false`. Vault/secret/Cron were not changed.
+Notes: Production frontend includes v0.1.11 Slice 1 Navigation Foundation, accepted on desktop, iPhone Safari and installed PWA. Slice 2 is accepted locally but has not been pushed or deployed; Production smoke is pending. Backend remains unchanged from v0.1.10. `space_modules` still has no Realtime publication, so another member may need refresh/re-entry after a remote Tasks toggle; database policy blocks disabled writes. v0.1.10 remains `CLOSED / PASS`. `send-test-push` remains ACTIVE v4 reviewed-equivalent; `send-reminders` remains ACTIVE v2 / `verify_jwt=false`. Vault/secret/Cron were not changed.
 
 ## Version Index
 
@@ -51,7 +51,7 @@ Notes: Current Production frontend includes v0.1.11 Slice 1 Navigation Foundatio
 - v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（Slice A/B/C CLOSED / PASS；P3A C1、P3B manual E2E、P3C automatic scheduler E2E complete）
 - v0.1.9 — Shared Tasks MVP（CLOSED / PASS；Slice 1/2/3 CLOSED / PASS；Production backend verified、frontend deployed and accepted）
 - v0.1.10 — Personal Space + Multi-space + Module Enablement Foundation（CLOSED / PASS；Slice 1 PRODUCTION BACKEND ROLLOUT PASS；Slice 2 CLOSED / PASS；Slice 3 CLOSED / PASS）
-- v0.1.11 — Navigation + Aggregation Experience（IN PROGRESS / DESIGN FROZEN；Slice 1 CLOSED / PASS after automated, desktop, Production rollout and iPhone Safari / installed PWA acceptance；Slices 2–4 not started）
+- v0.1.11 — Navigation + Aggregation Experience（IN PROGRESS / DESIGN FROZEN；Slice 1 CLOSED / PASS；Slice 2 LOCAL FUNCTIONAL ACCEPTANCE PASS / PRODUCTION PENDING；Slices 3–4 not started）
 
 ## Last verified
 
@@ -59,7 +59,7 @@ Notes: Current Production frontend includes v0.1.11 Slice 1 Navigation Foundatio
 
 ## Next Action
 
-v0.1.11 Slice 2 — Aggregate Calendar planning / review.
+Commit/push the accepted Slice 2 implementation, deploy the compatible frontend to Production, then perform bounded Production smoke verification before Slice 2 closeout. Slice 2 device checks 11–13 remain deferred; check 14 is N/A.
 
 ## Blockers
 
@@ -79,7 +79,7 @@ v0.1.11 Slice 2 — Aggregate Calendar planning / review.
 - v0.1 is a Web/PWA, not native iOS / Android.
 - v0.1.9 canonical scope is `docs/v0.1.9_SHARED_TASKS_SPEC.md`; Slice 1 backend is Production applied/postflight verified, Slice 2 local UI passed user-run authenticated acceptance, and Slice 3 Production Desktop A/B plus iPhone smoke passed. All three slices are CLOSED / PASS.
 - v0.1.10 is `CLOSED / PASS`: it reuses `spaces / space_members`, enforces sole-owner Personal Space with partial unique `UNIQUE(created_by) WHERE kind = 'personal'`, retains the Shared two-member limit, and keeps disabled Tasks history readable while blocking mutations. Calendar is always on; Tasks is the only v0.1.10 visible module toggle. Slice 1 / 2 / 3 passed their respective backend, frontend, and user acceptance gates. Production frontend now also includes the v0.1.11 Slice 1 navigation foundation; that rollout changed no backend/schema/RPC. Shared three-plus-member support remains deferred.
-- v0.1.11 canonical scope is `docs/v0.1.11_NAVIGATION_AGGREGATION_SPEC.md`. Slice 1 desktop and post-deploy iPhone Safari / installed PWA acceptance passed and Slice 1 is `CLOSED / PASS`. Overall v0.1.11 remains `IN PROGRESS`; Slices 2–4 have not started. Home is not user-visible until all-Space Event/Task aggregation is ready in Slice 3. Calendar all/one-Space filtering, global Event/Task create and aggregate subscriptions belong to later slices. Slice 1 made no backend/schema/RPC changes.
+- v0.1.11 canonical scope is `docs/v0.1.11_NAVIGATION_AGGREGATION_SPEC.md`. Slice 1 is `CLOSED / PASS`; Slice 2 passed local authenticated functional acceptance and awaits Production rollout/smoke. Calendar all/one-Space filtering and active-view Event aggregation are in Slice 2. Home and Task aggregation remain Slice 3; global Event/Task create remains Slice 4. No backend/schema/RPC change was made.
 - v0.1.10 backend rollout preserved existing Space/member/Event/Task row counts and identity/invite fingerprints. The user subsequently completed the first A/B authenticated acceptance; Personal Spaces are now created by the deployed Slice 2 bootstrap. The old v0.1.9 runtime is not a safe rollback target for an account with a Personal Space. Any older-account bulk backfill remains outside Slice 2 and requires a separate review. Production Task count was 0 at backend rollout, so historical Task disable/re-enable remains locally verified rather than Production-tested.
 - v0.1.10 is closed with Shared Spaces retaining the two-member limit. It does not include cross-Space aggregation, final four-destination navigation, global `+`, Lists / Important Dates / Review implementation, or module-state Realtime. The observed member refresh behavior is a known characteristic and future consideration; it does not reopen v0.1.10.
 - `V019_SLICE2_UI_FROZEN` / `SLICE 2 IMPLEMENTED / MANUAL AUTH ACCEPTANCE PASS`: Calendar header `共享空间 · {space.name}` opens the current Space Hub; its only module entry is Tasks. Open Tasks and separate Completed Tasks use the existing Space-scoped contract. Empty `profiles.display_name` may use contextual `我 / 对方` only in the current two-member v0.1.9 UI; this is not a durable partner identity, and future Multi-space / multi-member UI uses generic member display logic. Space-entry navigation and 320px layout passed user-run acceptance; extreme-width name ellipsis is accepted.
@@ -129,4 +129,4 @@ v0.1.11 Slice 2 — Aggregate Calendar planning / review.
 
 ## Handoff Prompt
 
-v0.1.10 remains `CLOSED / PASS`. The Production frontend includes v0.1.11 Slice 1 Navigation Foundation; its automated checks, final review, desktop authenticated acceptance, Production rollout, and iPhone Safari / installed PWA acceptance passed. Slice 1 is `CLOSED / PASS`; overall v0.1.11 remains `IN PROGRESS`, with Slices 2–4 not started. Slice 1 was frontend-only and made no backend/schema/RPC changes. Next: v0.1.11 Slice 2 — Aggregate Calendar planning / review. Home becomes user-visible only with Slice 3 all-Space aggregation.
+v0.1.10 remains `CLOSED / PASS`. Production includes v0.1.11 Slice 1 Navigation Foundation (`CLOSED / PASS`). Slice 2 Aggregate Calendar passed local automated checks and user-run authenticated functional acceptance; device checks 11–13 remain deferred and second Shared Space is N/A. Slice 2 has not been pushed or deployed and is not closed. Next: commit/push the accepted implementation, deploy the compatible frontend, then perform bounded Production smoke before closeout. Home begins only with Slice 3 all-Space aggregation.
