@@ -1,6 +1,6 @@
 # Shared Life Architecture Freeze
 
-Status: `ARCHITECTURE FROZEN`; v0.1.10 Scope / Architecture Freeze: `CLOSED / READY FOR IMPLEMENTATION`; Slice 1: `PRODUCTION BACKEND ROLLOUT PASS`; Slice 2: `CLOSED / PASS`; Slice 3: `CLOSED / PASS` after user-run authenticated Production acceptance; v0.1.10: `CLOSED / PASS`. v0.1.11 remains `NOT STARTED` pending its Scope / Architecture Audit.
+Status: `ARCHITECTURE FROZEN`; v0.1.10: `CLOSED / PASS`; v0.1.11: `DESIGN FROZEN / IMPLEMENTATION NOT STARTED`. The canonical v0.1.11 contract is [Navigation + Aggregation Experience Specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md).
 
 This document freezes the long-term product model and navigation direction plus the reviewed v0.1.10 foundation scope. It does not change the accepted v0.1.9 Production capability. Later roadmap versions remain directional and need their own scope review.
 
@@ -15,7 +15,7 @@ The long-term first-level navigation is `首页 / 日历 / 空间 / 我的`.
 | 空间 | Personal and Shared Spaces with their content modules |
 | 我的 | Profile, account, notifications, devices, and settings |
 
-The complete four-destination navigation is deferred to v0.1.11 or later.
+The complete four-destination navigation is scoped for v0.1.11; it is not yet implemented or deployed.
 
 ## Spaces and Canonical Ownership
 
@@ -77,6 +77,10 @@ Status: `CLOSED / READY FOR IMPLEMENTATION`. This section is the reviewed design
 Known characteristic / future consideration: `space_modules` is not in the Realtime publication. An already-open Shared member page may temporarily retain the previous module UI until refresh or re-entry. Database policy immediately rejects disabled Task writes. Consider module-state Realtime / immediate cross-client UI refresh only if real usage demonstrates a need; this does not reopen v0.1.10.
 
 Deferred to v0.1.11 or later: final `首页 / 日历 / 空间 / 我的` navigation, cross-Space aggregation, global `+`, Calendar multi-Space overlay, Lists / Important Dates / Review implementation, External Calendar Sources, UI redesign, Native App, and Shared Space three-plus-member support. Memo content implementation also remains deferred.
+
+## v0.1.11 Design Freeze — 2026-09-24
+
+The accepted four-slice scope, state contract, active-view Realtime lifecycle, canonical item navigation, global-create privacy rules and deferred list are frozen in [v0.1.11 Navigation + Aggregation Experience Specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md). This is a design milestone only; v0.1.11 business implementation and deployment have not started. In particular, Slice 1 must not ship a temporary Home driven by `selectedSpaceId`; user-visible Home begins only with the all-Spaces aggregation of Slice 3. No second Shared Space is required solely for acceptance.
 
 ## Calendar Sources
 

@@ -103,13 +103,24 @@ Known characteristic / future consideration: `space_modules` has no Realtime pub
 
 No Event/Task identity, v0.1.9 Task authorization, v0.1.8 Reminder, recurrence, or Production capability is redesigned. Shared Space three-plus-member support, final four-destination navigation, cross-Space aggregation, global `+`, Calendar multi-Space overlay, Lists/Important Dates/Review implementation, External Calendar Sources, UI redesign, and Native App remain deferred to v0.1.11 or later.
 
+## v0.1.11 Navigation + Aggregation Experience — DESIGN FROZEN
+
+Implementation has not started. The canonical scope and acceptance criteria are in [v0.1.11 Navigation + Aggregation Experience Specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md). Next: Slice 1 implementation planning/review; do not expose a temporary selected-Space Home or deploy a misleading four-tab checkpoint.
+
+1. **Slice 1 — Navigation Foundation:** final shell, Space/Hub and My integration; no Event/Task aggregation, global create or user-visible Home until its final aggregate semantics exist.
+2. **Slice 2 — Aggregate Calendar:** membership-visible Events, all/one-Space filter, Space/member attribution, recurrence/exceptions, complete reads, stale guards and bounded active-view Realtime. Personal + existing Shared suffices for acceptance; Shared ↔ Shared is `N/A` when unavailable.
+3. **Slice 3 — Home Aggregation:** limited all-Space Event/attention-needed Task summaries, authoritative Tasks-module filtering and canonical item navigation; no dashboard framework.
+4. **Slice 4 — Global Create Safety:** Event/Task-only `+`, explicit target, second confirmation, membership/module revalidation, zero-valid-Task-target and Personal initialization failure handling; reuse existing Sheets.
+
+Deferred beyond v0.1.11: due Task Calendar projection, multi-select/saved Calendar filters, Shared 3+ members, Lists/Wishlist UI, Important Dates, Review, Memo, external sources/中国节假日, module-state Realtime, generalized device/settings UI, Native App and major redesign.
+
 ## Directional Roadmap — Shared Life Architecture Frozen
 
 The long-term relationships and v0.1.10 scope are frozen in [Shared Life Architecture Freeze](./SHARED_LIFE_ARCHITECTURE.md). Later version rows remain directional and require their own scope review.
 
 - v0.1.9 — Shared Tasks; Slice 1/2/3 CLOSED / PASS; Production backend and frontend accepted.
 - v0.1.10 — Personal Space + Multi-space + Module Enablement Foundation; Slice 1 `PRODUCTION BACKEND ROLLOUT PASS`, Slice 2/3 and overall `CLOSED / PASS`.
-- v0.1.11 — Navigation + Aggregation Experience (`NOT STARTED`; next: Scope / Architecture Audit).
+- v0.1.11 — Navigation + Aggregation Experience (`DESIGN FROZEN / IMPLEMENTATION NOT STARTED`; next: Slice 1 implementation planning/review).
 - v0.1.12 — Shared Lists.
 - v0.1.13 — Important Dates.
 - v0.1.14 — Structured Review / Check-in.

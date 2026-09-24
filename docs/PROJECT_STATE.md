@@ -8,15 +8,15 @@
 
 ## Current version
 
-v0.1.10
+v0.1.11
 
 ## Current status
 
-v0.1.10 overall: `CLOSED / PASS`. Slice 1: `PRODUCTION BACKEND ROLLOUT PASS`; Slice 2: `CLOSED / PASS`; Slice 3: `CLOSED / PASS` after authenticated Production acceptance. The next version, v0.1.11, is `NOT STARTED` and awaits a scope / architecture audit.
+v0.1.11: `DESIGN FROZEN / IMPLEMENTATION NOT STARTED`. The read-only scope audit returned `V011_SCOPE_READY` and the four-slice specification is ready for Slice 1 implementation planning/review. v0.1.10 remains `CLOSED / PASS` in Production.
 
 ## Latest completed
 
-v0.1.10 final closeout passed. The user completed authenticated Production acceptance of Personal and Shared Tasks disable / re-enable, data retention, owner/member controls, cross-Space isolation, and iPhone/PWA behavior. Slice 3 frontend deployment `6630561119` succeeded from implementation commit `d14b73f898b3015564960a91c4e17035ee0f8272`; public static verification passed. Docs closeout push deployment `6630642529` also succeeded with the same business bundle. Codex did not operate Magic Link / OTP or authenticated sessions. Shared member pages do not receive immediate module-state updates; refresh / re-entry reads the new state, while database policy rejects disabled Task writes.
+v0.1.11 Design Freeze completed as docs-only work after the accepted `V011_SCOPE_READY` audit. The canonical `docs/v0.1.11_NAVIGATION_AGGREGATION_SPEC.md` freezes Navigation Foundation, Aggregate Calendar, Home Aggregation, and Global Create Safety. No v0.1.11 business implementation or deployment has begun. v0.1.10 final closeout and user-run authenticated Production acceptance remain `CLOSED / PASS`; Shared member pages still require refresh/re-entry for remote module-state changes, while database policy immediately rejects disabled Task writes.
 
 ## Deployment
 
@@ -51,6 +51,7 @@ Notes: v0.1.10 frontend deployment `6630561119` from implementation commit `d14b
 - v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（Slice A/B/C CLOSED / PASS；P3A C1、P3B manual E2E、P3C automatic scheduler E2E complete）
 - v0.1.9 — Shared Tasks MVP（CLOSED / PASS；Slice 1/2/3 CLOSED / PASS；Production backend verified、frontend deployed and accepted）
 - v0.1.10 — Personal Space + Multi-space + Module Enablement Foundation（CLOSED / PASS；Slice 1 PRODUCTION BACKEND ROLLOUT PASS；Slice 2 CLOSED / PASS；Slice 3 CLOSED / PASS）
+- v0.1.11 — Navigation + Aggregation Experience（DESIGN FROZEN；implementation not started）
 
 ## Last verified
 
@@ -58,7 +59,7 @@ Notes: v0.1.10 frontend deployment `6630561119` from implementation commit `d14b
 
 ## Next Action
 
-v0.1.11 — Navigation + Aggregation Experience — Scope / Architecture Audit
+v0.1.11 Slice 1 — Navigation Foundation implementation planning / review; do not start business implementation until that plan is reviewed and approved.
 
 ## Blockers
 
@@ -77,7 +78,8 @@ v0.1.11 — Navigation + Aggregation Experience — Scope / Architecture Audit
 - Android compatibility smoke test is complete for Xiaomi 14 / Android 16 / Chrome on mobile network.
 - v0.1 is a Web/PWA, not native iOS / Android.
 - v0.1.9 canonical scope is `docs/v0.1.9_SHARED_TASKS_SPEC.md`; Slice 1 backend is Production applied/postflight verified, Slice 2 local UI passed user-run authenticated acceptance, and Slice 3 Production Desktop A/B plus iPhone smoke passed. All three slices are CLOSED / PASS.
-- v0.1.10 is `CLOSED / PASS`: it reuses `spaces / space_members`, enforces sole-owner Personal Space with partial unique `UNIQUE(created_by) WHERE kind = 'personal'`, retains the Shared two-member limit, and keeps disabled Tasks history readable while blocking mutations. Calendar is always on; Tasks is the only v0.1.10 visible module toggle. Slice 1 / 2 / 3 passed their respective backend, frontend, and user acceptance gates. Full navigation/aggregation and Shared three-plus-member support remain deferred.
+- v0.1.10 is `CLOSED / PASS`: it reuses `spaces / space_members`, enforces sole-owner Personal Space with partial unique `UNIQUE(created_by) WHERE kind = 'personal'`, retains the Shared two-member limit, and keeps disabled Tasks history readable while blocking mutations. Calendar is always on; Tasks is the only v0.1.10 visible module toggle. Slice 1 / 2 / 3 passed their respective backend, frontend, and user acceptance gates. v0.1.11 navigation/aggregation is design-frozen but not implemented; Shared three-plus-member support remains deferred.
+- v0.1.11 canonical scope is `docs/v0.1.11_NAVIGATION_AGGREGATION_SPEC.md`. Home is not user-visible until all-Space Event/Task aggregation is ready in Slice 3. Calendar has all/one-Space Event filtering; global Event/Task create requires an explicit target and second confirmation. Aggregate subscriptions are active-view-only; aggregate items open their canonical Space object. No backend/schema change is planned, and the authenticated integration readiness gate remains mandatory before real-account acceptance.
 - v0.1.10 backend rollout preserved existing Space/member/Event/Task row counts and identity/invite fingerprints. The user subsequently completed the first A/B authenticated acceptance; Personal Spaces are now created by the deployed Slice 2 bootstrap. The old v0.1.9 runtime is not a safe rollback target for an account with a Personal Space. Any older-account bulk backfill remains outside Slice 2 and requires a separate review. Production Task count was 0 at backend rollout, so historical Task disable/re-enable remains locally verified rather than Production-tested.
 - v0.1.10 is closed with Shared Spaces retaining the two-member limit. It does not include cross-Space aggregation, final four-destination navigation, global `+`, Lists / Important Dates / Review implementation, or module-state Realtime. The observed member refresh behavior is a known characteristic and future consideration; it does not reopen v0.1.10.
 - `V019_SLICE2_UI_FROZEN` / `SLICE 2 IMPLEMENTED / MANUAL AUTH ACCEPTANCE PASS`: Calendar header `共享空间 · {space.name}` opens the current Space Hub; its only module entry is Tasks. Open Tasks and separate Completed Tasks use the existing Space-scoped contract. Empty `profiles.display_name` may use contextual `我 / 对方` only in the current two-member v0.1.9 UI; this is not a durable partner identity, and future Multi-space / multi-member UI uses generic member display logic. Space-entry navigation and 320px layout passed user-run acceptance; extreme-width name ellipsis is accepted.
@@ -127,4 +129,4 @@ v0.1.11 — Navigation + Aggregation Experience — Scope / Architecture Audit
 
 ## Handoff Prompt
 
-v0.1.10 Slice 1 is PRODUCTION BACKEND ROLLOUT PASS; Slice 2 is CLOSED / PASS; Slice 3 is CLOSED / PASS after user-run authenticated Production acceptance of Personal and Shared disable / re-enable, data preservation, owner/member behavior, cross-Space isolation, and iPhone/PWA behavior. The user reported that an already-open Shared member page does not immediately receive module-state changes; refresh / re-entry updates the UI, and backend policy rejects disabled writes. Record this as a known characteristic / future consideration, not a blocker. v0.1.10 is CLOSED / PASS. Next: v0.1.11 Navigation + Aggregation Experience — Scope / Architecture Audit (`NOT STARTED`). Do not begin implementation before that audit.
+v0.1.10 is CLOSED / PASS in Production. v0.1.11 Design Freeze is complete in `docs/v0.1.11_NAVIGATION_AGGREGATION_SPEC.md`; implementation has not started. Next: prepare and review the bounded Slice 1 Navigation Foundation implementation plan. Do not expose a temporary selected-Space Home; user-visible Home begins only with Slice 3 all-Space aggregation. Preserve the four-slice contract, canonical Event/Task ownership, active-view-only Realtime and global-create privacy rules. Before real-account acceptance, perform the authenticated integration readiness gate; the user operates authenticated browser/device sessions.

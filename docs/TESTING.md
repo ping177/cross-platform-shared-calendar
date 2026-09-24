@@ -1,5 +1,11 @@
 # Testing
 
+## v0.1.11 Design Freeze — verification and future acceptance boundary
+
+The [canonical specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md) is design-frozen; no v0.1.11 business code, authenticated acceptance or deployment has occurred. This docs-only update requires `git diff --check` and governance/status review, not a frontend build. Each later implementation slice requires focused tests and `npm run build` before its checkpoint.
+
+Before any user-run authenticated test, Codex must verify the local frontend's actual backend target, required Production schema/RPC/Realtime capabilities and frontend/backend compatibility. The user, not Codex, performs OTP/Magic Link, A/B browser, iPhone/Android and PWA authenticated acceptance. Slice 2 can use Personal plus the existing Shared Space to test aggregate/all/one/isolation; record Shared ↔ Shared as `N/A` if no second Shared Space already exists. Do not create one in Production merely for acceptance. Slice 1 Home remains invisible until Slice 3 gives it all-Space semantics; Slice 4 must verify zero enabled Task targets before opening a Sheet.
+
 ## v0.1.10 Slice 3 — Tasks Module Enablement + UI Text Closeout (CLOSED / PASS)
 
 - Focused frontend tests: `node --test tests/task.test.ts tests/space-request-guard.test.ts tests/space-ui.test.ts tests/space-modules.test.ts` — 20/20 PASS. Coverage includes true/false/absent/error module reads, ordered RPC-then-authoritative-refresh, RPC versus refresh failure, duplicate toggle blocking, stale cross-Space module response, Personal/Shared owner controls, Shared member read-only display, enabled/disabled/error Hub entry visibility, safe Hub rendering for blocked Tasks/Completed screens, delayed mutation completion after Task read-gate deactivation, and Chinese user-facing Task-domain errors across uppercase/lowercase variants.

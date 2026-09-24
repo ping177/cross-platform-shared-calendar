@@ -127,6 +127,13 @@ The canonical long-term model and roadmap are in [Shared Life Architecture Freez
 - Backend capability may deploy first, but no Personal Space auto-creation or bulk backfill occurs before compatible frontend readiness. The new frontend then uses an idempotent `ensure_personal_space()` per user; bulk backfill is considered only after real authenticated acceptance. Production schema/index/RPC/RLS preflight and postflight are required; the read-only repository audit did not establish Production state.
 - Three slices: Data / permission foundation; Selected/current Space vertical flow; Tasks module enablement + user-visible `Task / Tasks` → “任务” UI text closeout, without full i18n. Preserve Event/Task identity, v0.1.9 Task authorization, v0.1.8 Reminder semantics, and recurrence. Full navigation, aggregation, global `+`, Calendar overlay, Lists/Important Dates/Review implementation, External Calendar Sources, UI redesign, Native App, and Shared Space three-plus-member support remain deferred.
 
+## v0.1.11 Navigation + Aggregation Experience Design Freeze — 2026-09-24
+
+- The accepted read-only audit is `V011_SCOPE_READY`; the canonical [v0.1.11 specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md) freezes four bounded slices: Navigation Foundation, Aggregate Calendar, Home Aggregation, and Global Create Safety. Design is frozen; implementation and Production rollout have not started.
+- `selectedSpaceId` remains the concrete current Space, while Calendar uses an independent all/one-Space filter derived against validated memberships. Home aggregates all visible Spaces. Every aggregate item returns to its canonical Event/Task and corresponding Space context; no duplicate persistence, aggregate editor or backend service is introduced.
+- Slice 1 exposes no temporary selected-Space Home. Aggregate Realtime exists only for the active view and tears down on exit/filter/membership/account changes. Personal plus the existing Shared Space suffices for acceptance; no extra Production Shared Space is created just for testing.
+- Global create offers Event/Task only and requires a visible, membership-valid target plus a second target confirmation. There is no silent Shared fallback; Task targets require an authoritative `tasks enabled=true` state, and zero valid targets means creation is unavailable before opening the Sheet. The authenticated integration readiness gate remains mandatory before real-account acceptance.
+
 ## PWA
 
 - v0.1 includes basic PWA support with a manifest and mobile meta tags.

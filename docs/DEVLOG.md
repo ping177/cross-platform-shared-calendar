@@ -1,5 +1,10 @@
 # Development Log
 
+# 2026-09-24 - v0.1.11 Navigation + Aggregation Design Freeze
+
+- The user accepted the read-only `V011_SCOPE_READY` audit and froze the four-slice navigation/aggregation scope in `docs/v0.1.11_NAVIGATION_AGGREGATION_SPEC.md`. Five final corrections cover no temporary Home in Slice 1, Personal + existing Shared acceptance without making a test Space, zero-valid-Task-target handling, active-view-only aggregate Realtime, and canonical Event/Task detail navigation.
+- Governance only: no business code, SQL/schema, dependency, Production, authenticated session, commit or push action. v0.1.10 remains `CLOSED / PASS`; v0.1.11 is `DESIGN FROZEN / IMPLEMENTATION NOT STARTED`. Next action: Slice 1 implementation planning/review.
+
 # 2026-09-24 - v0.1.10 Final Closeout — CLOSED / PASS
 
 - User-run Slice 3 authenticated Production acceptance passed. Personal Space owner disabled Tasks after preparing Open and Completed rows; the business entry and count disappeared while module controls remained, and re-enable restored both rows with their contents/status. Edit, complete, reopen, and delete worked after re-enable. Shared owner disable/re-enable preserved Tasks; Shared member had no toggle and saw the updated state after refresh/re-entry. Personal and Shared module state remained isolated, and iPhone/PWA controls behaved as expected.
