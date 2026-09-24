@@ -1,5 +1,13 @@
 # Development Log
 
+# 2026-09-24 - v0.1.10 Slice 2 Authenticated Production Acceptance — CLOSED / PASS
+
+- The user completed real A/B authenticated acceptance in Production browsers and on iPhone/PWA. A and B each received their Personal Space at first authenticated bootstrap and initially remained in their original Shared Space. Personal Spaces were mutually invisible; A/B Shared ↔ Personal switching, refresh restoration of valid selected Space, and user-isolated remembered selections passed.
+- Personal Events passed create, edit, delete, and Shared Space isolation with no “我的 / 对方 / 共同” selector. Personal Tasks passed create, edit, complete, Completed Tasks list, reopen, delete, and Shared Space isolation with no assignment selector. B's Personal Event and Task behavior passed. Shared Event and Task regression passed.
+- A/B Realtime, rapid Shared ↔ Personal switching, Calendar/Tasks/members Space isolation, Shared create/join entry points, 320px layout, and iPhone/PWA smoke passed. No random Space selection, stale response repopulation, cross-Space Realtime, white screen, or endless loading was observed.
+- Two cases were N/A, not failures: `N/A — current modal/sheet UI prevents Space switching while the sheet is open`; and `N/A — no current acceptance account has two Shared Spaces`. Existing selectedSpaceId-to-sheet reset/close behavior remains defensive protection. Local automated selection logic remains the available evidence for multiple Shared Spaces; no extra real Shared Space was created.
+- The manual acceptance was user-performed. Codex did not handle Magic Link/OTP, enter credentials, or control an authenticated user session. Slice 2 is `CLOSED / PASS`; authenticated Production acceptance and frontend rollout are `PASS`; Slice 3 remains `NOT STARTED`. This does not close the entire v0.1.10 foundation.
+
 # 2026-09-24 - v0.1.10 Slice 2 Controlled Frontend Rollout — Unauthenticated Verified
 
 - Final pre-commit review found only the 19 expected Slice 2 implementation, test, and process-documentation files; no backend/schema/RLS/RPC, dependency, Slice 3, navigation, aggregation, or unrelated change. Focused Node 19/19, full Node 204/204, `npm run build`, and `git diff --check` passed. Implementation commit `d7e13e1d81472bfee956920e232c443f15f042e5` with `Project-State-Review: updated` was normally pushed to `origin/main`.

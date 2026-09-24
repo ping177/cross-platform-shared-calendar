@@ -1,19 +1,31 @@
 # Testing
 
-## v0.1.10 Slice 2 — Selected / Current Space Vertical Flow (DEPLOYED / UNAUTHENTICATED VERIFIED; MANUAL AUTH PENDING)
+## v0.1.10 Slice 2 — Selected / Current Space Vertical Flow (CLOSED / PASS)
 
-- Focused frontend Node tests: 19/19 PASS. Mocked bootstrap covers ensure-before-list order, Shared-first and Personal-only defaults, valid/stale remembered selection, user A/B storage isolation, ensure failure with readable Shared Space, list failure, no readable Space, explicit retry preserving current Shared selection even without device storage, ambiguous RPC response with a readable Personal Space, and Shared create/join result selection. A readable Shared Space remains usable with a Personal initialization warning; list failure or no valid Space remains blocking. Request-guard tests cover Shared A → Personal → Shared B with late Event/Task/member responses and newer same-Space refresh. Static server rendering checks Personal/Shared Event and Task form controls, current-Space invite visibility, and the selector's Personal/Shared and create/join entries. No real authenticated session or Production write was used.
-- Full Node suite: 204/204 PASS. `npm run build`: PASS. `git diff --check`: PASS. Source/diff review confirms the one-Space `.limit(1).maybeSingle()` loader is removed, current content is keyed by validated `selectedSpaceId`, both Event/Task Realtime channels are removed on unmount, and old requests are invalidated. This does not establish browser Realtime or device acceptance.
-- Implementation commit `d7e13e1d81472bfee956920e232c443f15f042e5` was normally pushed to `origin/main`; Vercel Production deployment `6619734326` for that exact SHA completed successfully. The public Production URL returned HTTP 200 and showed the unauthenticated email login entry. Its referenced JS/CSS assets both returned HTTP 200, and the JS contained Slice 2 space-switch and Personal bootstrap identifiers. The old v0.1.9 bundle is no longer the active Production entry point. The per-deployment URL required Vercel authentication; commit attribution comes from GitHub deployment metadata and public alias/asset checks. This verifies static/unauthenticated loading, not logged-in runtime behavior.
-- Post-deployment read-only Production counts: 2 Spaces, 3 memberships, 0 Personal Spaces, unchanged from the earlier baseline. Static visits did not create a Personal Space. Authenticated Production acceptance: `NOT STARTED`; no Production `ensure_personal_space()` call, real-user Personal creation, or backfill was performed. The user must close old browser tabs, fully close PWA runtimes, then reopen Production before the first authenticated test. After that test creates a Personal Space, v0.1.9 is not a safe rollback target for the affected account. Slice 2 is not `CLOSED / PASS`.
+Status: Slice 1 backend `PRODUCTION BACKEND ROLLOUT PASS`; Slice 2 `CLOSED / PASS`; authenticated Production acceptance `PASS`; Production frontend rollout `PASS`; Slice 3 `NOT STARTED`. This closes Slice 2 only, not the full v0.1.10 foundation.
 
-### Future user-run authenticated acceptance checklist (not executed)
+### User-run authenticated Production acceptance — PASS
 
-- Existing A/B accounts still default to their original Shared Space; each account's Personal Space is created once and can be selected. A/B Personal Spaces remain invisible to the other user.
-- Switch Shared ↔ Personal and Shared A ↔ Shared B, including with Event/Task sheets open and rapid switching. Calendar, Tasks, members, and both Realtime streams show only the selected Space; late requests never restore old data.
-- Create/edit a Personal Event and Task; confirm Personal Event owner/scope, hidden Event audience, hidden Task assignment, and null assignment on new Personal Tasks. Confirm existing Shared Event audience and Task assignment behavior.
-- Create and join Shared Spaces through the selector; confirm automatic selection, two-member limit, invite behavior only in Shared Hub, and remembered selection after refresh. Repeat A/B in the same browser profile to confirm user-keyed selection does not cross accounts.
-- Complete 320px mobile and supported PWA smoke after closing old tabs/PWA runtimes and reopening the deployed Production URL. The user, not Codex, performs real OTP, A/B authenticated browser, and device acceptance.
+The user completed acceptance in real Production browsers and on iPhone/PWA after the compatible Slice 2 frontend was deployed. Codex did not open or operate Magic Link/OTP, enter credentials, or control any authenticated user session.
+
+- Bootstrap and Space isolation: A's Personal Space was automatically created at login; A initially remained in the original Shared Space and could switch Shared ↔ Personal. Personal Calendar showed no Shared Calendar data. B's first-upgrade/default behavior and Personal Space behavior passed; A and B could not see each other's Personal Space. A/B remembered Space selections remained isolated, valid selection restored after refresh, and no random Space selection was observed.
+- Personal Events: the audience selector (“我的 / 对方 / 共同”) was absent. Create, edit, and delete passed for A and B; Personal Events did not leak into Shared Space.
+- Personal Tasks: assignment selector was absent. Create, edit, complete, Completed Tasks list, reopen, and delete passed for A and B; Personal Tasks did not leak into Shared Space.
+- Shared behavior and live updates: Shared Event and Task regression passed; A/B Realtime passed. Rapid Shared ↔ Personal switching showed no cross-Space data in Calendar, Tasks, or members, no stale response repopulation, no Realtime leakage, and no white screen or endless loading. Shared create/join entry points and existing behavior had no observed issue.
+- Devices and layout: 320px layout and iPhone/PWA smoke passed.
+
+### Scenarios not run (N/A; not failures)
+
+- Sheet-open Space switch: `N/A — current modal/sheet UI prevents Space switching while the sheet is open`. The user could not operate the Space selector with an Event or Task sheet open. This is not a Slice 2 blocker. The existing `selectedSpaceId` change → sheet reset/close behavior remains as defensive protection; no UI change was made for this scenario.
+- Shared ↔ Shared switching: `N/A — no current acceptance account has two Shared Spaces`. The user did not create an extra real Shared Space for testing. Existing local automated logic and the `selectedSpaceId` contract remain the evidence for selecting between multiple Shared Spaces; this scenario is not reported as a real Production test.
+
+No other failure was reported. The real-user acceptance above is distinct from local automated verification and the prior unauthenticated deployment checks.
+
+### Automated and deployment verification
+
+- Focused frontend Node tests: 19/19 PASS. Mocked bootstrap covers ensure-before-list order, Shared-first and Personal-only defaults, valid/stale remembered selection, user A/B storage isolation, ensure failure with readable Shared Space, list failure, no readable Space, explicit retry preserving current Shared selection even without device storage, ambiguous RPC response with a readable Personal Space, and Shared create/join result selection. Request-guard tests cover Shared A → Personal → Shared B with late Event/Task/member responses and newer same-Space refresh. Static rendering checks Personal/Shared form controls and selector entries.
+- Full Node suite: 204/204 PASS. `npm run build`: PASS. `git diff --check`: PASS. Source review confirms the old one-Space `.limit(1).maybeSingle()` lookup is gone, current content follows membership-validated `selectedSpaceId`, both Event/Task Realtime channels are removed on unmount, and old requests are invalidated.
+- Implementation commit `d7e13e1d81472bfee956920e232c443f15f042e5` reached Vercel Production successfully. The public alias and its Slice 2 JS/CSS assets returned HTTP 200; unauthenticated login entry loaded and the active JS contained the Space-switch and Personal bootstrap identifiers. Post-deployment read-only counts were 2 Spaces, 3 memberships, and 0 Personal Spaces before user acceptance. The docs-only redeployment also succeeded with the same frontend JS/CSS assets.
 
 ## v0.1.10 Slice 1 — Data / Permission Foundation (PRODUCTION BACKEND ROLLOUT PASS)
 
