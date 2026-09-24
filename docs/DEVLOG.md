@@ -1,5 +1,11 @@
 # Development Log
 
+# 2026-09-24 - v0.1.10 Slice 3 Controlled Frontend Rollout — Unauthenticated Verified
+
+- Final scope and Project State pre-push review passed. Focused Node 20/20, full Node 212/212, `npm run build`, and `git diff --check` passed. Implementation commit `d14b73f898b3015564960a91c4e17035ee0f8272` was normally pushed to `origin/main` with the required Project-State-Review trailer; no backend/schema/RLS/RPC, dependency, or module Realtime change was included.
+- GitHub/Vercel Production deployment `6630561119` completed successfully from that exact commit. The public Production URL returned HTTP 200, its unauthenticated login entry rendered, and the active JS/CSS assets returned HTTP 200. The active JS contained Tasks module state/toggle, disabled-state, and Chinese Task UI markers, confirming the Slice 2 bundle is no longer the active entry point. No authenticated browser or PWA session was used.
+- A linked Production read-only aggregate found 4 Spaces: 4 `tasks=true`, 0 `tasks=false`, and 0 missing Tasks rows. No unexpectedly disabled Space was found. The frontend deploy performed no module toggle; authenticated Production module-toggle acceptance is `NOT STARTED`, and v0.1.10 remains open. Users must close/refresh old tabs and fully restart PWA runtimes before manual acceptance because old Slice 2 JS still exposes the Tasks business entry when a module is disabled.
+
 # 2026-09-24 - v0.1.10 Slice 3 Bounded Review Corrections — Final Review Pending
 
 - Added a component-active gate to `TasksArea`: cleanup deactivates it before request invalidation, new Task reads and each pagination step check it, and delayed mutation completion skips reload and parent Task state updates after unmount. Existing active-component reload and request-generation behavior remain.
