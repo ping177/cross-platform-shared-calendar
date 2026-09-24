@@ -12,11 +12,11 @@ v0.1.11
 
 ## Current status
 
-v0.1.11: `DESIGN FROZEN / SLICE 1 LOCAL IMPLEMENTATION + AUTOMATED VERIFICATION PASS / DESKTOP AUTHENTICATED ACCEPTANCE PASS / POST_DEPLOY_MOBILE_ACCEPTANCE_PENDING`. Slice 1 shows `日历 / 空间 / 我的`; Home remains reserved for Slice 3. Slice 1 is not yet pushed or deployed, and is not `CLOSED / PASS`. v0.1.10 remains `CLOSED / PASS` in Production.
+v0.1.11: `DESIGN FROZEN / SLICE 1 LOCAL IMPLEMENTATION + AUTOMATED VERIFICATION PASS / DESKTOP AUTHENTICATED ACCEPTANCE PASS / POST_DEPLOY_MOBILE_ACCEPTANCE_PENDING`. Slice 1 shows `日历 / 空间 / 我的`; Home remains reserved for Slice 3. Slice 1 rollout and mobile acceptance remain pending, so it is not `CLOSED / PASS`. v0.1.10 remains `CLOSED / PASS` in Production.
 
 ## Latest completed
 
-v0.1.11 Slice 1 Navigation Foundation is locally implemented and final code review passed. Node tests 213/213, `npm run build`, and diff hygiene passed. The local frontend target matches the linked Production Supabase project; read-only checks confirmed required tables, frontend RPCs, RLS and Event/Task Realtime publication. User-run local desktop authenticated acceptance passed for three-tab navigation, Personal/Shared Space flows, Hub/Tasks/module data retention, My display name and notification settings, remembered selection, and logout/relogin without old-state leakage. iPhone Safari/PWA navigation, safe area and Sheet overlap checks are deliberately `POST_DEPLOY_MOBILE_ACCEPTANCE_PENDING`. No v0.1.11 push or deployment has occurred; v0.1.10 remains the Production capability.
+v0.1.11 Slice 1 Navigation Foundation is locally implemented and final code review passed. Node tests 213/213, `npm run build`, and diff hygiene passed. The local frontend target matches the linked Production Supabase project; read-only checks confirmed required tables, frontend RPCs, RLS and Event/Task Realtime publication. User-run local desktop authenticated acceptance passed for three-tab navigation, Personal/Shared Space flows, Hub/Tasks/module data retention, My display name and notification settings, remembered selection, and logout/relogin without old-state leakage. iPhone Safari/PWA navigation, safe area and Sheet overlap checks are deliberately `POST_DEPLOY_MOBILE_ACCEPTANCE_PENDING`. Slice 1 Production rollout remains pending; v0.1.10 remains the Production capability.
 
 ## Deployment
 
@@ -59,7 +59,7 @@ Notes: v0.1.10 frontend deployment `6630561119` from implementation commit `d14b
 
 ## Next Action
 
-Advance the reviewed Slice 1 change set through commit, separately authorized push and rollout gates. After the v0.1.11 Slice 1 frontend is deployed, have the user complete `POST_DEPLOY_MOBILE_ACCEPTANCE_PENDING` on iPhone Safari and installed PWA. Do not start Slice 2 or mark Slice 1 `CLOSED / PASS` before mobile acceptance.
+Complete the v0.1.11 Slice 1 rollout and `POST_DEPLOY_MOBILE_ACCEPTANCE_PENDING` on iPhone Safari and installed PWA. After mobile acceptance passes, close Slice 1 and begin v0.1.11 Slice 2 — Aggregate Calendar planning/review. Do not start Slice 2 implementation or mark Slice 1 `CLOSED / PASS` before mobile acceptance.
 
 ## Blockers
 
@@ -129,4 +129,4 @@ Advance the reviewed Slice 1 change set through commit, separately authorized pu
 
 ## Handoff Prompt
 
-v0.1.10 is CLOSED / PASS in Production. v0.1.11 Design Freeze remains canonical in `docs/v0.1.11_NAVIGATION_AGGREGATION_SPEC.md`; Slice 1 local implementation, automated checks, final review and user-run desktop authenticated acceptance passed. Next: complete the remaining separately authorized Git/rollout gates for Slice 1; then complete `POST_DEPLOY_MOBILE_ACCEPTANCE_PENDING` on iPhone Safari and installed PWA. Do not mark Slice 1 CLOSED / PASS or begin Slice 2 before that acceptance. Home becomes user-visible only with Slice 3 all-Space aggregation. No v0.1.11 deployment has occurred.
+v0.1.10 is CLOSED / PASS in Production. v0.1.11 Design Freeze remains canonical in `docs/v0.1.11_NAVIGATION_AGGREGATION_SPEC.md`; Slice 1 local implementation, automated checks, final review and user-run desktop authenticated acceptance passed. Next: complete Slice 1 rollout and `POST_DEPLOY_MOBILE_ACCEPTANCE_PENDING` on iPhone Safari and installed PWA; after that acceptance passes, close Slice 1 and begin Slice 2 Aggregate Calendar planning/review. Do not mark Slice 1 CLOSED / PASS or begin Slice 2 implementation before that acceptance. Home becomes user-visible only with Slice 3 all-Space aggregation.
