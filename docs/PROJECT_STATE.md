@@ -12,11 +12,11 @@ v0.1.11
 
 ## Current status
 
-v0.1.11 is `IN PROGRESS / DESIGN FROZEN`. Slice 1 Navigation Foundation is `CLOSED / PASS` and deployed. Slice 2 Aggregate Calendar implementation, automated verification and local authenticated functional acceptance are `PASS`; Production rollout and smoke verification remain pending. Slice 2 iPhone Safari, installed PWA and final 320px device checks are `DEFERRED / NOT RUN`. Slices 3–4 have not started. The Production frontend still serves Slice 1, and the backend remains unchanged from v0.1.10. Home remains reserved for Slice 3; v0.1.10 remains `CLOSED / PASS`.
+v0.1.11 is `IN PROGRESS / DESIGN FROZEN`. Slice 1 Navigation Foundation is `CLOSED / PASS` and deployed. Slice 2 Aggregate Calendar implementation, automated verification and local authenticated functional acceptance are `PASS`; implementation commit `0505091` is pushed to `origin/main`. Production rollout and smoke verification remain pending, so Slice 2 is not `CLOSED / PASS`. Slice 2 iPhone Safari, installed PWA and final 320px device checks are `DEFERRED / NOT RUN`. Slices 3–4 have not started. The Production frontend still serves Slice 1, and the backend remains unchanged from v0.1.10. Home remains reserved for Slice 3; v0.1.10 remains `CLOSED / PASS`.
 
 ## Latest completed
 
-Slice 2 Aggregate Calendar is implemented locally under Option A: `all` has no create action; a single Space filter uses the existing Event Sheet with an explicit target and membership recheck. Complete Event/exception reads, per-Space members, canonical recurrence/edit reuse, fail-closed display and active-view Realtime passed automated checks and the read-only frontend/backend readiness gate. User-run authenticated functional checks 1–10 are `PASS`, including Today/Week/Month navigation and current-period actions. Checks 11 iPhone Safari, 12 installed PWA and 13 final 320px device check are `DEFERRED / NOT RUN`; check 14 second Shared Space is `N/A / NOT RUN`. Slice 2 awaits Production rollout and smoke verification before closeout; Slice 1 remains `CLOSED / PASS` in Production.
+Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create action; a single Space filter uses the existing Event Sheet with an explicit target and membership recheck. Complete Event/exception reads, per-Space members, canonical recurrence/edit reuse, fail-closed display and active-view Realtime passed automated checks and the read-only frontend/backend readiness gate. Implementation commit `0505091` is pushed to `origin/main`; local automated verification and user-run authenticated functional checks 1–10 are `PASS`, including Today/Week/Month navigation and current-period actions. Checks 11 iPhone Safari, 12 installed PWA and 13 final 320px device check are `DEFERRED / NOT RUN`; check 14 second Shared Space is `N/A / NOT RUN`. Production rollout and smoke verification remain pending before Slice 2 closeout; Slice 1 remains `CLOSED / PASS` in Production.
 
 ## Deployment
 
@@ -24,7 +24,7 @@ Status: public_deployed
 Public URL: https://cross-platform-shared-calendar.vercel.app/
 Provider: Vercel
 Backend: Supabase Free
-Notes: Production frontend includes v0.1.11 Slice 1 Navigation Foundation, accepted on desktop, iPhone Safari and installed PWA. Slice 2 is accepted locally but has not been pushed or deployed; Production smoke is pending. Backend remains unchanged from v0.1.10. `space_modules` still has no Realtime publication, so another member may need refresh/re-entry after a remote Tasks toggle; database policy blocks disabled writes. v0.1.10 remains `CLOSED / PASS`. `send-test-push` remains ACTIVE v4 reviewed-equivalent; `send-reminders` remains ACTIVE v2 / `verify_jwt=false`. Vault/secret/Cron were not changed.
+Notes: Production frontend includes v0.1.11 Slice 1 Navigation Foundation, accepted on desktop, iPhone Safari and installed PWA. Frontend-only Slice 2 implementation commit `0505091` is pushed to `origin/main`; no backend rollout was made. Vercel Production deployment confirmation and bounded Slice 2 smoke remain pending; Slice 2 is not closed. Backend remains unchanged from v0.1.10. `space_modules` still has no Realtime publication, so another member may need refresh/re-entry after a remote Tasks toggle; database policy blocks disabled writes. v0.1.10 remains `CLOSED / PASS`. `send-test-push` remains ACTIVE v4 reviewed-equivalent; `send-reminders` remains ACTIVE v2 / `verify_jwt=false`. Vault/secret/Cron were not changed.
 
 ## Version Index
 
@@ -59,7 +59,7 @@ Notes: Production frontend includes v0.1.11 Slice 1 Navigation Foundation, accep
 
 ## Next Action
 
-Commit/push the accepted Slice 2 implementation, deploy the compatible frontend to Production, then perform bounded Production smoke verification before Slice 2 closeout. Slice 2 device checks 11–13 remain deferred; check 14 is N/A.
+Confirm the pushed Slice 2 frontend is deployed to Production, run bounded Production smoke verification, then complete Slice 2 governance closeout if Production acceptance passes. Device checks 11–13 remain deferred; check 14 is N/A.
 
 ## Blockers
 
@@ -129,4 +129,4 @@ Commit/push the accepted Slice 2 implementation, deploy the compatible frontend 
 
 ## Handoff Prompt
 
-v0.1.10 remains `CLOSED / PASS`. Production includes v0.1.11 Slice 1 Navigation Foundation (`CLOSED / PASS`). Slice 2 Aggregate Calendar passed local automated checks and user-run authenticated functional acceptance; device checks 11–13 remain deferred and second Shared Space is N/A. Slice 2 has not been pushed or deployed and is not closed. Next: commit/push the accepted implementation, deploy the compatible frontend, then perform bounded Production smoke before closeout. Home begins only with Slice 3 all-Space aggregation.
+v0.1.10 remains `CLOSED / PASS`. Production includes v0.1.11 Slice 1 Navigation Foundation (`CLOSED / PASS`). Slice 2 Aggregate Calendar commit `0505091` is pushed; local automated checks and user-run authenticated functional acceptance passed. Device checks 11–13 remain deferred and second Shared Space is N/A. Slice 2 Production rollout/smoke is pending and Slice 2 is not closed. Next: confirm compatible frontend deployment, then perform bounded Production smoke before closeout. Home begins only with Slice 3 all-Space aggregation.
