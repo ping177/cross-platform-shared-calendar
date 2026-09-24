@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { readFileSync } from 'node:fs';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createServer } from 'vite';
@@ -13,7 +14,8 @@ const members: SpaceMember[] = [{ space_id: shared.id, user_id: 'user-a', role: 
 test('static Personal and Shared Space UI follows the frozen form and Hub boundaries', async () => {
   const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
   try {
-    const { CurrentSpaceApp, EventSheet, SpaceSelector } = await vite.ssrLoadModule('/src/App.tsx');
+    const { CurrentSpaceApp, EventSheet, SpacePage, BottomNavigation } = await vite.ssrLoadModule('/src/App.tsx');
+    const { MyPage } = await vite.ssrLoadModule('/src/components/MyPage.tsx');
     const { TaskSheet } = await vite.ssrLoadModule('/src/components/TaskSheet.tsx');
     const { TasksArea } = await vite.ssrLoadModule('/src/components/TasksArea.tsx');
     const noop = () => undefined;
@@ -35,17 +37,22 @@ test('static Personal and Shared Space UI follows the frozen form and Hub bounda
     assert.doesNotMatch(editTask, /\bTasks?\b/);
 
     const session = { user: { id: 'user-a' } } as Session;
-    const appProps = { session, onSpaceUpdate: noop, onSpaceSelectorOpen: noop };
+    const appProps = { session, onSpaceUpdate: noop, screen: 'hub', onScreenChange: noop, onHubBack: noop, selectedDate: new Date('2026-09-24'), onSelectedDateChange: noop, viewMode: 'today', onViewModeChange: noop };
     const personalHub = renderToStaticMarkup(React.createElement(CurrentSpaceApp, { ...appProps, space: personal }));
     const sharedHub = renderToStaticMarkup(React.createElement(CurrentSpaceApp, { ...appProps, space: shared }));
     assert.doesNotMatch(personalHub, /邀请码|SECRET/);
     assert.match(sharedHub, /邀请码/);
+    const calendar = renderToStaticMarkup(React.createElement(CurrentSpaceApp, { ...appProps, space: shared, screen: 'calendar' }));
+    assert.match(calendar, /共享空间 · 旅行|新建日程/);
+    assert.doesNotMatch(calendar, /切换空间|通知设置|退出登录|邀请码/);
 
-    const hubProps = { screen: 'hub', members, userId: 'user-a', moduleState: 'enabled', moduleError: '', moduleBusy: false, isOwner: true, onModuleRetry: noop, onModuleToggle: noop, invitePanel: React.createElement('div', null, 'INVITE_CONTROL'), onScreenChange: noop, onMembersOpen: noop, onSpaceSelectorOpen: noop };
+    const hubProps = { screen: 'hub', members, userId: 'user-a', moduleState: 'enabled', moduleError: '', moduleBusy: false, isOwner: true, onModuleRetry: noop, onModuleToggle: noop, invitePanel: React.createElement('div', null, 'INVITE_CONTROL'), onScreenChange: noop, onHubBack: noop, onMembersOpen: noop };
     const personalEnabled = renderToStaticMarkup(React.createElement(TasksArea, { ...hubProps, space: personal }));
     const sharedEnabled = renderToStaticMarkup(React.createElement(TasksArea, { ...hubProps, space: shared }));
     assert.doesNotMatch(personalEnabled, /INVITE_CONTROL|\bTasks?\b/);
     assert.match(sharedEnabled, /INVITE_CONTROL/);
+    assert.match(sharedEnabled, /查看日历/);
+    assert.doesNotMatch(sharedEnabled, /切换空间/);
     for (const markup of [personalEnabled, sharedEnabled]) {
       assert.match(markup, /关闭任务模块/);
       assert.match(markup, /进入任务/);
@@ -74,13 +81,28 @@ test('static Personal and Shared Space UI follows the frozen form and Hub bounda
     assert.match(completed, /已完成任务/);
     assert.doesNotMatch(completed, /\bTasks?\b/);
 
-    const selector = renderToStaticMarkup(React.createElement(SpaceSelector, {
-      spaces: [personal, shared], selectedSpaceId: personal.id, onSelect: noop, onClose: noop, onSharedReady: async () => true,
+    const selector = renderToStaticMarkup(React.createElement(SpacePage, {
+      spaces: [personal, shared], selectedSpaceId: personal.id, onSelect: noop, onSharedReady: async () => true, busy: false, onBusyChange: noop,
     }));
     assert.match(selector, /我的空间/);
     assert.match(selector, /旅行/);
     assert.match(selector, /创建共享空间/);
     assert.match(selector, /加入空间/);
+    assert.match(selector, /当前/);
+    const nav = renderToStaticMarkup(React.createElement(BottomNavigation, { tab: 'calendar', onChange: noop }));
+    assert.match(nav, /日历.*空间.*我的/);
+    assert.doesNotMatch(nav, /首页/);
+    assert.match(nav, /bottom-nav.*min-h-12/);
+    assert.match(personalEvent, /fixed inset-0 z-20/);
+    assert.match(personalTask, /fixed inset-0 z-20/);
+    const styles = readFileSync(new URL('../src/styles.css', import.meta.url), 'utf8');
+    const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+    assert.match(styles, /min-width: 320px/);
+    assert.match(styles, /\.pb-nav[\s\S]*padding-bottom: calc\(3rem \+ max\(1rem, env\(safe-area-inset-bottom\)\)\)/);
+    assert.match(styles, /\.bottom-nav[\s\S]*padding-bottom: env\(safe-area-inset-bottom\)/);
+    assert.match(html, /viewport-fit=cover/);
+    const me = renderToStaticMarkup(React.createElement(MyPage, { userId: 'user-a' }));
+    assert.match(me, /显示名称|此设备通知设置|退出登录/);
   } finally {
     await vite.close();
   }

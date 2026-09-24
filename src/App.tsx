@@ -2,11 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import {
   CalendarDays,
-  Bell,
   ChevronLeft,
   ChevronRight,
   Copy,
-  LogOut,
   Plus,
   RefreshCw,
   Trash2,
@@ -14,7 +12,7 @@ import {
   X,
 } from 'lucide-react';
 import { MemberSheet } from './components/MemberSheet';
-import { NotificationSettings } from './components/NotificationSettings';
+import { MyPage } from './components/MyPage';
 import { RecurrenceControls } from './components/RecurrenceControls';
 import { TasksArea, type TasksScreen } from './components/TasksArea';
 import { calendarVisibleRange } from './lib/calendar-display';
@@ -46,11 +44,9 @@ import { bootstrapSpaces, chooseSelectedSpaceId, completeSharedSpaceAction, ensu
 import { newEventIdentity } from './lib/space-content';
 import { createTasksModuleToggleGuard, tasksModuleStateFromResult, type TasksModuleState } from './lib/space-modules';
 import { createRequestGuard } from './lib/request-guard';
+import { initialNavigation, openCalendar, openSpace, openSpaceScreen, selectTab, type TopLevelTab } from './lib/navigation';
 import {
-  cleanupPushAndSignOut,
-  disableCurrentPushInstallation,
   registerPushServiceWorker,
-  unsubscribeCurrentPushSubscription,
 } from './lib/push-notifications';
 import {
   addDays,
@@ -421,7 +417,11 @@ function CalendarApp({ session }: { session: Session }) {
   const userId = session.user.id;
   const [spaces, setSpaces] = useState<CurrentSpace[]>([]);
   const [selectedSpaceId, setSelectedSpaceId] = useState<string | null>(null);
-  const [showSpaceSelector, setShowSpaceSelector] = useState(false);
+  const [navigation, setNavigation] = useState(initialNavigation);
+  const [spaceListStatus, setSpaceListStatus] = useState<'loading' | 'ready' | 'error'>('ready');
+  const [spaceActionBusy, setSpaceActionBusy] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(() => new Date());
+  const [viewMode, setViewMode] = useState<ViewMode>('today');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [personalInitializationError, setPersonalInitializationError] = useState<Error | null>(null);
@@ -452,10 +452,14 @@ function CalendarApp({ session }: { session: Session }) {
       }
       if (!requestGuard.current.isCurrent(currentRequest)) return false;
       setSpaces(result.spaces);
+      if (selectedSpaceId && selectedSpaceId !== result.selectedSpaceId) {
+        setSelectedDate(new Date());
+        setViewMode('today');
+        setNavigation((current) => selectTab(current, 'spaces'));
+      }
       setSelectedSpaceId(result.selectedSpaceId);
       if (!preferredId) setPersonalInitializationError(result.personalInitializationError ?? null);
       writeSelectedSpaceId(window.localStorage, userId, result.selectedSpaceId);
-      setShowSpaceSelector(false);
       return true;
     } catch (loadError) {
       if (!requestGuard.current.isCurrent(currentRequest)) return false;
@@ -474,17 +478,45 @@ function CalendarApp({ session }: { session: Session }) {
     return () => { requestGuard.current.invalidate(); };
   }, [userId]);
 
-  function selectSpace(spaceId: string) {
-    if (!spaces.some((space) => space.id === spaceId)) return;
-    requestGuard.current.invalidate();
-    setLoading(false);
-    setSelectedSpaceId(spaceId);
-    writeSelectedSpaceId(window.localStorage, userId, spaceId);
-    setShowSpaceSelector(false);
+  async function selectSpace(spaceId: string) {
+    if (spaceListStatus !== 'ready' || spaceActionBusy) return;
+    const request = requestGuard.current.begin();
+    setSpaceListStatus('loading');
+    setError('');
+    try {
+      const listed = await listCurrentSpaces(userId);
+      if (!requestGuard.current.isCurrent(request)) return;
+      setSpaces(listed);
+      const validatedId = chooseSelectedSpaceId(listed, selectedSpaceId);
+      if (!validatedId) throw new Error('未找到可用空间，请重新加载。');
+      if (!listed.some((space) => space.id === spaceId)) {
+        setSelectedSpaceId(validatedId);
+        writeSelectedSpaceId(window.localStorage, userId, validatedId);
+        setSelectedDate(new Date());
+        setViewMode('today');
+        setError('此空间已不在你的成员列表中，请重新选择。');
+        setSpaceListStatus('ready');
+        return;
+      }
+      if (selectedSpaceId !== spaceId) {
+        setSelectedDate(new Date());
+        setViewMode('today');
+      }
+      setSelectedSpaceId(spaceId);
+      writeSelectedSpaceId(window.localStorage, userId, spaceId);
+      setNavigation((current) => openSpace(current));
+      setSpaceListStatus('ready');
+    } catch (selectionError) {
+      if (requestGuard.current.isCurrent(request)) {
+        setError(getErrorMessage(selectionError));
+        setSpaceListStatus('error');
+      }
+    }
   }
 
-  async function openSpaceSelector() {
+  async function refreshSpaces() {
     const currentRequest = requestGuard.current.begin();
+    setSpaceListStatus('loading');
     setError('');
     try {
       const listed = await listCurrentSpaces(userId);
@@ -498,12 +530,33 @@ function CalendarApp({ session }: { session: Session }) {
       }
       if (!requestGuard.current.isCurrent(currentRequest)) return;
       setSpaces(listed);
+      if (selectedSpaceId !== validatedId) {
+        setSelectedDate(new Date());
+        setViewMode('today');
+        setNavigation((current) => selectTab(current, 'spaces'));
+      }
       setSelectedSpaceId(validatedId);
       writeSelectedSpaceId(window.localStorage, userId, validatedId);
-      setShowSpaceSelector(true);
+      setSpaceListStatus('ready');
     } catch (refreshError) {
-      if (requestGuard.current.isCurrent(currentRequest)) setError(getErrorMessage(refreshError));
+      if (requestGuard.current.isCurrent(currentRequest)) {
+        setError(getErrorMessage(refreshError));
+        setSpaceListStatus('error');
+      }
     }
+  }
+
+  function changeTab(tab: TopLevelTab) {
+    if (spaceActionBusy) return;
+    requestGuard.current.invalidate();
+    setNavigation((current) => selectTab(current, tab));
+    if (tab === 'spaces') void refreshSpaces();
+  }
+
+  async function sharedSpaceReady(spaceId: string) {
+    const ready = await loadSpaces(spaceId);
+    if (ready) setNavigation((current) => openSpace(current));
+    return ready;
   }
 
   function updateSpace(updated: Space) {
@@ -524,7 +577,7 @@ function CalendarApp({ session }: { session: Session }) {
   }
 
   return (
-    <>
+    <div className="min-h-screen bg-mist text-ink pb-nav">
       {personalInitializationError && (
         <div className="bg-mist px-4 pt-4">
           <div className="mx-auto max-w-3xl rounded-lg border border-amber/40 bg-white px-4 py-3 text-sm text-ink shadow-soft" role="alert">
@@ -534,46 +587,70 @@ function CalendarApp({ session }: { session: Session }) {
           </div>
         </div>
       )}
-      <CurrentSpaceApp
-        key={selectedSpaceId}
-        session={session}
-        space={selectedSpace}
-        onSpaceUpdate={updateSpace}
-        onSpaceSelectorOpen={() => void openSpaceSelector()}
-      />
-      {showSpaceSelector && (
-        <SpaceSelector
-          spaces={spaces}
-          selectedSpaceId={selectedSpaceId!}
-          onSelect={selectSpace}
-          onClose={() => setShowSpaceSelector(false)}
-          onSharedReady={(spaceId) => loadSpaces(spaceId)}
+      {navigation.tab === 'spaces' && navigation.spaceScreen === 'list' && (
+        spaceListStatus === 'ready'
+          ? <SpacePage
+              spaces={spaces}
+              selectedSpaceId={selectedSpaceId!}
+              onSelect={(spaceId) => { void selectSpace(spaceId); }}
+              onSharedReady={sharedSpaceReady}
+              busy={spaceActionBusy}
+              onBusyChange={setSpaceActionBusy}
+            />
+          : <SpaceListPending status={spaceListStatus} onRetry={() => void refreshSpaces()} />
+      )}
+      {(navigation.tab === 'calendar' || (navigation.tab === 'spaces' && navigation.spaceScreen !== 'list')) && (
+        <CurrentSpaceApp
+          key={`${selectedSpaceId}:${navigation.tab}`}
+          session={session}
+          space={selectedSpace}
+          screen={navigation.tab === 'calendar' ? 'calendar' : navigation.spaceScreen as TasksScreen}
+          onScreenChange={(screen) => setNavigation((current) => screen === 'calendar' ? openCalendar(current) : openSpaceScreen(current, screen))}
+          onHubBack={() => setNavigation((current) => selectTab(current, 'spaces'))}
+          selectedDate={selectedDate}
+          onSelectedDateChange={setSelectedDate}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          onSpaceUpdate={updateSpace}
         />
       )}
-      {error && <p className="fixed bottom-4 left-4 right-4 z-30 rounded-lg bg-coral px-4 py-3 text-sm text-white" role="alert">{error}</p>}
-    </>
+      {navigation.tab === 'me' && <MyPage userId={userId} />}
+      <BottomNavigation tab={navigation.tab} onChange={changeTab} disabled={spaceActionBusy} />
+      {error && <p className="nav-alert fixed left-4 right-4 z-30 rounded-lg bg-coral px-4 py-3 text-sm text-white" role="alert">{error}</p>}
+    </div>
   );
 }
 
-export function CurrentSpaceApp({ session, space, onSpaceUpdate, onSpaceSelectorOpen }: {
+function SpaceListPending({ status, onRetry }: { status: 'loading' | 'error'; onRetry: () => void }) {
+  return (
+    <main className="mx-auto min-h-screen max-w-3xl px-4 py-6">
+      <h1 className="text-xl font-bold">空间</h1>
+      <p className="mt-4">{status === 'loading' ? '正在确认空间成员列表…' : '空间列表刷新失败，请重试。'}</p>
+      {status === 'error' && <button className="mt-4 min-h-11 rounded-lg bg-teal px-4 font-semibold text-white" type="button" onClick={onRetry}>重试</button>}
+    </main>
+  );
+}
+
+export function CurrentSpaceApp({ session, space, screen, onScreenChange, onHubBack, selectedDate, onSelectedDateChange, viewMode, onViewModeChange, onSpaceUpdate }: {
   session: Session;
   space: CurrentSpace;
+  screen: TasksScreen;
+  onScreenChange: (screen: TasksScreen) => void;
+  onHubBack: () => void;
+  selectedDate: Date;
+  onSelectedDateChange: (date: Date) => void;
+  viewMode: ViewMode;
+  onViewModeChange: (mode: ViewMode) => void;
   onSpaceUpdate: (space: Space) => void;
-  onSpaceSelectorOpen: () => void;
 }) {
   const userId = session.user.id;
-  const [screen, setScreen] = useState<TasksScreen>('calendar');
   const [members, setMembers] = useState<SpaceMember[]>([]);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [occurrenceExceptions, setOccurrenceExceptions] = useState<EventOccurrenceException[]>([]);
-  const [selectedDate, setSelectedDate] = useState(() => new Date());
-  const [viewMode, setViewMode] = useState<ViewMode>('today');
   const [error, setError] = useState('');
   const [editingTarget, setEditingTarget] = useState<EventEditTarget | null>(null);
   const [showNewEvent, setShowNewEvent] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [memberMessage, setMemberMessage] = useState('');
   const [tasksModuleState, setTasksModuleState] = useState<TasksModuleState>('loading');
   const [tasksModuleError, setTasksModuleError] = useState('');
   const [tasksModuleBusy, setTasksModuleBusy] = useState(false);
@@ -724,31 +801,10 @@ export function CurrentSpaceApp({ session, space, onSpaceUpdate, onSpaceSelector
   }, [space.id]);
 
   useEffect(() => {
-    if (tasksModuleState !== 'enabled' && (screen === 'tasks' || screen === 'completed')) setScreen('hub');
-  }, [tasksModuleState, screen]);
+    if (tasksModuleState !== 'enabled' && (screen === 'tasks' || screen === 'completed')) onScreenChange('hub');
+  }, [tasksModuleState, screen, onScreenChange]);
 
   const visibleTasksModuleState: TasksModuleState = tasksModuleBusy ? 'loading' : tasksModuleState;
-
-  async function signOut() {
-    setError('');
-    try {
-      await cleanupPushAndSignOut({
-        disableRemote: async () => {
-          await disableCurrentPushInstallation(supabase);
-        },
-        unsubscribe: unsubscribeCurrentPushSubscription,
-        signOut: async () => {
-          const { error: signOutError } = await supabase.auth.signOut();
-          if (signOutError) throw signOutError;
-        },
-        onCleanupError: (stage, cleanupError) => {
-          console.warn(`Push cleanup failed during ${stage}.`, getErrorMessage(cleanupError));
-        },
-      });
-    } catch (signOutError) {
-      setError(getErrorMessage(signOutError));
-    }
-  }
 
   return (
     <main className="min-h-screen bg-mist text-ink">
@@ -758,25 +814,13 @@ export function CurrentSpaceApp({ session, space, onSpaceUpdate, onSpaceSelector
         <header className="sticky top-0 z-10 border-b border-ink/10 bg-mist/95 px-4 pb-3 pt-4 backdrop-blur">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <button className="inline-flex min-h-11 max-w-full items-center gap-1 rounded-full bg-white px-2 text-left text-xs font-semibold text-teal shadow-sm sm:text-sm" type="button" onClick={() => setScreen('hub')} aria-label={`打开${space.kind === 'personal' ? '我的空间' : `共享空间 ${space.name}`}`}>
+              <div className="inline-flex min-h-11 max-w-full items-center gap-1 rounded-full bg-white px-2 text-left text-xs font-semibold text-teal shadow-sm sm:text-sm" aria-label={`当前空间：${space.kind === 'personal' ? '我的空间' : space.name}`}>
                 <Users size={15} className="shrink-0" aria-hidden="true" />
                 <span className="min-w-0 truncate">{space.kind === 'personal' ? '👤 我的空间' : `共享空间 · ${space.name}`}</span>
-                <ChevronRight size={15} className="shrink-0" aria-hidden="true" />
-              </button>
-              <button className="ml-2 min-h-11 rounded-lg px-2 text-sm font-semibold text-teal" type="button" onClick={onSpaceSelectorOpen}>切换空间</button>
+              </div>
               <h1 className="text-2xl font-bold">{formatMonth(selectedDate)}</h1>
-              <button className="mt-1 inline-flex items-center gap-1 text-sm font-semibold text-teal" type="button" onClick={() => setShowMembers(true)}>
-                <Users size={15} />
-                成员 · {members.length}
-              </button>
             </div>
             <div className="flex items-center gap-2">
-              <button className="grid h-10 w-10 place-items-center rounded-lg bg-white text-ink shadow-sm" type="button" onClick={() => setShowNotifications(true)} aria-label="通知设置">
-                <Bell size={18} />
-              </button>
-              <button className="grid h-10 w-10 place-items-center rounded-lg bg-white text-ink shadow-sm" type="button" onClick={signOut} aria-label="退出登录">
-                <LogOut size={18} />
-              </button>
               <button className="grid h-10 w-10 place-items-center rounded-lg bg-teal text-white shadow-sm" type="button" onClick={() => setShowNewEvent(true)} aria-label="新建日程">
                 <Plus size={20} />
               </button>
@@ -789,7 +833,7 @@ export function CurrentSpaceApp({ session, space, onSpaceUpdate, onSpaceSelector
                 key={mode}
                 type="button"
                 className={`h-10 rounded-md text-sm font-semibold ${viewMode === mode ? 'bg-teal text-white' : 'text-ink/70'}`}
-                onClick={() => setViewMode(mode)}
+                onClick={() => onViewModeChange(mode)}
               >
                 {viewLabels[mode]}
               </button>
@@ -797,13 +841,13 @@ export function CurrentSpaceApp({ session, space, onSpaceUpdate, onSpaceSelector
           </div>
 
           <div className="mt-3 flex items-center justify-between">
-            <button className="grid h-10 w-10 place-items-center rounded-lg bg-white" type="button" onClick={() => setSelectedDate(addDays(selectedDate, viewMode === 'month' ? -30 : -7))} aria-label="上一段">
+            <button className="grid h-10 w-10 place-items-center rounded-lg bg-white" type="button" onClick={() => onSelectedDateChange(addDays(selectedDate, viewMode === 'month' ? -30 : -7))} aria-label="上一段">
               <ChevronLeft size={18} />
             </button>
-            <button className="h-10 rounded-lg bg-white px-4 text-sm font-semibold" type="button" onClick={() => setSelectedDate(new Date())}>
+            <button className="h-10 rounded-lg bg-white px-4 text-sm font-semibold" type="button" onClick={() => onSelectedDateChange(new Date())}>
               回到今天
             </button>
-            <button className="grid h-10 w-10 place-items-center rounded-lg bg-white" type="button" onClick={() => setSelectedDate(addDays(selectedDate, viewMode === 'month' ? 30 : 7))} aria-label="下一段">
+            <button className="grid h-10 w-10 place-items-center rounded-lg bg-white" type="button" onClick={() => onSelectedDateChange(addDays(selectedDate, viewMode === 'month' ? 30 : 7))} aria-label="下一段">
               <ChevronRight size={18} />
             </button>
           </div>
@@ -811,8 +855,6 @@ export function CurrentSpaceApp({ session, space, onSpaceUpdate, onSpaceSelector
 
         <section className="flex-1 px-4 py-4 safe-bottom">
           {error && <Notice tone="error" message={error} />}
-          {memberMessage && <Notice tone="success" message={memberMessage} />}
-          {space.kind === 'shared' && <InvitePanel space={space} onSpaceChange={onSpaceUpdate} />}
           <CalendarViews
             events={events}
             occurrenceExceptions={occurrenceExceptions}
@@ -825,7 +867,7 @@ export function CurrentSpaceApp({ session, space, onSpaceUpdate, onSpaceSelector
                 ? eventEditTargetForEvent(occurrence.source_event)
                 : eventEditTargetForOccurrence(occurrence),
             )}
-            onSelectDate={setSelectedDate}
+            onSelectDate={onSelectedDateChange}
           />
         </section>
           </>
@@ -833,7 +875,8 @@ export function CurrentSpaceApp({ session, space, onSpaceUpdate, onSpaceSelector
         <TasksArea
           key={`${space.id}:${visibleTasksModuleState === 'enabled' ? 'enabled' : 'blocked'}`}
           screen={screen}
-          onScreenChange={setScreen}
+          onScreenChange={onScreenChange}
+          onHubBack={onHubBack}
           space={space}
           members={members}
           userId={userId}
@@ -845,7 +888,6 @@ export function CurrentSpaceApp({ session, space, onSpaceUpdate, onSpaceSelector
           onModuleToggle={() => void changeTasksModule()}
           invitePanel={space.kind === 'shared' ? <InvitePanel space={space} onSpaceChange={onSpaceUpdate} /> : null}
           onMembersOpen={() => setShowMembers(true)}
-          onSpaceSelectorOpen={onSpaceSelectorOpen}
         />
       </div>
 
@@ -869,14 +911,9 @@ export function CurrentSpaceApp({ session, space, onSpaceUpdate, onSpaceSelector
           members={members}
           userId={userId}
           onClose={() => setShowMembers(false)}
-          onSaved={async () => {
-            await loadMembers(space.id);
-            setMemberMessage('名称已更新。');
-          }}
         />
       )}
 
-      {showNotifications && <NotificationSettings onClose={() => setShowNotifications(false)} />}
     </main>
   );
 }
@@ -889,21 +926,18 @@ function Notice({ tone, message }: { tone: 'error' | 'success'; message: string 
   );
 }
 
-export function SpaceSelector({ spaces, selectedSpaceId, onSelect, onClose, onSharedReady }: {
+export function SpacePage({ spaces, selectedSpaceId, onSelect, onSharedReady, busy, onBusyChange }: {
   spaces: CurrentSpace[];
   selectedSpaceId: string;
   onSelect: (spaceId: string) => void;
-  onClose: () => void;
   onSharedReady: (spaceId: string) => Promise<boolean>;
+  busy: boolean;
+  onBusyChange: (busy: boolean) => void;
 }) {
-  const [busy, setBusy] = useState(false);
   return (
-    <div className="fixed inset-0 z-20 flex items-end bg-ink/35 md:items-center md:px-4 md:py-6">
-      <section className="mx-auto max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-t-2xl bg-mist p-5 shadow-soft safe-bottom md:rounded-lg" role="dialog" aria-modal="true" aria-labelledby="space-selector-title">
-        <div className="flex items-center justify-between gap-3">
-          <h2 id="space-selector-title" className="text-xl font-bold">切换空间</h2>
-          <button className="grid h-11 w-11 place-items-center rounded-lg bg-white disabled:opacity-60" type="button" onClick={onClose} disabled={busy} aria-label="关闭空间选择器"><X size={20} /></button>
-        </div>
+    <main className="mx-auto min-h-screen w-full max-w-3xl px-4 py-4">
+      <section>
+        <h1 className="text-xl font-bold">空间</h1>
         <div className="mt-4 space-y-2">
           {spaces.map((space) => (
             <button key={space.id} className={`flex min-h-14 w-full items-center justify-between gap-3 rounded-lg px-4 text-left shadow-sm disabled:opacity-60 ${space.id === selectedSpaceId ? 'bg-teal text-white' : 'bg-white text-ink'}`} type="button" onClick={() => onSelect(space.id)} disabled={busy} aria-current={space.id === selectedSpaceId ? 'true' : undefined}>
@@ -912,9 +946,26 @@ export function SpaceSelector({ spaces, selectedSpaceId, onSelect, onClose, onSh
             </button>
           ))}
         </div>
-        <SharedSpaceForms onReady={onSharedReady} busy={busy} onBusyChange={setBusy} />
+        <SharedSpaceForms onReady={onSharedReady} busy={busy} onBusyChange={onBusyChange} />
       </section>
-    </div>
+    </main>
+  );
+}
+
+export function BottomNavigation({ tab, onChange, disabled = false }: { tab: TopLevelTab; onChange: (tab: TopLevelTab) => void; disabled?: boolean }) {
+  const tabs: { id: TopLevelTab; label: string }[] = [
+    { id: 'calendar', label: '日历' },
+    { id: 'spaces', label: '空间' },
+    { id: 'me', label: '我的' },
+  ];
+  return (
+    <nav className="bottom-nav fixed inset-x-0 bottom-0 z-10 border-t border-ink/10 bg-white" aria-label="一级导航">
+      <div className="mx-auto grid max-w-3xl grid-cols-3">
+        {tabs.map(({ id, label }) => (
+          <button key={id} type="button" className={`min-h-12 px-2 py-2 text-sm font-semibold disabled:opacity-50 ${tab === id ? 'text-teal' : 'text-ink/65'}`} onClick={() => onChange(id)} disabled={disabled} aria-current={tab === id ? 'page' : undefined}>{label}</button>
+        ))}
+      </div>
+    </nav>
   );
 }
 

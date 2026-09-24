@@ -12,11 +12,11 @@ v0.1.11
 
 ## Current status
 
-v0.1.11: `DESIGN FROZEN / IMPLEMENTATION NOT STARTED`. The read-only scope audit returned `V011_SCOPE_READY` and the four-slice specification is ready for Slice 1 implementation planning/review. v0.1.10 remains `CLOSED / PASS` in Production.
+v0.1.11: `DESIGN FROZEN / SLICE 1 LOCAL IMPLEMENTATION + AUTOMATED VERIFICATION PASS / DESKTOP AUTHENTICATED ACCEPTANCE PASS / POST_DEPLOY_MOBILE_ACCEPTANCE_PENDING`. Slice 1 shows `日历 / 空间 / 我的`; Home remains reserved for Slice 3. Slice 1 is not yet pushed or deployed, and is not `CLOSED / PASS`. v0.1.10 remains `CLOSED / PASS` in Production.
 
 ## Latest completed
 
-v0.1.11 Design Freeze completed as docs-only work after the accepted `V011_SCOPE_READY` audit. The canonical `docs/v0.1.11_NAVIGATION_AGGREGATION_SPEC.md` freezes Navigation Foundation, Aggregate Calendar, Home Aggregation, and Global Create Safety. No v0.1.11 business implementation or deployment has begun. v0.1.10 final closeout and user-run authenticated Production acceptance remain `CLOSED / PASS`; Shared member pages still require refresh/re-entry for remote module-state changes, while database policy immediately rejects disabled Task writes.
+v0.1.11 Slice 1 Navigation Foundation is locally implemented and final code review passed. Node tests 213/213, `npm run build`, and diff hygiene passed. The local frontend target matches the linked Production Supabase project; read-only checks confirmed required tables, frontend RPCs, RLS and Event/Task Realtime publication. User-run local desktop authenticated acceptance passed for three-tab navigation, Personal/Shared Space flows, Hub/Tasks/module data retention, My display name and notification settings, remembered selection, and logout/relogin without old-state leakage. iPhone Safari/PWA navigation, safe area and Sheet overlap checks are deliberately `POST_DEPLOY_MOBILE_ACCEPTANCE_PENDING`. No v0.1.11 push or deployment has occurred; v0.1.10 remains the Production capability.
 
 ## Deployment
 
@@ -51,7 +51,7 @@ Notes: v0.1.10 frontend deployment `6630561119` from implementation commit `d14b
 - v0.1.8.2 — Reminder Persistence + Ordinary Event Delivery（Slice A/B/C CLOSED / PASS；P3A C1、P3B manual E2E、P3C automatic scheduler E2E complete）
 - v0.1.9 — Shared Tasks MVP（CLOSED / PASS；Slice 1/2/3 CLOSED / PASS；Production backend verified、frontend deployed and accepted）
 - v0.1.10 — Personal Space + Multi-space + Module Enablement Foundation（CLOSED / PASS；Slice 1 PRODUCTION BACKEND ROLLOUT PASS；Slice 2 CLOSED / PASS；Slice 3 CLOSED / PASS）
-- v0.1.11 — Navigation + Aggregation Experience（DESIGN FROZEN；implementation not started）
+- v0.1.11 — Navigation + Aggregation Experience（DESIGN FROZEN；Slice 1 local implementation/automated verification/desktop authenticated acceptance PASS；post-deploy mobile acceptance pending）
 
 ## Last verified
 
@@ -59,7 +59,7 @@ Notes: v0.1.10 frontend deployment `6630561119` from implementation commit `d14b
 
 ## Next Action
 
-v0.1.11 Slice 1 — Navigation Foundation implementation planning / review; do not start business implementation until that plan is reviewed and approved.
+Advance the reviewed Slice 1 change set through commit, separately authorized push and rollout gates. After the v0.1.11 Slice 1 frontend is deployed, have the user complete `POST_DEPLOY_MOBILE_ACCEPTANCE_PENDING` on iPhone Safari and installed PWA. Do not start Slice 2 or mark Slice 1 `CLOSED / PASS` before mobile acceptance.
 
 ## Blockers
 
@@ -78,8 +78,8 @@ v0.1.11 Slice 1 — Navigation Foundation implementation planning / review; do n
 - Android compatibility smoke test is complete for Xiaomi 14 / Android 16 / Chrome on mobile network.
 - v0.1 is a Web/PWA, not native iOS / Android.
 - v0.1.9 canonical scope is `docs/v0.1.9_SHARED_TASKS_SPEC.md`; Slice 1 backend is Production applied/postflight verified, Slice 2 local UI passed user-run authenticated acceptance, and Slice 3 Production Desktop A/B plus iPhone smoke passed. All three slices are CLOSED / PASS.
-- v0.1.10 is `CLOSED / PASS`: it reuses `spaces / space_members`, enforces sole-owner Personal Space with partial unique `UNIQUE(created_by) WHERE kind = 'personal'`, retains the Shared two-member limit, and keeps disabled Tasks history readable while blocking mutations. Calendar is always on; Tasks is the only v0.1.10 visible module toggle. Slice 1 / 2 / 3 passed their respective backend, frontend, and user acceptance gates. v0.1.11 navigation/aggregation is design-frozen but not implemented; Shared three-plus-member support remains deferred.
-- v0.1.11 canonical scope is `docs/v0.1.11_NAVIGATION_AGGREGATION_SPEC.md`. Home is not user-visible until all-Space Event/Task aggregation is ready in Slice 3. Calendar has all/one-Space Event filtering; global Event/Task create requires an explicit target and second confirmation. Aggregate subscriptions are active-view-only; aggregate items open their canonical Space object. No backend/schema change is planned, and the authenticated integration readiness gate remains mandatory before real-account acceptance.
+- v0.1.10 is `CLOSED / PASS`: it reuses `spaces / space_members`, enforces sole-owner Personal Space with partial unique `UNIQUE(created_by) WHERE kind = 'personal'`, retains the Shared two-member limit, and keeps disabled Tasks history readable while blocking mutations. Calendar is always on; Tasks is the only v0.1.10 visible module toggle. Slice 1 / 2 / 3 passed their respective backend, frontend, and user acceptance gates. v0.1.11 Slice 1 is locally implemented but not deployed; Shared three-plus-member support remains deferred.
+- v0.1.11 canonical scope is `docs/v0.1.11_NAVIGATION_AGGREGATION_SPEC.md`. Slice 1 local desktop authenticated acceptance passed; iPhone Safari/PWA checks are `POST_DEPLOY_MOBILE_ACCEPTANCE_PENDING`. Home is not user-visible until all-Space Event/Task aggregation is ready in Slice 3. Calendar all/one-Space filtering, global Event/Task create and aggregate subscriptions belong to later slices. No backend/schema change is planned.
 - v0.1.10 backend rollout preserved existing Space/member/Event/Task row counts and identity/invite fingerprints. The user subsequently completed the first A/B authenticated acceptance; Personal Spaces are now created by the deployed Slice 2 bootstrap. The old v0.1.9 runtime is not a safe rollback target for an account with a Personal Space. Any older-account bulk backfill remains outside Slice 2 and requires a separate review. Production Task count was 0 at backend rollout, so historical Task disable/re-enable remains locally verified rather than Production-tested.
 - v0.1.10 is closed with Shared Spaces retaining the two-member limit. It does not include cross-Space aggregation, final four-destination navigation, global `+`, Lists / Important Dates / Review implementation, or module-state Realtime. The observed member refresh behavior is a known characteristic and future consideration; it does not reopen v0.1.10.
 - `V019_SLICE2_UI_FROZEN` / `SLICE 2 IMPLEMENTED / MANUAL AUTH ACCEPTANCE PASS`: Calendar header `共享空间 · {space.name}` opens the current Space Hub; its only module entry is Tasks. Open Tasks and separate Completed Tasks use the existing Space-scoped contract. Empty `profiles.display_name` may use contextual `我 / 对方` only in the current two-member v0.1.9 UI; this is not a durable partner identity, and future Multi-space / multi-member UI uses generic member display logic. Space-entry navigation and 320px layout passed user-run acceptance; extreme-width name ellipsis is accepted.
@@ -129,4 +129,4 @@ v0.1.11 Slice 1 — Navigation Foundation implementation planning / review; do n
 
 ## Handoff Prompt
 
-v0.1.10 is CLOSED / PASS in Production. v0.1.11 Design Freeze is complete in `docs/v0.1.11_NAVIGATION_AGGREGATION_SPEC.md`; implementation has not started. Next: prepare and review the bounded Slice 1 Navigation Foundation implementation plan. Do not expose a temporary selected-Space Home; user-visible Home begins only with Slice 3 all-Space aggregation. Preserve the four-slice contract, canonical Event/Task ownership, active-view-only Realtime and global-create privacy rules. Before real-account acceptance, perform the authenticated integration readiness gate; the user operates authenticated browser/device sessions.
+v0.1.10 is CLOSED / PASS in Production. v0.1.11 Design Freeze remains canonical in `docs/v0.1.11_NAVIGATION_AGGREGATION_SPEC.md`; Slice 1 local implementation, automated checks, final review and user-run desktop authenticated acceptance passed. Next: complete the remaining separately authorized Git/rollout gates for Slice 1; then complete `POST_DEPLOY_MOBILE_ACCEPTANCE_PENDING` on iPhone Safari and installed PWA. Do not mark Slice 1 CLOSED / PASS or begin Slice 2 before that acceptance. Home becomes user-visible only with Slice 3 all-Space aggregation. No v0.1.11 deployment has occurred.

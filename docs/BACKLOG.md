@@ -105,7 +105,7 @@ No Event/Task identity, v0.1.9 Task authorization, v0.1.8 Reminder, recurrence, 
 
 ## v0.1.11 Navigation + Aggregation Experience — DESIGN FROZEN
 
-Implementation has not started. The canonical scope and acceptance criteria are in [v0.1.11 Navigation + Aggregation Experience Specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md). Next: Slice 1 implementation planning/review; do not expose a temporary selected-Space Home or deploy a misleading four-tab checkpoint.
+Slice 1 Navigation Foundation is implemented locally; automated verification, final review and user-run local desktop authenticated acceptance passed. Push and deployment remain pending; iPhone Safari/PWA checks are `POST_DEPLOY_MOBILE_ACCEPTANCE_PENDING`, so Slice 1 is not `CLOSED / PASS`. The canonical scope and acceptance criteria are in [v0.1.11 Navigation + Aggregation Experience Specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md). The Slice 1 UI shows `日历 / 空间 / 我的`; Home remains reserved for Slice 3 aggregate semantics.
 
 1. **Slice 1 — Navigation Foundation:** final shell, Space/Hub and My integration; no Event/Task aggregation, global create or user-visible Home until its final aggregate semantics exist.
 2. **Slice 2 — Aggregate Calendar:** membership-visible Events, all/one-Space filter, Space/member attribution, recurrence/exceptions, complete reads, stale guards and bounded active-view Realtime. Personal + existing Shared suffices for acceptance; Shared ↔ Shared is `N/A` when unavailable.
@@ -120,7 +120,7 @@ The long-term relationships and v0.1.10 scope are frozen in [Shared Life Archite
 
 - v0.1.9 — Shared Tasks; Slice 1/2/3 CLOSED / PASS; Production backend and frontend accepted.
 - v0.1.10 — Personal Space + Multi-space + Module Enablement Foundation; Slice 1 `PRODUCTION BACKEND ROLLOUT PASS`, Slice 2/3 and overall `CLOSED / PASS`.
-- v0.1.11 — Navigation + Aggregation Experience (`DESIGN FROZEN / IMPLEMENTATION NOT STARTED`; next: Slice 1 implementation planning/review).
+- v0.1.11 — Navigation + Aggregation Experience (`DESIGN FROZEN / SLICE 1 LOCAL + DESKTOP AUTHENTICATED ACCEPTANCE PASS / POST_DEPLOY_MOBILE_ACCEPTANCE_PENDING`; next: remaining authorized Slice 1 Git/rollout gates, then mobile acceptance).
 - v0.1.12 — Shared Lists.
 - v0.1.13 — Important Dates.
 - v0.1.14 — Structured Review / Check-in.

@@ -12,6 +12,7 @@ export type TasksScreen = 'calendar' | 'hub' | 'tasks' | 'completed';
 type TasksAreaProps = {
   screen: TasksScreen;
   onScreenChange: (screen: TasksScreen) => void;
+  onHubBack: () => void;
   space: Space;
   members: SpaceMember[];
   userId: string;
@@ -23,12 +24,11 @@ type TasksAreaProps = {
   onModuleToggle: () => void;
   invitePanel: ReactNode;
   onMembersOpen: () => void;
-  onSpaceSelectorOpen: () => void;
 };
 
 const taskBatchSize = 500;
 
-export function TasksArea({ screen, onScreenChange, space, members, userId, moduleState, moduleError, moduleBusy, isOwner, onModuleRetry, onModuleToggle, invitePanel, onMembersOpen, onSpaceSelectorOpen }: TasksAreaProps) {
+export function TasksArea({ screen, onScreenChange, onHubBack, space, members, userId, moduleState, moduleError, moduleBusy, isOwner, onModuleRetry, onModuleToggle, invitePanel, onMembersOpen }: TasksAreaProps) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -144,14 +144,12 @@ export function TasksArea({ screen, onScreenChange, space, members, userId, modu
     <>
       <header className="sticky top-0 z-10 border-b border-ink/10 bg-mist/95 px-4 pb-3 pt-4 backdrop-blur">
         <div className="flex min-h-12 items-center justify-between gap-3">
-          <button className="inline-flex min-h-11 min-w-0 items-center gap-1 text-sm font-semibold text-teal" type="button" onClick={() => onScreenChange(visibleScreen === 'hub' ? 'calendar' : visibleScreen === 'tasks' ? 'hub' : 'tasks')}>
+          <button className="inline-flex min-h-11 min-w-0 items-center gap-1 text-sm font-semibold text-teal" type="button" onClick={() => visibleScreen === 'hub' ? onHubBack() : onScreenChange(visibleScreen === 'tasks' ? 'hub' : 'tasks')}>
             <ChevronLeft size={18} />
-            <span className="truncate">{visibleScreen === 'hub' ? '日历' : visibleScreen === 'tasks' ? spaceLabel : '任务'}</span>
+            <span className="truncate">{visibleScreen === 'hub' ? '空间' : visibleScreen === 'tasks' ? spaceLabel : '任务'}</span>
           </button>
           <h1 className="min-w-0 truncate text-xl font-bold">{visibleScreen === 'hub' ? spaceLabel : visibleScreen === 'tasks' ? '任务' : '已完成任务'}</h1>
-          {visibleScreen === 'hub' ? (
-            <button className="min-h-11 shrink-0 rounded-lg px-2 text-sm font-semibold text-teal" type="button" onClick={onSpaceSelectorOpen}>切换</button>
-          ) : visibleScreen === 'tasks' ? (
+          {visibleScreen === 'tasks' ? (
             <button className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-teal text-white" type="button" onClick={() => setCreating(true)} aria-label="新建任务">
               <Plus size={20} />
             </button>
@@ -165,6 +163,10 @@ export function TasksArea({ screen, onScreenChange, space, members, userId, modu
 
         {visibleScreen === 'hub' ? (
           <div className="space-y-4">
+            <button className="flex min-h-14 w-full items-center justify-between rounded-lg bg-white px-4 text-left shadow-sm" type="button" onClick={() => onScreenChange('calendar')}>
+              <span className="font-semibold">查看日历</span>
+              <ChevronRight size={18} className="text-ink/45" />
+            </button>
             <button className="flex min-h-14 w-full items-center justify-between rounded-lg bg-white px-4 text-left shadow-sm" type="button" onClick={onMembersOpen}>
               <span className="inline-flex items-center gap-2 font-semibold"><Users size={18} />成员 · {members.length}</span>
               <ChevronRight size={18} className="text-ink/45" />
