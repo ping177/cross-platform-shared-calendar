@@ -1,8 +1,21 @@
 # Testing
 
+## v0.1.10 Slice 3 — Tasks Module Enablement + UI Text Closeout (LOCAL VERIFIED / REVIEW PENDING)
+
+- Focused frontend tests: `node --test tests/task.test.ts tests/space-request-guard.test.ts tests/space-ui.test.ts tests/space-modules.test.ts` — 20/20 PASS. Coverage includes true/false/absent/error module reads, ordered RPC-then-authoritative-refresh, RPC versus refresh failure, duplicate toggle blocking, stale cross-Space module response, Personal/Shared owner controls, Shared member read-only display, enabled/disabled/error Hub entry visibility, safe Hub rendering for blocked Tasks/Completed screens, delayed mutation completion after Task read-gate deactivation, and Chinese user-facing Task-domain errors across uppercase/lowercase variants.
+- Full Node suite: `node --test tests/*.test.ts tests/*.test.js` — 212/212 PASS. `npm run build` and `git diff --check` PASS. Source review confirms Tasks list/Realtime setup occurs only when enabled, toggle-in-progress hides the business entry, blocked state remounts the Tasks area to close sheets and discard local cache, and inactive `TasksArea` cannot start a new old-Space Task read or continue pagination. The existing database remains the mutation authority. Static/pure tests cannot establish real browser layout, authenticated state transitions, or Production data retention. Slice 3 final review remains pending.
+- This Slice adds no `space_modules` Realtime publication. Another member's already-open page may temporarily display old state; refresh or re-entry reads the current row. Database RLS rejects Task mutations while disabled. No authenticated Production session, Production Task toggle, deploy, commit, or push was used for local verification.
+
+### Later user-run Production acceptance (not yet executed)
+
+1. After reviewed Slice 3 frontend is deployed and confirmed as the active entry point, close/refresh old tabs and restart PWA runtimes. Do not toggle Production Tasks using localhost/Preview while Slice 2 remains active.
+2. Personal Space: create one Open and one Completed test Task; close Tasks, confirm the business entry/count and CRUD disappear; reopen, confirm both rows and their status/identity/assignment remain, then exercise edit, complete/reopen, and delete.
+3. Shared Space owner: create one test Task, close and reopen Tasks, and confirm its entry disappears then the same Task returns. Shared member: confirm read-only module state, no toggle, and matching state after refresh or re-entry.
+4. Switch Personal ↔ Shared in both enabled/disabled combinations; verify module state and Task data do not cross Spaces. Check the panel and close/reopen controls on iPhone/PWA at narrow width. Use only short-lived test Tasks.
+
 ## v0.1.10 Slice 2 — Selected / Current Space Vertical Flow (CLOSED / PASS)
 
-Status: Slice 1 backend `PRODUCTION BACKEND ROLLOUT PASS`; Slice 2 `CLOSED / PASS`; authenticated Production acceptance `PASS`; Production frontend rollout `PASS`; Slice 3 `NOT STARTED`. This closes Slice 2 only, not the full v0.1.10 foundation.
+Status at Slice 2 closeout: Slice 1 backend `PRODUCTION BACKEND ROLLOUT PASS`; Slice 2 `CLOSED / PASS`; its authenticated Production acceptance `PASS` and frontend rollout `PASS`. Current Slice 3 local implementation status is recorded above. This closes Slice 2 only, not the full v0.1.10 foundation.
 
 ### User-run authenticated Production acceptance — PASS
 

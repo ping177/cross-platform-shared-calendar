@@ -44,6 +44,7 @@ import {
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { bootstrapSpaces, chooseSelectedSpaceId, completeSharedSpaceAction, ensureOnceUntilFailure, writeSelectedSpaceId } from './lib/space-selection';
 import { newEventIdentity } from './lib/space-content';
+import { createTasksModuleToggleGuard, tasksModuleStateFromResult, type TasksModuleState } from './lib/space-modules';
 import { createRequestGuard } from './lib/request-guard';
 import {
   cleanupPushAndSignOut,
@@ -573,10 +574,69 @@ export function CurrentSpaceApp({ session, space, onSpaceUpdate, onSpaceSelector
   const [showMembers, setShowMembers] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [memberMessage, setMemberMessage] = useState('');
+  const [tasksModuleState, setTasksModuleState] = useState<TasksModuleState>('loading');
+  const [tasksModuleError, setTasksModuleError] = useState('');
+  const [tasksModuleBusy, setTasksModuleBusy] = useState(false);
   const memberRequestGuard = useRef(createRequestGuard());
   const eventRequestGuard = useRef(createRequestGuard());
+  const moduleRequestGuard = useRef(createRequestGuard());
+  const moduleToggleGuard = useRef(createTasksModuleToggleGuard());
 
   const partner = members.find((member) => member.user_id !== userId) ?? null;
+
+  async function readTasksModuleState(spaceId: string) {
+    const result = await supabase.from('space_modules')
+      .select('enabled')
+      .eq('space_id', spaceId)
+      .eq('module_key', 'tasks')
+      .maybeSingle();
+    return tasksModuleStateFromResult(result);
+  }
+
+  async function loadTasksModuleState(spaceId: string) {
+    const currentRequest = moduleRequestGuard.current.begin();
+    setTasksModuleState('loading');
+    setTasksModuleError('');
+    try {
+      const state = await readTasksModuleState(spaceId);
+      if (moduleRequestGuard.current.isCurrent(currentRequest)) setTasksModuleState(state);
+    } catch {
+      if (moduleRequestGuard.current.isCurrent(currentRequest)) {
+        setTasksModuleState('error');
+        setTasksModuleError('任务模块状态读取失败，请重试。');
+      }
+    }
+  }
+
+  async function changeTasksModule() {
+    if (space.membershipRole !== 'owner' || moduleToggleGuard.current.isBusy() || (tasksModuleState !== 'enabled' && tasksModuleState !== 'disabled')) return;
+    const currentRequest = moduleRequestGuard.current.begin();
+    const nextEnabled = tasksModuleState === 'disabled';
+    setTasksModuleBusy(true);
+    setTasksModuleError('');
+    const result = await moduleToggleGuard.current.run(
+      async () => {
+        const { error: toggleError } = await supabase.rpc('set_space_module_enabled', {
+          p_space_id: space.id,
+          p_module_key: 'tasks',
+          p_enabled: nextEnabled,
+        });
+        if (toggleError) throw toggleError;
+      },
+      () => readTasksModuleState(space.id),
+    );
+    if (!moduleRequestGuard.current.isCurrent(currentRequest)) return;
+    setTasksModuleBusy(false);
+    if (result === null) return;
+    if ('state' in result) {
+      setTasksModuleState(result.state);
+    } else if (result.failure === 'rpc') {
+      setTasksModuleError('任务模块切换失败，请确认空间权限或稍后重试。');
+    } else {
+      setTasksModuleState('error');
+      setTasksModuleError('任务模块状态读取失败，请重试。');
+    }
+  }
 
   async function loadMembers(spaceId: string) {
     const currentRequest = memberRequestGuard.current.begin();
@@ -644,6 +704,7 @@ export function CurrentSpaceApp({ session, space, onSpaceUpdate, onSpaceSelector
   useEffect(() => {
     void loadMembers(space.id);
     void loadEvents(space.id).catch(() => undefined);
+    void loadTasksModuleState(space.id);
 
     const channel = supabase
       .channel(`events:${space.id}`)
@@ -657,9 +718,16 @@ export function CurrentSpaceApp({ session, space, onSpaceUpdate, onSpaceSelector
     return () => {
       memberRequestGuard.current.invalidate();
       eventRequestGuard.current.invalidate();
+      moduleRequestGuard.current.invalidate();
       void supabase.removeChannel(channel);
     };
   }, [space.id]);
+
+  useEffect(() => {
+    if (tasksModuleState !== 'enabled' && (screen === 'tasks' || screen === 'completed')) setScreen('hub');
+  }, [tasksModuleState, screen]);
+
+  const visibleTasksModuleState: TasksModuleState = tasksModuleBusy ? 'loading' : tasksModuleState;
 
   async function signOut() {
     setError('');
@@ -763,12 +831,18 @@ export function CurrentSpaceApp({ session, space, onSpaceUpdate, onSpaceSelector
           </>
         )}
         <TasksArea
-          key={space.id}
+          key={`${space.id}:${visibleTasksModuleState === 'enabled' ? 'enabled' : 'blocked'}`}
           screen={screen}
           onScreenChange={setScreen}
           space={space}
           members={members}
           userId={userId}
+          moduleState={visibleTasksModuleState}
+          moduleError={tasksModuleError}
+          moduleBusy={tasksModuleBusy}
+          isOwner={space.membershipRole === 'owner'}
+          onModuleRetry={() => void loadTasksModuleState(space.id)}
+          onModuleToggle={() => void changeTasksModule()}
           invitePanel={space.kind === 'shared' ? <InvitePanel space={space} onSpaceChange={onSpaceUpdate} /> : null}
           onMembersOpen={() => setShowMembers(true)}
           onSpaceSelectorOpen={onSpaceSelectorOpen}

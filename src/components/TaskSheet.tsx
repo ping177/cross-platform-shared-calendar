@@ -51,7 +51,7 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
         : await supabase.from('tasks').insert({ ...values, space_id: spaceId, created_by: userId }).select('id');
 
       if (result.error) throw result.error;
-      if (!result.data?.length) throw new Error('未能保存 Task，请确认当前空间权限后重试。');
+      if (!result.data?.length) throw new Error('未能保存任务，请确认当前空间权限后重试。');
       await onSaved();
       onClose();
     } catch (saveError) {
@@ -73,7 +73,7 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
         .eq('id', task.id)
         .select('id');
       if (deleteError) throw deleteError;
-      if (!data?.length) throw new Error('未能删除 Task，请确认它仍在当前空间。');
+      if (!data?.length) throw new Error('未能删除任务，请确认它仍在当前空间。');
       await onSaved();
       onClose();
     } catch (deleteError) {
@@ -87,8 +87,8 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
     <div className="fixed inset-0 z-20 flex items-end bg-ink/35 md:items-center md:px-4 md:py-6">
       <section className="mx-auto max-h-[92dvh] w-full max-w-md overflow-y-auto overscroll-contain rounded-t-2xl bg-white p-5 shadow-soft safe-bottom md:rounded-lg" role="dialog" aria-modal="true" aria-labelledby="task-sheet-title">
         <div className="flex items-center justify-between gap-3">
-          <h2 id="task-sheet-title" className="text-xl font-bold">{task ? '编辑 Task' : '新建 Task'}</h2>
-          <button className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-mist disabled:opacity-60" type="button" onClick={onClose} disabled={busy} aria-label="关闭 Task 表单">
+          <h2 id="task-sheet-title" className="text-xl font-bold">{task ? '编辑任务' : '新建任务'}</h2>
+          <button className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-mist disabled:opacity-60" type="button" onClick={onClose} disabled={busy} aria-label="关闭任务表单">
             <X size={20} />
           </button>
         </div>
@@ -126,7 +126,7 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
             </div>
             <div className="flex gap-3 pt-2">
               {task && (
-                <button className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-coral/10 text-coral disabled:opacity-60" type="button" onClick={() => setConfirmingDelete(true)} disabled={busy} aria-label="删除 Task">
+                <button className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-coral/10 text-coral disabled:opacity-60" type="button" onClick={() => setConfirmingDelete(true)} disabled={busy} aria-label="删除任务">
                   <Trash2 size={20} />
                 </button>
               )}

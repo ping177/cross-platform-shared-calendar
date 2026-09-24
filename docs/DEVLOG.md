@@ -1,5 +1,18 @@
 # Development Log
 
+# 2026-09-24 - v0.1.10 Slice 3 Bounded Review Corrections — Final Review Pending
+
+- Added a component-active gate to `TasksArea`: cleanup deactivates it before request invalidation, new Task reads and each pagination step check it, and delayed mutation completion skips reload and parent Task state updates after unmount. Existing active-component reload and request-generation behavior remain.
+- Mapped Task-domain backend messages, including lowercase `task` / `tasks`, module-disabled and permission failures, to Chinese UI copy. Unknown non-Task messages retain the existing fallback behavior. Focused delayed-completion and error-copy coverage was added.
+- Focused Node 20/20 and full Node 212/212 PASS; `npm run build` PASS. `git diff --check` PASS. These are local/static checks; Slice 3 remains `LOCAL VERIFIED / REVIEW PENDING`, with Production rollout and authenticated acceptance `NOT STARTED`. No backend/schema/RLS/RPC, dependency, Production session/toggle, deploy, commit, or push changed.
+
+# 2026-09-24 - v0.1.10 Slice 3 Local Frontend Implementation — Review Checkpoint
+
+- Added a current-Space Tasks module read with `loading / enabled / disabled / error` states. Only `tasks=true` opens the business UI; absent/false rows are disabled, and read failures remain unknown with a retry. The selected Space component and request guard prevent late module responses from crossing a switch.
+- The Space Hub now shows one module-management row after members/invite controls. Personal and Shared owners can use the existing owner-authorized `set_space_module_enabled` RPC; Shared members see read-only state. The Tasks business entry and count appear only when enabled. Closing or losing known state exits Tasks/Completed, unmounts Task Sheet and clears local Task state without deleting database rows. Toggle RPC failure retains known state; successful RPC followed by read failure enters unknown. Re-enabling reloads historical Tasks.
+- Changed user-facing Task/Tasks labels, accessibility labels, loading text, and Task-specific errors to Chinese. Internal types, identifiers, table names, and filenames remain unchanged. No module Realtime publication, backend/schema/RLS/RPC, dependency, future-module UI, or navigation redesign changed.
+- Focused Node tests 19/19 PASS; full Node suite 211/211 PASS; `npm run build` and `git diff --check` PASS. Tests are pure/static and do not constitute real authenticated acceptance. Slice 3 Production frontend rollout and authenticated Production acceptance are `NOT STARTED`; the full v0.1.10 foundation remains open. Other members' already-open pages refresh/re-enter to see a toggle; the database still rejects disabled Task writes. No Production toggle, login/session operation, commit, push, or deploy occurred.
+
 # 2026-09-24 - v0.1.10 Slice 2 Authenticated Production Acceptance — CLOSED / PASS
 
 - The user completed real A/B authenticated acceptance in Production browsers and on iPhone/PWA. A and B each received their Personal Space at first authenticated bootstrap and initially remained in their original Shared Space. Personal Spaces were mutually invisible; A/B Shared ↔ Personal switching, refresh restoration of valid selected Space, and user-isolated remembered selections passed.

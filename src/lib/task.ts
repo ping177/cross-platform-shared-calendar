@@ -36,12 +36,28 @@ export function formatTaskDueDate(dueOn: string | null) {
   return `${Number(month)}月${Number(day)}日`;
 }
 
+export function createTaskReadGate() {
+  let active = false;
+  return {
+    activate: () => { active = true; },
+    deactivate: () => { active = false; },
+    isActive: () => active,
+    runIfActive: async (read: () => Promise<void>) => {
+      if (active) await read();
+    },
+  };
+}
+
 export function taskErrorMessage(error: unknown) {
-  if (error instanceof Error) return error.message;
-  if (typeof error === 'object' && error !== null && 'message' in error && typeof error.message === 'string') {
-    return error.message;
+  const message = error instanceof Error ? error.message
+    : typeof error === 'object' && error !== null && 'message' in error && typeof error.message === 'string' ? error.message : '';
+  if (message.includes('Only the current Task assignee may change status')) return '只有当前任务负责人可以更改完成状态。';
+  if (/\btasks?\b/i.test(message)) {
+    if (/\bmodule\b.*\b(disabled|not enabled|turned off)\b/i.test(message)) return '当前空间的任务模块已关闭。';
+    if (/\b(permission denied|not authorized|row-level security policy)\b/i.test(message)) return '你没有权限执行此任务操作。';
+    return '任务操作失败，请稍后再试。';
   }
-  return 'Task 操作失败，请稍后再试。';
+  return message || '任务操作失败，请稍后再试。';
 }
 
 function taskMemberLabel(member: SpaceMember, members: SpaceMember[], currentUserId: string) {

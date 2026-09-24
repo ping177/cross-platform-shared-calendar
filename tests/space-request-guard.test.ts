@@ -44,3 +44,20 @@ test('newer same-Space refresh wins over a late earlier request', () => {
   assert.equal(guard.isCurrent(first), false);
   assert.equal(guard.isCurrent(second), true);
 });
+
+test('late module state and toggle refresh cannot cross a Space switch', async () => {
+  const guard = createRequestGuard();
+  const oldRead = deferred<'enabled' | 'disabled'>();
+  const oldToken = guard.begin();
+  let visible: 'enabled' | 'disabled' | 'loading' = 'loading';
+  const pending = oldRead.promise.then((state) => {
+    if (guard.isCurrent(oldToken)) visible = state;
+  });
+
+  guard.invalidate();
+  const newToken = guard.begin();
+  if (guard.isCurrent(newToken)) visible = 'disabled';
+  oldRead.resolve('enabled');
+  await pending;
+  assert.equal(visible, 'disabled');
+});
