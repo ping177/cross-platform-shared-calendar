@@ -1,6 +1,6 @@
 # Shared Life Architecture Freeze
 
-Status: `ARCHITECTURE FROZEN`; v0.1.10 Scope / Architecture Freeze: `CLOSED / READY FOR IMPLEMENTATION`; Slice 1: `PRODUCTION BACKEND ROLLOUT PASS`; Slice 2: `CLOSED / PASS` (Production frontend rollout and authenticated acceptance passed); Slice 3 frontend: `DEPLOYED / UNAUTHENTICATED VERIFIED` (authenticated Production acceptance not started). The full v0.1.10 foundation is not closed.
+Status: `ARCHITECTURE FROZEN`; v0.1.10 Scope / Architecture Freeze: `CLOSED / READY FOR IMPLEMENTATION`; Slice 1: `PRODUCTION BACKEND ROLLOUT PASS`; Slice 2: `CLOSED / PASS`; Slice 3: `CLOSED / PASS` after user-run authenticated Production acceptance; v0.1.10: `CLOSED / PASS`. v0.1.11 remains `NOT STARTED` pending its Scope / Architecture Audit.
 
 This document freezes the long-term product model and navigation direction plus the reviewed v0.1.10 foundation scope. It does not change the accepted v0.1.9 Production capability. Later roadmap versions remain directional and need their own scope review.
 
@@ -72,7 +72,9 @@ Status: `CLOSED / READY FOR IMPLEMENTATION`. This section is the reviewed design
 
 1. **Slice 1 — Data / permission foundation:** constraints, controlled lifecycle and module RPCs, migration/fresh schema parity, database authorization and compatibility tests, plus Production preflight/postflight planning.
 2. **Slice 2 — Selected/current Space vertical flow:** Personal Space ensure after frontend readiness, Shared Space create/join and selection, Space-local Event/Task/member/module loading, Realtime cleanup, and stale-request isolation.
-3. **Slice 3 — Tasks module enablement + UI text closeout:** owner toggle, disabled-state behavior and history restoration, and user-visible `Task / Tasks` copy changed to Chinese “任务”. Change UI text only; retain table/type/file names and do not add full i18n.
+3. **Slice 3 — Tasks module enablement + UI text closeout — CLOSED / PASS:** Production owner toggle, disabled-state behavior, Task history restoration, Chinese user-visible `Task / Tasks` wording, and user-run authenticated acceptance passed. Retain table/type/file names; full i18n remains out of scope.
+
+Known characteristic / future consideration: `space_modules` is not in the Realtime publication. An already-open Shared member page may temporarily retain the previous module UI until refresh or re-entry. Database policy immediately rejects disabled Task writes. Consider module-state Realtime / immediate cross-client UI refresh only if real usage demonstrates a need; this does not reopen v0.1.10.
 
 Deferred to v0.1.11 or later: final `首页 / 日历 / 空间 / 我的` navigation, cross-Space aggregation, global `+`, Calendar multi-Space overlay, Lists / Important Dates / Review implementation, External Calendar Sources, UI redesign, Native App, and Shared Space three-plus-member support. Memo content implementation also remains deferred.
 

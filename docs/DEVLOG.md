@@ -1,5 +1,12 @@
 # Development Log
 
+# 2026-09-24 - v0.1.10 Final Closeout — CLOSED / PASS
+
+- User-run Slice 3 authenticated Production acceptance passed. Personal Space owner disabled Tasks after preparing Open and Completed rows; the business entry and count disappeared while module controls remained, and re-enable restored both rows with their contents/status. Edit, complete, reopen, and delete worked after re-enable. Shared owner disable/re-enable preserved Tasks; Shared member had no toggle and saw the updated state after refresh/re-entry. Personal and Shared module state remained isolated, and iPhone/PWA controls behaved as expected.
+- Known characteristic / future consideration: `space_modules` has no Realtime publication. An already-open Shared member page may temporarily retain the old Tasks entry after an owner disables Tasks. Refresh/re-entry updates the UI; database policy rejects writes immediately. This did not fail acceptance and does not reopen v0.1.10. No module Realtime backend change was made.
+- v0.1.10 is `CLOSED / PASS`: Slice 1 `PRODUCTION BACKEND ROLLOUT PASS`, Slice 2 `CLOSED / PASS`, Slice 3 `CLOSED / PASS`. Delivery includes Personal Space and multi-space membership foundations, explicit selected/current Space switching, Personal Event/Task behavior, Shared create/join continuation, Tasks enable/disable with data preservation and owner-only toggle, Chinese Task UI copy, Production backend/frontend rollout, authenticated A/B acceptance, and iPhone/PWA acceptance. Shared remains capped at two members; cross-Space aggregation, final four-destination navigation, global `+`, Lists / Important Dates / Review, and module-state Realtime remain out of scope. v0.1.11 is `NOT STARTED`; next action is its Navigation + Aggregation scope / architecture audit.
+- User performed all authenticated acceptance. Codex did not operate Magic Link / OTP or user sessions. No business code, backend/schema/RLS/RPC, dependency, or Production data/configuration was changed for this documentation closeout.
+
 # 2026-09-24 - v0.1.10 Slice 3 Controlled Frontend Rollout — Unauthenticated Verified
 
 - Final scope and Project State pre-push review passed. Focused Node 20/20, full Node 212/212, `npm run build`, and `git diff --check` passed. Implementation commit `d14b73f898b3015564960a91c4e17035ee0f8272` was normally pushed to `origin/main` with the required Project-State-Review trailer; no backend/schema/RLS/RPC, dependency, or module Realtime change was included.
