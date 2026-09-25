@@ -145,12 +145,17 @@ The canonical long-term model and roadmap are in [Shared Life Architecture Freez
 
 ## v0.1.12 Module Hub + Space Management Navigation — Frozen Direction — 2026-09-25
 
-- The v0.1.12 product direction is frozen as a module-first navigation migration from `首页 / 日历 / 空间 / 我的` to the semantic target `首页 / 日历 / 功能中心 / 我的`. The exact Chinese tab label may be confirmed during the read-only repo / product / architecture design review. The third destination opens modules directly rather than asking the user to choose a Space first. At the time of this roadmap freeze, implementation had not started; Slices 1 and 2 have since closed, and Slice 3 is next.
+- The v0.1.12 product direction is frozen as a module-first navigation migration from `首页 / 日历 / 空间 / 我的` to the semantic target `首页 / 日历 / 功能中心 / 我的`. The exact Chinese tab label may be confirmed during the read-only repo / product / architecture design review. The third destination opens modules directly rather than asking the user to choose a Space first. At the time of this roadmap freeze, implementation had not started; Slices 1–4 have since closed.
 - Migrate only currently implemented optional modules. Tasks is the only implemented optional module and the first module to expose in 功能中心. Lists, Important Dates, Review / Check-in, Memo, and Wishlist do not get implemented or shown as placeholders; this direction adds no generic module framework or plugin system.
 - Keep module enablement and a module page's view filter as separate semantics. `space_modules` remains per-Space configuration; the Tasks filter lists only Spaces with Tasks enabled. Disabling a module hides it from that Space's module entry while retaining its data. Each module owns its own filter; Calendar's `calendarFilter` stays independent and continues to support all Spaces or one Space. Do not add a global app-wide Space filter.
 - “我的” target responsibilities are personal profile, Space management, and general settings. Space management may provide the Space list, create/join actions, and a Space detail surface for members, invitations, Space settings, and enabled-module controls. Module controls may be a section within Space details; a separate nested module-management page is not required. Slice 2 later delivered this management structure and is accepted `CLOSED / PASS`; visual refinement is deferred to a future unified design pass and is not a functional blocker.
 - Space remains the canonical ownership boundary. Events, Tasks, Lists, Important Dates, and Review each belong to one canonical Space; `ownership ≠ view`. This migration changes navigation, aggregation, and view, not canonical ownership, persistence, or the Space schema.
 - Preserve the v0.1.11 Home shortcuts: “近期日程 +” directly opens Event creation and “需要处理的任务 +” directly opens Task creation. Future module Home sections and shortcuts are decided when each module is actually implemented.
+
+## v0.1.12 Final Production/PWA Acceptance + Closeout — 2026-09-25
+
+- The user reported final authenticated Production and installed-PWA acceptance `PASS`. Slice 4 and v0.1.12 are `CLOSED / PASS`, with Slices 1–3 already closed. The accepted navigation is 首页 / 日历 / 功能中心 / 我的; 功能中心 contains only 任务, while 我的 → 空间管理 owns Personal/Shared Space detail. Space remains the canonical ownership boundary.
+- Visual refinement, unused `MemberSheet.tsx`, `space_modules` Realtime, and Calendar all-Space creation stay deferred. v0.1.13 Space Lifecycle & Membership Safety is the next planned version; no lifecycle design or implementation is part of this closeout.
 
 ## v0.1.13 — Space Lifecycle & Membership Safety — PLANNED
 

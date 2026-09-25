@@ -12,11 +12,13 @@ v0.1.12
 
 ## Current status
 
-v0.1.12 Module Hub + Space Management Navigation `IN PROGRESS`。Slice 1 Aggregate Tasks Foundation、Slice 2 Space Management、Slice 3 One-time Navigation Switch + Aggregate Tasks UI 均为 `CLOSED / PASS`；Slice 3 用户真实账号本地功能验收为 `PASS`。Slice 4 Final Regression + Production/PWA Acceptance 为 `NEXT`。v0.1.13 Space Lifecycle & Membership Safety 为 `PLANNED`。
+v0.1.12 Module Hub + Space Management Navigation `CLOSED / PASS`。Slice 1 Aggregate Tasks Foundation、Slice 2 My → Space Management → Space Detail、Slice 3 One-time Navigation Switch + Aggregate Tasks UI、Slice 4 Final Regression + Production/PWA Acceptance 均为 `CLOSED / PASS`；用户报告最终真实账号 Production 与 installed PWA 验收 `PASS`。v0.1.13 Space Lifecycle & Membership Safety 为下一计划版本，状态 `PLANNED`。
 
 ## Latest completed
 
-v0.1.12 Slice 3 已通过用户真实账号本地功能验收并 `CLOSED / PASS`。一级导航为 首页 / 日历 / 功能中心 / 我的；功能中心目前仅有任务，任务聚合与独立筛选已接入，旧 Space-first 日常任务路径已退役。最终代码 review 与自动校验通过；Production/iPhone/PWA 验收留给 Slice 4。未用的 `MemberSheet.tsx` 待另行决定删除。
+v0.1.12 — Module Hub + Space Management Navigation 已完成并 `CLOSED / PASS`。Production 部署了已验收的前端提交 `9847a0761e117234e10e219ec9c8d4bae25a850e`，最终自动回归与用户真实账号 Production / installed-PWA 验收通过。一级导航为 首页 / 日历 / 功能中心 / 我的；功能中心仅有任务，任务聚合各 eligible Space；我的 → 空间管理管理 Personal / Shared 详情。Space 仍是 canonical ownership boundary。统一 UI 视觉精修、未使用的 `MemberSheet.tsx`、`space_modules` Realtime 和 Calendar all-Space 创建留待后续，不阻塞本版本。
+
+v0.1.12 Slice 3 已通过用户真实账号本地功能验收并 `CLOSED / PASS`。一级导航为 首页 / 日历 / 功能中心 / 我的；功能中心目前仅有任务，任务聚合与独立筛选已接入，旧 Space-first 日常任务路径已退役。最终代码 review 与自动校验通过；其后 Slice 4 Production / installed-PWA 验收亦通过。未用的 `MemberSheet.tsx` 待另行决定删除。
 
 v0.1.12 Slice 2 My → Space Management → Space Detail 已通过用户真实账号功能验收并 `CLOSED / PASS`。涵盖 Personal/Shared 列表和详情、成员/角色、邀请码、Tasks 开关、create/join 复用、selectedSpaceId 管理职责及临时旧 Hub 过渡。UI视觉精修留待统一设计迭代，不阻塞本 Slice。Production 未变。
 
@@ -36,7 +38,7 @@ Status: public_deployed
 Public URL: https://cross-platform-shared-calendar.vercel.app/
 Provider: Vercel
 Backend: Supabase Free
-Notes: Vercel is the configured Production provider. Slice 4 of v0.1.11 is included in Production; the user confirmed that the Production URL served that frontend from feature commit `f916dc0f0a1962facca44f4174241031b4f44bf2` during acceptance. Installed PWA acceptance is `PASS`; dedicated final iPhone Safari acceptance is `NOT RUN` and is not a blocker. v0.1.12 Slice 2 user acceptance was performed against the local frontend; no Production acceptance is claimed for Slice 2. v0.1.12 Slice 3 passed local authenticated acceptance; Production/iPhone/PWA acceptance remains for Slice 4. A push alone does not verify Vercel deployment. v0.1.11 Slice 1–3 Production acceptance remains `PASS`; no backend rollout occurred for those slices, and the backend remains unchanged from v0.1.10. Dedicated v0.1.11 Slice 2 iPhone Safari, installed PWA and final 320px device checks remain `DEFERRED / NOT RUN`; second Shared Space coverage is `N/A / NOT RUN`. v0.1.11 Slice 3 independent Event/Task section error/retry simulation remains `NOT RUN / DIFFICULT TO SIMULATE SAFELY`. `space_modules` still has no Realtime publication, so another member may need refresh/re-entry after a remote Tasks toggle; database policy blocks disabled writes. v0.1.10 remains `CLOSED / PASS`. `send-test-push` remains ACTIVE v4 reviewed-equivalent; `send-reminders` remains ACTIVE v2 / `verify_jwt=false`. Vault/secret/Cron were not changed.
+Notes: Vercel is the configured Production provider. Slice 4 of v0.1.11 is included in Production; the user confirmed that the Production URL served that frontend from feature commit `f916dc0f0a1962facca44f4174241031b4f44bf2` during acceptance. Installed PWA acceptance is `PASS`; dedicated final iPhone Safari acceptance is `NOT RUN` and is not a blocker. v0.1.12 Slice 2 user acceptance was performed against the local frontend; no Production acceptance is claimed for Slice 2. v0.1.12 accepted frontend commit `9847a0761e117234e10e219ec9c8d4bae25a850e` is verified as the successful Production deployment; the user reported final authenticated Production and installed-PWA acceptance PASS. Dedicated iPhone Safari acceptance is not separately claimed. v0.1.11 Slice 1–3 Production acceptance remains `PASS`; no backend rollout occurred for those slices, and the backend remains unchanged from v0.1.10. Dedicated v0.1.11 Slice 2 iPhone Safari, installed PWA and final 320px device checks remain `DEFERRED / NOT RUN`; second Shared Space coverage is `N/A / NOT RUN`. v0.1.11 Slice 3 independent Event/Task section error/retry simulation remains `NOT RUN / DIFFICULT TO SIMULATE SAFELY`. `space_modules` still has no Realtime publication, so another member may need refresh/re-entry after a remote Tasks toggle; database policy blocks disabled writes. v0.1.10 remains `CLOSED / PASS`. `send-test-push` remains ACTIVE v4 reviewed-equivalent; `send-reminders` remains ACTIVE v2 / `verify_jwt=false`. Vault/secret/Cron were not changed.
 
 ## Version Index
 
@@ -64,8 +66,8 @@ Notes: Vercel is the configured Production provider. Slice 4 of v0.1.11 is inclu
 - v0.1.9 — Shared Tasks MVP（CLOSED / PASS；Slice 1/2/3 CLOSED / PASS；Production backend verified、frontend deployed and accepted）
 - v0.1.10 — Personal Space + Multi-space + Module Enablement Foundation（CLOSED / PASS；Slice 1 PRODUCTION BACKEND ROLLOUT PASS；Slice 2 CLOSED / PASS；Slice 3 CLOSED / PASS）
 - v0.1.11 — Navigation + Aggregation Experience（CLOSED / PASS；Slice 1–4 CLOSED / PASS；Production installed PWA acceptance PASS；dedicated final iPhone Safari acceptance NOT RUN）
-- v0.1.12 — Module Hub + Space Management Navigation（IN PROGRESS；Slice 1–3 CLOSED / PASS；Slice 4 Final Regression + Production/PWA Acceptance NEXT）
-- v0.1.13 — Space Lifecycle & Membership Safety（PLANNED；scope design after v0.1.12 closeout）
+- v0.1.12 — Module Hub + Space Management Navigation（CLOSED / PASS；Slice 1–4 CLOSED / PASS；Production / installed-PWA acceptance PASS）
+- v0.1.13 — Space Lifecycle & Membership Safety（PLANNED；next scope design）
 
 ## Last verified
 
@@ -73,7 +75,7 @@ Notes: Vercel is the configured Production provider. Slice 4 of v0.1.11 is inclu
 
 ## Next Action
 
-启动 v0.1.12 Slice 4：先做最终回归与环境/部署就绪检查，再安排 Production 与 iPhone/PWA 真实验收；验收后才考虑 v0.1.12 整体 closeout。v0.1.13 Space Lifecycle & Membership Safety 保持 `PLANNED`。
+规划 v0.1.13 Space Lifecycle & Membership Safety 的范围、权限与数据完整性语义；暂不实施。重点包括 Shared Space 离开、成员移除、所有权转移与删除，并遵守已冻结的高层安全原则。
 
 ## Blockers
 
@@ -94,7 +96,7 @@ Notes: Vercel is the configured Production provider. Slice 4 of v0.1.11 is inclu
 - v0.1.9 canonical scope is `docs/v0.1.9_SHARED_TASKS_SPEC.md`; Slice 1 backend is Production applied/postflight verified, Slice 2 local UI passed user-run authenticated acceptance, and Slice 3 Production Desktop A/B plus iPhone smoke passed. All three slices are CLOSED / PASS.
 - v0.1.10 is `CLOSED / PASS`: it reuses `spaces / space_members`, enforces sole-owner Personal Space with partial unique `UNIQUE(created_by) WHERE kind = 'personal'`, retains the Shared two-member limit, and keeps disabled Tasks history readable while blocking mutations. Calendar is always on; Tasks is the only v0.1.10 visible module toggle. Slice 1 / 2 / 3 passed their respective backend, frontend, and user acceptance gates. Production frontend now also includes the v0.1.11 Slice 1 navigation foundation; that rollout changed no backend/schema/RPC. Shared three-plus-member support remains deferred.
 - v0.1.11 canonical scope is `docs/v0.1.11_NAVIGATION_AGGREGATION_SPEC.md`; overall and Slices 1–4 are `CLOSED / PASS`. Production installed PWA acceptance is user-reported `PASS`; dedicated final iPhone Safari acceptance is accurately recorded as `NOT RUN` and is not a blocker. Production includes the Slice 4 frontend from feature commit `f916dc0f0a1962facca44f4174241031b4f44bf2`. Slice 3 independent Event/Task section error/retry remains `NOT RUN / DIFFICULT TO SIMULATE SAFELY`; second Shared Space is `N/A / NOT RUN`. Dedicated Slice 2 device checks remain deferred as recorded above.
-- Roadmap: v0.1.12 Module Hub + Space Management Navigation is in progress; Slices 1–3 are `CLOSED / PASS` and Slice 4 is `NEXT`. v0.1.13 is planned for Space Lifecycle & Membership Safety before further Space-owned modules. Structured Review / Check-in and Shared Lists remain future candidates after lifecycle safety; do not assign later versions yet.
+- Roadmap: v0.1.12 Module Hub + Space Management Navigation and Slices 1–4 are `CLOSED / PASS`, including final Production / installed-PWA acceptance. v0.1.13 Space Lifecycle & Membership Safety is `PLANNED` next, before further Space-owned modules. Structured Review / Check-in and Shared Lists remain future candidates after lifecycle safety; do not assign later versions yet.
 - v0.1.10 backend rollout preserved existing Space/member/Event/Task row counts and identity/invite fingerprints. The user subsequently completed the first A/B authenticated acceptance; Personal Spaces are now created by the deployed Slice 2 bootstrap. The old v0.1.9 runtime is not a safe rollback target for an account with a Personal Space. Any older-account bulk backfill remains outside Slice 2 and requires a separate review. Production Task count was 0 at backend rollout, so historical Task disable/re-enable remains locally verified rather than Production-tested.
 - v0.1.10 is closed with Shared Spaces retaining the two-member limit. It does not include cross-Space aggregation, final four-destination navigation, global `+`, Lists / Important Dates / Review implementation, or module-state Realtime. The observed member refresh behavior is a known characteristic and future consideration; it does not reopen v0.1.10.
 - `V019_SLICE2_UI_FROZEN` / `SLICE 2 IMPLEMENTED / MANUAL AUTH ACCEPTANCE PASS`: Calendar header `共享空间 · {space.name}` opens the current Space Hub; its only module entry is Tasks. Open Tasks and separate Completed Tasks use the existing Space-scoped contract. Empty `profiles.display_name` may use contextual `我 / 对方` only in the current two-member v0.1.9 UI; this is not a durable partner identity, and future Multi-space / multi-member UI uses generic member display logic. Space-entry navigation and 320px layout passed user-run acceptance; extreme-width name ellipsis is accepted.
@@ -144,4 +146,4 @@ Notes: Vercel is the configured Production provider. Slice 4 of v0.1.11 is inclu
 
 ## Handoff Prompt
 
-v0.1.11 remains `CLOSED / PASS`. v0.1.12 is `IN PROGRESS`: Slices 1–3 are `CLOSED / PASS`, including Slice 3 user-run local authenticated acceptance. Slice 4 final regression and Production/PWA acceptance is `NEXT` and has not started. `selectedSpaceId` selects management detail only; taskFilter and calendarFilter remain independent. Do not infer Production/iPhone/PWA acceptance from Slice 3 local PASS. v0.1.13 Space Lifecycle & Membership Safety is `PLANNED` after v0.1.12 closeout.
+v0.1.12 Module Hub + Space Management Navigation and Slices 1–4 are `CLOSED / PASS`. The user reported final authenticated Production and installed-PWA acceptance `PASS`; dedicated iPhone Safari acceptance is not separately claimed. 首页 / 日历 / 功能中心 / 我的 is the accepted navigation, with Tasks in 功能中心 and Space management under 我的. `selectedSpaceId` remains management/detail state; taskFilter and calendarFilter remain independent. v0.1.13 Space Lifecycle & Membership Safety is `PLANNED` next; do not start implementation without a separate scope and plan.

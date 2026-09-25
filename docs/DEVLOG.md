@@ -1,5 +1,10 @@
 # Development Log
 
+# 2026-09-25 - v0.1.12 Module Hub + Space Management Navigation — CLOSED / PASS
+
+- User reported final authenticated Production and installed-PWA acceptance `PASS`. Slice 4 Final Regression + Production/PWA Acceptance and v0.1.12 are `CLOSED / PASS`; Slices 1–3 remain `CLOSED / PASS`. Production deployment of accepted frontend commit `9847a0761e117234e10e219ec9c8d4bae25a850e` was verified in the release gate; the full Node suite passed 266/266, build passed, and public shell/assets loaded.
+- The accepted product uses 首页 / 日历 / 功能中心 / 我的, with Tasks as the only Hub module and Space management under 我的. UI visual refinement, unused `MemberSheet.tsx`, `space_modules` Realtime, and Calendar all-Space create remain deferred and are not closeout blockers. This closeout changes governance only; v0.1.13 Space Lifecycle & Membership Safety is `PLANNED` next, with no implementation started.
+
 # 2026-09-25 - v0.1.12 Slice 3 Final Review and Local Acceptance — CLOSED / PASS
 
 - User reported authenticated manual acceptance `PASS` for the one-time navigation switch and Aggregate Tasks UI. Final review confirmed four primary tabs, Tasks-only Module Hub, canonical aggregate reads and actions, independent all/single eligible-Space filter, scoped Task Realtime cleanup, and My → Space Management. Unused `MemberSheet.tsx` remains in the repository pending a separate deletion decision.
