@@ -101,7 +101,7 @@ Status: Slice 1 `PRODUCTION BACKEND ROLLOUT PASS`; Slice 2 `CLOSED / PASS`; Slic
 
 Known characteristic / future consideration: `space_modules` has no Realtime publication. Already-open Shared member pages may show the previous module state until refresh/re-entry; database policy immediately rejects disabled Task writes. Consider module-state Realtime / immediate cross-client UI refresh only if real usage shows a need. This is not a blocker and does not reopen v0.1.10.
 
-No Event/Task identity, v0.1.9 Task authorization, v0.1.8 Reminder, recurrence, or Production capability is redesigned. Shared Space three-plus-member support, final four-destination navigation, cross-Space aggregation, global `+`, Calendar multi-Space overlay, Lists/Important Dates/Review implementation, External Calendar Sources, UI redesign, and Native App remain deferred to v0.1.11 or later.
+No Event/Task identity, v0.1.9 Task authorization, v0.1.8 Reminder, recurrence, or Production capability was redesigned in v0.1.10. The final four-destination navigation and cross-Space aggregation later shipped in v0.1.11; Home creation uses section-specific actions rather than a global title `+`. Shared Space three-plus-member support, Calendar multi-Space overlay, Lists / Important Dates / Review implementation, External Calendar Sources, UI redesign, and Native App remain later candidates whose priority and order may change with real product use.
 
 ## v0.1.11 Navigation + Aggregation Experience — CLOSED / PASS
 
@@ -114,9 +114,19 @@ Slice 1 Navigation Foundation is `CLOSED / PASS` after automated verification, f
 
 Deferred beyond v0.1.11: due Task Calendar projection, multi-select/saved Calendar filters, Shared 3+ members, Lists/Wishlist UI, Important Dates, Review, Memo, external sources/中国节假日, module-state Realtime, generalized device/settings UI, Native App and major redesign.
 
-### Future design direction — not implemented or assigned to v0.1.12
+## v0.1.12 — Module Hub + Space Management Navigation — NEXT / READ-ONLY DESIGN REVIEW
 
-Consider a future navigation review for a `首页 / 日历 / 功能中心 / 我的` structure. The proposed 功能中心 would expose implemented modules directly, with each module's filter listing only Spaces where that module is enabled. “Module enabled” and “which enabled Spaces to view” remain separate semantics. “我的” may gain Space management (list/create/join/details, members/invites, settings, and module controls); module controls may be a section on Space details rather than another nested page. Preserve canonical Space ownership (`ownership ≠ view`) and keep the current 一级“空间” navigation unchanged until a separately approved scope. See [DECISIONS.md](./DECISIONS.md). Reconsider the current Calendar rule—no create `+` for all Spaces and a `+` for one selected Space—as a separate future UX question; it is not part of this closeout.
+The frozen product direction is a module-first navigation migration from `首页 / 日历 / 空间 / 我的` to the semantic target `首页 / 日历 / 功能中心 / 我的`. The Chinese tab label may be confirmed during the design review. This is a read-only repo / product / architecture design review; implementation has not started.
+
+- The third destination opens implemented modules directly. Tasks is currently the only implemented optional module and the only module to migrate in v0.1.12. Do not show placeholders for Lists, Important Dates, Review / Check-in, Memo, or Wishlist. Do not create a generic module framework or plugin system.
+- Keep module enablement and the module's current Space view filter independent. `space_modules` remains per-Space configuration; the Tasks filter lists only Spaces where Tasks is enabled. Disabling a module does not delete its data. Each future module owns its own filter; Calendar's existing `calendarFilter` remains independent, with all-Space and single-Space modes. Do not add an app-wide Space filter.
+- “我的” is directed toward personal profile, Space management, and general settings. Space management may include Space list/create/join/detail; Space details may show members, invitations, settings, and module switches. Module controls can be a section of Space details; another nested page is not required.
+- Space remains the canonical ownership boundary (`ownership ≠ view`). This navigation/view change does not change persistence or Space schema. Preserve the v0.1.11 Home Event and Task quick-create actions as they are.
+- Scope references: [v0.1.12 frozen direction](./DECISIONS.md) and [Shared Life Architecture](./SHARED_LIFE_ARCHITECTURE.md).
+
+## v0.1.13 — SCOPE DECISION PENDING
+
+After v0.1.12 closeout, decide between Structured Review / Check-in and Shared Lists. Review priority has risen with real user needs and may come first, but neither option is selected now. Important Dates, Calendar Sources, and other modules remain long-term candidates; no strict implementation order is frozen.
 
 ## Directional Roadmap — Shared Life Architecture Frozen
 
@@ -125,11 +135,9 @@ The long-term relationships and v0.1.10 scope are frozen in [Shared Life Archite
 - v0.1.9 — Shared Tasks; Slice 1/2/3 CLOSED / PASS; Production backend and frontend accepted.
 - v0.1.10 — Personal Space + Multi-space + Module Enablement Foundation; Slice 1 `PRODUCTION BACKEND ROLLOUT PASS`, Slice 2/3 and overall `CLOSED / PASS`.
 - v0.1.11 — Navigation + Aggregation Experience (`CLOSED / PASS / SLICE 1 CLOSED / PASS / SLICE 2 CLOSED / PASS / SLICE 3 CLOSED / PASS / SLICE 4 CLOSED / PASS`; Desktop and Production installed PWA acceptance `PASS`; dedicated final iPhone Safari acceptance `NOT RUN`).
-- v0.1.12 — Shared Lists.
-- v0.1.13 — Important Dates.
-- v0.1.14 — Structured Review / Check-in.
-- v0.1.15 — Calendar Sources v1.
-- Future without a committed version: Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules.
+- v0.1.12 — Module Hub + Space Management Navigation (NEXT: read-only repo / product / architecture design review; implementation not started).
+- v0.1.13 — Scope decision pending: Structured Review / Check-in or Shared Lists.
+- Later candidates without a fixed version/order: Shared Lists, Important Dates, Structured Review / Check-in, Calendar Sources v1, Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules. Priority and order may change based on real product use.
 - Native: decision gate only; no committed implementation version.
 
 ## P1 - Near-Term Product Polish

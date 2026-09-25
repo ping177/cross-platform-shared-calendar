@@ -6,7 +6,7 @@ This document freezes the long-term product model and navigation direction plus 
 
 ## Primary Navigation
 
-The long-term first-level navigation is `首页 / 日历 / 空间 / 我的`.
+The currently shipped first-level navigation is `首页 / 日历 / 空间 / 我的`.
 
 | Destination | Responsibility |
 | --- | --- |
@@ -17,7 +17,15 @@ The long-term first-level navigation is `首页 / 日历 / 空间 / 我的`.
 
 The complete four-destination navigation shipped in v0.1.11. Slice 3 added Home aggregation, and Slice 4 added direct Event and Task creation from their Home sections.
 
-Future direction only; not implemented: a separate scope review may consider replacing the current `空间` top-level destination with `功能中心`, while keeping `首页 / 日历 / 我的`. The center would expose implemented modules and let each module filter only Spaces where it is enabled. “我的” may gain Space management for listing, creating, joining and opening Spaces, with member/invite, settings and module controls in Space details. Module settings can be a section within details rather than another navigation layer. Keep module enablement distinct from module-page Space filtering, preserve canonical ownership (`ownership ≠ view`), and keep the current 一级“空间” navigation until a separate scope is approved. This direction is not automatically part of v0.1.12; see [Decisions](./DECISIONS.md) and [Backlog](./BACKLOG.md).
+## v0.1.12 Module Hub + Space Management Navigation — Frozen Target, Design Review Next
+
+The product direction is a module-first migration to the semantic navigation `首页 / 日历 / 功能中心 / 我的`; the exact Chinese tab label may be confirmed during the read-only design review. The currently shipped `空间` destination remains in place until that migration is designed and implemented. The Module Hub opens actual modules directly. Tasks is currently the only implemented optional module and the first/only module for this migration. Unimplemented Lists, Important Dates, Review / Check-in, Memo, or Wishlist must not appear as placeholders; no generic module framework or plugin system is part of the direction.
+
+Module enablement remains per-Space configuration in `space_modules`. A module page's filter is separate view state and lists only Spaces where that module is enabled. For Tasks, Spaces with Tasks disabled are excluded from its filter; disabling Tasks keeps its data. Each module owns its filter, while Calendar's `calendarFilter` remains independent and continues to support all Spaces or one Space. Do not create an app-wide Space filter.
+
+“我的” is directed toward personal profile, Space management, and general settings. Space management may provide a Space list, create/join actions, and Space details for members, invitations, Space settings, and module switches. Module switches can be a section of Space details; a separate nested module-management page is not required.
+
+Space remains the canonical ownership boundary. Each Event, Task, List, Important Date, and Review belongs to one canonical Space; `ownership ≠ view`. This migration changes navigation, aggregation, and view, not canonical ownership, persistence, or Space schema. Preserve both v0.1.11 Home quick-create shortcuts unchanged. The v0.1.12 implementation has not started; see [Decisions](./DECISIONS.md) and [Backlog](./BACKLOG.md).
 
 ## Spaces and Canonical Ownership
 
@@ -31,7 +39,7 @@ Future direction only; not implemented: a separate scope review may consider rep
 
 `Space = Calendar Core + Optional Modules`.
 
-Calendar is the core capability of every Space. Optional modules may include Tasks, Lists, Important Dates, Review / Check-in, Memo, and later validated modules.
+Calendar is the core capability of every Space. Optional modules may include Tasks, Lists, Important Dates, Review / Check-in, Memo, and later validated modules. Tasks is currently the only implemented optional module; names of future modules are architecture candidates and do not imply Production placeholders or a generic module framework.
 
 - Enablement belongs to the Space, not to an individual member's preference. Different Spaces may enable different modules.
 - A disabled module does not appear in that Space's main interface.
@@ -124,12 +132,10 @@ The Home creation form visibly shows the target Space and allows changing it. It
 | v0.1.9 | Shared Tasks |
 | v0.1.10 | Personal Space + Multi-space + Module Enablement Foundation |
 | v0.1.11 | Navigation + Aggregation Experience |
-| v0.1.12 | Shared Lists |
-| v0.1.13 | Important Dates |
-| v0.1.14 | Structured Review / Check-in |
-| v0.1.15 | Calendar Sources v1 |
+| v0.1.12 | Module Hub + Space Management Navigation (read-only design review next; implementation not started) |
+| v0.1.13 | Scope decision pending: Structured Review / Check-in or Shared Lists |
 
-Future directions without a committed version: Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules. Native has a decision gate only; no native implementation version is committed.
+Shared Lists, Important Dates, Structured Review / Check-in, Calendar Sources v1, Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules remain candidates without a fixed order after v0.1.13. Priority and order may change based on real product use. Native has a decision gate only; no native implementation version is committed.
 
 ## v0.1.9 Slice Boundary
 

@@ -1,5 +1,12 @@
 # Development Log
 
+# 2026-09-25 - v0.1.12 Module Hub + Space Management Navigation Roadmap Re-freeze
+
+- v0.1.11 remains `CLOSED / PASS`. The frozen v0.1.12 product direction is a module-first navigation migration to the semantic target `首页 / 日历 / 功能中心 / 我的`; the exact Chinese tab label may be confirmed in the next READ-ONLY repo / product / architecture design review. v0.1.12 implementation has not started.
+- Tasks is the only currently implemented optional module and the only one to migrate first. Module enablement stays per-Space in `space_modules`; each module's Space view filter is independent and includes only Spaces where it is enabled. Calendar's `calendarFilter`, canonical Space ownership (`ownership ≠ view`), the Space persistence model, and both v0.1.11 Home quick-create actions remain unchanged. Unimplemented modules get no placeholder or generic module/plugin framework.
+- “我的” is directed toward profile, Space management, and general settings; Space details may contain member, invite, setting, and module-switch controls. v0.1.13 remains a scope decision between Structured Review / Check-in and Shared Lists. Review priority has risen, but neither candidate is selected; later module priority/order remains open.
+- This is a docs/governance-only roadmap change: no implementation, SQL, backend, dependency, or deployment work.
+
 # 2026-09-25 - v0.1.11 Slice 4 Production Installed PWA Acceptance + Final Closeout
 
 - 用户报告 Production installed PWA 人工验收 `PASS`：最终首页入口直达正确表单；日程/任务 Personal 默认与 Shared 切换、确认目标和实际归属正确；保存后首页立即刷新；布局、safe-area/keyboard/overflow、一级导航以及日历单 Space 和空间任务原入口回归均正常，无白屏、卡死或明显交互问题。验收时 Production URL 对应包含 Slice 4 的前端提交 `f916dc0f0a1962facca44f4174241031b4f44bf2`。

@@ -108,13 +108,13 @@
 
 The canonical long-term model and roadmap are in [Shared Life Architecture Freeze](./SHARED_LIFE_ARCHITECTURE.md). This is a docs-only architecture decision, not an implementation or deployment milestone.
 
-- First-level navigation is `首页 / 日历 / 空间 / 我的`: cross-module Home, Calendar time/source aggregation, Personal and Shared Spaces with modules, and personal account/device/settings respectively. The v0.1.11 Slice 4 Home create behavior is recorded below; the full navigation is not part of v0.1.9.
+- At the 2026-09-23 architecture freeze, first-level navigation was `首页 / 日历 / 空间 / 我的`: cross-module Home, Calendar time/source aggregation, Personal and Shared Spaces with modules, and personal account/device/settings respectively. That shipped navigation remains current until the separately frozen v0.1.12 migration below; the full navigation was not part of v0.1.9.
 - Each user will have one genuinely private Personal Space and may join multiple Shared Spaces. Each business object has one canonical Space; views may aggregate Spaces. An Event marked `personal` inside a Shared Space remains visible to that Space's members and is distinct from Personal Space content.
 - Each Space has Calendar as its core and may enable Tasks, Lists, Important Dates, structured Review / Check-in, Memo, or later modules. Enablement is per Space; disabling hides a module without deleting its data, and re-enabling restores visibility. Permanent data deletion is deferred; v0.1.10 enable/disable authority is frozen below.
 - Calendar Sources may be Space-backed or global/external, including Chinese holidays and adjusted workdays, ICS, and later Google or Apple/System calendars. External sources need no owning Space; views may overlay or filter Space Calendars.
 - The initial long-term creation model considered Event, Task, List, Important Date, and Memo; Wishlist is a List type. Slice 4's final product decision below supersedes the Home entry surface: the current Event and Task section actions each open their matching form directly. Each Home form has a selectable target, names it in the save action, and requires a second target confirmation before writing. Future module actions will be considered with their Home sections when implemented.
 - Event and Task retain distinct semantics. Task due dates may later be projected read-only into Calendar. Review / Check-in is structured content with period, Focus, Wins, Problems, next plan, and historical continuity; voice input is a goal without a frozen technical approach. Task Archive is deferred; v0.1.9 Completed remains reopenable/deletable history without a new status.
-- Directional versions now place Personal Space/Multi-space/module enablement at v0.1.10, navigation/aggregation at v0.1.11, Lists at v0.1.12, Important Dates at v0.1.13, Review at v0.1.14, and Calendar Sources v1 at v0.1.15. Native remains a decision gate without a committed implementation version.
+- The original 2026-09-23 directional roadmap placed Lists at v0.1.12, Important Dates at v0.1.13, Review at v0.1.14, and Calendar Sources v1 at v0.1.15. This sequence is superseded by the 2026-09-25 roadmap re-freeze below; later module priorities and ordering are open to change based on real product use. Native remains a decision gate without a committed implementation version.
 
 ## v0.1.10 Personal Space / Multi-space / Module Enablement Scope Freeze — 2026-09-23
 
@@ -143,11 +143,18 @@ The canonical long-term model and roadmap are in [Shared Life Architecture Freez
 - Slice 4 保持首页两项分开的直达创建入口及安全 contract：Personal Space 默认、不使用 `selectedSpaceId` 隐式定 target、用户可换 Space、Task 只能写入 Tasks-enabled Space、disabled Personal Tasks 不 fallback、提交前复验 membership/module/member-derived state、轻量二次确认、stale-request 与重复提交保护；现有 Calendar 单 Space 日程及 Space 内任务创建继续走本地直达路径。
 - Production 部署和 PWA 验收属于前端；没有 Production backend、schema、RPC 或业务代码变更。
 
-## Future Information Architecture Direction — Not Implemented
+## v0.1.12 Module Hub + Space Management Navigation — Frozen Direction — 2026-09-25
 
-- 未来可单独评审把一级导航从 `首页 / 日历 / 空间 / 我的` 调整为类似 `首页 / 日历 / 功能中心 / 我的`。功能中心面向已实现模块（如任务、清单、纪念日、Review），模块页的空间筛选器只列启用了该模块的 Space。模块 enablement 与当前页面筛选范围是不同语义。
-- 未来“我的”可考虑增加空间管理：Space 列表、创建、加入和详情；Space 内包括成员/邀请、设置和模块开关。模块管理可以是 Space 详情的一节，不要求增加额外页面层级。当前一级“空间”导航保持不变，改导航只改变 view，不改变 canonical Space ownership：`ownership ≠ view`。
-- 以上仅为 future direction，不属于本次 v0.1.11 closeout，也未自动纳入 v0.1.12 Shared Lists scope。
+- The v0.1.12 product direction is frozen as a module-first navigation migration from `首页 / 日历 / 空间 / 我的` to the semantic target `首页 / 日历 / 功能中心 / 我的`. The exact Chinese tab label may be confirmed during the read-only repo / product / architecture design review. The third destination opens modules directly rather than asking the user to choose a Space first. v0.1.12 is next for design review only; implementation has not started.
+- Migrate only currently implemented optional modules. Tasks is the only implemented optional module and the first module to expose in 功能中心. Lists, Important Dates, Review / Check-in, Memo, and Wishlist do not get implemented or shown as placeholders; this direction adds no generic module framework or plugin system.
+- Keep module enablement and a module page's view filter as separate semantics. `space_modules` remains per-Space configuration; the Tasks filter lists only Spaces with Tasks enabled. Disabling a module hides it from that Space's module entry while retaining its data. Each module owns its own filter; Calendar's `calendarFilter` stays independent and continues to support all Spaces or one Space. Do not add a global app-wide Space filter.
+- “我的” target responsibilities are personal profile, Space management, and general settings. Space management may provide the Space list, create/join actions, and a Space detail surface for members, invitations, Space settings, and enabled-module controls. Module controls may be a section within Space details; a separate nested module-management page is not required.
+- Space remains the canonical ownership boundary. Events, Tasks, Lists, Important Dates, and Review each belong to one canonical Space; `ownership ≠ view`. This migration changes navigation, aggregation, and view, not canonical ownership, persistence, or the Space schema.
+- Preserve the v0.1.11 Home shortcuts: “近期日程 +” directly opens Event creation and “需要处理的任务 +” directly opens Task creation. Future module Home sections and shortcuts are decided when each module is actually implemented.
+
+## v0.1.13 Scope Decision Gate — Pending
+
+After v0.1.12 closeout, choose between Structured Review / Check-in and Shared Lists for v0.1.13. Real user needs have raised Review's priority and it may come first, but this re-freeze does not select either option. Important Dates, Calendar Sources, and other long-term modules remain candidates; their priority and order may change with real product use.
 
 ## Future UX Consideration — Calendar Create Action
 
