@@ -7,9 +7,7 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Copy,
   Plus,
-  RefreshCw,
   Trash2,
   Users,
   X,
@@ -17,6 +15,10 @@ import {
 import { MemberSheet } from './components/MemberSheet';
 import { CreateTargetSelector, type CreateTargetControl } from './components/GlobalCreateControls';
 import { MyPage } from './components/MyPage';
+import { SpaceManagementPage } from './components/SpaceManagementPage';
+import { SharedSpaceForms } from './components/SharedSpaceForms';
+import { InvitePanel } from './components/InvitePanel';
+import { useSpaceTasksModule } from './components/useSpaceTasksModule';
 import { RecurrenceControls } from './components/RecurrenceControls';
 import { TasksArea, type TasksScreen } from './components/TasksArea';
 import { HomePage } from './components/HomePage';
@@ -49,11 +51,12 @@ import {
   timedReminderOptions,
 } from './lib/reminder';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
-import { bootstrapSpaces, chooseSelectedSpaceId, completeSharedSpaceAction, ensureOnceUntilFailure, writeSelectedSpaceId } from './lib/space-selection';
+import { bootstrapSpaces, chooseSelectedSpaceId, ensureOnceUntilFailure, writeSelectedSpaceId } from './lib/space-selection';
 import { newEventIdentity } from './lib/space-content';
-import { createTasksModuleToggleGuard, tasksModuleForcesHub, tasksModuleStateFromResult, type TasksModuleState } from './lib/space-modules';
+import { tasksModuleForcesHub, type TasksModuleState } from './lib/space-modules';
+import { readSpaceMembers } from './lib/space-members';
 import { createRequestGuard } from './lib/request-guard';
-import { initialNavigation, openCalendar, openSpace, openSpaceScreen, selectTab, type TopLevelTab } from './lib/navigation';
+import { contentSpaceIdForNavigation, initialNavigation, openCalendar, openSpace, openSpaceScreen, selectTab, type TopLevelTab } from './lib/navigation';
 import {
   registerPushServiceWorker,
 } from './lib/push-notifications';
@@ -382,22 +385,12 @@ function AuthPage() {
   );
 }
 
-async function readSpaceMembers(spaceId: string): Promise<SpaceMember[]> {
-  const { data, error } = await supabase.from('space_members')
-    .select('space_id,user_id,role,joined_at,profiles(display_name)')
-    .eq('space_id', spaceId)
-    .order('joined_at', { ascending: true })
-    .order('user_id', { ascending: true });
-  if (error) throw error;
-  return ((data ?? []) as Array<Omit<SpaceMember, 'profiles'> & { profiles?: { display_name: string | null }[] | { display_name: string | null } | null }>).map(
-    (member) => ({ ...member, profiles: Array.isArray(member.profiles) ? member.profiles[0] ?? null : member.profiles ?? null }),
-  );
-}
-
 function CalendarApp({ session }: { session: Session }) {
   const userId = session.user.id;
   const [spaces, setSpaces] = useState<CurrentSpace[]>([]);
   const [selectedSpaceId, setSelectedSpaceId] = useState<string | null>(null);
+  const [legacySpaceId, setLegacySpaceId] = useState<string | null>(null);
+  const [myScreen, setMyScreen] = useState<'profile' | 'management' | 'detail'>('profile');
   const [calendarFilter, setCalendarFilter] = useState<CalendarFilter>('all');
   const [navigation, setNavigation] = useState(initialNavigation);
   const [spaceListStatus, setSpaceListStatus] = useState<'loading' | 'ready' | 'error'>('ready');
@@ -413,36 +406,27 @@ function CalendarApp({ session }: { session: Session }) {
     if (ensureError) throw ensureError;
   }));
 
-  async function loadSpaces(preferredId?: string): Promise<boolean> {
+  async function loadSpaces(): Promise<boolean> {
     const currentRequest = requestGuard.current.begin();
     setLoading(true);
     setError('');
     try {
-      let result: { spaces: CurrentSpace[]; selectedSpaceId: string; personalInitializationError?: Error | null };
-      if (preferredId) {
-        const listed = await listCurrentSpaces(userId);
-        if (!listed.some((space) => space.id === preferredId)) {
-          throw new Error('新空间未出现在你的成员列表中，请重试。');
-        }
-        result = { spaces: listed, selectedSpaceId: preferredId };
-      } else {
-        result = await bootstrapSpaces(userId, window.localStorage, {
-          ensurePersonalSpace: ensurePersonalSpace.current,
-          listCurrentSpaces: () => listCurrentSpaces(userId),
-          currentSelectionId: selectedSpaceId,
-        });
-      }
+      const result = await bootstrapSpaces(userId, window.localStorage, {
+        ensurePersonalSpace: ensurePersonalSpace.current,
+        listCurrentSpaces: () => listCurrentSpaces(userId),
+        currentSelectionId: selectedSpaceId,
+      });
       if (!requestGuard.current.isCurrent(currentRequest)) return false;
       setSpaces(result.spaces);
       if (selectedSpaceId && selectedSpaceId !== result.selectedSpaceId) {
-        if (navigation.tab === 'spaces') {
-          setSelectedDate(new Date());
-          setViewMode('today');
-        }
-        setNavigation((current) => current.tab === 'spaces' ? selectTab(current, 'spaces') : current);
+        setMyScreen((current) => current === 'detail' ? 'management' : current);
       }
       setSelectedSpaceId(result.selectedSpaceId);
-      if (!preferredId) setPersonalInitializationError(result.personalInitializationError ?? null);
+      if (legacySpaceId && !result.spaces.some((space) => space.id === legacySpaceId)) {
+        setLegacySpaceId(null);
+        setNavigation((current) => current.tab === 'spaces' ? selectTab(current, 'spaces') : current);
+      }
+      setPersonalInitializationError(result.personalInitializationError ?? null);
       writeSelectedSpaceId(window.localStorage, userId, result.selectedSpaceId);
       return true;
     } catch (loadError) {
@@ -462,7 +446,7 @@ function CalendarApp({ session }: { session: Session }) {
     return () => { requestGuard.current.invalidate(); };
   }, [userId]);
 
-  async function selectSpace(spaceId: string) {
+  async function selectSpace(spaceId: string, destination: 'management' | 'legacy') {
     if (spaceListStatus !== 'ready' || spaceActionBusy) return;
     const request = requestGuard.current.begin();
     setSpaceListStatus('loading');
@@ -474,21 +458,24 @@ function CalendarApp({ session }: { session: Session }) {
       const validatedId = chooseSelectedSpaceId(listed, selectedSpaceId);
       if (!validatedId) throw new Error('未找到可用空间，请重新加载。');
       if (!listed.some((space) => space.id === spaceId)) {
-        setSelectedSpaceId(validatedId);
-        writeSelectedSpaceId(window.localStorage, userId, validatedId);
-        setSelectedDate(new Date());
-        setViewMode('today');
+        if (destination === 'management') {
+          setSelectedSpaceId(validatedId);
+          writeSelectedSpaceId(window.localStorage, userId, validatedId);
+        }
         setError('此空间已不在你的成员列表中，请重新选择。');
         setSpaceListStatus('ready');
         return;
       }
-      if (selectedSpaceId !== spaceId) {
+      if (destination === 'legacy') {
+        setLegacySpaceId(spaceId);
         setSelectedDate(new Date());
         setViewMode('today');
+        setNavigation((current) => openSpace(current));
+      } else {
+        setSelectedSpaceId(spaceId);
+        writeSelectedSpaceId(window.localStorage, userId, spaceId);
+        setMyScreen('detail');
       }
-      setSelectedSpaceId(spaceId);
-      writeSelectedSpaceId(window.localStorage, userId, spaceId);
-      setNavigation((current) => openSpace(current));
       setSpaceListStatus('ready');
     } catch (selectionError) {
       if (requestGuard.current.isCurrent(request)) {
@@ -498,38 +485,43 @@ function CalendarApp({ session }: { session: Session }) {
     }
   }
 
-  async function refreshSpaces(preserveHome = true) {
+  async function refreshSpaces(preserveHome = true, expectedSpaceId?: string): Promise<boolean> {
     const currentRequest = requestGuard.current.begin();
     const keepHomeVisible = preserveHome && navigation.tab === 'home' && spaceListStatus === 'ready';
     if (!keepHomeVisible) setSpaceListStatus('loading');
     setError('');
     try {
       const listed = await listCurrentSpaces(userId);
+      if (expectedSpaceId && !listed.some((space) => space.id === expectedSpaceId)) {
+        throw new Error('新空间未出现在你的成员列表中，请重试。');
+      }
       const validatedId = chooseSelectedSpaceId(listed, selectedSpaceId);
       if (!validatedId) {
-        if (requestGuard.current.isCurrent(currentRequest)) {
+        if (!expectedSpaceId && requestGuard.current.isCurrent(currentRequest)) {
           setSpaces([]);
           setSelectedSpaceId(null);
         }
         throw new Error('未找到可用空间，请重新加载。');
       }
-      if (!requestGuard.current.isCurrent(currentRequest)) return;
+      if (!requestGuard.current.isCurrent(currentRequest)) return false;
       setSpaces(listed);
       if (selectedSpaceId !== validatedId) {
-        if (navigation.tab === 'spaces') {
-          setSelectedDate(new Date());
-          setViewMode('today');
-        }
-        setNavigation((current) => current.tab === 'spaces' ? selectTab(current, 'spaces') : current);
+        setMyScreen((current) => current === 'detail' ? 'management' : current);
       }
       setSelectedSpaceId(validatedId);
       writeSelectedSpaceId(window.localStorage, userId, validatedId);
+      if (legacySpaceId && !listed.some((space) => space.id === legacySpaceId)) {
+        setLegacySpaceId(null);
+        setNavigation((current) => current.tab === 'spaces' ? selectTab(current, 'spaces') : current);
+      }
       setSpaceListStatus('ready');
+      return true;
     } catch (refreshError) {
       if (requestGuard.current.isCurrent(currentRequest)) {
-        setError(getErrorMessage(refreshError));
-        if (!keepHomeVisible) setSpaceListStatus('error');
+        if (!expectedSpaceId) setError(getErrorMessage(refreshError));
+        if (!keepHomeVisible) setSpaceListStatus(expectedSpaceId ? 'ready' : 'error');
       }
+      return false;
     }
   }
 
@@ -537,12 +529,26 @@ function CalendarApp({ session }: { session: Session }) {
     if (spaceActionBusy) return;
     requestGuard.current.invalidate();
     setNavigation((current) => selectTab(current, tab));
+    if (tab === 'me') setMyScreen('profile');
     if (tab === 'spaces' || tab === 'calendar' || tab === 'home') void refreshSpaces(false);
   }
 
   async function sharedSpaceReady(spaceId: string) {
-    const ready = await loadSpaces(spaceId);
-    if (ready) setNavigation((current) => openSpace(current));
+    const ready = await refreshSpaces(false, spaceId);
+    if (ready) {
+      setLegacySpaceId(spaceId);
+      setNavigation((current) => openSpace(current));
+    }
+    return ready;
+  }
+
+  async function managedSpaceReady(spaceId: string) {
+    const ready = await refreshSpaces(false, spaceId);
+    if (ready) {
+      setSelectedSpaceId(spaceId);
+      writeSelectedSpaceId(window.localStorage, userId, spaceId);
+      setMyScreen('detail');
+    }
     return ready;
   }
 
@@ -550,14 +556,15 @@ function CalendarApp({ session }: { session: Session }) {
     setSpaces((current) => current.map((space) => space.id === updated.id ? { ...space, ...updated } : space));
   }
 
-  const selectedSpace = spaces.find((space) => space.id === selectedSpaceId) ?? null;
   const validFilter = validCalendarFilter(calendarFilter, spaces);
   const visibleCalendarSpaces = calendarSpaces(spaces, validFilter);
+  const contentSpaceId = contentSpaceIdForNavigation(navigation.tab, legacySpaceId, validFilter, spaces.map((space) => space.id));
+  const contentSpace = spaces.find((space) => space.id === contentSpaceId) ?? null;
   useEffect(() => {
     if (validFilter !== calendarFilter) setCalendarFilter('all');
   }, [validFilter, calendarFilter]);
-  if (loading && !selectedSpace) return <FullScreenMessage title="正在载入" body="正在确认你的空间。" />;
-  if (!selectedSpace) {
+  if (loading && spaces.length === 0) return <FullScreenMessage title="正在载入" body="正在确认你的空间。" />;
+  if (spaces.length === 0) {
     return (
       <main className="min-h-screen bg-mist px-5 py-10">
         <div className="mx-auto max-w-md">
@@ -583,8 +590,8 @@ function CalendarApp({ session }: { session: Session }) {
         spaceListStatus === 'ready'
           ? <SpacePage
               spaces={spaces}
-              selectedSpaceId={selectedSpaceId!}
-              onSelect={(spaceId) => { void selectSpace(spaceId); }}
+              selectedSpaceId={legacySpaceId}
+              onSelect={(spaceId) => { void selectSpace(spaceId, 'legacy'); }}
               onSharedReady={sharedSpaceReady}
               busy={spaceActionBusy}
               onBusyChange={setSpaceActionBusy}
@@ -593,12 +600,12 @@ function CalendarApp({ session }: { session: Session }) {
       )}
       {navigation.tab === 'calendar' && spaceListStatus !== 'ready' && <SpaceListPending status={spaceListStatus} onRetry={() => void refreshSpaces()} />}
       {navigation.tab === 'home' && spaceListStatus !== 'ready' && <SpaceListPending status={spaceListStatus} onRetry={() => void refreshSpaces()} />}
-      {navigation.tab === 'home' && spaceListStatus === 'ready' && <HomePage spaces={spaces} userId={userId} EventSheetComponent={EventSheet} onMembershipRefresh={refreshSpaces} />}
-      {((navigation.tab === 'calendar' && spaceListStatus === 'ready') || (navigation.tab === 'spaces' && navigation.spaceScreen !== 'list')) && (
+      {navigation.tab === 'home' && spaceListStatus === 'ready' && <HomePage spaces={spaces} userId={userId} EventSheetComponent={EventSheet} onMembershipRefresh={async () => { await refreshSpaces(); }} />}
+      {((navigation.tab === 'calendar' && spaceListStatus === 'ready') || (navigation.tab === 'spaces' && navigation.spaceScreen !== 'list')) && contentSpace && (
         <CurrentSpaceApp
-          key={navigation.tab === 'calendar' ? `calendar:${validFilter === 'all' ? 'all' : validFilter.spaceId}:${visibleCalendarSpaces.map((item) => item.id).join(',')}` : `spaces:${selectedSpaceId}`}
+          key={navigation.tab === 'calendar' ? `calendar:${validFilter === 'all' ? 'all' : validFilter.spaceId}:${visibleCalendarSpaces.map((item) => item.id).join(',')}` : `spaces:${contentSpace.id}`}
           session={session}
-          space={selectedSpace}
+          space={contentSpace}
           spaces={visibleCalendarSpaces}
           allSpaces={spaces}
           calendarFilter={validFilter}
@@ -606,7 +613,7 @@ function CalendarApp({ session }: { session: Session }) {
           screen={navigation.tab === 'calendar' ? 'calendar' : navigation.spaceScreen as TasksScreen}
           onScreenChange={(screen) => {
             if (screen === 'calendar') {
-              setCalendarFilter({ spaceId: selectedSpace.id });
+              setCalendarFilter({ spaceId: contentSpace.id });
               setNavigation((current) => openCalendar(current));
             } else setNavigation((current) => openSpaceScreen(current, screen));
           }}
@@ -618,7 +625,21 @@ function CalendarApp({ session }: { session: Session }) {
           onSpaceUpdate={updateSpace}
         />
       )}
-      {navigation.tab === 'me' && <MyPage userId={userId} />}
+      {navigation.tab === 'me' && myScreen === 'profile' && <MyPage userId={userId} onManageSpaces={() => { setMyScreen('management'); void refreshSpaces(false); }} />}
+      {navigation.tab === 'me' && myScreen !== 'profile' && (
+        spaceListStatus === 'ready'
+          ? <SpaceManagementPage
+              spaces={spaces}
+              selectedSpaceId={myScreen === 'detail' ? selectedSpaceId : null}
+              onSelect={(spaceId) => { void selectSpace(spaceId, 'management'); }}
+              onBack={() => setMyScreen(myScreen === 'detail' ? 'management' : 'profile')}
+              onReady={managedSpaceReady}
+              onSpaceChange={updateSpace}
+              busy={spaceActionBusy}
+              onBusyChange={setSpaceActionBusy}
+            />
+          : <SpaceListPending status={spaceListStatus} onRetry={() => void refreshSpaces(false)} />
+      )}
       <BottomNavigation tab={navigation.tab} onChange={changeTab} disabled={spaceActionBusy} />
       {error && <p className="nav-alert fixed left-4 right-4 z-30 rounded-lg bg-coral px-4 py-3 text-sm text-white" role="alert">{error}</p>}
     </div>
@@ -772,13 +793,9 @@ export function CurrentSpaceApp({ session, space, spaces, allSpaces, calendarFil
   const [showNewEvent, setShowNewEvent] = useState(false);
   const [openCalendarSelector, setOpenCalendarSelector] = useState<'space' | 'view' | null>(null);
   const [showMembers, setShowMembers] = useState(false);
-  const [tasksModuleState, setTasksModuleState] = useState<TasksModuleState>('loading');
-  const [tasksModuleError, setTasksModuleError] = useState('');
-  const [tasksModuleBusy, setTasksModuleBusy] = useState(false);
+  const tasksModule = useSpaceTasksModule(space, screen);
   const memberRequestGuard = useRef(createRequestGuard());
   const eventRequestGuard = useRef(createRequestGuard());
-  const moduleRequestGuard = useRef(createRequestGuard());
-  const moduleToggleGuard = useRef(createTasksModuleToggleGuard());
   const createGuard = useRef(createRequestGuard());
   const reloadCalendar = useRef<() => void>(() => undefined);
 
@@ -800,60 +817,6 @@ export function CurrentSpaceApp({ session, space, spaces, allSpaces, calendarFil
     return () => window.removeEventListener('keydown', closeOnEscape);
   }, [openCalendarSelector]);
 
-  async function readTasksModuleState(spaceId: string) {
-    const result = await supabase.from('space_modules')
-      .select('enabled')
-      .eq('space_id', spaceId)
-      .eq('module_key', 'tasks')
-      .maybeSingle();
-    return tasksModuleStateFromResult(result);
-  }
-
-  async function loadTasksModuleState(spaceId: string) {
-    const currentRequest = moduleRequestGuard.current.begin();
-    setTasksModuleState('loading');
-    setTasksModuleError('');
-    try {
-      const state = await readTasksModuleState(spaceId);
-      if (moduleRequestGuard.current.isCurrent(currentRequest)) setTasksModuleState(state);
-    } catch {
-      if (moduleRequestGuard.current.isCurrent(currentRequest)) {
-        setTasksModuleState('error');
-        setTasksModuleError('任务模块状态读取失败，请重试。');
-      }
-    }
-  }
-
-  async function changeTasksModule() {
-    if (space.membershipRole !== 'owner' || moduleToggleGuard.current.isBusy() || (tasksModuleState !== 'enabled' && tasksModuleState !== 'disabled')) return;
-    const currentRequest = moduleRequestGuard.current.begin();
-    const nextEnabled = tasksModuleState === 'disabled';
-    setTasksModuleBusy(true);
-    setTasksModuleError('');
-    const result = await moduleToggleGuard.current.run(
-      async () => {
-        const { error: toggleError } = await supabase.rpc('set_space_module_enabled', {
-          p_space_id: space.id,
-          p_module_key: 'tasks',
-          p_enabled: nextEnabled,
-        });
-        if (toggleError) throw toggleError;
-      },
-      () => readTasksModuleState(space.id),
-    );
-    if (!moduleRequestGuard.current.isCurrent(currentRequest)) return;
-    setTasksModuleBusy(false);
-    if (result === null) return;
-    if ('state' in result) {
-      setTasksModuleState(result.state);
-    } else if (result.failure === 'rpc') {
-      setTasksModuleError('任务模块切换失败，请确认空间权限或稍后重试。');
-    } else {
-      setTasksModuleState('error');
-      setTasksModuleError('任务模块状态读取失败，请重试。');
-    }
-  }
-
   async function loadMembers(spaceId: string) {
     const currentRequest = memberRequestGuard.current.begin();
     try {
@@ -867,11 +830,9 @@ export function CurrentSpaceApp({ session, space, spaces, allSpaces, calendarFil
   useEffect(() => {
     if (screen !== 'calendar') {
       void loadMembers(space.id);
-      void loadTasksModuleState(space.id);
     }
     return () => {
       memberRequestGuard.current.invalidate();
-      moduleRequestGuard.current.invalidate();
     };
   }, [space.id, screen]);
 
@@ -959,10 +920,10 @@ export function CurrentSpaceApp({ session, space, spaces, allSpaces, calendarFil
   }, [screen, visibleSpaceIds, calendarRetry]);
 
   useEffect(() => {
-    if (tasksModuleForcesHub(tasksModuleState, screen)) onScreenChange('hub');
-  }, [tasksModuleState, screen, onScreenChange]);
+    if (tasksModuleForcesHub(tasksModule.state, screen)) onScreenChange('hub');
+  }, [tasksModule.state, screen, onScreenChange]);
 
-  const visibleTasksModuleState: TasksModuleState = tasksModuleBusy ? 'loading' : tasksModuleState;
+  const visibleTasksModuleState: TasksModuleState = tasksModule.busy ? 'loading' : tasksModule.state;
 
   async function verifyCreateTarget(spaceId: string) {
     const listed = await listCurrentSpaces(userId);
@@ -1046,11 +1007,11 @@ export function CurrentSpaceApp({ session, space, spaces, allSpaces, calendarFil
           members={members}
           userId={userId}
           moduleState={visibleTasksModuleState}
-          moduleError={tasksModuleError}
-          moduleBusy={tasksModuleBusy}
+          moduleError={tasksModule.error}
+          moduleBusy={tasksModule.busy}
           isOwner={space.membershipRole === 'owner'}
-          onModuleRetry={() => void loadTasksModuleState(space.id)}
-          onModuleToggle={() => void changeTasksModule()}
+          onModuleRetry={() => void tasksModule.retry()}
+          onModuleToggle={() => void tasksModule.toggle()}
           invitePanel={space.kind === 'shared' ? <InvitePanel space={space} onSpaceChange={onSpaceUpdate} /> : null}
           onMembersOpen={() => setShowMembers(true)}
         />
@@ -1095,7 +1056,7 @@ function Notice({ tone, message }: { tone: 'error' | 'success'; message: string 
 
 export function SpacePage({ spaces, selectedSpaceId, onSelect, onSharedReady, busy, onBusyChange }: {
   spaces: CurrentSpace[];
-  selectedSpaceId: string;
+  selectedSpaceId: string | null;
   onSelect: (spaceId: string) => void;
   onSharedReady: (spaceId: string) => Promise<boolean>;
   busy: boolean;
@@ -1134,129 +1095,6 @@ export function BottomNavigation({ tab, onChange, disabled = false }: { tab: Top
         ))}
       </div>
     </nav>
-  );
-}
-
-function SharedSpaceForms({ onReady, busy, onBusyChange }: {
-  onReady: (spaceId: string) => Promise<boolean>;
-  busy: boolean;
-  onBusyChange: (busy: boolean) => void;
-}) {
-  const [spaceName, setSpaceName] = useState('我们的日历');
-  const [inviteCode, setInviteCode] = useState('');
-  const [message, setMessage] = useState('');
-
-  async function createSpace(event: React.FormEvent) {
-    event.preventDefault();
-    onBusyChange(true);
-    setMessage('');
-
-    try {
-      if (!await completeSharedSpaceAction('create', spaceName, async (method, args) => await supabase.rpc(method, args), onReady)) {
-        setMessage('空间已创建，但成员列表暂未刷新，请重试。');
-      }
-    } catch (createError) {
-      setMessage(getErrorMessage(createError));
-    } finally {
-      onBusyChange(false);
-    }
-  }
-
-  async function joinSpace(event: React.FormEvent) {
-    event.preventDefault();
-    onBusyChange(true);
-    setMessage('');
-
-    try {
-      if (!await completeSharedSpaceAction('join', inviteCode, async (method, args) => await supabase.rpc(method, args), onReady)) {
-        setMessage('已加入空间，但成员列表暂未刷新，请重试。');
-      }
-    } catch (joinError) {
-      setMessage(getErrorMessage(joinError));
-    } finally {
-      onBusyChange(false);
-    }
-  }
-
-  return (
-    <div className="mt-6 border-t border-ink/10 pt-4">
-        <p className="text-sm leading-6 text-ink/65">创建两人共享空间，或输入邀请码加入。</p>
-
-        {message && <div className="mt-5"><Notice tone="error" message={message} /></div>}
-
-        <form onSubmit={createSpace} className="mt-4 rounded-lg bg-white p-5 shadow-soft">
-          <h2 className="text-lg font-bold">创建共享空间</h2>
-          <label className="mt-4 block text-sm font-semibold" htmlFor="shared-space-name">空间名称</label>
-          <input
-            id="shared-space-name"
-            className="mt-2 w-full rounded-lg border border-ink/15 px-4 py-3 outline-none focus:border-teal"
-            value={spaceName}
-            onChange={(event) => setSpaceName(event.target.value)}
-            required
-          />
-          <button className="mt-4 h-12 w-full rounded-lg bg-teal font-semibold text-white disabled:opacity-60" type="submit" disabled={busy}>
-            创建空间
-          </button>
-        </form>
-
-        <form onSubmit={joinSpace} className="mt-4 rounded-lg bg-white p-5 shadow-soft">
-          <h2 className="text-lg font-bold">加入空间</h2>
-          <label className="mt-4 block text-sm font-semibold" htmlFor="shared-invite-code">邀请码</label>
-          <input
-            id="shared-invite-code"
-            className="mt-2 w-full rounded-lg border border-ink/15 px-4 py-3 uppercase tracking-wide outline-none focus:border-teal"
-            value={inviteCode}
-            onChange={(event) => setInviteCode(event.target.value)}
-            placeholder="输入邀请码"
-            required
-          />
-          <button className="mt-4 h-12 w-full rounded-lg bg-ink font-semibold text-white disabled:opacity-60" type="submit" disabled={busy}>
-            加入空间
-          </button>
-        </form>
-    </div>
-  );
-}
-
-function InvitePanel({ space, onSpaceChange }: { space: Space; onSpaceChange: (space: Space) => void }) {
-  const [message, setMessage] = useState('');
-
-  async function copyCode() {
-    await navigator.clipboard.writeText(space.invite_code);
-    setMessage('邀请码已复制。');
-  }
-
-  async function rotateCode() {
-    setMessage('');
-    const { data, error } = await supabase.rpc('rotate_invite_code', { space_id: space.id });
-
-    if (error) {
-      setMessage(error.message);
-      return;
-    }
-
-    onSpaceChange(data as Space);
-    setMessage('已生成新邀请码，旧码已失效。');
-  }
-
-  return (
-    <section className="mb-4 rounded-lg bg-white p-4 shadow-sm">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase text-ink/45">邀请码</p>
-          <p className="mt-1 text-2xl font-bold tracking-widest text-ink">{space.invite_code}</p>
-        </div>
-        <div className="flex gap-2">
-          <button className="grid h-10 w-10 place-items-center rounded-lg bg-mist" type="button" onClick={copyCode} aria-label="复制邀请码">
-            <Copy size={18} />
-          </button>
-          <button className="grid h-10 w-10 place-items-center rounded-lg bg-mist" type="button" onClick={rotateCode} aria-label="轮换邀请码">
-            <RefreshCw size={18} />
-          </button>
-        </div>
-      </div>
-      {message && <p className="mt-2 text-sm text-ink/60">{message}</p>}
-    </section>
   );
 }
 

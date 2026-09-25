@@ -1,5 +1,13 @@
 # Testing
 
+## v0.1.12 Slice 2 — My → Space Management → Space Detail (CLOSED / PASS)
+
+- Automated scope: My entry and existing profile/notification/logout structure; Personal/Shared list and duplicate-name distinction; Personal/Shared detail boundaries, roles, invite controls and owner/member Tasks switch; management and legacy create/join reuse; selected Space separation from Calendar/Task filters; old four-tab and Hub regressions. Existing `space-selection`, `space-modules`, navigation, Task, Home and Calendar tests remain applicable. The v0.1.10 SQL test retains the disable → Task rows preserved → re-enable and owner/member authorization assertions.
+- Local results: focused Node regressions **61/61 PASS**; full Node suite **261/261 PASS**; `npm run build` and `git diff --check` **PASS**. The existing Vite server serves this repository on fixed port `5175`; an unauthenticated `http://127.0.0.1:5175/` check returned **HTTP 200**. These are automated/static checks, not authenticated browser acceptance.
+- Read-only backend gate: local frontend target matches linked Supabase. Linked catalog confirms `spaces`, `space_members`, `space_modules`, `tasks`, `ensure_personal_space()`, `create_space_with_invite(text)`, `join_space_by_invite_code(text)`, `rotate_invite_code(uuid)` and `set_space_module_enabled(uuid,text,boolean)` exist. Linked `space_members`/`space_modules` RLS, module SELECT and RPC EXECUTE grants, owner-only toggle guard, and Personal invite-code guard also passed. No backend change is required. No login, OTP, authenticated browser session or Production write was performed by Codex.
+- **User-run authenticated acceptance: PASS (user-reported).** The accepted functional scope covers 我的 → 空间管理; Personal and Shared Space lists and details; member/role display; invitation-code behavior; Tasks module toggle; create/join reuse; `selectedSpaceId` limited to management/detail responsibility; and keeping the old Space Hub temporarily for the Slice 3 transition. No authenticated session was operated by Codex.
+- UI visual refinement is intentionally deferred to a later unified UI/design pass and is not a Slice 2 blocker. Slice 2 is `CLOSED / PASS`; v0.1.12 remains `IN PROGRESS` with Slice 3 next.
+
 ## v0.1.11 Slice 4 — Home Quick Create / Global Create Safety (CLOSED / PASS)
 
 - Automated verification: focused Slice 4 tests **10/10 PASS**; full applicable Node suite **246/246 PASS**; `npm run build` and `git diff --check` **PASS**. Previous unauthenticated local HTTP check on `http://127.0.0.1:5175/` returned **200**.

@@ -102,8 +102,8 @@ test('static Personal and Shared Space UI follows the frozen form and Hub bounda
     assert.match(styles, /\.pb-nav[\s\S]*padding-bottom: calc\(3rem \+ max\(1rem, env\(safe-area-inset-bottom\)\)\)/);
     assert.match(styles, /\.bottom-nav[\s\S]*padding-bottom: env\(safe-area-inset-bottom\)/);
     assert.match(html, /viewport-fit=cover/);
-    const me = renderToStaticMarkup(React.createElement(MyPage, { userId: 'user-a' }));
-    assert.match(me, /显示名称|此设备通知设置|退出登录/);
+    const me = renderToStaticMarkup(React.createElement(MyPage, { userId: 'user-a', onManageSpaces: noop }));
+    assert.match(me, /显示名称|空间管理|此设备通知设置|退出登录/);
   } finally {
     await vite.close();
   }

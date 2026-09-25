@@ -1,5 +1,17 @@
 # Development Log
 
+# 2026-09-25 - v0.1.13 Roadmap Decision — Space Lifecycle & Membership Safety
+
+- After v0.1.12 closes, prioritize Space Lifecycle & Membership Safety before adding further Space-owned modules. Candidate capabilities are leaving Shared Space, removing a member, ownership transfer, and deleting Shared Space.
+- Personal Space cannot be deleted or left; owner exit must not create an ownerless Shared Space; lifecycle and destructive operations need explicit permission/data-integrity design and atomic backend-owned behavior. Detailed schema, RPC, permission, and UI design remains open. Structured Review / Check-in and Shared Lists remain candidates after v0.1.13.
+
+# 2026-09-25 - v0.1.12 Slice 2 Space Management — CLOSED / PASS
+
+- Approved Slice 2 moves management into 我的 → 空间管理 → Space Detail while keeping 首页 / 日历 / 空间 / 我的 and the old Hub for Slice 3. Personal detail shows identity and Tasks module controls only; Shared detail shows members/roles, invitation code actions, and Tasks module controls. The Space list distinguishes duplicate Shared names visually.
+- The old Hub and new management page share the existing create/join RPC flow, member reader, invite-code RPC, and Tasks module state/toggle semantics. `selectedSpaceId` is now management/detail selection; the temporary old Hub uses `legacySpaceId`, while Calendar's filter and create target remain independent. No backend/schema/RPC, dependency, Task persistence, or module Realtime change.
+- Read-only alignment: local frontend target matches the linked Supabase project; linked catalog reports the required Space/module/Task tables and Personal/create/join/rotate/toggle RPCs present. Linked RLS, module SELECT and RPC EXECUTE grants, owner-only toggle guard, and Personal invite-code guard passed. Existing SQL test covers Task data preservation on disable/re-enable. Focused Node regressions `61/61`, full Node suite `261/261`, `npm run build`, and `git diff --check` passed; the existing local server on port `5175` returned unauthenticated HTTP 200.
+- The user reports authenticated manual acceptance `PASS` for the frozen functional scope: My → Space Management, Personal/Shared lists and details, member/role and invite behavior, Tasks module toggle, create/join reuse, selectedSpaceId responsibility, and the temporary old Hub. Functional behavior is accepted. UI visual refinement is intentionally deferred to a later unified UI/design pass and is not a Slice 2 blocker. No backend, commit, push, or deployment occurred during acceptance.
+
 # 2026-09-25 - v0.1.12 Slice 1 Aggregate Tasks Foundation — Accepted Closeout
 
 - The user accepted Slice 1 as `CLOSED / PASS` after the narrow pre-commit corrections and review. v0.1.12 remains `IN PROGRESS`; Slice 2 My → Space Management → Space Detail is next, followed by the one-time Slice 3 navigation switch and Slice 4 acceptance. This closeout does not change product behavior or Production.

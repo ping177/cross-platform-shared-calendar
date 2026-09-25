@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Bell, LogOut } from 'lucide-react';
+import { Bell, ChevronRight, LogOut } from 'lucide-react';
 import { memberDisplayNameMaxLength } from '../lib/member';
 import { createRequestGuard } from '../lib/request-guard';
 import { cleanupPushAndSignOut, disableCurrentPushInstallation, unsubscribeCurrentPushSubscription } from '../lib/push-notifications';
@@ -10,7 +10,7 @@ function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : '操作失败，请稍后再试。';
 }
 
-export function MyPage({ userId }: { userId: string }) {
+export function MyPage({ userId, onManageSpaces }: { userId: string; onManageSpaces: () => void }) {
   const [displayName, setDisplayName] = useState('');
   const [savedName, setSavedName] = useState('');
   const [loading, setLoading] = useState(true);
@@ -81,6 +81,7 @@ export function MyPage({ userId }: { userId: string }) {
         <input id="my-display-name" className="mt-2 w-full rounded-lg border border-ink/15 px-4 py-3 outline-none focus:border-teal" value={displayName} onChange={(event) => setDisplayName(event.target.value)} autoComplete="nickname" disabled={loading || busy} maxLength={memberDisplayNameMaxLength} />
         <button className="mt-3 min-h-11 rounded-lg bg-teal px-4 font-semibold text-white disabled:opacity-60" type="submit" disabled={loading || busy || displayName.trim() === savedName}>{busy ? '保存中' : '保存名称'}</button>
       </form>
+      <button className="mt-4 flex min-h-14 w-full items-center justify-between gap-3 rounded-lg bg-white px-4 text-left font-semibold shadow-sm" type="button" onClick={onManageSpaces}><span>空间管理</span><ChevronRight size={18} className="text-ink/45" aria-hidden="true" /></button>
       <button className="mt-4 flex min-h-14 w-full items-center gap-3 rounded-lg bg-white px-4 text-left font-semibold shadow-sm" type="button" onClick={() => setShowNotifications(true)}><Bell size={18} />此设备通知设置</button>
       <button className="mt-4 flex min-h-14 w-full items-center gap-3 rounded-lg bg-white px-4 text-left font-semibold shadow-sm" type="button" onClick={() => void signOut()}><LogOut size={18} />退出登录</button>
       {error && <p className="mt-4 rounded-lg bg-coral/10 px-4 py-3 text-sm text-coral" role="alert">{error}</p>}

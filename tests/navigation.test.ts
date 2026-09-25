@@ -24,3 +24,18 @@ test('Slice 1 navigation transitions reset nested Space screens without retainin
     await vite.close();
   }
 });
+
+test('Slice 2 content targets use only legacy Hub selection or Calendar filter', async () => {
+  const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
+  try {
+    const { contentSpaceIdForNavigation } = await vite.ssrLoadModule('/src/lib/navigation.ts');
+    const ids = ['personal-a', 'shared-a'];
+    assert.equal(contentSpaceIdForNavigation('spaces', 'shared-a', 'all', ids), 'shared-a');
+    assert.equal(contentSpaceIdForNavigation('spaces', null, 'all', ids), null);
+    assert.equal(contentSpaceIdForNavigation('calendar', 'shared-a', 'all', ids), 'personal-a');
+    assert.equal(contentSpaceIdForNavigation('calendar', 'shared-a', { spaceId: 'personal-a' }, ids), 'personal-a');
+    assert.equal(contentSpaceIdForNavigation('calendar', 'shared-a', { spaceId: 'shared-a' }, ids), 'shared-a');
+  } finally {
+    await vite.close();
+  }
+});
