@@ -1,5 +1,11 @@
 # Development Log
 
+# 2026-09-25 - v0.1.11 Slice 3 Production Acceptance + Final Governance Closeout
+
+- User confirmed Vercel Production includes Slice 3 and reported final manual acceptance `PASS` on desktop, Vercel Production, iPhone Safari, and installed PWA. The accepted scope includes Home default and all four tabs; Personal/Shared Event aggregation, labels, date window, ordering, canonical Event Sheet, editing and recurrence; eligible cross-Space Task aggregation, ordering/exclusions, canonical Task Sheet, edit/complete; module disable/re-enable; Home leave/return; A/B Event and Task Realtime; narrow viewport; and the Space → Tasks navigation fix.
+- Slice 3 Home Aggregation is `CLOSED / PASS`. Independent Event/Task section error/retry remains `NOT RUN / DIFFICULT TO SIMULATE SAFELY`; second Shared Space is `N/A / NOT RUN`. Neither is a blocker or a PASS claim. Overall v0.1.11 remains `IN PROGRESS`; Slices 1–3 are `CLOSED / PASS`, and Slice 4 Global Create Safety is `NOT STARTED`.
+- The next phase is a repo/design review and planning for the frozen Slice 4 `Global + → 日程 / 任务` flow. This governance closeout changes documentation only; no business code, backend/schema/RPC, dependency, or authenticated browser operation changed.
+
 # 2026-09-25 - v0.1.11 Slice 3 Local Closeout / Pre-Commit Review
 
 - User-reported desktop manual acceptance passed the four tabs and default Home; Personal + Shared Event aggregation, source labels, three-day range, all-day ordering, five-row expand/collapse, canonical Event Sheet, ordinary edit and existing recurrence flow; cross-Space eligible Task aggregation, due ordering/exclusions, five-row expand/collapse, canonical Task Sheet, edit and completion; module disable/re-enable; Home leave/return; A/B Event and Task Realtime; narrow viewport; and the Space → Tasks navigation regression retest.

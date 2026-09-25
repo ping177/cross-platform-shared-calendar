@@ -1,11 +1,14 @@
 # Testing
 
-## v0.1.11 Slice 3 — Home Aggregation (LOCAL IMPLEMENTATION + DESKTOP MANUAL ACCEPTANCE PASS / PRODUCTION DEVICE ACCEPTANCE PENDING)
+## v0.1.11 Slice 3 — Home Aggregation (CLOSED / PASS)
 
 - Focused Home tests cover the three local calendar days, same-day all-day ordering, old recurring sources, moved-in override, only-this deletion, this-and-future child identity, a later-Space read failure, Task overdue/today/seven-day/undated ordering and assignment exclusions, disabled/missing/error module handling, plus section loading/empty/error and five-row expand/collapse. The navigation regression covers the module re-read state/render sequence and Tasks/Completed fallback contract. Existing calendar-refresh tests cover reused dirty-read, burst, pause/stop and retry guards.
 - Final applicable Node suite `node --test --test-reporter=tap tests/*.test.ts tests/*.test.js`: **236/236 PASS**. `npm run build` and `git diff --check`: **PASS**. Environment alignment passed earlier for this frontend-only Slice; no backend rollout is needed.
-- User-reported desktop authenticated acceptance: **PASS** for four tabs, Home default, Personal/Shared Event aggregation and source label, Event 3-day range/all-day ordering/five-row expand/collapse/canonical Event Sheet/ordinary edit/existing recurrence flow; Task cross-Space aggregation, eligibility/order/exclusions/five-row expand/collapse/canonical Task Sheet/edit/complete; module disable/re-enable; Home leave/return; A/B Event and Task Realtime; desktop/narrow viewport; and Space → Tasks regression retest. Codex did not operate the authenticated session.
-- **PENDING after deployment:** iPhone Safari and installed PWA. Production still serves Slice 1–2; Slice 3 has not been pushed or deployed. **NOT RUN / DIFFICULT TO SIMULATE SAFELY:** independent Event/Task section error/retry under real backend/network failures; no failure was deliberately induced. Second Shared Space is **N/A / NOT RUN**; do not create one for acceptance.
+- User-reported authenticated manual acceptance: **PASS** on desktop, Vercel Production, iPhone Safari, and installed PWA. The four tabs, Home default, Home leave/return, narrow viewport, and Space → Tasks navigation fix passed.
+- Event acceptance: **PASS** for Personal + Shared aggregation and source Space labels; three-day window; same-day all-day-before-timed ordering; five-item default with expand/collapse; Home Event opening the canonical Event Sheet; ordinary Event editing; and the existing recurrence flow.
+- Task acceptance: **PASS** for eligible cross-Space aggregation and ordering (overdue → today → future within seven days → no due date); no-due inclusion; assigned-to-other and >7-day exclusion; five-item default with expand/collapse; Home Task opening the canonical Task Sheet; editing/completing; and Tasks module disable/re-enable. A/B Event and Task Realtime passed.
+- Production deployment and device acceptance: **PASS** (user-reported); Production includes Slice 3. Codex did not operate authenticated sessions or perform the user-run browser/device acceptance.
+- **NOT RUN / DIFFICULT TO SIMULATE SAFELY:** independent Event/Task section error/retry under real backend/network failures; no failure was deliberately induced. Second Shared Space is **N/A / NOT RUN**; no extra Space was created. These are unrun coverage, not PASS claims or blockers.
 
 ## v0.1.11 Slice 2 — Aggregate Calendar (CLOSED / PASS)
 
