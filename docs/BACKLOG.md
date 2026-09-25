@@ -128,7 +128,7 @@ The accepted product migrated `首页 / 日历 / 空间 / 我的` to `首页 / �
 
 Slice 1 backend 与 Slice 2 frontend 均 `CLOSED / PASS`。Slice 1A backend 与窄 ACL recovery 本地验证、Slice 1B Production patch/postflight、Slice 2 Production deployment，以及用户报告的真实账号、移动端和 installed-PWA acceptance 均已通过。最终 focused Node 46/46、full Node 276/276、build、diff-check 均通过。
 
-This version covers Shared Space leave, member removal, ownership transfer, and hard delete before more Space-owned product modules. Next Action is next-version product planning: reconsider priority among Structured Review / Check-in, Shared Lists, and other candidates; do not start implementation or assign a version before a separate scope freeze.
+This version covers Shared Space leave, member removal, ownership transfer, and hard delete before more Space-owned product modules. At its closeout, next-version product planning remained open; v0.1.14「回顾」has since received its own design freeze below.
 
 The original roadmap carried these high-level safety principles; the Slice 1A backend design is now frozen and locally implemented:
 
@@ -137,6 +137,12 @@ The original roadmap carried these high-level safety principles; the Slice 1A ba
 - Ownership transfer, member removal, leaving, and deletion require explicit permission and data-integrity design.
 - Destructive multi-record operations should use atomic backend-owned behavior rather than fragile frontend mutation sequences.
 - Review Shared Space deletion against all Space-owned canonical data; future modules must honor the eventual lifecycle contract.
+
+## v0.1.14 — 回顾（Structured Check-in）— DESIGN FROZEN
+
+Canonical contract: [v0.1.14 回顾规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md)。本轮仅冻结设计；业务 TS/TSX、SQL migration、UI、Production rollout 和真实账号验收均未开始。Personal 一人和 Shared 创建时双人共用 Space-owned 数据模型；旧轮只对当前仍在 Space 且当轮参加过的用户可见，成员 leave/remove 不删除 entry，重入恢复访问。单 Space 历史列表、`+` 新建、各人独立内容与填写状态、响应式双列/切换及上一轮计划参考均在 scope 内。
+
+实施顺序：1. backend foundation/migration/DB tests；2. entry save/filled status；3. Hub 与 Space-scoped history/create；4. detail responsive UI/previous plan；5. integration 与用户执行的 authenticated acceptance。各阶段按规格的权限、并发、兼容和验收 gate 核对；不从设计冻结推断实现 PASS。v0.1.13 仍是当前 Production `CLOSED / PASS` 基线。
 
 ## Directional Roadmap — Shared Life Architecture Frozen
 
@@ -147,7 +153,8 @@ The long-term relationships and v0.1.10 scope are frozen in [Shared Life Archite
 - v0.1.11 — Navigation + Aggregation Experience (`CLOSED / PASS / SLICE 1 CLOSED / PASS / SLICE 2 CLOSED / PASS / SLICE 3 CLOSED / PASS / SLICE 4 CLOSED / PASS`; Desktop and Production installed PWA acceptance `PASS`; dedicated final iPhone Safari acceptance `NOT RUN`).
 - v0.1.12 — Module Hub + Space Management Navigation (CLOSED / PASS; Slices 1–4 CLOSED / PASS; Production and installed-PWA acceptance PASS).
 - v0.1.13 — Space Lifecycle & Membership Safety (CLOSED / PASS; Slice 1/2 CLOSED / PASS; Production deployment and user-reported authenticated/mobile/PWA acceptance PASS).
-- Later candidates after v0.1.13 without fixed versions/order: Structured Review / Check-in, Shared Lists, Important Dates, Calendar Sources v1, Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules. Priority and order may change based on real product use.
+- v0.1.14 — 回顾 (DESIGN FROZEN; implementation not started; Production remains v0.1.13).
+- Later candidates without fixed versions/order: Shared Lists, Important Dates, Calendar Sources v1, Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules. Priority and order may change based on real product use.
 - Future direction only: consider projecting/sharing a Personal Event into another Space while keeping one canonical Event owner Space, avoiding duplicate canonical objects, and ensuring that leaving the target Shared Space does not affect the source Event. This is outside v0.1.13; do not implement or reserve schema for it in this version.
 - Native: decision gate only; no committed implementation version.
 

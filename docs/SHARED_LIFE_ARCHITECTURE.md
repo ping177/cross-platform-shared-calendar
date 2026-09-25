@@ -1,31 +1,31 @@
 # Shared Life Architecture Freeze
 
-Status: `ARCHITECTURE FROZEN`; v0.1.10: `CLOSED / PASS`; v0.1.11: `CLOSED / PASS` (Slices 1–4 `CLOSED / PASS`; Production installed PWA acceptance `PASS`; dedicated final iPhone Safari acceptance `NOT RUN`). The canonical v0.1.11 contract is [Navigation + Aggregation Experience Specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md).
+Status: `ARCHITECTURE FROZEN`; v0.1.10–v0.1.13 are `CLOSED / PASS`. The v0.1.11 contract is [Navigation + Aggregation Experience Specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md); the v0.1.14「回顾」design-only contract is [v0.1.14 回顾规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md).
 
 This document freezes the long-term product model and navigation direction plus the reviewed v0.1.10 foundation scope. It does not change the accepted v0.1.9 Production capability. Later roadmap versions remain directional and need their own scope review.
 
 ## Primary Navigation
 
-The currently shipped first-level navigation is `首页 / 日历 / 空间 / 我的`.
+The currently shipped first-level navigation is `首页 / 日历 / 功能中心 / 我的`.
 
 | Destination | Responsibility |
 | --- | --- |
 | 首页 | Cross-module summary; each supported section has a direct create `+` |
 | 日历 | Time views and aggregation of Calendar Sources |
-| 空间 | Personal and Shared Spaces with their content modules |
-| 我的 | Profile, account, notifications, devices, and settings |
+| 功能中心 | Implemented optional modules; currently only 任务 |
+| 我的 | Profile, account, Space management, notifications, devices, and settings |
 
-The complete four-destination navigation shipped in v0.1.11. Slice 3 added Home aggregation, and Slice 4 added direct Event and Task creation from their Home sections.
+The initial four-destination navigation shipped in v0.1.11. Slice 3 added Home aggregation, Slice 4 added direct Event and Task creation from their Home sections, and v0.1.12 changed the third destination to 功能中心.
 
-## v0.1.12 Module Hub + Space Management Navigation — Frozen Target, Design Review Next
+## v0.1.12 Module Hub + Space Management Navigation — Historical Frozen Target
 
-The product direction is a module-first migration to the semantic navigation `首页 / 日历 / 功能中心 / 我的`; the exact Chinese tab label may be confirmed during the read-only design review. The currently shipped `空间` destination remains in place until that migration is designed and implemented. The Module Hub opens actual modules directly. Tasks is currently the only implemented optional module and the first/only module for this migration. Unimplemented Lists, Important Dates, Review / Check-in, Memo, or Wishlist must not appear as placeholders; no generic module framework or plugin system is part of the direction.
+The v0.1.12 migration to `首页 / 日历 / 功能中心 / 我的` is complete. The Module Hub opens implemented modules directly; 任务 remains the only Production module until v0.1.14 is implemented. The following rules record the frozen v0.1.12 architecture. Unimplemented modules must not appear as placeholders; no generic module framework or plugin system is part of the direction.
 
 Module enablement remains per-Space configuration in `space_modules`. A module page's filter is separate view state and lists only Spaces where that module is enabled. For Tasks, Spaces with Tasks disabled are excluded from its filter; disabling Tasks keeps its data. Each module owns its filter, while Calendar's `calendarFilter` remains independent and continues to support all Spaces or one Space. Do not create an app-wide Space filter.
 
 “我的” is directed toward personal profile, Space management, and general settings. Space management may provide a Space list, create/join actions, and Space details for members, invitations, Space settings, and module switches. Module switches can be a section of Space details; a separate nested module-management page is not required.
 
-Space remains the canonical ownership boundary. Each Event, Task, List, Important Date, and Review belongs to one canonical Space; `ownership ≠ view`. This migration changes navigation, aggregation, and view, not canonical ownership, persistence, or Space schema. Preserve both v0.1.11 Home quick-create shortcuts unchanged. The v0.1.12 implementation has not started; see [Decisions](./DECISIONS.md) and [Backlog](./BACKLOG.md).
+Space remains the canonical ownership boundary. Each Event, Task, List, Important Date, and 回顾 belongs to one canonical Space; `ownership ≠ view`. This migration changed navigation, aggregation, and view, not canonical ownership, persistence, or Space schema. Preserve both v0.1.11 Home quick-create shortcuts unchanged; see [Decisions](./DECISIONS.md) and [Backlog](./BACKLOG.md).
 
 ## Spaces and Canonical Ownership
 
@@ -122,8 +122,8 @@ The Home creation form visibly shows the target Space and allows changing it. It
 - Event: when something happens.
 - Task: something that remains to be completed. A future read-only Calendar projection may show `tasks.due_on`; it does not create an Event or duplicate Task persistence.
 - v0.1.9 Slice 2 will present Completed Tasks in a separate history section with reopen and delete actions. Task Archive is deferred; there is no `archive` status in the v0.1.9 data contract.
-- Review / Check-in is structured Space content distinct from Memo. Its future structure includes review period, Focus, Achievements / Wins, Problems, next-period plan, historical continuity, and access to the previous plan when preparing the next Review.
-- Voice input is an important future Review experience goal. The recording and transcription technology is not frozen here.
+- 回顾 is structured Space content distinct from Memo. v0.1.14 freezes its four fields, fixed round number, actual date, participant snapshot, historical continuity and previous-plan reference in the [canonical specification](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md).
+- Voice input remains a later goal for 回顾; it is outside v0.1.14.
 
 ## Directional Roadmap
 
@@ -132,10 +132,11 @@ The Home creation form visibly shows the target Space and allows changing it. It
 | v0.1.9 | Shared Tasks |
 | v0.1.10 | Personal Space + Multi-space + Module Enablement Foundation |
 | v0.1.11 | Navigation + Aggregation Experience |
-| v0.1.12 | Module Hub + Space Management Navigation (read-only design review next; implementation not started) |
-| v0.1.13 | Scope decision pending: Structured Review / Check-in or Shared Lists |
+| v0.1.12 | Module Hub + Space Management Navigation (CLOSED / PASS) |
+| v0.1.13 | Space Lifecycle & Membership Safety (CLOSED / PASS) |
+| v0.1.14 | 回顾 (DESIGN FROZEN; implementation not started) |
 
-Shared Lists, Important Dates, Structured Review / Check-in, Calendar Sources v1, Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules remain candidates without a fixed order after v0.1.13. Priority and order may change based on real product use. Native has a decision gate only; no native implementation version is committed.
+Shared Lists, Important Dates, Calendar Sources v1, Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules remain candidates without a fixed order. Priority and order may change based on real product use. Native has a decision gate only; no native implementation version is committed.
 
 ## v0.1.9 Slice Boundary
 

@@ -181,6 +181,14 @@ At the original roadmap freeze, only these high-level safety principles were rec
 - Destructive multi-record operations should prefer atomic backend-owned behavior over fragile frontend mutation sequences.
 - Shared Space deletion must be reviewed against all Space-owned canonical data; future modules must respect the eventual lifecycle contract.
 
+## v0.1.14 回顾（Structured Check-in）Design Freeze — 2026-09-25
+
+- v0.1.14 已完成 docs-only 设计冻结；canonical 数据、权限、UI、slices 和验收契约见 [v0.1.14 规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md)。v0.1.13 仍是已部署 `CLOSED / PASS` 基线；未实施回顾业务代码、SQL 或 UI。
+- 每轮回顾的 participant 在创建时以 `review_entries` 固定。读取和写入旧轮均要求当前 Space membership **及**该轮 participant 身份；leave/remove 保留历史 entry，但离开者失去访问权，新成员不能访问或补写旧轮，原 participant 重新加入后恢复旧轮访问。Personal 一人可创建；Shared 仅当前两名成员齐全时可创建，沿用现有两人上限。
+- `round_no` 是每 Space 创建时固定编号，创建 RPC 锁 Space 行后取 `max+1`，以唯一约束兜底；`review_date` 可由当前成员且该轮 participant 通过窄 RPC 更正，不改编号或参与者。上一轮计划仅按 `round_no-1` 读取本人 entry，只读且不复制。
+- 四个内容字段均可空；全空为未填写且不能标记。非空内容以服务端 content/filled revision 导出编辑中、已填写、有更新；相同内容重复保存不增加 revision。各人只能编辑、标记自己的 entry；无单次回顾删除。
+- 沿用 `space_modules`：缺行/关闭时不进入正常回顾选择器、禁止写入、保留历史，重开恢复。只扩展 owner-only 模块开关，不加 Realtime、archive/read-only 旁路或通用框架。面向用户只称「回顾」。
+
 ## Future UX Consideration — Calendar Create Action
 
 现有 Slice 2 冻结行为是：Calendar 选“全部空间”时没有日程创建 `+`，筛选单一 Space 时显示创建 `+`。未来可以重新评估这项行为；本次不改，也不重开 Slice 2。

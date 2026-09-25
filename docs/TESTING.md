@@ -1,5 +1,9 @@
 # Testing
 
+## v0.1.14 回顾 — Planned Acceptance (DESIGN FROZEN; NOT RUN)
+
+The canonical DB, direct-API, concurrency, lifecycle, frontend and user-run acceptance criteria are in [v0.1.14 回顾规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md). No v0.1.14 migration, implementation, automated test, authenticated session or Production acceptance has run. Before any real-login/two-account/mobile/PWA acceptance, run the project's frontend-target/backend-capability compatibility gate; Codex handles automated verification and the user performs authenticated/device acceptance.
+
 ## v0.1.13 Final Regression + Closeout — CLOSED / PASS
 
 - Focused lifecycle/Space Management regressions: **46/46 PASS**. Full Node suite: **276/276 PASS**. `npm run build` and `git diff --check`: **PASS**.

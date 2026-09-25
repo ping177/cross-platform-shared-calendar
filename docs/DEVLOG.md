@@ -1,5 +1,11 @@
 # Development Log
 
+# 2026-09-25 - v0.1.14 回顾 Design Freeze — DESIGN FROZEN
+
+- 基线为 `main = origin/main = 731028b06eeabad688cec8be197d690f174284a5`，开始前工作区干净。复核现有 `spaces / space_members / space_modules`、Tasks-only 模块开关、v0.1.13 Shared 两人上限及 leave/remove/delete 生命周期后，建立 [v0.1.14 canonical 规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md)。
+- 冻结创建时 participant snapshot、当前成员与当轮 participant 双条件访问、历史保留及重入、Shared 双人创建、Space 内并发编号、日期更正、四字段 revision 状态、模块关闭和响应式 UI；列出五个 bounded slices 与验收条件。无剩余阻止实施的产品或架构决定。
+- 本轮仅文档变更；未更改业务代码、SQL、依赖或 Production，未执行真实账号/设备验收，未 commit/push。docs-only `git diff --check` PASS；新增规格的尾随空白与相对链接检查 PASS。
+
 # 2026-09-25 - v0.1.13 Final Regression + Closeout — CLOSED / PASS
 
 - Baseline was `main = origin/main = c08e9f1bd2d583a65fb42d68588b531ca6e0216c`, with a clean working tree before closeout. Focused lifecycle/Space Management Node tests passed **46/46**, full Node passed **276/276**, `npm run build` passed, and `git diff --check` passed.
