@@ -9,18 +9,14 @@ import {
   ChevronRight,
   Plus,
   Trash2,
-  Users,
   X,
 } from 'lucide-react';
-import { MemberSheet } from './components/MemberSheet';
 import { CreateTargetSelector, type CreateTargetControl } from './components/GlobalCreateControls';
 import { MyPage } from './components/MyPage';
 import { SpaceManagementPage } from './components/SpaceManagementPage';
-import { SharedSpaceForms } from './components/SharedSpaceForms';
-import { InvitePanel } from './components/InvitePanel';
-import { useSpaceTasksModule } from './components/useSpaceTasksModule';
+import { ModuleHub } from './components/ModuleHub';
 import { RecurrenceControls } from './components/RecurrenceControls';
-import { TasksArea, type TasksScreen } from './components/TasksArea';
+import { TasksArea } from './components/TasksArea';
 import { HomePage } from './components/HomePage';
 import { calendarVisibleRange } from './lib/calendar-display';
 import { calendarSpaces, readAggregateCalendar, spaceLabel, validCalendarFilter, type CalendarFilter } from './lib/aggregate-calendar';
@@ -53,10 +49,9 @@ import {
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { bootstrapSpaces, chooseSelectedSpaceId, ensureOnceUntilFailure, writeSelectedSpaceId } from './lib/space-selection';
 import { newEventIdentity } from './lib/space-content';
-import { tasksModuleForcesHub, type TasksModuleState } from './lib/space-modules';
 import { readSpaceMembers } from './lib/space-members';
 import { createRequestGuard } from './lib/request-guard';
-import { contentSpaceIdForNavigation, initialNavigation, openCalendar, openSpace, openSpaceScreen, selectTab, type TopLevelTab } from './lib/navigation';
+import { calendarContentSpaceId, initialNavigation, openCompletedTasks, openTaskList, openTaskModule, selectTab, type TopLevelTab } from './lib/navigation';
 import {
   registerPushServiceWorker,
 } from './lib/push-notifications';
@@ -389,7 +384,6 @@ function CalendarApp({ session }: { session: Session }) {
   const userId = session.user.id;
   const [spaces, setSpaces] = useState<CurrentSpace[]>([]);
   const [selectedSpaceId, setSelectedSpaceId] = useState<string | null>(null);
-  const [legacySpaceId, setLegacySpaceId] = useState<string | null>(null);
   const [myScreen, setMyScreen] = useState<'profile' | 'management' | 'detail'>('profile');
   const [calendarFilter, setCalendarFilter] = useState<CalendarFilter>('all');
   const [navigation, setNavigation] = useState(initialNavigation);
@@ -422,10 +416,6 @@ function CalendarApp({ session }: { session: Session }) {
         setMyScreen((current) => current === 'detail' ? 'management' : current);
       }
       setSelectedSpaceId(result.selectedSpaceId);
-      if (legacySpaceId && !result.spaces.some((space) => space.id === legacySpaceId)) {
-        setLegacySpaceId(null);
-        setNavigation((current) => current.tab === 'spaces' ? selectTab(current, 'spaces') : current);
-      }
       setPersonalInitializationError(result.personalInitializationError ?? null);
       writeSelectedSpaceId(window.localStorage, userId, result.selectedSpaceId);
       return true;
@@ -446,7 +436,7 @@ function CalendarApp({ session }: { session: Session }) {
     return () => { requestGuard.current.invalidate(); };
   }, [userId]);
 
-  async function selectSpace(spaceId: string, destination: 'management' | 'legacy') {
+  async function selectManagedSpace(spaceId: string) {
     if (spaceListStatus !== 'ready' || spaceActionBusy) return;
     const request = requestGuard.current.begin();
     setSpaceListStatus('loading');
@@ -458,24 +448,15 @@ function CalendarApp({ session }: { session: Session }) {
       const validatedId = chooseSelectedSpaceId(listed, selectedSpaceId);
       if (!validatedId) throw new Error('未找到可用空间，请重新加载。');
       if (!listed.some((space) => space.id === spaceId)) {
-        if (destination === 'management') {
-          setSelectedSpaceId(validatedId);
-          writeSelectedSpaceId(window.localStorage, userId, validatedId);
-        }
+        setSelectedSpaceId(validatedId);
+        writeSelectedSpaceId(window.localStorage, userId, validatedId);
         setError('此空间已不在你的成员列表中，请重新选择。');
         setSpaceListStatus('ready');
         return;
       }
-      if (destination === 'legacy') {
-        setLegacySpaceId(spaceId);
-        setSelectedDate(new Date());
-        setViewMode('today');
-        setNavigation((current) => openSpace(current));
-      } else {
-        setSelectedSpaceId(spaceId);
-        writeSelectedSpaceId(window.localStorage, userId, spaceId);
-        setMyScreen('detail');
-      }
+      setSelectedSpaceId(spaceId);
+      writeSelectedSpaceId(window.localStorage, userId, spaceId);
+      setMyScreen('detail');
       setSpaceListStatus('ready');
     } catch (selectionError) {
       if (requestGuard.current.isCurrent(request)) {
@@ -510,10 +491,6 @@ function CalendarApp({ session }: { session: Session }) {
       }
       setSelectedSpaceId(validatedId);
       writeSelectedSpaceId(window.localStorage, userId, validatedId);
-      if (legacySpaceId && !listed.some((space) => space.id === legacySpaceId)) {
-        setLegacySpaceId(null);
-        setNavigation((current) => current.tab === 'spaces' ? selectTab(current, 'spaces') : current);
-      }
       setSpaceListStatus('ready');
       return true;
     } catch (refreshError) {
@@ -530,16 +507,7 @@ function CalendarApp({ session }: { session: Session }) {
     requestGuard.current.invalidate();
     setNavigation((current) => selectTab(current, tab));
     if (tab === 'me') setMyScreen('profile');
-    if (tab === 'spaces' || tab === 'calendar' || tab === 'home') void refreshSpaces(false);
-  }
-
-  async function sharedSpaceReady(spaceId: string) {
-    const ready = await refreshSpaces(false, spaceId);
-    if (ready) {
-      setLegacySpaceId(spaceId);
-      setNavigation((current) => openSpace(current));
-    }
-    return ready;
+    if (tab === 'modules' || tab === 'calendar' || tab === 'home') void refreshSpaces(false);
   }
 
   async function managedSpaceReady(spaceId: string) {
@@ -558,7 +526,7 @@ function CalendarApp({ session }: { session: Session }) {
 
   const validFilter = validCalendarFilter(calendarFilter, spaces);
   const visibleCalendarSpaces = calendarSpaces(spaces, validFilter);
-  const contentSpaceId = contentSpaceIdForNavigation(navigation.tab, legacySpaceId, validFilter, spaces.map((space) => space.id));
+  const contentSpaceId = calendarContentSpaceId(validFilter, spaces.map((space) => space.id));
   const contentSpace = spaces.find((space) => space.id === contentSpaceId) ?? null;
   useEffect(() => {
     if (validFilter !== calendarFilter) setCalendarFilter('all');
@@ -586,43 +554,31 @@ function CalendarApp({ session }: { session: Session }) {
           </div>
         </div>
       )}
-      {navigation.tab === 'spaces' && navigation.spaceScreen === 'list' && (
-        spaceListStatus === 'ready'
-          ? <SpacePage
-              spaces={spaces}
-              selectedSpaceId={legacySpaceId}
-              onSelect={(spaceId) => { void selectSpace(spaceId, 'legacy'); }}
-              onSharedReady={sharedSpaceReady}
-              busy={spaceActionBusy}
-              onBusyChange={setSpaceActionBusy}
-            />
-          : <SpaceListPending status={spaceListStatus} onRetry={() => void refreshSpaces()} />
-      )}
       {navigation.tab === 'calendar' && spaceListStatus !== 'ready' && <SpaceListPending status={spaceListStatus} onRetry={() => void refreshSpaces()} />}
       {navigation.tab === 'home' && spaceListStatus !== 'ready' && <SpaceListPending status={spaceListStatus} onRetry={() => void refreshSpaces()} />}
+      {navigation.tab === 'modules' && spaceListStatus !== 'ready' && <SpaceListPending status={spaceListStatus} onRetry={() => void refreshSpaces(false)} />}
       {navigation.tab === 'home' && spaceListStatus === 'ready' && <HomePage spaces={spaces} userId={userId} EventSheetComponent={EventSheet} onMembershipRefresh={async () => { await refreshSpaces(); }} />}
-      {((navigation.tab === 'calendar' && spaceListStatus === 'ready') || (navigation.tab === 'spaces' && navigation.spaceScreen !== 'list')) && contentSpace && (
+      {navigation.tab === 'modules' && spaceListStatus === 'ready' && (navigation.moduleScreen === 'hub'
+        ? <ModuleHub onOpenTasks={() => setNavigation((current) => openTaskModule(current))} />
+        : <TasksArea
+            key={userId}
+            screen={navigation.moduleScreen}
+            onScreenChange={(screen) => setNavigation((current) => screen === 'completed' ? openCompletedTasks(current) : openTaskList(current))}
+            onHubBack={() => setNavigation((current) => selectTab(current, 'modules'))}
+            userId={userId}
+          />)}
+      {navigation.tab === 'calendar' && spaceListStatus === 'ready' && contentSpace && (
         <CurrentSpaceApp
-          key={navigation.tab === 'calendar' ? `calendar:${validFilter === 'all' ? 'all' : validFilter.spaceId}:${visibleCalendarSpaces.map((item) => item.id).join(',')}` : `spaces:${contentSpace.id}`}
+          key={`calendar:${validFilter === 'all' ? 'all' : validFilter.spaceId}:${visibleCalendarSpaces.map((item) => item.id).join(',')}`}
           session={session}
-          space={contentSpace}
           spaces={visibleCalendarSpaces}
           allSpaces={spaces}
           calendarFilter={validFilter}
           onCalendarFilterChange={setCalendarFilter}
-          screen={navigation.tab === 'calendar' ? 'calendar' : navigation.spaceScreen as TasksScreen}
-          onScreenChange={(screen) => {
-            if (screen === 'calendar') {
-              setCalendarFilter({ spaceId: contentSpace.id });
-              setNavigation((current) => openCalendar(current));
-            } else setNavigation((current) => openSpaceScreen(current, screen));
-          }}
-          onHubBack={() => setNavigation((current) => selectTab(current, 'spaces'))}
           selectedDate={selectedDate}
           onSelectedDateChange={setSelectedDate}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
-          onSpaceUpdate={updateSpace}
         />
       )}
       {navigation.tab === 'me' && myScreen === 'profile' && <MyPage userId={userId} onManageSpaces={() => { setMyScreen('management'); void refreshSpaces(false); }} />}
@@ -631,7 +587,7 @@ function CalendarApp({ session }: { session: Session }) {
           ? <SpaceManagementPage
               spaces={spaces}
               selectedSpaceId={myScreen === 'detail' ? selectedSpaceId : null}
-              onSelect={(spaceId) => { void selectSpace(spaceId, 'management'); }}
+              onSelect={(spaceId) => { void selectManagedSpace(spaceId); }}
               onBack={() => setMyScreen(myScreen === 'detail' ? 'management' : 'profile')}
               onReady={managedSpaceReady}
               onSpaceChange={updateSpace}
@@ -763,24 +719,18 @@ export function CalendarDateNavigation({ selectedDate, viewMode, onSelectedDateC
   );
 }
 
-export function CurrentSpaceApp({ session, space, spaces, allSpaces, calendarFilter, onCalendarFilterChange, screen, onScreenChange, onHubBack, selectedDate, onSelectedDateChange, viewMode, onViewModeChange, onSpaceUpdate }: {
+export function CurrentSpaceApp({ session, spaces, allSpaces, calendarFilter, onCalendarFilterChange, selectedDate, onSelectedDateChange, viewMode, onViewModeChange }: {
   session: Session;
-  space: CurrentSpace;
   spaces: CurrentSpace[];
   allSpaces: CurrentSpace[];
   calendarFilter: CalendarFilter;
   onCalendarFilterChange: (filter: CalendarFilter) => void;
-  screen: TasksScreen;
-  onScreenChange: (screen: TasksScreen) => void;
-  onHubBack: () => void;
   selectedDate: Date;
   onSelectedDateChange: (date: Date) => void;
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
-  onSpaceUpdate: (space: Space) => void;
 }) {
   const userId = session.user.id;
-  const [members, setMembers] = useState<SpaceMember[]>([]);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [occurrenceExceptions, setOccurrenceExceptions] = useState<EventOccurrenceException[]>([]);
   const [membersBySpaceId, setMembersBySpaceId] = useState<Record<string, SpaceMember[]>>({});
@@ -788,13 +738,9 @@ export function CurrentSpaceApp({ session, space, spaces, allSpaces, calendarFil
   const [calendarError, setCalendarError] = useState('');
   const [syncError, setSyncError] = useState('');
   const [calendarRetry, setCalendarRetry] = useState(0);
-  const [error, setError] = useState('');
   const [editingTarget, setEditingTarget] = useState<EventEditTarget | null>(null);
   const [showNewEvent, setShowNewEvent] = useState(false);
   const [openCalendarSelector, setOpenCalendarSelector] = useState<'space' | 'view' | null>(null);
-  const [showMembers, setShowMembers] = useState(false);
-  const tasksModule = useSpaceTasksModule(space, screen);
-  const memberRequestGuard = useRef(createRequestGuard());
   const eventRequestGuard = useRef(createRequestGuard());
   const createGuard = useRef(createRequestGuard());
   const reloadCalendar = useRef<() => void>(() => undefined);
@@ -817,28 +763,8 @@ export function CurrentSpaceApp({ session, space, spaces, allSpaces, calendarFil
     return () => window.removeEventListener('keydown', closeOnEscape);
   }, [openCalendarSelector]);
 
-  async function loadMembers(spaceId: string) {
-    const currentRequest = memberRequestGuard.current.begin();
-    try {
-      const loaded = await readSpaceMembers(spaceId);
-      if (memberRequestGuard.current.isCurrent(currentRequest)) setMembers(loaded);
-    } catch (memberError) {
-      if (memberRequestGuard.current.isCurrent(currentRequest)) setError(getErrorMessage(memberError));
-    }
-  }
-
-  useEffect(() => {
-    if (screen !== 'calendar') {
-      void loadMembers(space.id);
-    }
-    return () => {
-      memberRequestGuard.current.invalidate();
-    };
-  }, [space.id, screen]);
-
   const visibleSpaceIds = spaces.map((item) => item.id).join(',');
   useEffect(() => {
-    if (screen !== 'calendar') return;
     let active = true;
     let subscribed = false;
     const connected = new Set<string>();
@@ -917,13 +843,7 @@ export function CurrentSpaceApp({ session, space, spaces, allSpaces, calendarFil
       createGuard.current.invalidate();
       for (const channel of channels) void supabase.removeChannel(channel);
     };
-  }, [screen, visibleSpaceIds, calendarRetry]);
-
-  useEffect(() => {
-    if (tasksModuleForcesHub(tasksModule.state, screen)) onScreenChange('hub');
-  }, [tasksModule.state, screen, onScreenChange]);
-
-  const visibleTasksModuleState: TasksModuleState = tasksModule.busy ? 'loading' : tasksModule.state;
+  }, [visibleSpaceIds, calendarRetry]);
 
   async function verifyCreateTarget(spaceId: string) {
     const listed = await listCurrentSpaces(userId);
@@ -948,8 +868,6 @@ export function CurrentSpaceApp({ session, space, spaces, allSpaces, calendarFil
   return (
     <main className="min-h-screen bg-mist text-ink">
       <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col">
-        {screen === 'calendar' && (
-          <>
         <header className="sticky top-0 z-10 border-b border-ink/10 bg-mist/95 px-4 pb-3 pt-4 backdrop-blur">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
@@ -996,25 +914,6 @@ export function CurrentSpaceApp({ session, space, spaces, allSpaces, calendarFil
             onSelectDate={onSelectedDateChange}
           />}
         </section>
-          </>
-        )}
-        <TasksArea
-          key={`${space.id}:${visibleTasksModuleState === 'enabled' ? 'enabled' : 'blocked'}`}
-          screen={screen}
-          onScreenChange={onScreenChange}
-          onHubBack={onHubBack}
-          space={space}
-          members={members}
-          userId={userId}
-          moduleState={visibleTasksModuleState}
-          moduleError={tasksModule.error}
-          moduleBusy={tasksModule.busy}
-          isOwner={space.membershipRole === 'owner'}
-          onModuleRetry={() => void tasksModule.retry()}
-          onModuleToggle={() => void tasksModule.toggle()}
-          invitePanel={space.kind === 'shared' ? <InvitePanel space={space} onSpaceChange={onSpaceUpdate} /> : null}
-          onMembersOpen={() => setShowMembers(true)}
-        />
       </div>
 
       {(showNewEvent || editingTarget) && sheetSpace && sheetMembers.length > 0 && (
@@ -1034,14 +933,6 @@ export function CurrentSpaceApp({ session, space, spaces, allSpaces, calendarFil
         />
       )}
 
-      {showMembers && (
-        <MemberSheet
-          members={members}
-          userId={userId}
-          onClose={() => setShowMembers(false)}
-        />
-      )}
-
     </main>
   );
 }
@@ -1054,37 +945,11 @@ function Notice({ tone, message }: { tone: 'error' | 'success'; message: string 
   );
 }
 
-export function SpacePage({ spaces, selectedSpaceId, onSelect, onSharedReady, busy, onBusyChange }: {
-  spaces: CurrentSpace[];
-  selectedSpaceId: string | null;
-  onSelect: (spaceId: string) => void;
-  onSharedReady: (spaceId: string) => Promise<boolean>;
-  busy: boolean;
-  onBusyChange: (busy: boolean) => void;
-}) {
-  return (
-    <main className="mx-auto min-h-screen w-full max-w-3xl px-4 py-4">
-      <section>
-        <h1 className="text-xl font-bold">空间</h1>
-        <div className="mt-4 space-y-2">
-          {spaces.map((space) => (
-            <button key={space.id} className={`flex min-h-14 w-full items-center justify-between gap-3 rounded-lg px-4 text-left shadow-sm disabled:opacity-60 ${space.id === selectedSpaceId ? 'bg-teal text-white' : 'bg-white text-ink'}`} type="button" onClick={() => onSelect(space.id)} disabled={busy} aria-current={space.id === selectedSpaceId ? 'true' : undefined}>
-              <span className="min-w-0 truncate font-semibold">{space.kind === 'personal' ? '👤 我的空间' : space.name}</span>
-              {space.id === selectedSpaceId && <span className="shrink-0 text-sm">当前</span>}
-            </button>
-          ))}
-        </div>
-        <SharedSpaceForms onReady={onSharedReady} busy={busy} onBusyChange={onBusyChange} />
-      </section>
-    </main>
-  );
-}
-
 export function BottomNavigation({ tab, onChange, disabled = false }: { tab: TopLevelTab; onChange: (tab: TopLevelTab) => void; disabled?: boolean }) {
   const tabs: { id: TopLevelTab; label: string }[] = [
     { id: 'home', label: '首页' },
     { id: 'calendar', label: '日历' },
-    { id: 'spaces', label: '空间' },
+    { id: 'modules', label: '功能中心' },
     { id: 'me', label: '我的' },
   ];
   return (

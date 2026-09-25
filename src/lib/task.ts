@@ -36,18 +36,6 @@ export function formatTaskDueDate(dueOn: string | null) {
   return `${Number(month)}月${Number(day)}日`;
 }
 
-export function createTaskReadGate() {
-  let active = false;
-  return {
-    activate: () => { active = true; },
-    deactivate: () => { active = false; },
-    isActive: () => active,
-    runIfActive: async (read: () => Promise<void>) => {
-      if (active) await read();
-    },
-  };
-}
-
 export function taskErrorMessage(error: unknown) {
   const message = error instanceof Error ? error.message
     : typeof error === 'object' && error !== null && 'message' in error && typeof error.message === 'string' ? error.message : '';

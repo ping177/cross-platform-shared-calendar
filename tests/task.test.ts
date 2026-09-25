@@ -11,7 +11,6 @@ import {
   taskEditableChanges,
   taskRealtimeConfig,
   taskErrorMessage,
-  createTaskReadGate,
 } from '../src/lib/task.ts';
 import type { SpaceMember, Task } from '../src/types.ts';
 
@@ -69,24 +68,6 @@ test('Task-related backend errors are presented as Chinese task copy', () => {
   assert.equal(taskErrorMessage({ message: 'new row violates row-level security policy for table "tasks"', code: '42501' }), '你没有权限执行此任务操作。');
   assert.equal(taskErrorMessage(new Error('网络连接失败')), '网络连接失败');
   assert.equal(taskErrorMessage(null), '任务操作失败，请稍后再试。');
-});
-
-test('delayed mutation completion cannot start a Task read after deactivation', async () => {
-  const gate = createTaskReadGate();
-  gate.activate();
-  let finishMutation!: () => void;
-  const mutation = new Promise<void>((resolve) => { finishMutation = resolve; });
-  const reads: string[] = [];
-  const completion = mutation.then(() => gate.runIfActive(async () => { reads.push('space-a'); }));
-
-  gate.deactivate();
-  finishMutation();
-  await completion;
-  assert.deepEqual(reads, []);
-
-  gate.activate();
-  await gate.runIfActive(async () => { reads.push('space-b'); });
-  assert.deepEqual(reads, ['space-b']);
 });
 
 test('trims valid titles and rejects blank or overlong titles', () => {

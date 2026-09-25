@@ -1,4 +1,5 @@
 import { completeRows, type Page } from './aggregate-calendar.ts';
+import { homeCreateTarget } from './global-create.ts';
 import { createRequestGuard } from './request-guard.ts';
 import { groupTasks } from './task.ts';
 import type { CurrentSpace, Space, Task } from '../types.ts';
@@ -21,14 +22,31 @@ export function taskFilterSpaces(spaces: CurrentSpace[], filter: TaskFilter): Cu
   return normalized === 'all' ? spaces : spaces.filter((space) => space.id === normalized.spaceId);
 }
 
-export async function readAggregateTasks(spaces: CurrentSpace[], filter: TaskFilter, operations: {
-  modulePage: (start: number, end: number) => Promise<Page<TaskModuleRow>>;
-  taskPage: (spaceId: string, start: number, end: number) => Promise<Page<Task>>;
-}) {
+export function defaultTaskCreateTarget(filter: TaskFilter, memberSpaces: CurrentSpace[], eligibleSpaces: CurrentSpace[], userId: string) {
+  if (filter !== 'all' && eligibleSpaces.some((space) => space.id === filter.spaceId)) return filter.spaceId;
+  return homeCreateTarget(memberSpaces, userId);
+}
+
+export function taskRealtimeSpaceIds(spaces: CurrentSpace[], filter: TaskFilter) {
+  return taskFilterSpaces(spaces, filter).map((space) => space.id);
+}
+
+export function subscribeTaskRealtimeScope<Channel>(spaceIds: string[], subscribe: (spaceId: string, onChange: () => void) => Channel, unsubscribe: (channel: Channel) => void, onChange: () => void) {
+  const channels: Channel[] = [];
+  try {
+    for (const spaceId of spaceIds) channels.push(subscribe(spaceId, onChange));
+  } catch (error) {
+    for (const channel of channels) unsubscribe(channel);
+    throw error;
+  }
+  return () => { for (const channel of channels) unsubscribe(channel); };
+}
+
+export async function readTaskEligibility(spaces: CurrentSpace[], modulePage: (start: number, end: number) => Promise<Page<TaskModuleRow>>) {
   const spaceIds = new Set(spaces.map((space) => space.id));
   const moduleRows = spaces.length ? await completeRows(
     async (start, end) => {
-      const page = await operations.modulePage(start, end);
+      const page = await modulePage(start, end);
       if (!page.error && page.data == null) throw new Error('任务模块数据读取不完整，请重试。');
       return page;
     },
@@ -36,7 +54,14 @@ export async function readAggregateTasks(spaces: CurrentSpace[], filter: TaskFil
     (row) => spaceIds.has(row.space_id) && typeof row.enabled === 'boolean',
     '任务模块',
   ) : [];
-  const eligibleSpaces = eligibleTaskSpaces(spaces, moduleRows);
+  return eligibleTaskSpaces(spaces, moduleRows);
+}
+
+export async function readAggregateTasks(spaces: CurrentSpace[], filter: TaskFilter, operations: {
+  modulePage: (start: number, end: number) => Promise<Page<TaskModuleRow>>;
+  taskPage: (spaceId: string, start: number, end: number) => Promise<Page<Task>>;
+}) {
+  const eligibleSpaces = await readTaskEligibility(spaces, operations.modulePage);
   const validFilter = normalizeTaskFilter(filter, eligibleSpaces);
   const tasks: Task[] = [];
   const sourceSpacesById: Record<string, SourceSpace> = {};

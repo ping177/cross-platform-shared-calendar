@@ -116,7 +116,7 @@ Deferred beyond v0.1.11: due Task Calendar projection, multi-select/saved Calend
 
 ## v0.1.12 — Module Hub + Space Management Navigation — IN PROGRESS
 
-The approved product direction is a module-first navigation migration from `首页 / 日历 / 空间 / 我的` to `首页 / 日历 / 功能中心 / 我的`. Slice 1 Aggregate Tasks foundation and Slice 2 My → Space Management → Space Detail are `CLOSED / PASS`; Slice 2's authenticated functional acceptance is complete. Slice 3 is next and makes the one-time switch to 功能中心 + Aggregate Tasks UI, including taskFilter UI, and retires old Space-first daily content navigation. Slice 4 covers regression, authenticated acceptance and Production acceptance. Slice 2 visual refinement is deferred to a later unified UI/design pass and is not a blocker.
+The approved product direction migrates `首页 / 日历 / 空间 / 我的` to `首页 / 日历 / 功能中心 / 我的`. Slice 1 Aggregate Tasks foundation, Slice 2 My → Space Management → Space Detail, and Slice 3 One-time Navigation Switch + Aggregate Tasks UI are `CLOSED / PASS`, with user-run authenticated functional acceptance. Slice 4 final regression and Production/PWA acceptance is `NEXT`; it has not started. Slice 2 visual refinement is deferred to a later unified UI/design pass and is not a blocker.
 
 - The third destination opens implemented modules directly. Tasks is currently the only implemented optional module and the only module to migrate in v0.1.12. Do not show placeholders for Lists, Important Dates, Review / Check-in, Memo, or Wishlist. Do not create a generic module framework or plugin system.
 - Keep module enablement and the module's current Space view filter independent. `space_modules` remains per-Space configuration; the Tasks filter lists only Spaces where Tasks is enabled. Disabling a module does not delete its data. Each future module owns its own filter; Calendar's existing `calendarFilter` remains independent, with all-Space and single-Space modes. Do not add an app-wide Space filter.
@@ -143,7 +143,7 @@ The long-term relationships and v0.1.10 scope are frozen in [Shared Life Archite
 - v0.1.9 — Shared Tasks; Slice 1/2/3 CLOSED / PASS; Production backend and frontend accepted.
 - v0.1.10 — Personal Space + Multi-space + Module Enablement Foundation; Slice 1 `PRODUCTION BACKEND ROLLOUT PASS`, Slice 2/3 and overall `CLOSED / PASS`.
 - v0.1.11 — Navigation + Aggregation Experience (`CLOSED / PASS / SLICE 1 CLOSED / PASS / SLICE 2 CLOSED / PASS / SLICE 3 CLOSED / PASS / SLICE 4 CLOSED / PASS`; Desktop and Production installed PWA acceptance `PASS`; dedicated final iPhone Safari acceptance `NOT RUN`).
-- v0.1.12 — Module Hub + Space Management Navigation (IN PROGRESS: Slice 1 Aggregate Tasks foundation CLOSED / PASS; Slice 2 Space Management CLOSED / PASS; Slice 3 one-time navigation switch NEXT).
+- v0.1.12 — Module Hub + Space Management Navigation (IN PROGRESS: Slices 1–3 CLOSED / PASS; Slice 4 final regression and Production/PWA acceptance NEXT).
 - v0.1.13 — Space Lifecycle & Membership Safety (PLANNED; scope design after v0.1.12 closeout).
 - Later candidates after v0.1.13 without fixed versions/order: Structured Review / Check-in, Shared Lists, Important Dates, Calendar Sources v1, Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules. Priority and order may change based on real product use.
 - Native: decision gate only; no committed implementation version.

@@ -15,8 +15,9 @@ test('Home has direct section create actions and no old title action or type cho
   const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
   try {
     const { HomePage } = await vite.ssrLoadModule('/src/components/HomePage.tsx');
-    const { CurrentSpaceApp, BottomNavigation, SpacePage } = await vite.ssrLoadModule('/src/App.tsx');
+    const { CurrentSpaceApp, BottomNavigation } = await vite.ssrLoadModule('/src/App.tsx');
     const { MyPage } = await vite.ssrLoadModule('/src/components/MyPage.tsx');
+    const { ModuleHub } = await vite.ssrLoadModule('/src/components/ModuleHub.tsx');
     const home = renderToStaticMarkup(React.createElement(HomePage, { spaces: [personal, shared], userId: 'me', EventSheetComponent: () => null, onMembershipRefresh: async () => undefined }));
     assert.match(home, /<h1[^>]*>首页<\/h1>/);
     assert.doesNotMatch(home, /<h1[^>]*>首页<\/h1><button|<h2[^>]*>创建<\/h2>|>日程<\/button>|>任务<\/button>/);
@@ -25,7 +26,7 @@ test('Home has direct section create actions and no old title action or type cho
     const common = { session: { user: { id: 'me' } } as Session, space: personal, spaces: [personal], allSpaces: [personal, shared], calendarFilter: 'all' as const, onCalendarFilterChange: noop, screen: 'calendar' as const, onScreenChange: noop, onHubBack: noop, selectedDate: new Date(), onSelectedDateChange: noop, viewMode: 'today' as const, onViewModeChange: noop, onSpaceUpdate: noop };
     for (const markup of [
       renderToStaticMarkup(React.createElement(CurrentSpaceApp, common)),
-      renderToStaticMarkup(React.createElement(SpacePage, { spaces: [personal], selectedSpaceId: personal.id, onSelect: noop, onSharedReady: async () => true, busy: false, onBusyChange: noop })),
+      renderToStaticMarkup(React.createElement(ModuleHub, { onOpenTasks: noop })),
       renderToStaticMarkup(React.createElement(MyPage, { userId: 'me' })),
       renderToStaticMarkup(React.createElement(BottomNavigation, { tab: 'home', onChange: noop })),
     ]) assert.doesNotMatch(markup, /aria-label="新建日程"|aria-label="新建任务"/);

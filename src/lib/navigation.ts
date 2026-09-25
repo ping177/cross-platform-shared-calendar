@@ -1,29 +1,32 @@
 import type { CalendarFilter } from './aggregate-calendar';
 
-export type TopLevelTab = 'home' | 'calendar' | 'spaces' | 'me';
-export type SpaceScreen = 'list' | 'hub' | 'tasks' | 'completed';
-export type NavigationState = { tab: TopLevelTab; spaceScreen: SpaceScreen };
+export type TopLevelTab = 'home' | 'calendar' | 'modules' | 'me';
+export type ModuleScreen = 'hub' | 'tasks' | 'completed';
+export type NavigationState = { tab: TopLevelTab; moduleScreen: ModuleScreen };
 
-export const initialNavigation: NavigationState = { tab: 'home', spaceScreen: 'list' };
+export const initialNavigation: NavigationState = { tab: 'home', moduleScreen: 'hub' };
 
 export function selectTab(_current: NavigationState, tab: TopLevelTab): NavigationState {
-  return { tab, spaceScreen: 'list' };
+  return { tab, moduleScreen: 'hub' };
 }
 
-export function openSpace(_current: NavigationState): NavigationState {
-  return { tab: 'spaces', spaceScreen: 'hub' };
+export function openTaskModule(_current: NavigationState): NavigationState {
+  return { tab: 'modules', moduleScreen: 'tasks' };
 }
 
-export function openSpaceScreen(_current: NavigationState, spaceScreen: Exclude<SpaceScreen, 'list'>): NavigationState {
-  return { tab: 'spaces', spaceScreen };
+export function openCompletedTasks(_current: NavigationState): NavigationState {
+  return { tab: 'modules', moduleScreen: 'completed' };
+}
+
+export function openTaskList(_current: NavigationState): NavigationState {
+  return { tab: 'modules', moduleScreen: 'tasks' };
 }
 
 export function openCalendar(_current: NavigationState): NavigationState {
-  return { tab: 'calendar', spaceScreen: 'list' };
+  return { tab: 'calendar', moduleScreen: 'hub' };
 }
 
-export function contentSpaceIdForNavigation(tab: TopLevelTab, legacySpaceId: string | null, calendarFilter: CalendarFilter, availableIds: string[]) {
-  if (tab === 'spaces') return legacySpaceId && availableIds.includes(legacySpaceId) ? legacySpaceId : null;
-  if (tab === 'calendar') return calendarFilter === 'all' ? availableIds[0] ?? null : calendarFilter.spaceId;
-  return null;
+export function calendarContentSpaceId(calendarFilter: CalendarFilter, availableIds: string[]) {
+  if (calendarFilter === 'all') return availableIds[0] ?? null;
+  return availableIds.includes(calendarFilter.spaceId) ? calendarFilter.spaceId : null;
 }

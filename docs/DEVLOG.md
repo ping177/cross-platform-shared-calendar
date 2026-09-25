@@ -1,5 +1,16 @@
 # Development Log
 
+# 2026-09-25 - v0.1.12 Slice 3 Final Review and Local Acceptance — CLOSED / PASS
+
+- User reported authenticated manual acceptance `PASS` for the one-time navigation switch and Aggregate Tasks UI. Final review confirmed four primary tabs, Tasks-only Module Hub, canonical aggregate reads and actions, independent all/single eligible-Space filter, scoped Task Realtime cleanup, and My → Space Management. Unused `MemberSheet.tsx` remains in the repository pending a separate deletion decision.
+- Final verification passed: focused `node --test` 19/19, full Node suite 266/266, `npm run build`, and `git diff --check`. Slice 3 closes locally while v0.1.12 remains `IN PROGRESS`. Slice 4 final regression and Production/PWA acceptance is next; no Production or device acceptance is inferred from this local result. No backend, SQL, dependency, or external project change.
+
+# 2026-09-25 - v0.1.12 Slice 3 One-time Navigation Switch + Aggregate Tasks UI — Local Implementation
+
+- Replaced the primary 空间 destination with 功能中心 and moved daily Tasks to a Tasks-only Module Hub. Aggregate Tasks reads the complete member-visible set in Tasks-enabled Spaces, uses an independent all/single eligible-Space filter across Open and Completed, shows source Space labels, and reuses canonical Task Sheet actions and ordering. Old Space Hub daily navigation and temporary legacy Space state were retired; My Space Management, Home and Calendar remain separate.
+- Create defaults to the selected eligible Space or Personal under all. A disabled Personal default remains visible and unsavable until the user actively chooses an enabled target. Pre-insert membership, module and assignee checks, confirmation, target-switch assignment reset, canonical `space_id` mutations, fail-closed reads and per-filter Task Realtime subscriptions remain in place. `space_modules` Realtime and polling were not added.
+- Read-only backend gate found all required linked Task/module RLS, trigger and Realtime capabilities; the frontend target matches the linked project. Pre-closeout Slice 3 focused Node tests `24/24`, full Node suite `266/266`, form/UI retest `7/7`, post-review create tests `5/5`, `npm run build`, `git diff --check`, and unauthenticated local port `5175` HTTP `200` passed. Static 320px/390px preview checked the four tabs, Hub, Task filter/cards, and Task Sheet; a long-name save button was made height-flexible. No backend, SQL, dependency, external project, commit, push or deployment change occurred during local implementation; final acceptance is recorded above.
+
 # 2026-09-25 - v0.1.13 Roadmap Decision — Space Lifecycle & Membership Safety
 
 - After v0.1.12 closes, prioritize Space Lifecycle & Membership Safety before adding further Space-owned modules. Candidate capabilities are leaving Shared Space, removing a member, ownership transfer, and deleting Shared Space.

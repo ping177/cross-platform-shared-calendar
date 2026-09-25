@@ -128,7 +128,7 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
       <section className="mx-auto max-h-[92dvh] w-full max-w-md overflow-y-auto overscroll-contain rounded-t-2xl bg-white p-5 shadow-soft safe-bottom md:rounded-lg" role="dialog" aria-modal="true" aria-labelledby="task-sheet-title">
         <div className="flex items-center justify-between gap-3">
           <h2 id="task-sheet-title" ref={createHeading} tabIndex={createTarget ? -1 : undefined} className="text-xl font-bold">{task ? '编辑任务' : '新建任务'}</h2>
-          <button className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-mist disabled:opacity-60" type="button" onClick={onClose} disabled={busy} aria-label="关闭任务表单">
+          <button className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-mist disabled:opacity-60" type="button" onClick={onClose} disabled={busy} aria-label="关闭任务表单">
             <X size={20} />
           </button>
         </div>
@@ -181,7 +181,7 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
                   <Trash2 size={20} />
                 </button>
               )}
-              <button className="h-12 flex-1 rounded-lg bg-teal font-semibold text-white disabled:opacity-60" type="submit" disabled={busy || !createReady}>{busy ? '保存中' : createTarget && !task ? `保存到「${createTarget.spaces.find((item) => item.id === createTarget.selectedId)?.name ?? ''}」` : '保存'}</button>
+              <button className="min-h-12 flex-1 break-words rounded-lg bg-teal px-2 py-2 font-semibold text-white disabled:opacity-60" type="submit" disabled={busy || !createReady}>{busy ? '保存中' : createTarget && !task ? `保存到「${createTarget.spaces.find((item) => item.id === createTarget.selectedId)?.name ?? ''}」` : '保存'}</button>
             </div>
           </form>
         )}

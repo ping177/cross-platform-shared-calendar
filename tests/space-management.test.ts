@@ -65,13 +65,15 @@ test('Space detail limits personal controls and preserves shared roles, invitati
   }
 });
 
-test('management and legacy entries share create/join behavior without coupling management selection to content filters', () => {
+test('My is the only Space management entry and selection does not drive content filters', () => {
   const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
   const forms = readFileSync(new URL('../src/components/SharedSpaceForms.tsx', import.meta.url), 'utf8');
-  const selection = app.split('async function selectSpace(')[1]?.split('async function refreshSpaces(')[0] ?? '';
+  const management = readFileSync(new URL('../src/components/SpaceManagementPage.tsx', import.meta.url), 'utf8');
+  const selection = app.split('async function selectManagedSpace(')[1]?.split('async function refreshSpaces(')[0] ?? '';
   const managedReady = app.split('async function managedSpaceReady(')[1]?.split('function updateSpace(')[0] ?? '';
-  assert.match(app, /<SpacePage[\s\S]*onSharedReady=\{sharedSpaceReady\}/);
   assert.match(app, /<SpaceManagementPage[\s\S]*onReady=\{managedSpaceReady\}/);
+  assert.match(management, /<SharedSpaceForms onReady=\{onReady\}/);
+  assert.doesNotMatch(app, /<SpacePage|sharedSpaceReady|legacySpaceId/);
   assert.match(forms, /completeSharedSpaceAction\(action, value/);
   assert.match(managedReady, /refreshSpaces\(false, spaceId\)/);
   assert.match(managedReady, /setSelectedSpaceId\(spaceId\)/);

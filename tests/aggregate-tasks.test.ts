@@ -2,15 +2,18 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   createAggregateTaskLoader,
+  defaultTaskCreateTarget,
   eligibleTaskSpaces,
   normalizeTaskFilter,
   readAggregateTasks,
+  subscribeTaskRealtimeScope,
   taskFilterSpaces,
+  taskRealtimeSpaceIds,
   type TaskFilter,
 } from '../src/lib/aggregate-tasks.ts';
 import type { CurrentSpace, Task } from '../src/types.ts';
 
-const personal = { id: 'personal', name: 'My very long personal space name', kind: 'personal', membershipRole: 'owner' } as CurrentSpace;
+const personal = { id: 'personal', name: 'My very long personal space name', kind: 'personal', created_by: 'me', membershipRole: 'owner' } as CurrentSpace;
 const shared = { id: 'shared', name: 'Same name', kind: 'shared', membershipRole: 'member' } as CurrentSpace;
 const secondShared = { id: 'second-shared', name: 'Same name', kind: 'shared', membershipRole: 'owner' } as CurrentSpace;
 const task = (id: string, space_id: string, due_on: string | null, status: Task['status'] = 'open', assigned_to_user_id: string | null = null, created_at = '2026-09-20T00:00:00Z') => ({
@@ -48,6 +51,31 @@ test('taskFilter defaults to all, retains one eligible Space, and corrects lost 
   assert.deepEqual(taskFilterSpaces(eligible, { spaceId: 'former' }), eligible);
   assert.equal(selectedSpaceId, shared.id);
   assert.deepEqual(calendarFilter, { spaceId: shared.id });
+});
+
+test('Task create defaults to Personal for all, including when Personal Tasks is disabled', () => {
+  assert.equal(defaultTaskCreateTarget('all', [personal, shared], [shared], 'me'), personal.id);
+  assert.equal(defaultTaskCreateTarget({ spaceId: shared.id }, [personal, shared], [shared], 'me'), shared.id);
+  assert.equal(defaultTaskCreateTarget('all', [shared], [shared], 'me'), null);
+});
+
+test('Task Realtime scope follows eligible all or one-Space filter and cleans obsolete channels', () => {
+  assert.deepEqual(taskRealtimeSpaceIds([personal, shared], 'all'), [personal.id, shared.id]);
+  assert.deepEqual(taskRealtimeSpaceIds([personal, shared], { spaceId: shared.id }), [shared.id]);
+  const active = new Map<string, () => void>();
+  const changed: string[] = [];
+  const subscribe = (id: string, onChange: () => void) => { active.set(id, onChange); return id; };
+  const unsubscribe = (id: string) => { active.delete(id); };
+  const allCleanup = subscribeTaskRealtimeScope(taskRealtimeSpaceIds([personal, shared], 'all'), subscribe, unsubscribe, () => changed.push('reread'));
+  assert.deepEqual([...active.keys()], [personal.id, shared.id]);
+  active.get(shared.id)?.();
+  assert.deepEqual(changed, ['reread']);
+  allCleanup();
+  assert.deepEqual([...active.keys()], []);
+  const singleCleanup = subscribeTaskRealtimeScope(taskRealtimeSpaceIds([personal, shared], { spaceId: shared.id }), subscribe, unsubscribe, () => changed.push('reread'));
+  assert.deepEqual([...active.keys()], [shared.id]);
+  singleCleanup();
+  assert.deepEqual([...active.keys()], []);
 });
 
 test('aggregate Tasks reads every Space and page, including completed, distant, and other-assignee Tasks', async () => {
