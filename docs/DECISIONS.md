@@ -157,11 +157,13 @@ The canonical long-term model and roadmap are in [Shared Life Architecture Freez
 - The user reported final authenticated Production and installed-PWA acceptance `PASS`. Slice 4 and v0.1.12 are `CLOSED / PASS`, with Slices 1–3 already closed. The accepted navigation is 首页 / 日历 / 功能中心 / 我的; 功能中心 contains only 任务, while 我的 → 空间管理 owns Personal/Shared Space detail. Space remains the canonical ownership boundary.
 - Visual refinement, unused `MemberSheet.tsx`, `space_modules` Realtime, and Calendar all-Space creation stay deferred. v0.1.13 Space Lifecycle & Membership Safety is the next planned version; no lifecycle design or implementation is part of this closeout.
 
-## v0.1.13 — Space Lifecycle & Membership Safety — PLANNED
+## v0.1.13 Slice 1 — CLOSED / PASS
+
+The frozen backend design passed local verification and the Slice 1B Production rollout/postflight. `v0.1.13 Slice 1 — CLOSED / PASS`; Next Action is Slice 2 Space Detail lifecycle controls. The runtime invariant boundary covers `anon`, `authenticated`, and `service_role`; DB owner/postgres/migration administrators are outside it. These application roles must not bypass the owner/member/Event/Task lifecycle guards through legacy `TRUNCATE`, so Slice 1A revokes only that privilege on the six affected tables. Historical reminder ledger rows remain independent records. No general ACL framework, TRUNCATE trigger, or account-management capability is introduced; the only Production mutation was the reviewed Slice 1A forward patch.
 
 After v0.1.12 closeout, prioritize Space Lifecycle & Membership Safety before adding further Space-owned modules. Future candidate capabilities include leaving Shared Space, removing members, transferring ownership, and deleting Shared Space. Structured Review / Check-in and Shared Lists remain important candidates after lifecycle safety; do not assign versions beyond v0.1.13 yet.
 
-Record only these high-level safety principles; do not treat them as a detailed schema, RPC, permission, or UI design:
+At the original roadmap freeze, only these high-level safety principles were recorded; the later Slice 1A backend design and local implementation supersede that initial design status:
 
 - Personal Space cannot be deleted or left.
 - Owner exit must not create an ownerless Shared Space.

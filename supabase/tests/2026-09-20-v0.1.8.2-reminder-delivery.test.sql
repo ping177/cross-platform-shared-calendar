@@ -190,9 +190,15 @@ values
 insert into public.space_members (space_id, user_id, role)
 values
   ('32000000-0000-4000-8000-000000000001', '31000000-0000-4000-8000-000000000001', 'owner'),
-  ('32000000-0000-4000-8000-000000000001', '31000000-0000-4000-8000-000000000002', 'member'),
   ('32000000-0000-4000-8000-000000000001', '31000000-0000-4000-8000-000000000003', 'member'),
-  ('32000000-0000-4000-8000-000000000002', '31000000-0000-4000-8000-000000000004', 'owner');
+  ('32000000-0000-4000-8000-000000000002', '31000000-0000-4000-8000-000000000003', 'owner'),
+  ('32000000-0000-4000-8000-000000000002', '31000000-0000-4000-8000-000000000004', 'member');
+
+delete from public.space_members
+where space_id='32000000-0000-4000-8000-000000000001'
+  and user_id='31000000-0000-4000-8000-000000000003';
+insert into public.space_members(space_id,user_id,role)
+values ('32000000-0000-4000-8000-000000000001','31000000-0000-4000-8000-000000000002','member');
 
 insert into public.events (
   id, space_id, created_by, scope, owner_user_id, title, starts_at, reminder_kind, time_zone
@@ -239,11 +245,11 @@ values
   ('34000000-0000-4000-8000-000000000007', '31000000-0000-4000-8000-000000000001', '35000000-0000-4000-8000-000000000007', 'https://fcm.googleapis.com/fcm/send/c1-delete-audit', 'p256dh', 'auth', null, null),
   ('34000000-0000-4000-8000-000000000008', '31000000-0000-4000-8000-000000000001', '35000000-0000-4000-8000-000000000008', 'https://fcm.googleapis.com/fcm/send/c1-disable-audit', 'p256dh', 'auth', null, null);
 
-delete from public.space_members
-where (space_id, user_id) in (
-  ('32000000-0000-4000-8000-000000000001', '31000000-0000-4000-8000-000000000003'),
-  ('32000000-0000-4000-8000-000000000002', '31000000-0000-4000-8000-000000000004')
-);
+set local role authenticated;
+select set_config('request.jwt.claim.role','authenticated',true);
+select set_config('request.jwt.claim.sub','31000000-0000-4000-8000-000000000003',true);
+select public.remove_space_member('32000000-0000-4000-8000-000000000002','31000000-0000-4000-8000-000000000004');
+reset role;
 
 create temporary table c1_claim_inputs (
   label text primary key,
@@ -315,7 +321,7 @@ select is(public.claim_reminder_delivery('33000000-0000-4000-8000-000000000002',
 select is(public.claim_reminder_delivery('33000000-0000-4000-8000-000000000007', '31000000-0000-4000-8000-000000000001', '34000000-0000-4000-8000-000000000001', clock_timestamp() - interval '11 minutes', (select reminder_schedule_changed_at from public.events where id = '33000000-0000-4000-8000-000000000007')), null::uuid, 'due time older than the ten-minute grace window is rejected');
 select is(public.claim_reminder_delivery('33000000-0000-4000-8000-000000000001', '31000000-0000-4000-8000-000000000003', '34000000-0000-4000-8000-000000000003', clock_timestamp(), (select reminder_schedule_changed_at from public.events where id = '33000000-0000-4000-8000-000000000001')), null::uuid, 'former shared member is rejected');
 select is(public.claim_reminder_delivery('33000000-0000-4000-8000-000000000002', '31000000-0000-4000-8000-000000000002', '34000000-0000-4000-8000-000000000002', clock_timestamp(), (select reminder_schedule_changed_at from public.events where id = '33000000-0000-4000-8000-000000000002')), null::uuid, 'non-owner personal recipient is rejected');
-select is(public.claim_reminder_delivery('33000000-0000-4000-8000-000000000005', '31000000-0000-4000-8000-000000000004', '34000000-0000-4000-8000-000000000004', clock_timestamp(), (select reminder_schedule_changed_at from public.events where id = '33000000-0000-4000-8000-000000000005')), null::uuid, 'personal owner without current membership is rejected');
+select is(public.claim_reminder_delivery('33000000-0000-4000-8000-000000000005', '31000000-0000-4000-8000-000000000004', '34000000-0000-4000-8000-000000000004', clock_timestamp(), clock_timestamp()), null::uuid, 'removed personal owner Event cannot claim');
 select is(public.claim_reminder_delivery('33000000-0000-4000-8000-000000000001', '31000000-0000-4000-8000-000000000001', '34999999-0000-4000-8000-000000000099', clock_timestamp(), (select reminder_schedule_changed_at from public.events where id = '33000000-0000-4000-8000-000000000001')), null::uuid, 'missing subscription is rejected');
 select is(public.claim_reminder_delivery('33000000-0000-4000-8000-000000000001', '31000000-0000-4000-8000-000000000002', '34000000-0000-4000-8000-000000000001', clock_timestamp(), (select reminder_schedule_changed_at from public.events where id = '33000000-0000-4000-8000-000000000001')), null::uuid, 'subscription owned by another user is rejected');
 select is(public.claim_reminder_delivery('33000000-0000-4000-8000-000000000001', '31000000-0000-4000-8000-000000000001', '34000000-0000-4000-8000-000000000005', clock_timestamp(), (select reminder_schedule_changed_at from public.events where id = '33000000-0000-4000-8000-000000000001')), null::uuid, 'disabled subscription is rejected');

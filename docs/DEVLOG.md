@@ -1,5 +1,25 @@
 # Development Log
 
+# 2026-09-25 - v0.1.13 Slice 1 — CLOSED / PASS
+
+- Final diff review found only the approved Slice 1 backend patch, canonical schema, DB/concurrency tests, the compatibility adjustment to an existing reminder test, and project documentation. No unrelated file or test-generated artifact remains.
+- Recorded verification is complete: local DB 388/388, two-session concurrency 9/9, Node 266/266, `npm run build` PASS, and `git diff --check` PASS. Production preflight, the single forward patch, and postflight are `PASS`; data fingerprints and five sent historical orphan reminder rows were unchanged.
+- Slice 1 closes as `CLOSED / PASS`. Next Action: Slice 2 Space Detail lifecycle controls. No new Production mutation, frontend deployment, or Slice 2 implementation belongs to this closeout.
+
+# 2026-09-25 - v0.1.13 Slice 1B — Production Backend Rollout / Postflight PASS
+
+- Repeated Production read-only preflight: 4 Spaces (2 Personal, 2 Shared), 5 memberships, no owner/capacity or Event reference anomaly, expected dual member FKs, existing trigger/function/RLS/ACL alignment, four lifecycle RPCs absent, and 5 sent historical orphan reminder rows. The existing claim function bodies matched the repository baseline exactly.
+- Applied only `supabase/patches/2026-09-25-v0.1.13-space-lifecycle-slice1a.sql` to Production. No reset, historical migration rewrite, extra Production SQL mutation, frontend deployment, commit, or push.
+- Postflight: four authenticated-only lifecycle RPCs and restricted internal helper, valid owner index, five enabled lifecycle triggers, 18 application-role TRUNCATE denials, unchanged 15 FKs/RLS/policies, and exact preflight/postflight business-data fingerprints. All 12 reminder ledger rows, including the 5 sent historical orphans, remain unchanged. Reminder schedule trigger/function and both claim bodies are healthy; one active Cron job had 60 successes and zero failures in the preceding 60 minutes.
+- Status: `SLICE_1_BACKEND_PRODUCTION_PASS`. Slice 2 UI has not started; Production frontend remains the accepted v0.1.12 build.
+
+# 2026-09-25 - v0.1.13 Slice 1A — Local Backend + ACL Recovery
+
+- Slice 1A local SQL implements bounded Shared Space leave, member removal, ownership transfer and hard delete with database owner/capacity guards, scoped Event deletion, membership/Event/claim serialization, and preserved reminder history. The extra `space_members.user_id → auth.users` cascade is represented in canonical schema. No UI or Production change occurred.
+- Read-only Production ACL audit found effective `TRUNCATE` for `anon`, `authenticated`, and `service_role` on `profiles`, `spaces`, `space_members`, `events`, `event_occurrence_exceptions`, and `tasks`. Repo-wide search found no runtime or Edge Function dependency; an old test truncates only its own temporary table. The local forward patch and canonical schema revoke only `TRUNCATE` on those six tables for those three app roles. DB owner/migration roles are outside the runtime invariant boundary.
+- Local verification: six-table/three-role privilege check and role-specific `TRUNCATE ... CASCADE` rejections; full pgTAP regression 388/388; two-session concurrency 9/9; Node tests 266/266; `npm run build`; `git diff --check`. Generated Python cache was removed. The old reminder pgTAP fixture was adjusted to respect the new two-member/owner constraints; no production dependency or secret changed.
+- Status: `SLICE_1A_READY_FOR_PRODUCTION_REVIEW`. Production patch remains unapplied. Repeat read-only Production preflight before a separately authorized backend rollout; do not commit or push as part of this checkpoint.
+
 # 2026-09-25 - v0.1.12 Module Hub + Space Management Navigation — CLOSED / PASS
 
 - User reported final authenticated Production and installed-PWA acceptance `PASS`. Slice 4 Final Regression + Production/PWA Acceptance and v0.1.12 are `CLOSED / PASS`; Slices 1–3 remain `CLOSED / PASS`. Production deployment of accepted frontend commit `9847a0761e117234e10e219ec9c8d4bae25a850e` was verified in the release gate; the full Node suite passed 266/266, build passed, and public shell/assets loaded.

@@ -1,5 +1,13 @@
 # Testing
 
+## v0.1.13 Slice 1 — CLOSED / PASS
+
+- Local database: `supabase test db --local` passed all 10 files / 388 pgTAP tests, including lifecycle, existing Event/Task/recurrence/reminder/RLS regressions. `python3 supabase/tests/space-lifecycle-concurrency.py` passed 9/9 two-session orderings. `node --test tests/*.test.ts tests/*.test.js` passed 266/266; `npm run build` and `git diff --check` passed.
+- ACL gate: `has_table_privilege` is false for `TRUNCATE` on `profiles`, `spaces`, `space_members`, `events`, `event_occurrence_exceptions`, and `tasks` for each of `anon`, `authenticated`, `service_role` (18 checks). Actual `TRUNCATE ... CASCADE` attempts as application roles fail with `42501`. Other privileges and unrelated table ACLs are unchanged.
+- Slice 1B Production preflight passed: 4 Spaces, 5 members, zero owner/capacity/Event reference anomalies, expected dual membership FKs, four lifecycle RPCs absent, 5 sent historical orphan reminder rows, and aligned trigger/function/RLS/ACL state. Only the reviewed Slice 1A forward patch was applied.
+- Production postflight passed: four authenticated-only lifecycle RPCs, restricted deletion helper, valid owner index, five enabled new triggers, 18 denied app-role TRUNCATE privileges, unchanged FK/RLS/policy state, and exact preflight/postflight counts and fingerprints for Space/member/Event/exception/Task/module/subscription/reminder data. All 12 reminder ledger rows, including 5 sent historical orphans, remain unchanged. Reminder scheduler has one active job, with 60 successful and zero failed runs in the previous 60 minutes. No Production test fixtures were created; Slice 2 UI and authenticated browser acceptance remain outside this rollout.
+- Acceptance: `v0.1.13 Slice 1 — CLOSED / PASS`. Next Action: Slice 2 Space Detail lifecycle controls, beginning with the frontend/backend compatibility gate.
+
 ## v0.1.12 Slice 4 — Final Regression + Production/PWA Acceptance (CLOSED / PASS)
 
 - Final release gate on accepted commit `9847a0761e117234e10e219ec9c8d4bae25a850e`: full applicable Node suite **266/266 PASS**, `npm run build` **PASS**, and `git diff --check` **PASS** with a clean tree. GitHub recorded the commit as the latest successful Vercel Production deployment. The public app shell, JavaScript, CSS, manifest, and service worker returned HTTP 200; the public bundle contained the new navigation and Tasks markers. The frontend target matched the previously verified Supabase host; no backend change or migration was required.
