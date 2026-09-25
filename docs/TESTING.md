@@ -1,11 +1,13 @@
 # Testing
 
-## v0.1.11 Slice 4 — 首页快捷创建（LOCAL IMPLEMENTATION + DESKTOP AUTH ACCEPTANCE COMPLETE / PRODUCTION IPHONE/PWA ACCEPTANCE PENDING）
+## v0.1.11 Slice 4 — Home Quick Create / Global Create Safety (CLOSED / PASS)
 
-- 自动检查：聚焦首页区块直达创建、空间、日历、任务界面与安全规则测试 **10/10 PASS**；完整适用 Node 测试集 `node --test --test-reporter=dot tests/*.test.ts tests/*.test.js` **246/246 PASS**，`npm run build` 与 `git diff --check` **PASS**。本地 `http://127.0.0.1:5175/` 无登录态 HTTP 检查为 **200**。
+- Automated verification: focused Slice 4 tests **10/10 PASS**; full applicable Node suite **246/246 PASS**; `npm run build` and `git diff --check` **PASS**. Previous unauthenticated local HTTP check on `http://127.0.0.1:5175/` returned **200**.
 - 只读环境 gate：本地前端配置目标与 linked Supabase 项目一致；linked backend 中 `spaces`、`space_members`、`events`、`tasks`、`space_modules`、Personal 初始化及模块检查 RPC 存在。Event/Task/module RLS 开启，Event/Task insert policy、Event owner trigger、Task assignee 外键及模块 SELECT 权限已核实。现有 v0.1.10 后端能力与这次纯前端新增入口兼容；没有后端 rollout。检查只返回能力布尔值，没有输出环境变量、凭据或业务行。
 - **用户报告真实账号 Desktop 本地验收 PASS：**首页标题无旧创建按钮；“近期日程 +”和“需要处理的任务 +”分别直达对应表单；日程与任务默认目标均为 Personal Space，并能主动切换 Space。日程、任务分别切换到 Shared Space 后，二次确认的目标、首页即时摘要、目标 Space 内对象和实际归属均正确。关闭 Personal Tasks 后没有自动转存 Shared，须主动选已启用任务模块的 Space。取消二次确认后草稿保留且没有记录；确认阶段关闭后重开没有残留确认状态；快速连续确认只产生一条记录。日历单 Space 日程 `+` 仍按当前筛选 Space 直接保存；空间任务“新建任务”仍在当前 Space 直接保存。结果由用户执行并报告，Codex 未操作真实登录态。
-- **剩余验收只在 Production 执行：**完成正常 commit、push 和 Vercel Production deployment 后，由用户验收 iPhone Safari、已安装 PWA，以及必要的 Production 创建/保存/布局回归。最终 iPhone/PWA 验收不使用本地 5175 或 LAN 地址。检查两个区块入口、保存目标和确认、320px/长标题布局、键盘与安全区域下表单按钮可达性。Slice 4 与 v0.1.11 保持开放；不要把本地 Desktop PASS 记成 Production PASS。
+- **Production installed PWA acceptance: user-reported PASS.** The Production URL served the Slice 4 frontend at commit `f916dc0f0a1962facca44f4174241031b4f44bf2`. User confirmed the final Home entries and direct forms, successful Event and Task creation, Personal default and Shared target selection, correct confirmation and saved ownership, immediate Home refresh, normal layout, no evident safe-area/keyboard/overflow/blocking issue, normal top-level navigation, the single-Space Calendar Event `+` regression, and no white screen, hang, or obvious interaction regression. Codex did not operate the authenticated session or the installed PWA.
+- **Dedicated final iPhone Safari acceptance: `NOT RUN`.** Do not mark Safari `PASS` or infer it from the installed PWA result. This is not a Slice 4 blocker; the user's final Production mobile acceptance was completed in installed PWA. No local 5175/LAN phone acceptance was performed.
+- Combined with the Desktop results above, the user-reported manual acceptance for Slice 4 is `PASS`. The additional Desktop checks include disabled Tasks with no Shared fallback, cancel without a write while retaining the draft, close/reopen clearing confirmation state, duplicate-submit protection, and direct local Calendar/Space create regressions.
 
 ## v0.1.11 Slice 3 — Home Aggregation (CLOSED / PASS)
 

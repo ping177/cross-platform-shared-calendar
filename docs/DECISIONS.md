@@ -136,6 +136,23 @@ The canonical long-term model and roadmap are in [Shared Life Architecture Freez
 - Slice 2 Calendar `all` deliberately offers no Event create action. A single-Space filter creates only in that explicitly filtered Space, shows `保存到：<Space>`, and checks membership at Sheet open and submit. Hub → 查看日历 sets the single-Space filter while leaving `selectedSpaceId` unchanged. Slice 2 retains its own creation behavior and does not add the Slice 4 Home shortcuts.
 - Slice 4 最终入口调整（2026-09-25）：首页“近期日程”和“需要处理的任务”区块标题右侧各有轻量 `+`，分别直接进入日程、任务创建；首页标题不设创建按钮，也没有类型选择面板。日历、空间、我的不增加此入口。未来模块完成后才考虑其所在首页区块的快捷创建。首页创建仍显示可选目标、写明目标的主按钮和同一表单内的第二次确认；日历单空间日程、空间任务本地入口维持直接保存。
 
+## v0.1.11 Slice 4 Production Acceptance + Final Closeout — 2026-09-25
+
+- 用户报告 Production installed PWA acceptance `PASS`。验收时 Production URL 对应 Slice 4 前端提交 `f916dc0f0a1962facca44f4174241031b4f44bf2`。结合此前 Desktop authenticated acceptance `PASS`，Slice 4 和 v0.1.11 更新为 `CLOSED / PASS`。
+- 专门的 iPhone Safari 最终验收为 `NOT RUN`，没有推断或记录为 PASS；本次以 installed PWA 真实使用验收完成 Slice 4 移动端验收，因此 Safari 单独未测不是 blocker。Slice 3 独立 Event/Task 区块错误/重试仍为 `NOT RUN / DIFFICULT TO SIMULATE SAFELY`，也不是 closeout blocker。
+- Slice 4 保持首页两项分开的直达创建入口及安全 contract：Personal Space 默认、不使用 `selectedSpaceId` 隐式定 target、用户可换 Space、Task 只能写入 Tasks-enabled Space、disabled Personal Tasks 不 fallback、提交前复验 membership/module/member-derived state、轻量二次确认、stale-request 与重复提交保护；现有 Calendar 单 Space 日程及 Space 内任务创建继续走本地直达路径。
+- Production 部署和 PWA 验收属于前端；没有 Production backend、schema、RPC 或业务代码变更。
+
+## Future Information Architecture Direction — Not Implemented
+
+- 未来可单独评审把一级导航从 `首页 / 日历 / 空间 / 我的` 调整为类似 `首页 / 日历 / 功能中心 / 我的`。功能中心面向已实现模块（如任务、清单、纪念日、Review），模块页的空间筛选器只列启用了该模块的 Space。模块 enablement 与当前页面筛选范围是不同语义。
+- 未来“我的”可考虑增加空间管理：Space 列表、创建、加入和详情；Space 内包括成员/邀请、设置和模块开关。模块管理可以是 Space 详情的一节，不要求增加额外页面层级。当前一级“空间”导航保持不变，改导航只改变 view，不改变 canonical Space ownership：`ownership ≠ view`。
+- 以上仅为 future direction，不属于本次 v0.1.11 closeout，也未自动纳入 v0.1.12 Shared Lists scope。
+
+## Future UX Consideration — Calendar Create Action
+
+现有 Slice 2 冻结行为是：Calendar 选“全部空间”时没有日程创建 `+`，筛选单一 Space 时显示创建 `+`。未来可以重新评估这项行为；本次不改，也不重开 Slice 2。
+
 ## PWA
 
 - v0.1 includes basic PWA support with a manifest and mobile meta tags.

@@ -1,5 +1,11 @@
 # Development Log
 
+# 2026-09-25 - v0.1.11 Slice 4 Production Installed PWA Acceptance + Final Closeout
+
+- 用户报告 Production installed PWA 人工验收 `PASS`：最终首页入口直达正确表单；日程/任务 Personal 默认与 Shared 切换、确认目标和实际归属正确；保存后首页立即刷新；布局、safe-area/keyboard/overflow、一级导航以及日历单 Space 和空间任务原入口回归均正常，无白屏、卡死或明显交互问题。验收时 Production URL 对应包含 Slice 4 的前端提交 `f916dc0f0a1962facca44f4174241031b4f44bf2`。
+- 专门的 iPhone Safari 最终验收为 `NOT RUN`，未推断为 PASS；这不是 blocker。结合既有 Desktop 人工验收 PASS，Slice 4 与 v0.1.11 更新为 `CLOSED / PASS`。Slice 3 独立错误/重试模拟仍 `NOT RUN / DIFFICULT TO SIMULATE SAFELY`，不是本版本 blocker。
+- 只更新治理文档，不改业务代码、backend/schema/RPC、依赖或认证会话。未来 IA 和 Calendar 创建入口讨论仅记录为 future direction / consideration，不实施，也不自动纳入 v0.1.12。
+
 # 2026-09-25 - v0.1.11 Slice 4 Desktop Authenticated Acceptance
 
 - 用户报告已在本地新前端完成真实账号 Desktop 验收并通过：首页两个区块入口直达正确创建表单；日程与任务默认 Personal，主动切 Shared 后目标显示与实际保存归属正确，首页和对应 Space 内数据立即可见。

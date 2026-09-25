@@ -1,6 +1,6 @@
 # Shared Life Architecture Freeze
 
-Status: `ARCHITECTURE FROZEN`; v0.1.10: `CLOSED / PASS`; v0.1.11: `IN PROGRESS / SLICES 1–3 CLOSED / PASS / SLICE 4 LOCAL IMPLEMENTATION + DESKTOP ACCEPTANCE COMPLETE / PRODUCTION IPHONE/PWA ACCEPTANCE PENDING`. The canonical v0.1.11 contract is [Navigation + Aggregation Experience Specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md).
+Status: `ARCHITECTURE FROZEN`; v0.1.10: `CLOSED / PASS`; v0.1.11: `CLOSED / PASS` (Slices 1–4 `CLOSED / PASS`; Production installed PWA acceptance `PASS`; dedicated final iPhone Safari acceptance `NOT RUN`). The canonical v0.1.11 contract is [Navigation + Aggregation Experience Specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md).
 
 This document freezes the long-term product model and navigation direction plus the reviewed v0.1.10 foundation scope. It does not change the accepted v0.1.9 Production capability. Later roadmap versions remain directional and need their own scope review.
 
@@ -15,7 +15,9 @@ The long-term first-level navigation is `首页 / 日历 / 空间 / 我的`.
 | 空间 | Personal and Shared Spaces with their content modules |
 | 我的 | Profile, account, notifications, devices, and settings |
 
-The complete four-destination navigation is scoped for v0.1.11. Slice 1's three destinations are deployed; Slice 3 added Home aggregation, and Slice 4 adds direct Event and Task creation from their Home sections.
+The complete four-destination navigation shipped in v0.1.11. Slice 3 added Home aggregation, and Slice 4 added direct Event and Task creation from their Home sections.
+
+Future direction only; not implemented: a separate scope review may consider replacing the current `空间` top-level destination with `功能中心`, while keeping `首页 / 日历 / 我的`. The center would expose implemented modules and let each module filter only Spaces where it is enabled. “我的” may gain Space management for listing, creating, joining and opening Spaces, with member/invite, settings and module controls in Space details. Module settings can be a section within details rather than another navigation layer. Keep module enablement distinct from module-page Space filtering, preserve canonical ownership (`ownership ≠ view`), and keep the current 一级“空间” navigation until a separate scope is approved. This direction is not automatically part of v0.1.12; see [Decisions](./DECISIONS.md) and [Backlog](./BACKLOG.md).
 
 ## Spaces and Canonical Ownership
 
@@ -92,6 +94,8 @@ The long-term Calendar view aggregates sources, not just one Space's Events.
 | Global or external | 中国节假日 / 调休; ICS; future Google Calendar; future Apple/System Calendar or native integration |
 
 Global and external Calendar Sources do not require a corresponding Space and may serve all Spaces. A user can overlay multiple Space Calendars or filter down to one Space. External integrations are future work, not an implicit data migration into Space ownership.
+
+Future consideration: current Slice 2 Calendar behavior intentionally has no Event create action in the all-Spaces view, while a single-Space filter can create in that Space. Reconsidering that affordance requires separate product review; it is outside the completed v0.1.11 scope.
 
 ## Home Quick Create and Privacy Guardrail
 
