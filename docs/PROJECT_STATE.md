@@ -8,13 +8,15 @@
 
 ## Current version
 
-v0.1.11
+v0.1.12
 
 ## Current status
 
-v0.1.11 与 Slice 1–4 均为 `CLOSED / PASS`。Slice 4 的 Production frontend 已包含在用户确认的部署中；用户报告真实账号 Desktop 与 Production installed PWA 验收通过。专门的 iPhone Safari 最终验收为 `NOT RUN`，不构成 Slice 4 blocker。Slice 3 独立日程/任务区块错误与重试模拟仍为 `NOT RUN / DIFFICULT TO SIMULATE SAFELY`；第二个共享空间为 `N/A / NOT RUN`。Slice 2 专项设备检查仍为 `DEFERRED / NOT RUN`。v0.1.10 保持 `CLOSED / PASS`。v0.1.12 的 Module Hub + Space Management Navigation 产品方向已冻结，当前下一步是只读 repo / product / architecture design review；implementation 尚未开始。v0.1.13 scope decision pending。
+v0.1.12 Module Hub + Space Management Navigation `IN PROGRESS`。Slice 1 Aggregate Tasks foundation 已通过 review 和自动验证，`CLOSED / PASS`；Slice 2 My → Space Management → Space Detail 为 NEXT。当前 UI/导航与 Production 未变。v0.1.11 Slice 1–4 和整体仍为 `CLOSED / PASS`，v0.1.10 仍为 `CLOSED / PASS`。v0.1.13 scope decision pending。
 
 ## Latest completed
+
+v0.1.12 Slice 1 Aggregate Tasks foundation 已验收为 `CLOSED / PASS`：eligible Tasks Space、独立 taskFilter 修正、完整跨 Space 读取与分页、沿用单 Space canonical 排序、Space 来源映射、stale-request 保护和 malformed module page fail-closed。仅增加数据层及测试，未接入可见 UI；不代表 v0.1.12 整体已关闭。
 
 v0.1.11 — Navigation + Aggregation Experience 已完成并 `CLOSED / PASS`。首页“近期日程 +”和“需要处理的任务 +”分别直达对应创建表单；没有首页标题 Global `+` 或类型选择面板。用户报告 Desktop 与 Production installed PWA 验收通过，覆盖入口、Personal/Shared target 与归属、保存即时刷新、模块关闭安全、二次确认取消、关闭重开、防重复提交、布局、一级导航及现有日历/空间本地创建回归。目标空间安全、membership/module/member-derived state 重验、stale request 与 duplicate-submit protection 均保留。Production URL 在验收时对应前端提交 `f916dc0f0a1962facca44f4174241031b4f44bf2`。Dedicated final iPhone Safari acceptance 为 `NOT RUN`；未将其记为 PASS，也不是 blocker。
 
@@ -58,7 +60,7 @@ Notes: Vercel is the configured Production provider. Slice 4 is included in Prod
 - v0.1.9 — Shared Tasks MVP（CLOSED / PASS；Slice 1/2/3 CLOSED / PASS；Production backend verified、frontend deployed and accepted）
 - v0.1.10 — Personal Space + Multi-space + Module Enablement Foundation（CLOSED / PASS；Slice 1 PRODUCTION BACKEND ROLLOUT PASS；Slice 2 CLOSED / PASS；Slice 3 CLOSED / PASS）
 - v0.1.11 — Navigation + Aggregation Experience（CLOSED / PASS；Slice 1–4 CLOSED / PASS；Production installed PWA acceptance PASS；dedicated final iPhone Safari acceptance NOT RUN）
-- v0.1.12 — Module Hub + Space Management Navigation（NEXT：READ-ONLY repo / product / architecture design review；implementation 尚未开始）
+- v0.1.12 — Module Hub + Space Management Navigation（IN PROGRESS；Slice 1 Aggregate Tasks foundation CLOSED / PASS；Slice 2 Space Management NEXT）
 - v0.1.13 — Scope decision pending（Structured Review / Check-in 或 Shared Lists；尚未冻结）
 
 ## Last verified
@@ -67,8 +69,7 @@ Notes: Vercel is the configured Production provider. Slice 4 is included in Prod
 
 ## Next Action
 
-v0.1.12 — Module Hub + Space Management Navigation
-READ-ONLY repo / product / architecture design review
+规划 v0.1.12 Slice 2 My → Space Management → Space Detail。Slice 3 一次性切换到功能中心 + Aggregate Tasks UI 并退役旧 Space-first 日常内容导航；Slice 4 做回归、真实账号及 Production 验收。
 
 ## Blockers
 
@@ -89,7 +90,7 @@ READ-ONLY repo / product / architecture design review
 - v0.1.9 canonical scope is `docs/v0.1.9_SHARED_TASKS_SPEC.md`; Slice 1 backend is Production applied/postflight verified, Slice 2 local UI passed user-run authenticated acceptance, and Slice 3 Production Desktop A/B plus iPhone smoke passed. All three slices are CLOSED / PASS.
 - v0.1.10 is `CLOSED / PASS`: it reuses `spaces / space_members`, enforces sole-owner Personal Space with partial unique `UNIQUE(created_by) WHERE kind = 'personal'`, retains the Shared two-member limit, and keeps disabled Tasks history readable while blocking mutations. Calendar is always on; Tasks is the only v0.1.10 visible module toggle. Slice 1 / 2 / 3 passed their respective backend, frontend, and user acceptance gates. Production frontend now also includes the v0.1.11 Slice 1 navigation foundation; that rollout changed no backend/schema/RPC. Shared three-plus-member support remains deferred.
 - v0.1.11 canonical scope is `docs/v0.1.11_NAVIGATION_AGGREGATION_SPEC.md`; overall and Slices 1–4 are `CLOSED / PASS`. Production installed PWA acceptance is user-reported `PASS`; dedicated final iPhone Safari acceptance is accurately recorded as `NOT RUN` and is not a blocker. Production includes the Slice 4 frontend from feature commit `f916dc0f0a1962facca44f4174241031b4f44bf2`. Slice 3 independent Event/Task section error/retry remains `NOT RUN / DIFFICULT TO SIMULATE SAFELY`; second Shared Space is `N/A / NOT RUN`. Dedicated Slice 2 device checks remain deferred as recorded above.
-- Roadmap: v0.1.12 is the frozen Module Hub + Space Management Navigation direction and next read-only design review; v0.1.13 remains a scope decision between Structured Review / Check-in and Shared Lists. Do not treat later module ordering as fixed.
+- Roadmap: v0.1.12 Module Hub + Space Management Navigation is in progress; Slice 1 Aggregate Tasks foundation is `CLOSED / PASS`, and Slice 2 Space Management is next. v0.1.13 remains a scope decision between Structured Review / Check-in and Shared Lists. Do not treat later module ordering as fixed.
 - v0.1.10 backend rollout preserved existing Space/member/Event/Task row counts and identity/invite fingerprints. The user subsequently completed the first A/B authenticated acceptance; Personal Spaces are now created by the deployed Slice 2 bootstrap. The old v0.1.9 runtime is not a safe rollback target for an account with a Personal Space. Any older-account bulk backfill remains outside Slice 2 and requires a separate review. Production Task count was 0 at backend rollout, so historical Task disable/re-enable remains locally verified rather than Production-tested.
 - v0.1.10 is closed with Shared Spaces retaining the two-member limit. It does not include cross-Space aggregation, final four-destination navigation, global `+`, Lists / Important Dates / Review implementation, or module-state Realtime. The observed member refresh behavior is a known characteristic and future consideration; it does not reopen v0.1.10.
 - `V019_SLICE2_UI_FROZEN` / `SLICE 2 IMPLEMENTED / MANUAL AUTH ACCEPTANCE PASS`: Calendar header `共享空间 · {space.name}` opens the current Space Hub; its only module entry is Tasks. Open Tasks and separate Completed Tasks use the existing Space-scoped contract. Empty `profiles.display_name` may use contextual `我 / 对方` only in the current two-member v0.1.9 UI; this is not a durable partner identity, and future Multi-space / multi-member UI uses generic member display logic. Space-entry navigation and 320px layout passed user-run acceptance; extreme-width name ellipsis is accepted.
@@ -139,4 +140,4 @@ READ-ONLY repo / product / architecture design review
 
 ## Handoff Prompt
 
-v0.1.11 Navigation + Aggregation Experience is `CLOSED / PASS`; all four Slices are `CLOSED / PASS`. Home “近期日程 +” and “需要处理的任务 +” directly open their matching create forms. Desktop and Production installed PWA acceptance passed. Dedicated final iPhone Safari acceptance is `NOT RUN` and is not a blocker. Production includes the Slice 4 frontend accepted at feature commit `f916dc0f0a1962facca44f4174241031b4f44bf2`. The next action is the v0.1.12 Module Hub + Space Management Navigation READ-ONLY repo / product / architecture design review; implementation has not started. v0.1.13 scope is pending a later decision between Structured Review / Check-in and Shared Lists.
+v0.1.11 remains `CLOSED / PASS`; Production still serves the accepted Slice 4 frontend. v0.1.12 is `IN PROGRESS`: Slice 1 Aggregate Tasks foundation is `CLOSED / PASS`, with no visible UI, backend or deployment change. Next plan Slice 2 My → Space Management → Space Detail. Slice 3 is the one-time 功能中心 + Aggregate Tasks UI navigation switch and retirement of old Space-first daily content navigation; Slice 4 is regression, authenticated acceptance and Production acceptance. A temporary duplicate management entry in Slice 2 is local transition only. v0.1.13 scope remains undecided between Structured Review / Check-in and Shared Lists.

@@ -1,5 +1,22 @@
 # Development Log
 
+# 2026-09-25 - v0.1.12 Slice 1 Aggregate Tasks Foundation — Accepted Closeout
+
+- The user accepted Slice 1 as `CLOSED / PASS` after the narrow pre-commit corrections and review. v0.1.12 remains `IN PROGRESS`; Slice 2 My → Space Management → Space Detail is next, followed by the one-time Slice 3 navigation switch and Slice 4 acceptance. This closeout does not change product behavior or Production.
+- The accepted working tree passed focused Aggregate Tasks tests `11/11`, full applicable Node suite `257/257`, `npm run build`, and `git diff --check` before its single normal commit. No backend, SQL, dependency, or deployment change.
+
+# 2026-09-25 - v0.1.12 Slice 1 Pre-Commit Review Corrections
+
+- A focused regression first reproduced that a successful Tasks-module page with `data=null`, `count=0`, and no error silently became an empty eligible set. The Tasks aggregate reader now rejects that malformed page; a valid empty array still means no enabled module rows. No Calendar pagination semantics changed.
+- Corrected the current v0.1.12 handoff order: Slice 2 My → Space Management → Space Detail; Slice 3 one-time 功能中心 + Aggregate Tasks UI navigation switch and old Space-first daily-content retirement; Slice 4 regression, authenticated and Production acceptance. v0.1.12 remains `IN PROGRESS`, Slice 1 under review, and Production unchanged.
+- Focused Aggregate Tasks tests `11/11`, full applicable Node suite `257/257`, `npm run build`, and `git diff --check` passed. No UI, backend, dependency, commit, push or deployment change.
+
+# 2026-09-25 - v0.1.12 Slice 1 Aggregate Tasks Foundation — Local Automated Pass
+
+- Baseline matched the approved review: `main` and `origin/main` at `554430c994040785e1d2db9a045405b925d1191d`, clean tree and 0/0 ahead/behind before edits. The approved architecture keeps Tasks owned by one Space and Aggregate Tasks as a complete member-visible view.
+- Added a bounded read helper and Supabase adapter: membership-derived Spaces with explicit Tasks `enabled=true`, independent `all`/single-Space filter correction, complete 500-row Task pagination, canonical `groupTasks` ordering, current Space ID/name source mapping, and request-generation protection. Module-read errors stay explicit; Task reads include both statuses, other assignees and all due dates. Existing `space_modules` and `tasks` member SELECT policies cover the read path; no backend change was identified.
+- Added focused tests for eligibility, filter correction, pagination, completeness, ordering, source identity, error containment and stale responses. Full applicable Node suite `256/256`, `npm run build`, and `git diff --check` passed. Current `首页 / 日历 / 空间 / 我的` navigation, Space Hub, Tasks UI, backend, dependencies and Production are unchanged. Slice 1 is locally implemented and ready for code review; v0.1.12 remains in progress. No commit, push or deployment was performed.
+
 # 2026-09-25 - v0.1.12 Module Hub + Space Management Navigation Roadmap Re-freeze
 
 - v0.1.11 remains `CLOSED / PASS`. The frozen v0.1.12 product direction is a module-first navigation migration to the semantic target `首页 / 日历 / 功能中心 / 我的`; the exact Chinese tab label may be confirmed in the next READ-ONLY repo / product / architecture design review. v0.1.12 implementation has not started.

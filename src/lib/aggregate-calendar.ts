@@ -23,6 +23,7 @@ export async function completeRows<T>(
   page: (start: number, end: number) => Promise<Page<T>>,
   identity: (row: T) => string,
   belongs?: (row: T) => boolean,
+  label = '日历',
 ): Promise<T[]> {
   const result: T[] = [];
   const seen = new Set<string>();
@@ -30,19 +31,19 @@ export async function completeRows<T>(
   for (let start = 0; ;) {
     const { data, count, error } = await page(start, start + pageSize - 1);
     if (error) throw error;
-    if (count === null || !Number.isSafeInteger(count) || count < 0) throw new Error('无法确认日历数据是否完整。');
+    if (count === null || !Number.isSafeInteger(count) || count < 0) throw new Error(`无法确认${label}数据是否完整。`);
     if (expected === null) expected = count;
-    if (count !== expected) throw new Error('日历数据在读取期间发生变化，请重试。');
+    if (count !== expected) throw new Error(`${label}数据在读取期间发生变化，请重试。`);
     const batch = data ?? [];
-    if (batch.length > pageSize) throw new Error('日历分页结果超出预期。');
+    if (batch.length > pageSize) throw new Error(`${label}分页结果超出预期。`);
     for (const row of batch) {
       const id = identity(row);
-      if (!id || seen.has(id) || (belongs && !belongs(row))) throw new Error('日历数据身份校验失败，请重试。');
+      if (!id || seen.has(id) || (belongs && !belongs(row))) throw new Error(`${label}数据身份校验失败，请重试。`);
       seen.add(id);
       result.push(row);
     }
     if (result.length === expected) return result;
-    if (batch.length === 0 || result.length > expected) throw new Error('日历数据读取不完整，请重试。');
+    if (batch.length === 0 || result.length > expected) throw new Error(`${label}数据读取不完整，请重试。`);
     start += batch.length;
   }
 }
