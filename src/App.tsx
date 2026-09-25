@@ -18,6 +18,7 @@ import { MemberSheet } from './components/MemberSheet';
 import { MyPage } from './components/MyPage';
 import { RecurrenceControls } from './components/RecurrenceControls';
 import { TasksArea, type TasksScreen } from './components/TasksArea';
+import { HomePage } from './components/HomePage';
 import { calendarVisibleRange } from './lib/calendar-display';
 import { calendarSpaces, readAggregateCalendar, spaceLabel, validCalendarFilter, type CalendarFilter } from './lib/aggregate-calendar';
 import { createCalendarReadLoop } from './lib/calendar-refresh';
@@ -47,7 +48,7 @@ import {
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { bootstrapSpaces, chooseSelectedSpaceId, completeSharedSpaceAction, ensureOnceUntilFailure, writeSelectedSpaceId } from './lib/space-selection';
 import { newEventIdentity } from './lib/space-content';
-import { createTasksModuleToggleGuard, tasksModuleStateFromResult, type TasksModuleState } from './lib/space-modules';
+import { createTasksModuleToggleGuard, tasksModuleForcesHub, tasksModuleStateFromResult, type TasksModuleState } from './lib/space-modules';
 import { createRequestGuard } from './lib/request-guard';
 import { initialNavigation, openCalendar, openSpace, openSpaceScreen, selectTab, type TopLevelTab } from './lib/navigation';
 import {
@@ -472,11 +473,11 @@ function CalendarApp({ session }: { session: Session }) {
       if (!requestGuard.current.isCurrent(currentRequest)) return false;
       setSpaces(result.spaces);
       if (selectedSpaceId && selectedSpaceId !== result.selectedSpaceId) {
-        if (navigation.tab !== 'calendar') {
+        if (navigation.tab === 'spaces') {
           setSelectedDate(new Date());
           setViewMode('today');
         }
-        setNavigation((current) => current.tab === 'calendar' ? current : selectTab(current, 'spaces'));
+        setNavigation((current) => current.tab === 'spaces' ? selectTab(current, 'spaces') : current);
       }
       setSelectedSpaceId(result.selectedSpaceId);
       if (!preferredId) setPersonalInitializationError(result.personalInitializationError ?? null);
@@ -552,11 +553,11 @@ function CalendarApp({ session }: { session: Session }) {
       if (!requestGuard.current.isCurrent(currentRequest)) return;
       setSpaces(listed);
       if (selectedSpaceId !== validatedId) {
-        if (navigation.tab !== 'calendar') {
+        if (navigation.tab === 'spaces') {
           setSelectedDate(new Date());
           setViewMode('today');
         }
-        setNavigation((current) => current.tab === 'calendar' ? current : selectTab(current, 'spaces'));
+        setNavigation((current) => current.tab === 'spaces' ? selectTab(current, 'spaces') : current);
       }
       setSelectedSpaceId(validatedId);
       writeSelectedSpaceId(window.localStorage, userId, validatedId);
@@ -573,8 +574,7 @@ function CalendarApp({ session }: { session: Session }) {
     if (spaceActionBusy) return;
     requestGuard.current.invalidate();
     setNavigation((current) => selectTab(current, tab));
-    if (tab === 'spaces') void refreshSpaces();
-    if (tab === 'calendar') void refreshSpaces();
+    if (tab === 'spaces' || tab === 'calendar' || tab === 'home') void refreshSpaces();
   }
 
   async function sharedSpaceReady(spaceId: string) {
@@ -629,6 +629,8 @@ function CalendarApp({ session }: { session: Session }) {
           : <SpaceListPending status={spaceListStatus} onRetry={() => void refreshSpaces()} />
       )}
       {navigation.tab === 'calendar' && spaceListStatus !== 'ready' && <SpaceListPending status={spaceListStatus} onRetry={() => void refreshSpaces()} />}
+      {navigation.tab === 'home' && spaceListStatus !== 'ready' && <SpaceListPending status={spaceListStatus} onRetry={() => void refreshSpaces()} />}
+      {navigation.tab === 'home' && spaceListStatus === 'ready' && <HomePage key={spaces.map((space) => space.id).join(',')} spaces={spaces} userId={userId} EventSheetComponent={EventSheet} onMembershipRefresh={refreshSpaces} />}
       {((navigation.tab === 'calendar' && spaceListStatus === 'ready') || (navigation.tab === 'spaces' && navigation.spaceScreen !== 'list')) && (
         <CurrentSpaceApp
           key={navigation.tab === 'calendar' ? `calendar:${validFilter === 'all' ? 'all' : validFilter.spaceId}:${visibleCalendarSpaces.map((item) => item.id).join(',')}` : `spaces:${selectedSpaceId}`}
@@ -994,7 +996,7 @@ export function CurrentSpaceApp({ session, space, spaces, allSpaces, calendarFil
   }, [screen, visibleSpaceIds, calendarRetry]);
 
   useEffect(() => {
-    if (tasksModuleState !== 'enabled' && (screen === 'tasks' || screen === 'completed')) onScreenChange('hub');
+    if (tasksModuleForcesHub(tasksModuleState, screen)) onScreenChange('hub');
   }, [tasksModuleState, screen, onScreenChange]);
 
   const visibleTasksModuleState: TasksModuleState = tasksModuleBusy ? 'loading' : tasksModuleState;
@@ -1156,13 +1158,14 @@ export function SpacePage({ spaces, selectedSpaceId, onSelect, onSharedReady, bu
 
 export function BottomNavigation({ tab, onChange, disabled = false }: { tab: TopLevelTab; onChange: (tab: TopLevelTab) => void; disabled?: boolean }) {
   const tabs: { id: TopLevelTab; label: string }[] = [
+    { id: 'home', label: '首页' },
     { id: 'calendar', label: '日历' },
     { id: 'spaces', label: '空间' },
     { id: 'me', label: '我的' },
   ];
   return (
     <nav className="bottom-nav fixed inset-x-0 bottom-0 z-10 border-t border-ink/10 bg-white" aria-label="一级导航">
-      <div className="mx-auto grid max-w-3xl grid-cols-3">
+      <div className="mx-auto grid max-w-3xl grid-cols-4">
         {tabs.map(({ id, label }) => (
           <button key={id} type="button" className={`min-h-12 px-2 py-2 text-sm font-semibold disabled:opacity-50 ${tab === id ? 'text-teal' : 'text-ink/65'}`} onClick={() => onChange(id)} disabled={disabled} aria-current={tab === id ? 'page' : undefined}>{label}</button>
         ))}
@@ -1431,6 +1434,19 @@ function EventCard({ occurrence, members, sourceSpace, showSpaceLabel, userId, o
   );
 }
 
+export type EventSheetProps = {
+  target: EventEditTarget | null;
+  space: Space;
+  userId: string;
+  members: SpaceMember[];
+  partnerId: string | null;
+  onClose: () => void;
+  onSaved: () => void;
+  validateCreateTarget: () => Promise<boolean>;
+  showSourceSpace?: boolean;
+  sourceSpaceLabel?: string;
+};
+
 export function EventSheet({
   target,
   space,
@@ -1441,17 +1457,8 @@ export function EventSheet({
   onSaved,
   validateCreateTarget,
   showSourceSpace = false,
-}: {
-  target: EventEditTarget | null;
-  space: Space;
-  userId: string;
-  members: SpaceMember[];
-  partnerId: string | null;
-  onClose: () => void;
-  onSaved: () => void;
-  validateCreateTarget: () => Promise<boolean>;
-  showSourceSpace?: boolean;
-}) {
+  sourceSpaceLabel,
+}: EventSheetProps) {
   const event = target?.event ?? null;
   const occurrenceId = target?.kind === 'occurrence' ? target.occurrence.occurrence_id : null;
   const [draft, setDraft] = useState<EventDraft>(() => {
@@ -1681,7 +1688,7 @@ export function EventSheet({
         </div>
 
         {error && <div className="mt-4"><Notice tone="error" message={error} /></div>}
-        {event && showSourceSpace && <p className="mt-3 text-sm font-semibold text-teal">所属空间：{spaceLabel(space)}</p>}
+        {event && showSourceSpace && <p className="mt-3 text-sm font-semibold text-teal">所属空间：{sourceSpaceLabel ?? spaceLabel(space)}</p>}
         {!event && <p className="mt-3 text-sm font-semibold text-teal">保存到：{space.name}</p>}
 
         {event && !canManage ? (

@@ -1,5 +1,23 @@
 # Development Log
 
+# 2026-09-25 - v0.1.11 Slice 3 Local Closeout / Pre-Commit Review
+
+- User-reported desktop manual acceptance passed the four tabs and default Home; Personal + Shared Event aggregation, source labels, three-day range, all-day ordering, five-row expand/collapse, canonical Event Sheet, ordinary edit and existing recurrence flow; cross-Space eligible Task aggregation, due ordering/exclusions, five-row expand/collapse, canonical Task Sheet, edit and completion; module disable/re-enable; Home leave/return; A/B Event and Task Realtime; narrow viewport; and the Space → Tasks navigation regression retest.
+- Independent Event/Task section error/retry simulation remains `NOT RUN / DIFFICULT TO SIMULATE SAFELY`; no backend or network failure was induced. Second Shared Space is `N/A / NOT RUN`; no Space was created for acceptance. iPhone Safari and installed PWA remain pending because Production still serves Slice 1–2.
+- Final local automated verification: full applicable Node suite 236/236, `npm run build`, and `git diff --check` passed. Pre-commit review found only the Slice 3 frontend, regression tests and relevant status documentation; no backend/schema/RPC, dependency, Slice 4, future-module or generated artifact change. Slice 3 remains `LOCAL IMPLEMENTATION + DESKTOP MANUAL ACCEPTANCE PASS / PRODUCTION DEVICE ACCEPTANCE PENDING`, not `CLOSED / PASS`. No push, deploy, or authenticated browser operation by Codex.
+
+# 2026-09-25 - v0.1.11 Slice 3 Space Tasks Navigation Acceptance Fix
+
+- User-run authenticated Slice 3 acceptance passed the four top-level tabs, default Home, cross-Personal/Shared Home Event aggregation and source Space labels, then found a blocker at Space Hub → Tasks: the Task page flashed and returned to Hub. Acceptance paused for this local frontend correction.
+- Limited the Space Tasks/Completed redirect and TasksArea Hub fallback to an authoritatively `disabled` module. During module `loading` or `error`, the current Tasks screen remains visible with a loading indicator or error/retry; cached Task rows, creation and mutations remain unavailable until `enabled` is confirmed. Retry rereads only the current Space module state; a confirmed disable still returns to Hub.
+- The new regression test failed before the fix and passed afterward for loading → enabled, loading → error, error → retry → enabled and loading → disabled state/render transitions. Focused navigation/Space/Tasks/Home checks, the full Node suite, build and diff check passed. No backend, dependency, authenticated session operation, commit, push or deployment occurred. Slice 3 remains `MANUAL AUTH ACCEPTANCE PENDING`; only Space → Hub → Tasks requires immediate user retest before the paused acceptance continues.
+
+# 2026-09-24 - v0.1.11 Slice 3 Home Aggregation — Local Implementation / Manual Acceptance Pending
+
+- Implemented the approved four-tab Home as an all-membership-Spaces view independent of `selectedSpaceId` and `calendarFilter`. Event candidates cover today plus two local days, include complete recurring sources and exceptions, and sort all-day before timed within a day. Task candidates include eligible open shared/self-assigned Tasks due through seven future days or undated, only from Tasks-enabled Spaces. Both sections collapse to five with inline expand/collapse and show direct source `space.name` labels.
+- Reused canonical Event/Task Sheets with explicit source Space/member context. Each section has independent loading, empty, error and retry states; a failed required read clears only its own section. Home-only per-Space Event/Task channels subscribe while active, coalesce changes, re-read on reconnect and tear down on exit. Module state is reread on re-entry/focus/reconnect; `space_modules` remains outside Realtime.
+- Focused Home/navigation/Space tests, full applicable Node suite, `npm run build` and `git diff --check` passed. A read-only target/catalog check matched local dev/build frontend URLs to the linked Supabase project and confirmed required tables, RLS, Event/Task publication and RPCs. No backend, dependency, secret output, commit, push, deployment or Codex-operated authenticated session. User-run real-account and device acceptance is pending; Slice 3 is not `CLOSED / PASS`.
+
 # 2026-09-24 - v0.1.11 Slice 2 Aggregate Calendar — Production Closeout
 
 - User-run bounded Production smoke passed on `https://cross-platform-shared-calendar.vercel.app/`: the deployed frontend includes Slice 2; all/one aggregation and create behavior, Event Space context, Today/Week/Month navigation and current-period actions, Hub → Calendar filter, rapid-filter stale-data isolation, and A/B Realtime create/update/delete passed.

@@ -13,9 +13,11 @@ type TaskSheetProps = {
   members: SpaceMember[];
   onClose: () => void;
   onSaved: () => Promise<void>;
+  onMutationError?: (error: unknown) => Promise<boolean>;
+  sourceSpaceLabel?: string;
 };
 
-export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, onSaved }: TaskSheetProps) {
+export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, onSaved, onMutationError, sourceSpaceLabel }: TaskSheetProps) {
   const [title, setTitle] = useState(task?.title ?? '');
   const [assignment, setAssignment] = useState(task?.assigned_to_user_id ?? '');
   const [dueOn, setDueOn] = useState(task?.due_on ?? '');
@@ -55,6 +57,7 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
       await onSaved();
       onClose();
     } catch (saveError) {
+      if (await onMutationError?.(saveError)) return;
       setError(taskErrorMessage(saveError));
     } finally {
       setBusy(false);
@@ -77,6 +80,7 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
       await onSaved();
       onClose();
     } catch (deleteError) {
+      if (await onMutationError?.(deleteError)) return;
       setError(taskErrorMessage(deleteError));
     } finally {
       setBusy(false);
@@ -92,6 +96,7 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
             <X size={20} />
           </button>
         </div>
+        {sourceSpaceLabel && <p className="mt-2 text-sm font-semibold text-teal">所属空间：{sourceSpaceLabel}</p>}
 
         {error && <p className="mt-4 rounded-lg bg-coral/10 px-4 py-3 text-sm text-coral" role="alert">{error}</p>}
 

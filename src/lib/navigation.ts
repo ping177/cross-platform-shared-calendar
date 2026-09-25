@@ -1,8 +1,8 @@
-export type TopLevelTab = 'calendar' | 'spaces' | 'me';
+export type TopLevelTab = 'home' | 'calendar' | 'spaces' | 'me';
 export type SpaceScreen = 'list' | 'hub' | 'tasks' | 'completed';
 export type NavigationState = { tab: TopLevelTab; spaceScreen: SpaceScreen };
 
-export const initialNavigation: NavigationState = { tab: 'calendar', spaceScreen: 'list' };
+export const initialNavigation: NavigationState = { tab: 'home', spaceScreen: 'list' };
 
 export function selectTab(_current: NavigationState, tab: TopLevelTab): NavigationState {
   return { tab, spaceScreen: 'list' };

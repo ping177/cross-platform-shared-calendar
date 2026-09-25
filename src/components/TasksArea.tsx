@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { CheckCircle2, ChevronLeft, ChevronRight, Circle, Plus, Users } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { createRequestGuard } from '../lib/request-guard';
-import type { TasksModuleState } from '../lib/space-modules';
+import { tasksModuleForcesHub, type TasksModuleState } from '../lib/space-modules';
 import { canChangeTaskStatus, createTaskReadGate, formatTaskDueDate, groupTasks, taskAssignmentLabel, taskErrorMessage, taskRealtimeConfig } from '../lib/task';
 import type { Space, SpaceMember, Task } from '../types';
 import { TaskSheet } from './TaskSheet';
@@ -41,7 +41,7 @@ export function TasksArea({ screen, onScreenChange, onHubBack, space, members, u
   const grouped = useMemo(() => groupTasks(tasks), [tasks]);
   const spaceLabel = space.kind === 'personal' ? '我的空间' : space.name;
   const tasksEnabled = moduleState === 'enabled';
-  const visibleScreen = !tasksEnabled && (screen === 'tasks' || screen === 'completed') ? 'hub' : screen;
+  const visibleScreen = tasksModuleForcesHub(moduleState, screen) ? 'hub' : screen;
 
   async function reloadTasks() {
     if (!readGate.current.isActive()) return;
@@ -149,7 +149,7 @@ export function TasksArea({ screen, onScreenChange, onHubBack, space, members, u
             <span className="truncate">{visibleScreen === 'hub' ? '空间' : visibleScreen === 'tasks' ? spaceLabel : '任务'}</span>
           </button>
           <h1 className="min-w-0 truncate text-xl font-bold">{visibleScreen === 'hub' ? spaceLabel : visibleScreen === 'tasks' ? '任务' : '已完成任务'}</h1>
-          {visibleScreen === 'tasks' ? (
+          {visibleScreen === 'tasks' && tasksEnabled ? (
             <button className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-teal text-white" type="button" onClick={() => setCreating(true)} aria-label="新建任务">
               <Plus size={20} />
             </button>
@@ -193,6 +193,13 @@ export function TasksArea({ screen, onScreenChange, onHubBack, space, members, u
               <span className="font-semibold">任务</span>
               <span className="inline-flex shrink-0 items-center gap-2 text-sm text-ink/60">{loading ? '载入中' : `${grouped.open.length} 项待完成`}<ChevronRight size={18} /></span>
             </button>}
+          </div>
+        ) : moduleState === 'loading' ? (
+          <p className="rounded-lg bg-white px-4 py-5 text-sm text-ink/60 shadow-sm" role="status">正在确认任务模块…</p>
+        ) : moduleState === 'error' ? (
+          <div className="rounded-lg bg-white px-4 py-5 shadow-sm" role="alert">
+            <p className="text-sm text-coral">{moduleError || '任务模块状态读取失败，请重试。'}</p>
+            <button className="mt-2 min-h-11 font-semibold text-teal" type="button" onClick={onModuleRetry}>重试</button>
           </div>
         ) : (
           <div className="space-y-4">

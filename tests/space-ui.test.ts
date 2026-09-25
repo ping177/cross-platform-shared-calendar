@@ -74,9 +74,10 @@ test('static Personal and Shared Space UI follows the frozen form and Hub bounda
     const safeHub = renderToStaticMarkup(React.createElement(TasksArea, { ...hubProps, space: shared, screen: 'tasks', moduleState: 'disabled' }));
     assert.match(safeHub, /模块/);
     assert.doesNotMatch(safeHub, /新建任务|待完成 ·|已完成 ·/);
-    const unknownHub = renderToStaticMarkup(React.createElement(TasksArea, { ...hubProps, space: shared, screen: 'completed', moduleState: 'error' }));
-    assert.match(unknownHub, /模块/);
-    assert.doesNotMatch(unknownHub, /已完成任务|重新打开/);
+    const unknownCompleted = renderToStaticMarkup(React.createElement(TasksArea, { ...hubProps, space: shared, screen: 'completed', moduleState: 'error' }));
+    assert.match(unknownCompleted, /已完成任务|任务模块状态读取失败/);
+    assert.match(unknownCompleted, /重试/);
+    assert.doesNotMatch(unknownCompleted, /重新打开|查看日历/);
     const completed = renderToStaticMarkup(React.createElement(TasksArea, { ...hubProps, space: shared, screen: 'completed' }));
     assert.match(completed, /已完成任务/);
     assert.doesNotMatch(completed, /\bTasks?\b/);
@@ -90,8 +91,8 @@ test('static Personal and Shared Space UI follows the frozen form and Hub bounda
     assert.match(selector, /加入空间/);
     assert.match(selector, /当前/);
     const nav = renderToStaticMarkup(React.createElement(BottomNavigation, { tab: 'calendar', onChange: noop }));
-    assert.match(nav, /日历.*空间.*我的/);
-    assert.doesNotMatch(nav, /首页/);
+    assert.match(nav, /首页.*日历.*空间.*我的/);
+    assert.match(nav, /grid-cols-4/);
     assert.match(nav, /bottom-nav.*min-h-12/);
     assert.match(personalEvent, /fixed inset-0 z-20/);
     assert.match(personalTask, /fixed inset-0 z-20/);

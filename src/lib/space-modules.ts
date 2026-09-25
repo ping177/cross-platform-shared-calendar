@@ -1,5 +1,9 @@
 export type TasksModuleState = 'loading' | 'enabled' | 'disabled' | 'error';
 
+export function tasksModuleForcesHub(state: TasksModuleState, screen: 'calendar' | 'hub' | 'tasks' | 'completed'): boolean {
+  return state === 'disabled' && (screen === 'tasks' || screen === 'completed');
+}
+
 type ModuleReadResult = {
   data: { enabled: boolean } | null;
   error: { message: string } | null;

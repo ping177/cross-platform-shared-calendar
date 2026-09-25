@@ -1,5 +1,12 @@
 # Testing
 
+## v0.1.11 Slice 3 — Home Aggregation (LOCAL IMPLEMENTATION + DESKTOP MANUAL ACCEPTANCE PASS / PRODUCTION DEVICE ACCEPTANCE PENDING)
+
+- Focused Home tests cover the three local calendar days, same-day all-day ordering, old recurring sources, moved-in override, only-this deletion, this-and-future child identity, a later-Space read failure, Task overdue/today/seven-day/undated ordering and assignment exclusions, disabled/missing/error module handling, plus section loading/empty/error and five-row expand/collapse. The navigation regression covers the module re-read state/render sequence and Tasks/Completed fallback contract. Existing calendar-refresh tests cover reused dirty-read, burst, pause/stop and retry guards.
+- Final applicable Node suite `node --test --test-reporter=tap tests/*.test.ts tests/*.test.js`: **236/236 PASS**. `npm run build` and `git diff --check`: **PASS**. Environment alignment passed earlier for this frontend-only Slice; no backend rollout is needed.
+- User-reported desktop authenticated acceptance: **PASS** for four tabs, Home default, Personal/Shared Event aggregation and source label, Event 3-day range/all-day ordering/five-row expand/collapse/canonical Event Sheet/ordinary edit/existing recurrence flow; Task cross-Space aggregation, eligibility/order/exclusions/five-row expand/collapse/canonical Task Sheet/edit/complete; module disable/re-enable; Home leave/return; A/B Event and Task Realtime; desktop/narrow viewport; and Space → Tasks regression retest. Codex did not operate the authenticated session.
+- **PENDING after deployment:** iPhone Safari and installed PWA. Production still serves Slice 1–2; Slice 3 has not been pushed or deployed. **NOT RUN / DIFFICULT TO SIMULATE SAFELY:** independent Event/Task section error/retry under real backend/network failures; no failure was deliberately induced. Second Shared Space is **N/A / NOT RUN**; do not create one for acceptance.
+
 ## v0.1.11 Slice 2 — Aggregate Calendar (CLOSED / PASS)
 
 - Focused Node tests cover all/one filter and `selectedSpaceId` separation, Personal/Shared labels and member context, same-title/time Event identity, multi-page Event reads, bounded/multi-page exception batches, duplicate/count/Space checks, fail-closed aggregate reads, mixed-Space recurrence/only-this override/delete/this-and-future, projection error display, dirty/stale request invalidation, debounce, teardown, and refresh retry. Existing Space/Hub static regression remains green.
