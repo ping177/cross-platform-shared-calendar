@@ -157,6 +157,10 @@ The canonical long-term model and roadmap are in [Shared Life Architecture Freez
 - The user reported final authenticated Production and installed-PWA acceptance `PASS`. Slice 4 and v0.1.12 are `CLOSED / PASS`, with Slices 1–3 already closed. The accepted navigation is 首页 / 日历 / 功能中心 / 我的; 功能中心 contains only 任务, while 我的 → 空间管理 owns Personal/Shared Space detail. Space remains the canonical ownership boundary.
 - Visual refinement, unused `MemberSheet.tsx`, `space_modules` Realtime, and Calendar all-Space creation stay deferred. v0.1.13 Space Lifecycle & Membership Safety is the next planned version; no lifecycle design or implementation is part of this closeout.
 
+## v0.1.13 Slice 2 — Filter and Lifecycle State Contract
+
+Slice 2 state review clarification: lifecycle operations do not synchronously set Calendar or Task filters. The existing canonical eligibility reconciliation may return `all` or another established valid default after their selected Space becomes ineligible. A successful leave/delete clears the management selection and detail before attempting the list refresh; remove/transfer retain the still-valid current Space.
+
 ## v0.1.13 Slice 1 — CLOSED / PASS
 
 The frozen backend design passed local verification and the Slice 1B Production rollout/postflight. `v0.1.13 Slice 1 — CLOSED / PASS`; Next Action is Slice 2 Space Detail lifecycle controls. The runtime invariant boundary covers `anon`, `authenticated`, and `service_role`; DB owner/postgres/migration administrators are outside it. These application roles must not bypass the owner/member/Event/Task lifecycle guards through legacy `TRUNCATE`, so Slice 1A revokes only that privilege on the six affected tables. Historical reminder ledger rows remain independent records. No general ACL framework, TRUNCATE trigger, or account-management capability is introduced; the only Production mutation was the reviewed Slice 1A forward patch.

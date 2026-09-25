@@ -3,6 +3,9 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { memberDisplayName } from '../lib/member';
 import { createRequestGuard } from '../lib/request-guard';
 import { readSpaceMembers } from '../lib/space-members';
+import { listCurrentSpaces } from '../lib/current-spaces';
+import { executeSpaceLifecycle, type SpaceLifecycleAction } from '../lib/space-lifecycle';
+import { supabase } from '../lib/supabase';
 import type { CurrentSpace, Space, SpaceMember } from '../types';
 import type { TasksModuleState } from '../lib/space-modules';
 import { InvitePanel } from './InvitePanel';
@@ -18,9 +21,10 @@ type DetailProps = {
   onModuleRetry: () => void;
   onModuleToggle: () => void;
   onSpaceChange: (space: Space) => void;
+  lifecycleControls?: React.ReactNode;
 };
 
-export function SpaceDetailContent({ space, members, moduleState, moduleError, moduleBusy, onModuleRetry, onModuleToggle, onSpaceChange }: DetailProps) {
+export function SpaceDetailContent({ space, members, moduleState, moduleError, moduleBusy, onModuleRetry, onModuleToggle, onSpaceChange, lifecycleControls }: DetailProps) {
   const isOwner = space.membershipRole === 'owner';
   return (
     <div className="space-y-4">
@@ -55,11 +59,83 @@ export function SpaceDetailContent({ space, members, moduleState, moduleError, m
         </div>
         {moduleError && <p className="mt-2 text-sm text-coral" role="alert">{moduleError}</p>}
       </section>
+      {space.kind === 'shared' && lifecycleControls}
     </div>
   );
 }
 
-function SpaceDetail({ space, onSpaceChange }: { space: CurrentSpace; onSpaceChange: (space: Space) => void }) {
+export function SpaceLifecycleControls({ space, members, userId, busy, onBusyChange, onSettled }: {
+  space: CurrentSpace;
+  members: SpaceMember[];
+  userId: string;
+  busy: boolean;
+  onBusyChange: (busy: boolean) => void;
+  onSettled: (action: SpaceLifecycleAction, error?: string) => Promise<void>;
+}) {
+  const [pending, setPending] = useState<{ action: SpaceLifecycleAction; targetId?: string; label: string } | null>(null);
+  const [deleteStep, setDeleteStep] = useState(1);
+  const submitting = useRef(false);
+  if (space.kind !== 'shared') return null;
+  const otherMember = members.find((member) => member.user_id !== userId && member.role === 'member');
+  const currentRole = members.find((member) => member.user_id === userId)?.role;
+  const owner = space.membershipRole === 'owner' && currentRole === 'owner';
+  const ordinaryMember = space.membershipRole === 'member' && currentRole === 'member';
+  const open = (action: SpaceLifecycleAction, label: string, targetId?: string) => {
+    if (busy || submitting.current) return;
+    setDeleteStep(1);
+    setPending({ action, label, targetId });
+  };
+  const confirm = async () => {
+    if (!pending || busy || submitting.current) return;
+    if (pending.action === 'delete' && deleteStep === 1) { setDeleteStep(2); return; }
+    submitting.current = true;
+    onBusyChange(true);
+    const { action, targetId } = pending;
+    let errorMessage: string | undefined;
+    try {
+      await executeSpaceLifecycle(action, space, members, userId, targetId, {
+        listSpaces: () => listCurrentSpaces(userId),
+        readMembers: readSpaceMembers,
+        rpc: async (method, args) => await supabase.rpc(method, args),
+      });
+    } catch (error) {
+      errorMessage = error instanceof Error ? error.message : '操作未完成，请刷新后重试。';
+    }
+    setPending(null);
+    try {
+      await onSettled(action, errorMessage);
+    } finally {
+      submitting.current = false;
+      onBusyChange(false);
+    }
+  };
+  return <section className="rounded-lg border border-coral/25 bg-white p-4 shadow-sm" aria-label="危险操作">
+    <h2 className="font-bold text-coral">危险操作</h2>
+    <p className="mt-1 text-sm leading-6 text-ink/65">这些操作会立即改变空间成员或永久删除数据。</p>
+    {!owner && !ordinaryMember && <div className="mt-3 text-sm text-coral" role="alert">空间成员身份已变化。<button className="ml-2 min-h-11 font-semibold underline disabled:opacity-50" type="button" disabled={busy} onClick={() => void onSettled('leave', '空间成员身份已变化，请刷新后重试。')}>刷新空间列表</button></div>}
+    <div className="mt-3 flex flex-wrap gap-2">
+      {ordinaryMember && <button className="min-h-11 rounded-lg border border-coral/40 px-4 font-semibold text-coral disabled:opacity-50" type="button" disabled={busy} onClick={() => open('leave', '退出空间')}>退出空间</button>}
+      {owner && otherMember && <>
+        <button className="min-h-11 rounded-lg border border-coral/40 px-4 font-semibold text-coral disabled:opacity-50" type="button" disabled={busy} onClick={() => open('remove', '移除成员', otherMember.user_id)}>移除成员</button>
+        <button className="min-h-11 rounded-lg border border-coral/40 px-4 font-semibold text-coral disabled:opacity-50" type="button" disabled={busy} onClick={() => open('transfer', '转让所有者', otherMember.user_id)}>转让所有者</button>
+      </>}
+      {owner && <button className="min-h-11 rounded-lg bg-coral px-4 font-semibold text-white disabled:opacity-50" type="button" disabled={busy} onClick={() => open('delete', '删除空间')}>删除空间</button>}
+    </div>
+    {pending && <div className="fixed inset-0 z-40 flex items-end bg-ink/50 p-4 md:items-center" role="dialog" aria-modal="true" aria-labelledby="space-lifecycle-title">
+      <div className="mx-auto w-full max-w-md rounded-lg bg-white p-5 shadow-soft safe-bottom">
+        <h3 id="space-lifecycle-title" className="text-lg font-bold">确认{pending.label}</h3>
+        <p className="mt-3 text-sm leading-6">{pending.action === 'leave' ? '退出后，你在此共享空间的个人日程将删除；共享日程保留。' : pending.action === 'remove' ? '该成员在此共享空间的个人日程将删除；共享日程和任务保留。' : pending.action === 'transfer' ? '转让后，对方成为所有者，你成为普通成员。' : deleteStep === 1 ? '此操作将永久删除整个共享空间及其中的日程和任务，无法恢复。' : '请再次确认：整个共享空间将永久删除，所有成员都将失去访问权。'}</p>
+        {(pending.action === 'remove' || pending.action === 'transfer') && <p className="mt-2 break-all text-sm font-semibold">目标成员：{members.find((member) => member.user_id === pending.targetId)?.profiles?.display_name || pending.targetId}</p>}
+        <div className="mt-5 flex justify-end gap-2">
+          <button className="min-h-11 rounded-lg bg-mist px-4 font-semibold" type="button" disabled={busy} onClick={() => setPending(null)}>取消</button>
+          <button className="min-h-11 rounded-lg bg-coral px-4 font-semibold text-white disabled:opacity-50" type="button" disabled={busy} onClick={() => void confirm()}>{busy ? '处理中…' : pending.action === 'delete' ? deleteStep === 1 ? '继续确认' : '永久删除空间' : `确认${pending.label}`}</button>
+        </div>
+      </div>
+    </div>}
+  </section>;
+}
+
+function SpaceDetail({ space, userId, onSpaceChange, busy, onBusyChange, onLifecycleSettled }: { space: CurrentSpace; userId: string; onSpaceChange: (space: Space) => void; busy: boolean; onBusyChange: (busy: boolean) => void; onLifecycleSettled: (action: SpaceLifecycleAction, error?: string) => Promise<void> }) {
   const [members, setMembers] = useState<SpaceMember[]>([]);
   const [membersStatus, setMembersStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const membersGuard = useRef(createRequestGuard());
@@ -87,16 +163,19 @@ function SpaceDetail({ space, onSpaceChange }: { space: CurrentSpace; onSpaceCha
   if (space.kind === 'shared' && membersStatus !== 'ready') {
     return <div role={membersStatus === 'error' ? 'alert' : 'status'}>{membersStatus === 'loading' ? '正在读取空间成员…' : '空间成员读取失败。'}{membersStatus === 'error' && <button className="ml-3 min-h-11 font-semibold text-teal" type="button" onClick={() => void loadMembers()}>重试</button>}</div>;
   }
-  return <SpaceDetailContent space={space} members={members} moduleState={module.state} moduleError={module.error} moduleBusy={module.busy} onModuleRetry={() => void module.retry()} onModuleToggle={() => void module.toggle()} onSpaceChange={onSpaceChange} />;
+  return <SpaceDetailContent space={space} members={members} moduleState={module.state} moduleError={module.error} moduleBusy={module.busy} onModuleRetry={() => void module.retry()} onModuleToggle={() => void module.toggle()} onSpaceChange={onSpaceChange} lifecycleControls={<SpaceLifecycleControls space={space} members={members} userId={userId} busy={busy} onBusyChange={onBusyChange} onSettled={onLifecycleSettled} />} />;
 }
 
-export function SpaceManagementPage({ spaces, selectedSpaceId, onSelect, onBack, onReady, onSpaceChange, busy, onBusyChange }: {
+export function SpaceManagementPage({ spaces, selectedSpaceId, userId, detailRevision, onSelect, onBack, onReady, onSpaceChange, onLifecycleSettled, busy, onBusyChange }: {
   spaces: CurrentSpace[];
   selectedSpaceId: string | null;
+  userId: string;
+  detailRevision: number;
   onSelect: (spaceId: string) => void;
   onBack: () => void;
   onReady: (spaceId: string) => Promise<boolean>;
   onSpaceChange: (space: Space) => void;
+  onLifecycleSettled: (action: SpaceLifecycleAction, error?: string) => Promise<void>;
   busy: boolean;
   onBusyChange: (busy: boolean) => void;
 }) {
@@ -111,7 +190,7 @@ export function SpaceManagementPage({ spaces, selectedSpaceId, onSelect, onBack,
         <button className="inline-flex min-h-11 items-center gap-1 font-semibold text-teal disabled:opacity-50" type="button" onClick={onBack} disabled={busy}><ChevronLeft size={18} />{selected ? '空间管理' : '我的'}</button>
         <h1 className="min-w-0 break-all text-xl font-bold">{selected ? selected.name : '空间管理'}</h1>
       </header>
-      {selected ? <div className="mt-4"><SpaceDetail key={selected.id} space={selected} onSpaceChange={onSpaceChange} /></div> : (
+      {selected ? <div className="mt-4"><SpaceDetail key={`${selected.id}:${selected.membershipRole}:${detailRevision}`} space={selected} userId={userId} onSpaceChange={onSpaceChange} busy={busy} onBusyChange={onBusyChange} onLifecycleSettled={onLifecycleSettled} /></div> : (
         <>
           <section className="mt-4">
             <h2 className="text-sm font-bold text-ink/60">个人空间</h2>

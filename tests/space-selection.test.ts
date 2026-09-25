@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { bootstrapSpaces, chooseSelectedSpaceId, completeSharedSpaceAction, ensureOnceUntilFailure, readSelectedSpaceId, writeSelectedSpaceId } from '../src/lib/space-selection.ts';
+import { bootstrapSpaces, chooseSelectedSpaceId, clearSelectedSpaceId, completeSharedSpaceAction, ensureOnceUntilFailure, readSelectedSpaceId, writeSelectedSpaceId } from '../src/lib/space-selection.ts';
 import type { CurrentSpace } from '../src/types.ts';
 
 const sharedA: CurrentSpace = { id: 'shared-a', name: 'A', kind: 'shared', invite_code: 'AAAAAA', created_by: 'user-a', created_at: '2026-01-01', membershipRole: 'owner' };
@@ -12,8 +12,18 @@ function memoryStorage() {
   return {
     getItem: (key: string) => values.get(key) ?? null,
     setItem: (key: string, value: string) => { values.set(key, value); },
+    removeItem: (key: string) => { values.delete(key); },
   };
 }
+
+test('clearing one user selection removes only that stored Space', () => {
+  const storage = memoryStorage();
+  writeSelectedSpaceId(storage, 'user-a', sharedA.id);
+  writeSelectedSpaceId(storage, 'user-b', sharedB.id);
+  clearSelectedSpaceId(storage, 'user-a');
+  assert.equal(readSelectedSpaceId(storage, 'user-a'), null);
+  assert.equal(readSelectedSpaceId(storage, 'user-b'), sharedB.id);
+});
 
 test('bootstrap ensures Personal before listing and keeps an existing Shared default', async () => {
   const calls: string[] = [];

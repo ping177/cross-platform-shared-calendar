@@ -1,5 +1,15 @@
 # Testing
 
+## v0.1.13 Slice 2 — State review correction
+
+- New automated cases cover leave/delete success clearing selection and detail before a delayed/failed list refresh, persistent selection removal scoped to the current user, remove/transfer retaining detail, RPC rejection retaining selection pending canonical refresh, and Calendar/Task eligibility fallback for an invalid filter target. Focused Node: 46/46 PASS; full Node: 276/276 PASS; `npm run build` (TypeScript + Vite) and `git diff --check`: PASS.
+- The lifecycle result path does not write Calendar or Task filters. Existing filter normalization may choose `all` when its target becomes ineligible. Real-account/device acceptance remains user-owned and pending.
+
+## v0.1.13 Slice 2 — Local UI review checkpoint
+
+- Focused Node 8/8 and full Node 271/271 pass. Tests cover Personal/Shared role controls, other-member target validation, four exact RPC names/arguments, canonical pre-submit recheck, stale/error rejection, confirmation and duplicate-submit guards, list/detail refresh, and absence of lifecycle filter mutation. Existing Space Management regression remains in the focused run. `npm run build` (TypeScript + Vite) and `git diff --check` pass.
+- Real-account acceptance is pending. Before asking the user to run it, verify the local frontend's backend target and the deployed four RPC signatures/grants and schema alignment without handling the user's login. The user then checks Personal, owner, member, transfer → leave, remove, hard delete confirmations/cancellation, stale role/member/Space recovery, invite rotation, retained Shared Events/Tasks, and narrow mobile layout using accounts and data they choose. Destructive actions require disposable test data or deliberate user selection. No real-account session or PWA was operated in this local checkpoint.
+
 ## v0.1.13 Slice 1 — CLOSED / PASS
 
 - Local database: `supabase test db --local` passed all 10 files / 388 pgTAP tests, including lifecycle, existing Event/Task/recurrence/reminder/RLS regressions. `python3 supabase/tests/space-lifecycle-concurrency.py` passed 9/9 two-session orderings. `node --test tests/*.test.ts tests/*.test.js` passed 266/266; `npm run build` and `git diff --check` passed.

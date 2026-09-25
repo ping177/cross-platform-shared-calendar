@@ -47,9 +47,10 @@ import {
   timedReminderOptions,
 } from './lib/reminder';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
-import { bootstrapSpaces, chooseSelectedSpaceId, ensureOnceUntilFailure, writeSelectedSpaceId } from './lib/space-selection';
+import { bootstrapSpaces, chooseSelectedSpaceId, clearSelectedSpaceId, ensureOnceUntilFailure, writeSelectedSpaceId } from './lib/space-selection';
 import { newEventIdentity } from './lib/space-content';
 import { readSpaceMembers } from './lib/space-members';
+import { settleSpaceLifecycle, type SpaceLifecycleAction } from './lib/space-lifecycle';
 import { createRequestGuard } from './lib/request-guard';
 import { calendarContentSpaceId, initialNavigation, openCompletedTasks, openTaskList, openTaskModule, selectTab, type TopLevelTab } from './lib/navigation';
 import {
@@ -389,6 +390,7 @@ function CalendarApp({ session }: { session: Session }) {
   const [navigation, setNavigation] = useState(initialNavigation);
   const [spaceListStatus, setSpaceListStatus] = useState<'loading' | 'ready' | 'error'>('ready');
   const [spaceActionBusy, setSpaceActionBusy] = useState(false);
+  const [spaceDetailRevision, setSpaceDetailRevision] = useState(0);
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [viewMode, setViewMode] = useState<ViewMode>('today');
   const [loading, setLoading] = useState(true);
@@ -466,7 +468,7 @@ function CalendarApp({ session }: { session: Session }) {
     }
   }
 
-  async function refreshSpaces(preserveHome = true, expectedSpaceId?: string): Promise<boolean> {
+  async function refreshSpaces(preserveHome = true, expectedSpaceId?: string, selectionId = selectedSpaceId): Promise<boolean> {
     const currentRequest = requestGuard.current.begin();
     const keepHomeVisible = preserveHome && navigation.tab === 'home' && spaceListStatus === 'ready';
     if (!keepHomeVisible) setSpaceListStatus('loading');
@@ -476,7 +478,7 @@ function CalendarApp({ session }: { session: Session }) {
       if (expectedSpaceId && !listed.some((space) => space.id === expectedSpaceId)) {
         throw new Error('新空间未出现在你的成员列表中，请重试。');
       }
-      const validatedId = chooseSelectedSpaceId(listed, selectedSpaceId);
+      const validatedId = chooseSelectedSpaceId(listed, selectionId);
       if (!validatedId) {
         if (!expectedSpaceId && requestGuard.current.isCurrent(currentRequest)) {
           setSpaces([]);
@@ -486,7 +488,7 @@ function CalendarApp({ session }: { session: Session }) {
       }
       if (!requestGuard.current.isCurrent(currentRequest)) return false;
       setSpaces(listed);
-      if (selectedSpaceId !== validatedId) {
+      if (selectionId !== validatedId) {
         setMyScreen((current) => current === 'detail' ? 'management' : current);
       }
       setSelectedSpaceId(validatedId);
@@ -520,6 +522,19 @@ function CalendarApp({ session }: { session: Session }) {
     return ready;
   }
 
+  async function lifecycleSettled(action: SpaceLifecycleAction, failure?: string) {
+    await settleSpaceLifecycle(action, failure, {
+      clearSelection: () => {
+        setSelectedSpaceId(null);
+        clearSelectedSpaceId(window.localStorage, userId);
+      },
+      closeDetail: () => setMyScreen('management'),
+      refresh: (resetSelection) => refreshSpaces(false, undefined, resetSelection ? null : selectedSpaceId),
+      remountDetail: () => setSpaceDetailRevision((current) => current + 1),
+      showError: setError,
+    });
+  }
+
   function updateSpace(updated: Space) {
     setSpaces((current) => current.map((space) => space.id === updated.id ? { ...space, ...updated } : space));
   }
@@ -529,8 +544,8 @@ function CalendarApp({ session }: { session: Session }) {
   const contentSpaceId = calendarContentSpaceId(validFilter, spaces.map((space) => space.id));
   const contentSpace = spaces.find((space) => space.id === contentSpaceId) ?? null;
   useEffect(() => {
-    if (validFilter !== calendarFilter) setCalendarFilter('all');
-  }, [validFilter, calendarFilter]);
+    if (navigation.tab === 'calendar' && validFilter !== calendarFilter) setCalendarFilter('all');
+  }, [navigation.tab, validFilter, calendarFilter]);
   if (loading && spaces.length === 0) return <FullScreenMessage title="正在载入" body="正在确认你的空间。" />;
   if (spaces.length === 0) {
     return (
@@ -587,10 +602,13 @@ function CalendarApp({ session }: { session: Session }) {
           ? <SpaceManagementPage
               spaces={spaces}
               selectedSpaceId={myScreen === 'detail' ? selectedSpaceId : null}
+              userId={userId}
+              detailRevision={spaceDetailRevision}
               onSelect={(spaceId) => { void selectManagedSpace(spaceId); }}
               onBack={() => setMyScreen(myScreen === 'detail' ? 'management' : 'profile')}
               onReady={managedSpaceReady}
               onSpaceChange={updateSpace}
+              onLifecycleSettled={lifecycleSettled}
               busy={spaceActionBusy}
               onBusyChange={setSpaceActionBusy}
             />

@@ -22,6 +22,14 @@ export function writeSelectedSpaceId(storage: SelectionStorage, userId: string, 
   }
 }
 
+export function clearSelectedSpaceId(storage: Pick<Storage, 'removeItem'>, userId: string) {
+  try {
+    storage.removeItem(selectionKey(userId));
+  } catch {
+    // The in-memory selection is cleared even when device storage is unavailable.
+  }
+}
+
 export function ensureOnceUntilFailure(run: () => Promise<void>) {
   let pending: Promise<void> | null = null;
   return () => {

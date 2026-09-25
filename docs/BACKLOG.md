@@ -126,7 +126,7 @@ The accepted product migrated `首页 / 日历 / 空间 / 我的` to `首页 / �
 
 ## v0.1.13 — Space Lifecycle & Membership Safety — IN PROGRESS
 
-`v0.1.13 Slice 1 — CLOSED / PASS`：Slice 1A backend 与窄 ACL recovery 本地验证、Slice 1B Production patch/postflight、最终 diff 和验证记录均完成。Next Action: Slice 2 Space Detail lifecycle controls；UI 尚未开始。
+`v0.1.13 Slice 1 — CLOSED / PASS`：Slice 1A backend 与窄 ACL recovery 本地验证、Slice 1B Production patch/postflight、最终 diff 和验证记录均完成。Slice 2 Space Detail lifecycle controls implementation/review `PASS`，待用户 authenticated Production acceptance。
 
 This version covers Shared Space leave, member removal, ownership transfer, and hard delete before more Space-owned product modules. Structured Review / Check-in and Shared Lists remain future candidates. Do not assign versions beyond v0.1.13 yet.
 
@@ -146,7 +146,7 @@ The long-term relationships and v0.1.10 scope are frozen in [Shared Life Archite
 - v0.1.10 — Personal Space + Multi-space + Module Enablement Foundation; Slice 1 `PRODUCTION BACKEND ROLLOUT PASS`, Slice 2/3 and overall `CLOSED / PASS`.
 - v0.1.11 — Navigation + Aggregation Experience (`CLOSED / PASS / SLICE 1 CLOSED / PASS / SLICE 2 CLOSED / PASS / SLICE 3 CLOSED / PASS / SLICE 4 CLOSED / PASS`; Desktop and Production installed PWA acceptance `PASS`; dedicated final iPhone Safari acceptance `NOT RUN`).
 - v0.1.12 — Module Hub + Space Management Navigation (CLOSED / PASS; Slices 1–4 CLOSED / PASS; Production and installed-PWA acceptance PASS).
-- v0.1.13 — Space Lifecycle & Membership Safety (IN PROGRESS; Slice 1 CLOSED / PASS; Slice 2 UI not started).
+- v0.1.13 — Space Lifecycle & Membership Safety (IN PROGRESS; Slice 1 CLOSED / PASS; Slice 2 local REVIEW PASS; manual acceptance pending).
 - Later candidates after v0.1.13 without fixed versions/order: Structured Review / Check-in, Shared Lists, Important Dates, Calendar Sources v1, Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules. Priority and order may change based on real product use.
 - Native: decision gate only; no committed implementation version.
 

@@ -1,5 +1,22 @@
 # Development Log
 
+# 2026-09-25 - v0.1.13 Slice 2 Final Implementation / Review PASS
+
+- Slice 2 frontend implementation and read-only review are `PASS`; waiting for authenticated Production acceptance. The four deployed lifecycle RPC signatures/grants were rechecked read-only against the linked Production database. Full Node 276/276, `npm run build`, and `git diff --check` pass.
+- The approved changes are ready for normal commit and push through the Vercel Git integration. Production database/backend were not changed. User account, Magic Link/OTP, session, browser login and PWA acceptance remain for the user.
+
+# 2026-09-25 - v0.1.13 Slice 2 State Review Correction — PASS
+
+- Leave/delete RPC success now clears in-memory and stored `selectedSpaceId` and exits Space Detail before refreshing the Space list. A failed refresh leaves the management recovery view with a readable error; remove/transfer success keeps the valid current selection and reloads detail. RPC rejection still refreshes canonical state without assuming a deletion succeeded.
+- Lifecycle code does not set `calendarFilter` or `taskFilter`. Their existing eligibility checks may return `all` when a selected Space is no longer valid; Calendar applies its canonical correction on Calendar entry. This is the accepted filter contract.
+- Focused 46/46 and full Node 276/276 regressions, TypeScript/Vite build, and diff check pass. No backend/SQL, Production write, real-login, dependency, commit, push, or deploy action occurred. Status: `V013_SLICE2_REVIEW_PASS`; manual acceptance pending.
+
+# 2026-09-25 - v0.1.13 Slice 2 Local Space Detail Lifecycle Controls — Review Checkpoint
+
+- Added Shared Space Detail danger controls for ordinary-member leave and owner-only remove/transfer/delete, with target restricted to the other ordinary member. Personal Space retains module settings and has no lifecycle controls. All actions require confirmation; hard delete requires a second confirmation. A submission guard prevents repeated RPC calls.
+- Before the single canonical lifecycle RPC, the client rereads the Space list and members; backend authorization remains authoritative. Success and stale/error paths refresh the canonical list and remount detail membership state. Lost or deleted Space detail returns to management. Calendar/Task filter selection is not set by lifecycle; Calendar's existing invalid-filter normalization now waits until Calendar is opened.
+- Focused lifecycle/management tests 8/8 and the full Node regression 271/271 passed; `npm run build` and `git diff --check` passed. No backend, Production, real-login, PWA, dependency, commit, push, or deploy action occurred. Status: `V013_SLICE2_READY_FOR_REVIEW`; manual acceptance remains pending.
+
 # 2026-09-25 - v0.1.13 Slice 1 — CLOSED / PASS
 
 - Final diff review found only the approved Slice 1 backend patch, canonical schema, DB/concurrency tests, the compatibility adjustment to an existing reminder test, and project documentation. No unrelated file or test-generated artifact remains.
@@ -11,7 +28,7 @@
 - Repeated Production read-only preflight: 4 Spaces (2 Personal, 2 Shared), 5 memberships, no owner/capacity or Event reference anomaly, expected dual member FKs, existing trigger/function/RLS/ACL alignment, four lifecycle RPCs absent, and 5 sent historical orphan reminder rows. The existing claim function bodies matched the repository baseline exactly.
 - Applied only `supabase/patches/2026-09-25-v0.1.13-space-lifecycle-slice1a.sql` to Production. No reset, historical migration rewrite, extra Production SQL mutation, frontend deployment, commit, or push.
 - Postflight: four authenticated-only lifecycle RPCs and restricted internal helper, valid owner index, five enabled lifecycle triggers, 18 application-role TRUNCATE denials, unchanged 15 FKs/RLS/policies, and exact preflight/postflight business-data fingerprints. All 12 reminder ledger rows, including the 5 sent historical orphans, remain unchanged. Reminder schedule trigger/function and both claim bodies are healthy; one active Cron job had 60 successes and zero failures in the preceding 60 minutes.
-- Status: `SLICE_1_BACKEND_PRODUCTION_PASS`. Slice 2 UI has not started; Production frontend remains the accepted v0.1.12 build.
+- At the Slice 1B closeout checkpoint, status was `SLICE_1_BACKEND_PRODUCTION_PASS`; Slice 2 UI had not started, and the accepted Production frontend was v0.1.12. Current Slice 2 status is recorded in the later entries above.
 
 # 2026-09-25 - v0.1.13 Slice 1A — Local Backend + ACL Recovery
 
