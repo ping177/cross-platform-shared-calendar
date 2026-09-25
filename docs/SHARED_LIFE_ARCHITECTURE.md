@@ -1,6 +1,6 @@
 # Shared Life Architecture Freeze
 
-Status: `ARCHITECTURE FROZEN`; v0.1.10–v0.1.13 are `CLOSED / PASS`. The v0.1.11 contract is [Navigation + Aggregation Experience Specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md); the v0.1.14「回顾」design-only contract is [v0.1.14 回顾规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md).
+Status: `ARCHITECTURE FROZEN`; v0.1.10–v0.1.13 are `CLOSED / PASS`. The v0.1.11 contract is [Navigation + Aggregation Experience Specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md); the frozen v0.1.14「回顾」contract is [v0.1.14 回顾规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md). Slice 1 backend is locally verified; Production remains v0.1.13.
 
 This document freezes the long-term product model and navigation direction plus the reviewed v0.1.10 foundation scope. It does not change the accepted v0.1.9 Production capability. Later roadmap versions remain directional and need their own scope review.
 
@@ -134,7 +134,7 @@ The Home creation form visibly shows the target Space and allows changing it. It
 | v0.1.11 | Navigation + Aggregation Experience |
 | v0.1.12 | Module Hub + Space Management Navigation (CLOSED / PASS) |
 | v0.1.13 | Space Lifecycle & Membership Safety (CLOSED / PASS) |
-| v0.1.14 | 回顾 (DESIGN FROZEN; implementation not started) |
+| v0.1.14 | 回顾 (DESIGN FROZEN; Slice 1 backend local PASS; Production remains v0.1.13) |
 
 Shared Lists, Important Dates, Calendar Sources v1, Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules remain candidates without a fixed order. Priority and order may change based on real product use. Native has a decision gate only; no native implementation version is committed.
 

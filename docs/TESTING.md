@@ -1,8 +1,33 @@
 # Testing
 
-## v0.1.14 回顾 — Planned Acceptance (DESIGN FROZEN; NOT RUN)
+## v0.1.14 回顾 Slice 1 — Backend Foundation LOCAL PASS
 
-The canonical DB, direct-API, concurrency, lifecycle, frontend and user-run acceptance criteria are in [v0.1.14 回顾规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md). No v0.1.14 migration, implementation, automated test, authenticated session or Production acceptance has run. Before any real-login/two-account/mobile/PWA acceptance, run the project's frontend-target/backend-capability compatibility gate; Codex handles automated verification and the user performs authenticated/device acceptance.
+The canonical contract remains [v0.1.14 回顾规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md). The one-time forward patch was applied only to the local Supabase test database; Production remains v0.1.13.
+
+- `supabase test db --local`: **11 files / 505 pgTAP assertions PASS**. The new review file contributes **117 PASS** across schema/FKs/constraints, Personal and Shared eligibility, direct API ACL, RLS isolation, revisions/blank marking, date correction, module disable/re-enable, leave/remove/rejoin, transfer and Space deletion. Existing module and lifecycle regression files also pass.
+- `python3 supabase/tests/review-foundation-concurrency.py`: **3/3 PASS** for concurrent create assigning rounds 1/2, disable-first rejecting create, and create-first retaining history before disable. `python3 supabase/tests/space-lifecycle-concurrency.py`: **9/9 PASS**.
+- SQL review: the review foundation, module toggle and RPC ACL blocks in `schema.sql` and the forward patch match. The patch creates new objects and narrowly replaces `set_space_module_enabled`; it does not reset, truncate, backfill or delete existing business data. No frontend, build, authenticated browser or Production test was run for this backend-only slice.
+
+Next checkpoint: **Production READ-ONLY preflight**. At minimum verify the v0.1.13 lifecycle RPC and module toggle exist; `review_rounds`/`review_entries` and the four review RPCs are absent; `space_modules` already accepts the `review` key; the Shared owner/capacity triggers and expected role/default ACLs remain aligned. Record read-only counts/fingerprints of existing Space/member/Event/Task/module data before any separately authorized patch application, then compare postflight. A compact prerequisite query is:
+
+```sql
+select
+  to_regclass('public.review_rounds') is null as rounds_absent,
+  to_regclass('public.review_entries') is null as entries_absent,
+  to_regprocedure('public.leave_shared_space(uuid)') is not null as lifecycle_ready,
+  to_regprocedure('public.set_space_module_enabled(uuid,text,boolean)') is not null as module_toggle_ready,
+  to_regprocedure('public.create_review_round(uuid,date)') is null as create_absent,
+  to_regprocedure('public.correct_review_date(uuid,date)') is null as correction_absent,
+  to_regprocedure('public.save_my_review_entry(uuid,text,text,text,text)') is null as save_absent,
+  to_regprocedure('public.mark_my_review_filled(uuid)') is null as mark_absent,
+  exists (
+    select 1 from pg_constraint
+    where conrelid='public.space_modules'::regclass
+      and pg_get_constraintdef(oid) like '%review%'
+  ) as review_key_ready;
+```
+
+Before any later real-login/two-account/mobile/PWA acceptance, run the frontend-target/backend-capability compatibility gate. The user performs authenticated/device acceptance.
 
 ## v0.1.13 Final Regression + Closeout — CLOSED / PASS
 

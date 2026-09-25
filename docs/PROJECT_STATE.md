@@ -12,9 +12,11 @@ v0.1.14
 
 ## Current status
 
-v0.1.14「回顾」`DESIGN FROZEN / IMPLEMENTATION NOT STARTED`。产品、数据、participant/RLS、UI 和验收契约见 [v0.1.14 规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md)。当前 Production 能力仍为 v0.1.13 `CLOSED / PASS`；本次没有业务代码、SQL、部署或真实账号验收。
+v0.1.14「回顾」`SLICE 1 BACKEND LOCAL PASS / READY FOR PRODUCTION READ-ONLY PREFLIGHT`。产品与验收契约见 [v0.1.14 规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md)。Production 能力仍为 v0.1.13 `CLOSED / PASS`；回顾 patch 未在 Production 应用，前端和真实账号验收未开始。
 
 ## Latest completed
+
+v0.1.14 Slice 1 Backend Foundation：canonical schema 与单份 forward patch 已准备；两表、participant 双条件读、四个窄 RPC、Space 锁与 review 模块开关完成。本地 DB 11 文件/505 项、回顾双会话 3/3、既有 lifecycle 双会话 9/9 PASS。Production 未变。
 
 v0.1.14 回顾 Design Freeze：固定 Personal 单人 / Shared 创建时双人 participant snapshot、历史成员访问、Space 内编号、日期更正、四字段状态、模块开关和响应式 UI；形成五个 bounded implementation slices 与验收条件。仅文档变更，未实施功能。
 
@@ -81,15 +83,15 @@ Notes: Vercel is the configured Production provider. v0.1.13 Slice 2 Production 
 - v0.1.11 — Navigation + Aggregation Experience（CLOSED / PASS；Slice 1–4 CLOSED / PASS；Production installed PWA acceptance PASS；dedicated final iPhone Safari acceptance NOT RUN）
 - v0.1.12 — Module Hub + Space Management Navigation（CLOSED / PASS；Slice 1–4 CLOSED / PASS；Production / installed-PWA acceptance PASS）
 - v0.1.13 — Space Lifecycle & Membership Safety（CLOSED / PASS；Slice 1/2 CLOSED / PASS；Production deployment、用户报告的 authenticated/mobile/PWA acceptance PASS）
-- v0.1.14 — 回顾（DESIGN FROZEN；IMPLEMENTATION NOT STARTED；Production 仍为 v0.1.13）
+- v0.1.14 — 回顾（Slice 1 backend 本地 PASS；Production 仍为 v0.1.13；前端未开始）
 
 ## Last verified
 
-2026-09-25
+2026-09-26
 
 ## Next Action
 
-Next Action: v0.1.14 Backend Foundation / Slice 1 — 按 [回顾规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md)准备本地 additive migration 与 DB tests；Production rollout 和真实账号验收继续遵守项目兼容与授权 gate。
+Next Action: v0.1.14 Slice 1 Production READ-ONLY preflight — 按 [测试说明](./TESTING.md)核对 v0.1.13 结构、review 对象缺席、角色 ACL 与既有数据基线；另行审查和授权 forward patch / postflight。前端 Slice 2 待 backend rollout gate 完成后再进入。
 
 ## Blockers
 
@@ -97,7 +99,7 @@ Next Action: v0.1.14 Backend Foundation / Slice 1 — 按 [回顾规格](./v0.1.
 
 ## Important Context
 
-- v0.1.14 已完成 docs-only Design Freeze，尚未有回顾表、RPC、UI 或 Production backend 能力。访问旧轮必须同时是当前 Space 成员和该轮 participant；leave/remove 保留 entry，新成员看不到旧轮，原 participant 重入可恢复访问。Shared 必须双人才能新建；模块缺行或关闭时隐藏正常选择并拒绝写入。完整 contract 和验收条件只以 v0.1.14 规格为准。
+- v0.1.14 Design Freeze 保持 canonical；repo 与本地测试数据库已有 Slice 1 回顾表、RPC 和测试，Production 仍无回顾 backend/UI 能力。访问旧轮必须同时是当前 Space 成员和该轮 participant；leave/remove 保留 entry，新成员看不到旧轮，原 participant 重入可恢复访问。Shared 必须双人才能新建；模块缺行或关闭时隐藏正常选择并拒绝写入。完整 contract 和验收条件只以 v0.1.14 规格为准。
 - Git branch、latest commit、working tree 由 project-command-center 实时 Git 扫描读取；PROJECT_STATE.md 不作为这些字段的权威来源。
 - Production URL: `https://cross-platform-shared-calendar.vercel.app/`.
 - Supabase project status is currently Active, but Free Tier inactivity pause remains an operational risk.
@@ -161,4 +163,4 @@ Next Action: v0.1.14 Backend Foundation / Slice 1 — 按 [回顾规格](./v0.1.
 
 ## Handoff Prompt
 
-v0.1.13 Space Lifecycle & Membership Safety is `CLOSED / PASS` in Production. v0.1.14「回顾」has a frozen docs-only specification at `docs/v0.1.14_STRUCTURED_CHECKIN_SPEC.md`; implementation has not started. Next Action is the bounded local Slice 1 backend foundation under that contract, followed by review and the required environment/authorization gates. Do not claim v0.1.14 implementation, Production rollout or authenticated acceptance from this design milestone.
+v0.1.13 Space Lifecycle & Membership Safety is `CLOSED / PASS` in Production. v0.1.14「回顾」has a frozen specification at `docs/v0.1.14_STRUCTURED_CHECKIN_SPEC.md`; Slice 1 backend is implemented and locally verified in repo, with its forward patch unapplied to Production. Next Action is Production READ-ONLY preflight, then separately reviewed and authorized patch/postflight. Frontend and authenticated acceptance remain future slices.
