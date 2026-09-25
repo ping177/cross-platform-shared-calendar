@@ -1,6 +1,6 @@
 # Shared Life Architecture Freeze
 
-Status: `ARCHITECTURE FROZEN`; v0.1.10: `CLOSED / PASS`; v0.1.11: `IN PROGRESS / SLICE 1 CLOSED / SLICE 2 CLOSED / PASS`. The canonical v0.1.11 contract is [Navigation + Aggregation Experience Specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md).
+Status: `ARCHITECTURE FROZEN`; v0.1.10: `CLOSED / PASS`; v0.1.11: `IN PROGRESS / SLICES 1–3 CLOSED / PASS / SLICE 4 LOCAL IMPLEMENTATION + DESKTOP ACCEPTANCE COMPLETE / PRODUCTION IPHONE/PWA ACCEPTANCE PENDING`. The canonical v0.1.11 contract is [Navigation + Aggregation Experience Specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md).
 
 This document freezes the long-term product model and navigation direction plus the reviewed v0.1.10 foundation scope. It does not change the accepted v0.1.9 Production capability. Later roadmap versions remain directional and need their own scope review.
 
@@ -10,12 +10,12 @@ The long-term first-level navigation is `首页 / 日历 / 空间 / 我的`.
 
 | Destination | Responsibility |
 | --- | --- |
-| 首页 | Cross-module summary and future global create `+` |
+| 首页 | Cross-module summary; each supported section has a direct create `+` |
 | 日历 | Time views and aggregation of Calendar Sources |
 | 空间 | Personal and Shared Spaces with their content modules |
 | 我的 | Profile, account, notifications, devices, and settings |
 
-The complete four-destination navigation is scoped for v0.1.11. Slice 1's three destinations are deployed; Home remains reserved for Slice 3.
+The complete four-destination navigation is scoped for v0.1.11. Slice 1's three destinations are deployed; Slice 3 added Home aggregation, and Slice 4 adds direct Event and Task creation from their Home sections.
 
 ## Spaces and Canonical Ownership
 
@@ -76,11 +76,11 @@ Status: `CLOSED / READY FOR IMPLEMENTATION`. This section is the reviewed design
 
 Known characteristic / future consideration: `space_modules` is not in the Realtime publication. An already-open Shared member page may temporarily retain the previous module UI until refresh or re-entry. Database policy immediately rejects disabled Task writes. Consider module-state Realtime / immediate cross-client UI refresh only if real usage demonstrates a need; this does not reopen v0.1.10.
 
-Deferred to v0.1.11 or later: final `首页 / 日历 / 空间 / 我的` navigation, cross-Space aggregation, global `+`, Calendar multi-Space overlay, Lists / Important Dates / Review implementation, External Calendar Sources, UI redesign, Native App, and Shared Space three-plus-member support. Memo content implementation also remains deferred.
+At the v0.1.10 scope freeze, later work included final `首页 / 日历 / 空间 / 我的` navigation, cross-Space aggregation, Calendar multi-Space overlay, Lists / Important Dates / Review implementation, External Calendar Sources, UI redesign, Native App, and Shared Space three-plus-member support. Memo content implementation also remained deferred.
 
 ## v0.1.11 Design Freeze — 2026-09-24
 
-The accepted four-slice scope, state contract, active-view Realtime lifecycle, canonical item navigation, global-create privacy rules and deferred list are frozen in [v0.1.11 Navigation + Aggregation Experience Specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md). At this design milestone, v0.1.11 business implementation and deployment had not started. Slice 1 later shipped without a temporary Home driven by `selectedSpaceId`; user-visible Home begins only with the all-Spaces aggregation of Slice 3. No second Shared Space is required solely for acceptance.
+The accepted four-slice scope, state contract, active-view Realtime lifecycle, canonical item navigation, Home create-target privacy rules and deferred list are frozen in [v0.1.11 Navigation + Aggregation Experience Specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md). At this design milestone, v0.1.11 business implementation and deployment had not started. Slice 1 later shipped without a temporary Home driven by `selectedSpaceId`; user-visible Home begins only with the all-Spaces aggregation of Slice 3. No second Shared Space is required solely for acceptance.
 
 ## Calendar Sources
 
@@ -93,19 +93,17 @@ The long-term Calendar view aggregates sources, not just one Space's Events.
 
 Global and external Calendar Sources do not require a corresponding Space and may serve all Spaces. A user can overlay multiple Space Calendars or filter down to one Space. External integrations are future work, not an implicit data migration into Space ownership.
 
-## Global Create and Privacy Guardrail
+## Home Quick Create and Privacy Guardrail
 
-The future global `+` may create 日程, 待办, 清单, 重要日期, or 备忘. Wishlist is a List type, not a first-level content type.
+Slice 4 Home has a `+` beside “近期日程” and another beside “需要处理的任务”. Each opens its matching creation form directly; there is no Home title `+` or Event/Task type chooser. Other module shortcuts can be added alongside their sections when those modules are implemented. Wishlist is a List type, not a first-level content type.
 
-The target Space default follows the user's current context:
+The target Space follows the current creation context:
 
 1. Inside a specific Space: that Space.
 2. In Calendar with exactly one Space selected: that Space.
-3. On Home, in All Spaces, or without clear Space context: Personal Space.
+3. From a Home section shortcut: Personal Space by default, independent of the selected Calendar Space.
 
-The creation form must visibly show the target Space and allow changing it. Its primary action reads `保存到「Space Name」`. After that action, a second confirmation explicitly names the target Space; the write occurs only after confirmation. A lightweight success confirmation may follow. These steps guard against accidentally sharing private content into the wrong Space.
-
-Global create is deferred beyond v0.1.10. The target rule does not change v0.1.10 Space-local creation UI.
+The Home creation form visibly shows the target Space and allows changing it. Its primary action names the target Space. A second confirmation explicitly names the target before the write. These steps guard against accidentally sharing private content into the wrong Space. Existing Calendar single-Space Event creation and Space-local Task creation retain their direct-save paths.
 
 ## Content Semantics
 

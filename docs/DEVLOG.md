@@ -1,10 +1,29 @@
 # Development Log
 
+# 2026-09-25 - v0.1.11 Slice 4 Desktop Authenticated Acceptance
+
+- 用户报告已在本地新前端完成真实账号 Desktop 验收并通过：首页两个区块入口直达正确创建表单；日程与任务默认 Personal，主动切 Shared 后目标显示与实际保存归属正确，首页和对应 Space 内数据立即可见。
+- 用户还验证了关闭 Personal Tasks 时没有 Shared fallback、须主动选启用目标；取消二次确认后草稿保留且无写入；确认阶段关闭重开会清除旧状态；快速连续确认只生成一条记录；日历单 Space 日程和空间任务的本地直达创建均通过回归。
+- Slice 4 当前状态为 `LOCAL IMPLEMENTATION + DESKTOP AUTH ACCEPTANCE COMPLETE / PRODUCTION IPHONE/PWA ACCEPTANCE PENDING`。iPhone Safari 与已安装 PWA 最终验收必须等正常提交推送并完成 Vercel Production 部署后执行。Codex 未操作真实登录、手机或 PWA。没有改后端。
+
+# 2026-09-25 - v0.1.11 Slice 4 首页区块快捷创建 UX 调整
+
+- 根据人工验收开始时的最终决定，移除首页标题创建按钮及旧类型选择面板；“近期日程 +”和“需要处理的任务 +”分别直接进入对应创建流程。个人空间缺失时明确选择保存空间；任务无已启用目标或模块读取失败时在对应区块显示原因和重试，不打开不可保存的任务表单。
+- 保留现有目标空间安全、表单内第二次确认、请求竞态保护、同步防重复提交、草稿保留与主动刷新；日历单空间日程和空间任务本地入口未改变。旧入口组件、状态、处理函数和测试断言已清理。
+- 聚焦测试 10/10、完整适用 Node 测试集 246/246、`npm run build`、`git diff --check` 和本地 5175 无登录态 HTTP 200 均通过；最终入口的真实账号与设备验收仍待用户完成，状态为 `LOCAL IMPLEMENTATION COMPLETE / MANUAL AUTH ACCEPTANCE PENDING`。未改后端、依赖或外部项目文件；未 commit、push、deploy。
+
+# 2026-09-25 - v0.1.11 Slice 4 首页快捷创建本地实现与验收前检查
+
+- 第一版本地入口随后由上方同日 UX 调整替代；日历单空间日程和空间任务本地创建保持原直接保存路径。首页创建独立默认 Personal Space，绝不取 `selectedSpaceId` 或静默改投 Shared。
+- 复用现有 EventSheet/TaskSheet；新增目标选择与同一 Sheet 内的第二次目标确认。切目标清除旧日程 audience / 任务 assignee，保留普通草稿；保存前重读当前 Auth 用户、Space 成员、目标成员以及任务模块，未知状态阻止写入。同步提交锁防重复确认，成功后主动刷新首页。首页后台成员刷新保持打开的创建草稿。
+- 聚焦测试通过；完整适用 Node 测试集 245/245 PASS，`npm run build`、`git diff --check` 和本地 5175 无登录态 HTTP 200 通过。只读前后端环境核对确认配置目标与已关联项目一致，现有表、行级权限、插入规则、日程归属触发器、任务分配外键及模块读取权限齐备。没有读取或打印密钥值、操作真实登录态或修改 Production 业务数据。
+- Slice 4 为 `LOCAL IMPLEMENTATION COMPLETE / MANUAL AUTH ACCEPTANCE PENDING`；用户在桌面、320px、iPhone Safari、installed PWA 和 A/B 会话的实际验收尚未运行。Production 继续包含 Slices 1–3。未改 SQL/RPC/Edge Function、依赖或其他项目文件；未 commit、push、deploy，也未关闭 v0.1.11。
+
 # 2026-09-25 - v0.1.11 Slice 3 Production Acceptance + Final Governance Closeout
 
 - User confirmed Vercel Production includes Slice 3 and reported final manual acceptance `PASS` on desktop, Vercel Production, iPhone Safari, and installed PWA. The accepted scope includes Home default and all four tabs; Personal/Shared Event aggregation, labels, date window, ordering, canonical Event Sheet, editing and recurrence; eligible cross-Space Task aggregation, ordering/exclusions, canonical Task Sheet, edit/complete; module disable/re-enable; Home leave/return; A/B Event and Task Realtime; narrow viewport; and the Space → Tasks navigation fix.
 - Slice 3 Home Aggregation is `CLOSED / PASS`. Independent Event/Task section error/retry remains `NOT RUN / DIFFICULT TO SIMULATE SAFELY`; second Shared Space is `N/A / NOT RUN`. Neither is a blocker or a PASS claim. Overall v0.1.11 remains `IN PROGRESS`; Slices 1–3 are `CLOSED / PASS`, and Slice 4 Global Create Safety is `NOT STARTED`.
-- The next phase is a repo/design review and planning for the frozen Slice 4 `Global + → 日程 / 任务` flow. This governance closeout changes documentation only; no business code, backend/schema/RPC, dependency, or authenticated browser operation changed.
+- At that time, the next phase was Slice 4 repo/design review and planning. Its entry design was later refined to Home section actions. This governance closeout changed documentation only; no business code, backend/schema/RPC, dependency, or authenticated browser operation changed.
 
 # 2026-09-25 - v0.1.11 Slice 3 Local Closeout / Pre-Commit Review
 

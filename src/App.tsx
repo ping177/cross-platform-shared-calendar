@@ -15,6 +15,7 @@ import {
   X,
 } from 'lucide-react';
 import { MemberSheet } from './components/MemberSheet';
+import { CreateTargetSelector, type CreateTargetControl } from './components/GlobalCreateControls';
 import { MyPage } from './components/MyPage';
 import { RecurrenceControls } from './components/RecurrenceControls';
 import { TasksArea, type TasksScreen } from './components/TasksArea';
@@ -22,6 +23,7 @@ import { HomePage } from './components/HomePage';
 import { calendarVisibleRange } from './lib/calendar-display';
 import { calendarSpaces, readAggregateCalendar, spaceLabel, validCalendarFilter, type CalendarFilter } from './lib/aggregate-calendar';
 import { createCalendarReadLoop } from './lib/calendar-refresh';
+import { listCurrentSpaces } from './lib/current-spaces';
 import { draftFromEditTarget, type EventDraft } from './lib/event-edit-draft';
 import {
   buildEventUpdatePayload,
@@ -34,6 +36,7 @@ import {
   type OccurrenceScope,
 } from './lib/event-edit-mutation';
 import { eventEditTargetForEvent, eventEditTargetForOccurrence } from './lib/event-edit-target';
+import { canConfirmCreate, canUseCreateTarget, createSubmitLock, resetEventAudienceForTarget } from './lib/global-create';
 import { eventEditUiState, occurrenceActionCopy, type OccurrenceAction } from './lib/event-edit-ui';
 import { memberDisplayNameForUser } from './lib/member';
 import { defaultRecurrenceDraft, expandRecurringEvents, recurrenceDraftFromRule, recurrenceRuleFromDraft, recurrenceSummary, type RecurrenceDraft } from './lib/recurrence';
@@ -379,47 +382,6 @@ function AuthPage() {
   );
 }
 
-const spaceBatchSize = 500;
-
-async function listCurrentSpaces(userId: string): Promise<CurrentSpace[]> {
-  const memberships: Array<Pick<SpaceMember, 'space_id' | 'role'>> = [];
-  for (let start = 0; ;) {
-    const { data, count, error } = await supabase.from('space_members')
-      .select('space_id,role', { count: 'exact' })
-      .eq('user_id', userId)
-      .order('space_id')
-      .range(start, start + spaceBatchSize - 1);
-    if (error) throw error;
-    if (count === null) throw new Error('无法确认空间成员列表是否完整。');
-    const batch = (data ?? []) as Array<Pick<SpaceMember, 'space_id' | 'role'>>;
-    memberships.push(...batch);
-    if (memberships.length >= count) break;
-    if (batch.length === 0) throw new Error('空间成员列表读取不完整，请重试。');
-    start += batch.length;
-  }
-
-  const roles = new Map(memberships.map((member) => [member.space_id, member.role]));
-  const spaces: CurrentSpace[] = [];
-  for (let start = 0; ;) {
-    const { data, count, error } = await supabase.from('spaces')
-      .select('*', { count: 'exact' })
-      .order('created_at')
-      .order('id')
-      .range(start, start + spaceBatchSize - 1);
-    if (error) throw error;
-    if (count === null) throw new Error('无法确认空间列表是否完整。');
-    const batch = (data ?? []) as Space[];
-    for (const space of batch) {
-      const membershipRole = roles.get(space.id);
-      if (membershipRole) spaces.push({ ...space, membershipRole });
-    }
-    if (start + batch.length >= count) break;
-    if (batch.length === 0) throw new Error('空间列表读取不完整，请重试。');
-    start += batch.length;
-  }
-  return spaces;
-}
-
 async function readSpaceMembers(spaceId: string): Promise<SpaceMember[]> {
   const { data, error } = await supabase.from('space_members')
     .select('space_id,user_id,role,joined_at,profiles(display_name)')
@@ -536,9 +498,10 @@ function CalendarApp({ session }: { session: Session }) {
     }
   }
 
-  async function refreshSpaces() {
+  async function refreshSpaces(preserveHome = true) {
     const currentRequest = requestGuard.current.begin();
-    setSpaceListStatus('loading');
+    const keepHomeVisible = preserveHome && navigation.tab === 'home' && spaceListStatus === 'ready';
+    if (!keepHomeVisible) setSpaceListStatus('loading');
     setError('');
     try {
       const listed = await listCurrentSpaces(userId);
@@ -565,7 +528,7 @@ function CalendarApp({ session }: { session: Session }) {
     } catch (refreshError) {
       if (requestGuard.current.isCurrent(currentRequest)) {
         setError(getErrorMessage(refreshError));
-        setSpaceListStatus('error');
+        if (!keepHomeVisible) setSpaceListStatus('error');
       }
     }
   }
@@ -574,7 +537,7 @@ function CalendarApp({ session }: { session: Session }) {
     if (spaceActionBusy) return;
     requestGuard.current.invalidate();
     setNavigation((current) => selectTab(current, tab));
-    if (tab === 'spaces' || tab === 'calendar' || tab === 'home') void refreshSpaces();
+    if (tab === 'spaces' || tab === 'calendar' || tab === 'home') void refreshSpaces(false);
   }
 
   async function sharedSpaceReady(spaceId: string) {
@@ -630,7 +593,7 @@ function CalendarApp({ session }: { session: Session }) {
       )}
       {navigation.tab === 'calendar' && spaceListStatus !== 'ready' && <SpaceListPending status={spaceListStatus} onRetry={() => void refreshSpaces()} />}
       {navigation.tab === 'home' && spaceListStatus !== 'ready' && <SpaceListPending status={spaceListStatus} onRetry={() => void refreshSpaces()} />}
-      {navigation.tab === 'home' && spaceListStatus === 'ready' && <HomePage key={spaces.map((space) => space.id).join(',')} spaces={spaces} userId={userId} EventSheetComponent={EventSheet} onMembershipRefresh={refreshSpaces} />}
+      {navigation.tab === 'home' && spaceListStatus === 'ready' && <HomePage spaces={spaces} userId={userId} EventSheetComponent={EventSheet} onMembershipRefresh={refreshSpaces} />}
       {((navigation.tab === 'calendar' && spaceListStatus === 'ready') || (navigation.tab === 'spaces' && navigation.spaceScreen !== 'list')) && (
         <CurrentSpaceApp
           key={navigation.tab === 'calendar' ? `calendar:${validFilter === 'all' ? 'all' : validFilter.spaceId}:${visibleCalendarSpaces.map((item) => item.id).join(',')}` : `spaces:${selectedSpaceId}`}
@@ -1442,7 +1405,8 @@ export type EventSheetProps = {
   partnerId: string | null;
   onClose: () => void;
   onSaved: () => void;
-  validateCreateTarget: () => Promise<boolean>;
+  validateCreateTarget: (ownerUserId?: string | null) => Promise<boolean>;
+  createTarget?: CreateTargetControl;
   showSourceSpace?: boolean;
   sourceSpaceLabel?: string;
 };
@@ -1456,6 +1420,7 @@ export function EventSheet({
   onClose,
   onSaved,
   validateCreateTarget,
+  createTarget,
   showSourceSpace = false,
   sourceSpaceLabel,
 }: EventSheetProps) {
@@ -1478,10 +1443,24 @@ export function EventSheet({
   const [endManuallyEdited, setEndManuallyEdited] = useState(() => Boolean(event));
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [confirmingCreateTargetId, setConfirmingCreateTargetId] = useState<string | null>(null);
+  const submitLock = useRef(createSubmitLock());
+  const previousCreateSpaceId = useRef(space.id);
+  const createHeading = useRef<HTMLHeadingElement>(null);
   const canChoosePartner = Boolean(partnerId);
   const canManage = !event || canManageEvent(event, userId);
   const editUi = eventEditUiState(target);
   const [pendingOccurrenceAction, setPendingOccurrenceAction] = useState<OccurrenceAction | null>(null);
+  const createReady = !createTarget || canUseCreateTarget(createTarget.state, createTarget.selectedId, space.id, members, userId);
+
+  useEffect(() => {
+    if (!createTarget || previousCreateSpaceId.current === space.id) return;
+    previousCreateSpaceId.current = space.id;
+    setDraft(resetEventAudienceForTarget);
+  }, [createTarget, space.id]);
+
+  useEffect(() => { setConfirmingCreateTargetId(null); }, [createTarget?.selectedId, createTarget?.state, userId]);
+  useEffect(() => { if (createTarget) createHeading.current?.focus(); }, []);
 
   useEffect(() => {
     const nextDraft = target ? draftFromEditTarget(target, draftFromEvent(target.event, userId), toDateInputValue) : emptyDraft();
@@ -1564,8 +1543,8 @@ export function EventSheet({
     }
   }
 
-  async function save(formEvent: React.FormEvent) {
-    formEvent.preventDefault();
+  async function save(formEvent?: React.FormEvent, confirmed = false) {
+    formEvent?.preventDefault();
 
     if (event && !canManage) {
       return;
@@ -1594,64 +1573,84 @@ export function EventSheet({
 
     const saveDraft = draft;
 
+    if (!event && createTarget) {
+      if (!createReady) { setError('请先确认保存空间及成员。'); return; }
+      if (!confirmed) { setConfirmingCreateTargetId(space.id); return; }
+      if (!canConfirmCreate(confirmingCreateTargetId, createTarget.selectedId, space.id) || !submitLock.current.acquire()) return;
+    }
+
     setBusy(true);
+    let createdSuccessfully = false;
 
-    const shouldClearDefaultAllDayEnd = !event && saveDraft.allDay && !endManuallyEdited;
-    const contentPayload = {
-      title: saveDraft.title.trim(),
-      description: saveDraft.description.trim() || null,
-      starts_at: fromDateInputValue(saveDraft.startsAt),
-      ends_at: shouldClearDefaultAllDayEnd ? null : saveDraft.endsAt ? fromDateInputValue(saveDraft.endsAt) : null,
-      all_day: saveDraft.allDay,
-      recurrence_rule: recurrenceResult.rule,
-      reminder_kind: saveDraft.reminderKind,
-      time_zone: timeZoneResult.timeZone,
-    };
+    try {
+      const shouldClearDefaultAllDayEnd = !event && saveDraft.allDay && !endManuallyEdited;
+      const contentPayload = {
+        title: saveDraft.title.trim(),
+        description: saveDraft.description.trim() || null,
+        starts_at: fromDateInputValue(saveDraft.startsAt),
+        ends_at: shouldClearDefaultAllDayEnd ? null : saveDraft.endsAt ? fromDateInputValue(saveDraft.endsAt) : null,
+        all_day: saveDraft.allDay,
+        recurrence_rule: recurrenceResult.rule,
+        reminder_kind: saveDraft.reminderKind,
+        time_zone: timeZoneResult.timeZone,
+      };
 
-    let result;
+      let result;
 
-    if (event) {
-      const updatePayload = buildEventUpdatePayload(
-        event,
-        initialDraft,
-        saveDraft,
-        recurrenceResult.rule,
-        timeZoneResult.timeZone,
-        fromDateInputValue,
-      );
-      if (Object.keys(updatePayload).length === 0) {
-        completeSuccessfulMutation();
-        return;
+      if (event) {
+        const updatePayload = buildEventUpdatePayload(
+          event,
+          initialDraft,
+          saveDraft,
+          recurrenceResult.rule,
+          timeZoneResult.timeZone,
+          fromDateInputValue,
+        );
+        if (Object.keys(updatePayload).length === 0) {
+          completeSuccessfulMutation();
+          return;
+        }
+        result = await supabase.from('events').update(updatePayload).eq('id', event.id);
+      } else {
+        try {
+          const identity = newEventIdentity(space.kind, saveDraft.audience, userId, partnerId);
+          if (!await validateCreateTarget(identity.owner_user_id)) throw new Error('此空间已不在你的成员列表中，请重新选择。');
+        } catch (targetError) {
+          setBusy(false);
+          const message = getErrorMessage(targetError);
+          setError(createTarget && !/[\u3400-\u9fff]/.test(message) ? '无法确认保存空间及成员，请重试。' : message);
+          setConfirmingCreateTargetId(null);
+          return;
+        }
+        if (space.kind === 'shared' && draft.audience === 'partner' && !partnerId) {
+          setBusy(false);
+          setError('另一位成员加入空间后，才能创建其个人日程。');
+          return;
+        }
+
+        result = await supabase.from('events').insert({
+          ...contentPayload,
+          space_id: space.id,
+          ...newEventIdentity(space.kind, saveDraft.audience, userId, partnerId),
+        });
       }
-      result = await supabase.from('events').update(updatePayload).eq('id', event.id);
-    } else {
-      try {
-        if (!await validateCreateTarget()) throw new Error('此空间已不在你的成员列表中，请重新选择。');
-      } catch (targetError) {
+
+      if (result.error) {
         setBusy(false);
-        setError(getErrorMessage(targetError));
-        return;
-      }
-      if (space.kind === 'shared' && draft.audience === 'partner' && !partnerId) {
-        setBusy(false);
-        setError('另一位成员加入空间后，才能创建其个人日程。');
+        setError(createTarget ? '保存失败，空间或成员权限可能已变化。请确认目标空间后重试。' : result.error.message);
+        setConfirmingCreateTargetId(null);
         return;
       }
 
-      result = await supabase.from('events').insert({
-        ...contentPayload,
-        space_id: space.id,
-        ...newEventIdentity(space.kind, draft.audience, userId, partnerId),
-      });
-    }
-
-    if (result.error) {
+      createdSuccessfully = !event && Boolean(createTarget);
+      completeSuccessfulMutation();
+    } catch (saveError) {
       setBusy(false);
-      setError(result.error.message);
-      return;
+      setConfirmingCreateTargetId(null);
+      setError(createTarget ? '保存失败，请确认目标空间及成员后重试。' : getErrorMessage(saveError));
+    } finally {
+      if (createTarget && confirmed && !createdSuccessfully) submitLock.current.release();
     }
-
-    completeSuccessfulMutation();
   }
 
   async function deleteEvent() {
@@ -1681,7 +1680,7 @@ export function EventSheet({
     <div className="fixed inset-0 z-20 flex items-end bg-ink/35 md:items-center md:px-4 md:py-6">
       <div className="mx-auto max-h-[92dvh] w-full max-w-3xl overflow-y-auto overscroll-contain rounded-t-2xl bg-white p-5 shadow-soft safe-bottom md:max-h-[calc(100dvh-3rem)] md:rounded-lg">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold">{event ? canManage ? editUi.isRecurringOccurrenceEdit ? '编辑此重复事件' : '编辑日程' : '日程详情' : '新建日程'}</h2>
+          <h2 ref={createHeading} tabIndex={createTarget ? -1 : undefined} className="text-xl font-bold">{event ? canManage ? editUi.isRecurringOccurrenceEdit ? '编辑此重复事件' : '编辑日程' : '日程详情' : '新建日程'}</h2>
           <button className="grid h-10 w-10 place-items-center rounded-lg bg-mist disabled:opacity-60" type="button" onClick={onClose} disabled={busy} aria-label="关闭">
             <X size={20} />
           </button>
@@ -1689,7 +1688,9 @@ export function EventSheet({
 
         {error && <div className="mt-4"><Notice tone="error" message={error} /></div>}
         {event && showSourceSpace && <p className="mt-3 text-sm font-semibold text-teal">所属空间：{sourceSpaceLabel ?? spaceLabel(space)}</p>}
-        {!event && <p className="mt-3 text-sm font-semibold text-teal">保存到：{space.name}</p>}
+        {!event && (createTarget
+          ? <div className="mt-4"><CreateTargetSelector control={{ ...createTarget, onSelect: (id) => { setDraft(resetEventAudienceForTarget); setConfirmingCreateTargetId(null); createTarget.onSelect(id); } }} kind="event" disabled={busy} /></div>
+          : <p className="mt-3 text-sm font-semibold text-teal">保存到：{space.name}</p>)}
 
         {event && !canManage ? (
           <div className="mt-5 space-y-4">
@@ -1702,6 +1703,15 @@ export function EventSheet({
             <ReadOnlyField label="重复" value={recurrenceSummary(event.recurrence_rule)} />
             <ReadOnlyField label="描述" value={event.description || '无'} />
           </div>
+        ) : confirmingCreateTargetId && !event ? (
+          <div className="mt-5 space-y-4">
+            <h3 className="text-lg font-bold">确认保存？</h3>
+            <p className="text-sm text-ink/70">将保存到：<strong className="block break-words text-base text-ink">{space.name}</strong></p>
+            <div className="flex gap-3">
+              <button className="h-12 flex-1 rounded-lg bg-mist font-semibold" type="button" disabled={busy} onClick={() => setConfirmingCreateTargetId(null)}>取消</button>
+              <button className="h-12 flex-1 rounded-lg bg-teal font-semibold text-white disabled:opacity-50" type="button" disabled={busy || !createReady} onClick={() => void save(undefined, true)}>{busy ? '保存中' : '确认保存'}</button>
+            </div>
+          </div>
         ) : (
           <form className="mt-5 space-y-4" onSubmit={save}>
           {editUi.isRecurringOccurrenceEdit ? (
@@ -1713,7 +1723,7 @@ export function EventSheet({
             <input className="w-full rounded-lg border border-ink/15 px-4 py-3 outline-none focus:border-teal" required value={draft.title} onChange={(inputEvent) => setDraft({ ...draft, title: inputEvent.target.value })} />
           </Field>
 
-          {space.kind === 'shared' && <Field label="归属">
+          {space.kind === 'shared' && (!createTarget || createReady) && <Field label="归属">
             <div className="grid grid-cols-3 gap-2">
               {(['mine', 'partner', 'shared'] as EventAudience[]).map((audience) => (
                 <button
@@ -1782,8 +1792,8 @@ export function EventSheet({
                 {editUi.isRecurringOccurrenceEdit ? '删除此事件' : <Trash2 size={20} />}
               </button>
             )}
-            <button className="h-12 flex-1 rounded-lg bg-teal font-semibold text-white disabled:opacity-60" type="submit" disabled={busy}>
-              {busy ? '保存中' : '保存'}
+            <button className="h-12 flex-1 rounded-lg bg-teal font-semibold text-white disabled:opacity-60" type="submit" disabled={busy || !createReady}>
+              {busy ? '保存中' : createTarget && !event ? `保存到「${createTarget.spaces.find((item) => item.id === createTarget.selectedId)?.name ?? space.name}」` : '保存'}
             </button>
           </div>
           </form>

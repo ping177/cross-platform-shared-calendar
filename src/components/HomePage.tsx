@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState, type ComponentType, type ReactNode } from 'react';
-import { Circle } from 'lucide-react';
+import { Circle, Plus } from 'lucide-react';
 import type { EventSheetProps } from '../App';
+import { type CreateKind, type CreateTargetControl, type CreateTargetState } from './GlobalCreateControls';
 import { createCalendarReadLoop } from '../lib/calendar-refresh';
+import { listCurrentSpaces } from '../lib/current-spaces';
 import { formatDay, formatTime } from '../lib/date';
 import { eventEditTargetForEvent, eventEditTargetForOccurrence } from '../lib/event-edit-target';
 import { homeEventRange, readHomeEvents, readHomeModules, readHomeTasks, type HomeEventQuery, type HomeModuleRow } from '../lib/home-aggregation';
 import { memberDisplayNameForUser } from '../lib/member';
+import { availableTaskTargets, homeCreateEntry, targetMembersValid } from '../lib/global-create';
 import { supabase } from '../lib/supabase';
 import { canChangeTaskStatus, formatTaskDueDate, taskAssignmentLabel, taskErrorMessage, taskRealtimeConfig } from '../lib/task';
 import type { CalendarEvent, CalendarOccurrence, CalendarOccurrenceRange, CurrentSpace, EventOccurrenceException, SpaceMember, Task } from '../types';
@@ -68,12 +71,16 @@ async function taskData(spaces: CurrentSpace[], userId: string, today: Date) {
   });
 }
 
-export function HomeSection({ title, status, error, items, expanded, empty, onToggle, onRetry }: {
+export function HomeSection({ title, status, error, items, expanded, empty, onToggle, onRetry, createAction, createFeedback }: {
   title: string; status: SectionState<unknown>['status']; error: string; items: ReactNode[]; expanded: boolean; empty: string;
-  onToggle: () => void; onRetry: () => void;
+  onToggle: () => void; onRetry: () => void; createAction?: ReactNode; createFeedback?: ReactNode;
 }) {
   return <section className="space-y-3" aria-label={title}>
-    <h2 className="text-lg font-bold">{title}</h2>
+    <div className="flex items-center justify-between gap-3">
+      <h2 className="min-w-0 break-words text-lg font-bold">{title}</h2>
+      {createAction}
+    </div>
+    {createFeedback}
     {status === 'loading' && <p className="rounded-lg bg-white px-4 py-5 text-sm text-ink/60 shadow-sm" role="status">正在读取…</p>}
     {status === 'error' && <div className="rounded-lg bg-white px-4 py-5 shadow-sm" role="alert"><p className="text-sm text-coral">{error || `${title}加载失败，请重试。`}</p><button className="mt-2 min-h-11 font-semibold text-teal" type="button" onClick={onRetry}>重试</button></div>}
     {status === 'success' && (items.length ? <>
@@ -98,18 +105,159 @@ export function HomePage({ spaces, userId, EventSheetComponent, onMembershipRefr
   const [eventRevision, setEventRevision] = useState(0);
   const [taskRevision, setTaskRevision] = useState(0);
   const [dayRevision, setDayRevision] = useState(0);
+  const [openingCreateKind, setOpeningCreateKind] = useState<CreateKind | null>(null);
+  const [createEntryError, setCreateEntryError] = useState<{ kind: CreateKind; message: string } | null>(null);
+  const [choosingSpaceKind, setChoosingSpaceKind] = useState<CreateKind | null>(null);
+  const [createSpaces, setCreateSpaces] = useState<CurrentSpace[]>([]);
+  const [enabledTaskIds, setEnabledTaskIds] = useState<string[]>([]);
+  const [createKind, setCreateKind] = useState<CreateKind | null>(null);
+  const [createTargetId, setCreateTargetId] = useState('');
+  const [createSpace, setCreateSpace] = useState<CurrentSpace | null>(null);
+  const [createMembers, setCreateMembers] = useState<SpaceMember[]>([]);
+  const [createTargetState, setCreateTargetState] = useState<CreateTargetState>('loading');
+  const [createTargetError, setCreateTargetError] = useState('');
   const eventRefresh = useRef<() => void>(() => undefined);
   const taskRefresh = useRef<() => void>(() => undefined);
   const openingGeneration = useRef(0);
   const membershipRefresh = useRef(onMembershipRefresh);
+  const createGeneration = useRef(0);
+  const targetIdRef = useRef('');
+  const eventCreateButton = useRef<HTMLButtonElement>(null);
+  const taskCreateButton = useRef<HTMLButtonElement>(null);
   membershipRefresh.current = onMembershipRefresh;
   const spaceIds = spaces.map((space) => space.id).join(',');
 
   useEffect(() => {
     const focus = () => { void membershipRefresh.current(); };
     window.addEventListener('focus', focus);
-    return () => { window.removeEventListener('focus', focus); openingGeneration.current += 1; };
+    return () => { window.removeEventListener('focus', focus); openingGeneration.current += 1; createGeneration.current += 1; };
   }, []);
+
+  async function currentUser() {
+    const { data, error } = await supabase.auth.getUser();
+    if (error || data.user?.id !== userId) throw new Error('登录状态已变化，请重新打开创建表单。');
+  }
+
+  async function beginCreate(kind: CreateKind) {
+    const generation = ++createGeneration.current;
+    setOpeningCreateKind(kind);
+    setCreateEntryError(null);
+    setChoosingSpaceKind(null);
+    setCreateSpaces([]);
+    setEnabledTaskIds([]);
+    try {
+      await currentUser();
+      const listed = await listCurrentSpaces(userId);
+      const enabled = kind === 'task' ? await moduleSpaces(listed).catch(() => { throw new Error('任务模块状态无法确认，请重试。'); }) : [];
+      await currentUser();
+      if (generation !== createGeneration.current) return;
+      setCreateSpaces(listed);
+      setEnabledTaskIds(enabled.map((space) => space.id));
+      const entry = homeCreateEntry(kind, listed, userId, enabled.map((space) => space.id));
+      if (entry.state === 'open') startCreate(kind, entry.targetId, listed);
+      else if (entry.state === 'choose') setChoosingSpaceKind(kind);
+      else setCreateEntryError({ kind, message: kind === 'task' ? '没有已启用任务的空间，暂时无法创建任务。' : '没有可用空间，暂时无法创建日程。' });
+    } catch (error) {
+      if (generation === createGeneration.current) {
+        const message = errorText(error, '无法确认可用空间，请重试。');
+        setCreateEntryError({ kind, message: /[\u3400-\u9fff]/.test(message) ? message : '无法确认可用空间，请重试。' });
+      }
+    } finally {
+      if (generation === createGeneration.current) setOpeningCreateKind(null);
+    }
+  }
+
+  async function loadTarget(kind: CreateKind, targetId: string) {
+    const generation = ++createGeneration.current;
+    setCreateTargetState('loading');
+    setCreateTargetError('');
+    try {
+      await currentUser();
+      const listed = await listCurrentSpaces(userId);
+      const target = listed.find((space) => space.id === targetId);
+      if (!target) throw new Error('此空间已不在你的成员列表中，请重新选择。');
+      const enabled = kind === 'task' ? await moduleSpaces(listed).catch(() => { throw new Error('任务模块状态无法确认，请重试。'); }) : [];
+      const members = await spaceMembers(targetId);
+      if (!targetMembersValid(members, targetId, userId)) throw new Error('空间成员资料已变化，请重试。');
+      await currentUser();
+      if (generation !== createGeneration.current || targetIdRef.current !== targetId) return;
+      setCreateSpaces(listed);
+      if (kind === 'task') setEnabledTaskIds(enabled.map((space) => space.id));
+      setCreateSpace(target);
+      setCreateMembers(members);
+      setCreateTargetState(kind === 'task' && !enabled.some((space) => space.id === targetId) ? 'blocked' : 'ready');
+    } catch (error) {
+      if (generation === createGeneration.current) {
+        setCreateTargetState('error');
+        const message = errorText(error, '无法确认目标空间，请重试。');
+        setCreateTargetError(/[\u3400-\u9fff]/.test(message) ? message : '无法确认目标空间，请重试。');
+      }
+    }
+  }
+
+  function startCreate(kind: CreateKind, targetId: string, listed: CurrentSpace[]) {
+    setOpeningCreateKind(null);
+    setChoosingSpaceKind(null);
+    targetIdRef.current = targetId;
+    setCreateKind(kind);
+    setCreateTargetId(targetId);
+    setCreateSpace(listed.find((space) => space.id === targetId) ?? null);
+    setCreateMembers([]);
+    void loadTarget(kind, targetId);
+  }
+
+  function selectCreateTarget(targetId: string) {
+    if (!createKind || !createSpaces.some((space) => space.id === targetId)) return;
+    targetIdRef.current = targetId;
+    setCreateTargetId(targetId);
+    void loadTarget(createKind, targetId);
+  }
+
+  function closeCreate() {
+    const closingKind = createKind;
+    createGeneration.current += 1;
+    targetIdRef.current = '';
+    setCreateKind(null);
+    setCreateTargetId('');
+    setCreateSpace(null);
+    setCreateMembers([]);
+    (closingKind === 'event' ? eventCreateButton : taskCreateButton).current?.focus();
+  }
+
+  function sectionCreateFeedback(kind: CreateKind) {
+    const choices = kind === 'task' ? availableTaskTargets(createSpaces, enabledTaskIds) : createSpaces;
+    return <>
+      {openingCreateKind === kind && <p className="text-sm text-ink/60" role="status">正在确认可用空间…</p>}
+      {createEntryError?.kind === kind && <p className="text-sm text-coral" role="alert">{createEntryError.message}<button className="ml-3 min-h-11 font-semibold underline" type="button" onClick={() => void beginCreate(kind)}>重试</button></p>}
+      {choosingSpaceKind === kind && <div className="rounded-lg bg-white p-3 text-sm shadow-sm" role="group" aria-label="选择保存空间">
+        <p className="text-ink/70">我的空间暂不可用，请主动选择保存空间。</p>
+        {choices.map((space) => <button key={space.id} className="mt-2 block min-h-11 w-full rounded-lg px-3 text-left font-semibold text-teal hover:bg-mist" type="button" onClick={() => startCreate(kind, space.id, createSpaces)}>{space.name}</button>)}
+      </div>}
+    </>;
+  }
+
+  async function validateCreateTarget(kind: CreateKind, targetId: string, relatedUserId?: string | null) {
+    const generation = createGeneration.current;
+    if (createTargetState !== 'ready' || targetIdRef.current !== targetId) throw new Error('请先确认保存空间。');
+    await currentUser();
+    const listed = await listCurrentSpaces(userId);
+    const target = listed.find((space) => space.id === targetId);
+    if (!target || target.kind !== createSpace?.kind) throw new Error('此空间已不在你的成员列表中，请重新选择。');
+    if (kind === 'task') {
+      const enabled = await moduleSpaces([target]).catch(() => { throw new Error('任务模块状态无法确认，请重试。'); });
+      if (!enabled.length) throw new Error('当前空间的任务模块已关闭，请选择其他空间。');
+    }
+    const members = await spaceMembers(targetId);
+    if (!targetMembersValid(members, targetId, userId, relatedUserId)) throw new Error('空间成员或分配对象已变化，请重新选择。');
+    await currentUser();
+    if (generation !== createGeneration.current || targetIdRef.current !== targetId) throw new Error('保存空间已变化，请重新确认。');
+  }
+
+  const createTargetControl: CreateTargetControl = {
+    spaces: createSpaces, selectedId: createTargetId, enabledIds: enabledTaskIds,
+    state: createTargetState, error: createTargetError,
+    onSelect: selectCreateTarget, onRetry: () => { if (createKind && createTargetId) void loadTarget(createKind, createTargetId); },
+  };
 
   useEffect(() => {
     const now = new Date();
@@ -301,8 +449,14 @@ export function HomePage({ spaces, userId, EventSheetComponent, onMembershipRefr
 
   return <main className="mx-auto min-h-screen max-w-3xl space-y-7 px-4 py-6 safe-bottom">
     <h1 className="text-2xl font-bold">首页</h1>
-    <HomeSection title="近期日程" status={eventState.status} error={eventState.error} items={eventItems} expanded={eventExpanded} empty="未来三天暂无日程" onToggle={() => setEventExpanded((value) => !value)} onRetry={() => setEventRevision((value) => value + 1)} />
-    <HomeSection title="需要处理的任务" status={taskState.status} error={taskState.error} items={taskItems} expanded={taskExpanded} empty="暂无需要处理的任务" onToggle={() => setTaskExpanded((value) => !value)} onRetry={() => setTaskRevision((value) => value + 1)} />
+    <HomeSection title="近期日程" status={eventState.status} error={eventState.error} items={eventItems} expanded={eventExpanded} empty="未来三天暂无日程" onToggle={() => setEventExpanded((value) => !value)} onRetry={() => setEventRevision((value) => value + 1)}
+      createAction={<button ref={eventCreateButton} className="grid h-11 w-11 shrink-0 place-items-center rounded-lg text-teal hover:bg-white disabled:opacity-50" type="button" aria-label="新建日程" disabled={openingCreateKind !== null} onClick={() => void beginCreate('event')}><Plus size={21} aria-hidden="true" /></button>}
+      createFeedback={sectionCreateFeedback('event')}
+    />
+    <HomeSection title="需要处理的任务" status={taskState.status} error={taskState.error} items={taskItems} expanded={taskExpanded} empty="暂无需要处理的任务" onToggle={() => setTaskExpanded((value) => !value)} onRetry={() => setTaskRevision((value) => value + 1)}
+      createAction={<button ref={taskCreateButton} className="grid h-11 w-11 shrink-0 place-items-center rounded-lg text-teal hover:bg-white disabled:opacity-50" type="button" aria-label="新建任务" disabled={openingCreateKind !== null} onClick={() => void beginCreate('task')}><Plus size={21} aria-hidden="true" /></button>}
+      createFeedback={sectionCreateFeedback('task')}
+    />
     {editingEvent && eventSpace && eventMembers.length > 0 && <EventSheetComponent
       target={editingEvent.source_event.recurrence_rule === null ? eventEditTargetForEvent(editingEvent.source_event) : eventEditTargetForOccurrence(editingEvent)}
       space={eventSpace} userId={userId} members={eventMembers} partnerId={eventMembers.find((member) => member.user_id !== userId)?.user_id ?? null}
@@ -314,6 +468,19 @@ export function HomePage({ spaces, userId, EventSheetComponent, onMembershipRefr
       userId={userId} members={taskMembers} sourceSpaceLabel={taskSpace.name}
       onClose={() => setEditingTask(null)} onSaved={async () => { taskRefresh.current(); }}
       onMutationError={() => taskMutationError(editingTask)}
+    />}
+    {createKind === 'event' && createSpace && <EventSheetComponent
+      target={null} space={createSpace} userId={userId} members={createMembers}
+      partnerId={createMembers.find((member) => member.user_id !== userId)?.user_id ?? null}
+      onClose={closeCreate} onSaved={() => eventRefresh.current()}
+      validateCreateTarget={async (ownerId) => { await validateCreateTarget('event', createSpace.id, ownerId); return true; }}
+      createTarget={createTargetControl}
+    />}
+    {createKind === 'task' && createSpace && <TaskSheet
+      task={null} spaceId={createSpace.id} spaceKind={createSpace.kind} userId={userId} members={createMembers}
+      onClose={closeCreate} onSaved={async () => { taskRefresh.current(); }}
+      createTarget={createTargetControl}
+      validateGlobalCreate={(assigneeId) => validateCreateTarget('task', createSpace.id, assigneeId)}
     />}
   </main>;
 }

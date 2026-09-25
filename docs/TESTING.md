@@ -1,5 +1,12 @@
 # Testing
 
+## v0.1.11 Slice 4 — 首页快捷创建（LOCAL IMPLEMENTATION + DESKTOP AUTH ACCEPTANCE COMPLETE / PRODUCTION IPHONE/PWA ACCEPTANCE PENDING）
+
+- 自动检查：聚焦首页区块直达创建、空间、日历、任务界面与安全规则测试 **10/10 PASS**；完整适用 Node 测试集 `node --test --test-reporter=dot tests/*.test.ts tests/*.test.js` **246/246 PASS**，`npm run build` 与 `git diff --check` **PASS**。本地 `http://127.0.0.1:5175/` 无登录态 HTTP 检查为 **200**。
+- 只读环境 gate：本地前端配置目标与 linked Supabase 项目一致；linked backend 中 `spaces`、`space_members`、`events`、`tasks`、`space_modules`、Personal 初始化及模块检查 RPC 存在。Event/Task/module RLS 开启，Event/Task insert policy、Event owner trigger、Task assignee 外键及模块 SELECT 权限已核实。现有 v0.1.10 后端能力与这次纯前端新增入口兼容；没有后端 rollout。检查只返回能力布尔值，没有输出环境变量、凭据或业务行。
+- **用户报告真实账号 Desktop 本地验收 PASS：**首页标题无旧创建按钮；“近期日程 +”和“需要处理的任务 +”分别直达对应表单；日程与任务默认目标均为 Personal Space，并能主动切换 Space。日程、任务分别切换到 Shared Space 后，二次确认的目标、首页即时摘要、目标 Space 内对象和实际归属均正确。关闭 Personal Tasks 后没有自动转存 Shared，须主动选已启用任务模块的 Space。取消二次确认后草稿保留且没有记录；确认阶段关闭后重开没有残留确认状态；快速连续确认只产生一条记录。日历单 Space 日程 `+` 仍按当前筛选 Space 直接保存；空间任务“新建任务”仍在当前 Space 直接保存。结果由用户执行并报告，Codex 未操作真实登录态。
+- **剩余验收只在 Production 执行：**完成正常 commit、push 和 Vercel Production deployment 后，由用户验收 iPhone Safari、已安装 PWA，以及必要的 Production 创建/保存/布局回归。最终 iPhone/PWA 验收不使用本地 5175 或 LAN 地址。检查两个区块入口、保存目标和确认、320px/长标题布局、键盘与安全区域下表单按钮可达性。Slice 4 与 v0.1.11 保持开放；不要把本地 Desktop PASS 记成 Production PASS。
+
 ## v0.1.11 Slice 3 — Home Aggregation (CLOSED / PASS)
 
 - Focused Home tests cover the three local calendar days, same-day all-day ordering, old recurring sources, moved-in override, only-this deletion, this-and-future child identity, a later-Space read failure, Task overdue/today/seven-day/undated ordering and assignment exclusions, disabled/missing/error module handling, plus section loading/empty/error and five-row expand/collapse. The navigation regression covers the module re-read state/render sequence and Tasks/Completed fallback contract. Existing calendar-refresh tests cover reused dirty-read, burst, pause/stop and retry guards.
