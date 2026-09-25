@@ -12,11 +12,13 @@ v0.1.14
 
 ## Current status
 
-v0.1.14「回顾」`SLICE 1 BACKEND LOCAL PASS / PRODUCTION READ-ONLY PREFLIGHT PASS`。产品与验收契约见 [v0.1.14 规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md)。Production backend 仍为 v0.1.13 `CLOSED / PASS`；回顾 patch 尚未应用，前端和真实账号验收未开始。
+v0.1.14「回顾」`SLICE 1 BACKEND PRODUCTION PASS / FRONTEND NOT IMPLEMENTED`。产品与验收契约见 [v0.1.14 规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md)。Slice 1 本地验证、Production 只读 preflight、单份 forward patch 与只读 postflight 均 `PASS`；Production backend 已包含回顾基础能力，用户可见前端仍为 v0.1.13，回顾前端和真实账号验收未开始。v0.1.14 整体仍在开发。
 
 ## Latest completed
 
-v0.1.14 Slice 1 Backend Foundation：canonical schema 与单份 forward patch 已准备；两表、participant 双条件读、四个窄 RPC、Space 锁与 review 模块开关完成。本地 DB 11 文件/505 项、回顾双会话 3/3、既有 lifecycle 双会话 9/9 PASS。Production 未变。
+v0.1.14 Slice 1 Production backend rollout `PASS`：已推送的唯一回顾 forward patch 在 Production 以自身 `BEGIN/COMMIT` 事务执行一次；两表、约束、索引、触发器、RLS/ACL、四个窄 RPC 与模块开关 postflight 通过。既有 Space、成员、模块、Event、Task、Reminder 的计数及全行指纹前后完全一致；回顾两表与 `review` 模块行均为 0。未部署回顾前端或执行真实账号验收。
+
+v0.1.14 Slice 1 Backend Foundation 本地验证节点：canonical schema 与单份 forward patch 已准备；两表、participant 双条件读、四个窄 RPC、Space 锁与 review 模块开关完成。本地 DB 11 文件/505 项、回顾双会话 3/3、既有 lifecycle 双会话 9/9 PASS；该节点未改 Production。
 
 v0.1.14 Slice 1 Production READ-ONLY preflight `PASS`：Production 与 v0.1.13 patch 前置结构兼容；回顾对象及 `review` 模块行均不存在；成员数据无 blocker；lifecycle 定义、RLS/ACL/RPC 边界、锁前置条件与 schema/patch parity 核对通过。未执行 Production 写入，blockers 为 `None`。
 
@@ -54,8 +56,8 @@ Status: public_deployed
 Public URL: https://cross-platform-shared-calendar.vercel.app/
 Provider: Vercel
 Backend: Supabase Free
-Backend rollout: v0.1.13 Slice 1 forward patch applied and postflight verified.
-Notes: Vercel is the configured Production provider. v0.1.13 Slice 2 Production deployment `6662531970` completed successfully from source `c08e9f1bd2d583a65fb42d68588b531ca6e0216c`; the canonical public URL and its current JavaScript/CSS assets returned HTTP 200. Read-only Supabase catalog checks confirmed the four deployed lifecycle RPC signatures and authenticated-only EXECUTE grants; the v0.1.13 Slice 1 forward patch remains applied and postflight-verified. The user reports all real-account, mobile and installed-PWA acceptance passed; Codex did not operate authenticated sessions or PWA. Historical version-specific acceptance limits remain recorded in DEVLOG/TESTING. `space_modules` still has no Realtime publication; v0.1.10 and earlier deployment notes remain historical. `send-test-push` remains ACTIVE v4 reviewed-equivalent; `send-reminders` remains ACTIVE v2 / `verify_jwt=false`. Vault/secret/Cron were not changed.
+Backend rollout: v0.1.14 Slice 1 review foundation forward patch applied and postflight verified; v0.1.13 lifecycle remains applied.
+Notes: Vercel is the configured Production provider. The v0.1.14 rollout added backend Review capability only; the user-visible frontend remains the previously accepted v0.1.13 baseline. v0.1.13 Slice 2 Production deployment `6662531970` completed successfully from source `c08e9f1bd2d583a65fb42d68588b531ca6e0216c`; the canonical public URL and its JavaScript/CSS assets returned HTTP 200 at that verification checkpoint. The v0.1.13 lifecycle patch remains applied and its four RPC definitions were unchanged by the Review rollout. The user reported v0.1.13 real-account, mobile and installed-PWA acceptance PASS; no v0.1.14 authenticated acceptance has occurred. Historical version-specific acceptance limits remain recorded in DEVLOG/TESTING. `space_modules` still has no Realtime publication; v0.1.10 and earlier deployment notes remain historical. `send-test-push` remains ACTIVE v4 reviewed-equivalent; `send-reminders` remains ACTIVE v2 / `verify_jwt=false`. Vault/secret/Cron were not changed.
 
 ## Version Index
 
@@ -85,7 +87,7 @@ Notes: Vercel is the configured Production provider. v0.1.13 Slice 2 Production 
 - v0.1.11 — Navigation + Aggregation Experience（CLOSED / PASS；Slice 1–4 CLOSED / PASS；Production installed PWA acceptance PASS；dedicated final iPhone Safari acceptance NOT RUN）
 - v0.1.12 — Module Hub + Space Management Navigation（CLOSED / PASS；Slice 1–4 CLOSED / PASS；Production / installed-PWA acceptance PASS）
 - v0.1.13 — Space Lifecycle & Membership Safety（CLOSED / PASS；Slice 1/2 CLOSED / PASS；Production deployment、用户报告的 authenticated/mobile/PWA acceptance PASS）
-- v0.1.14 — 回顾（Slice 1 backend 本地 PASS；Production preflight PASS；Production 仍为 v0.1.13；patch 与前端未开始）
+- v0.1.14 — 回顾（Slice 1 backend 本地 / Production preflight / forward patch / postflight PASS；前端与真实账号验收未开始；整体未关闭）
 
 ## Last verified
 
@@ -93,7 +95,7 @@ Notes: Vercel is the configured Production provider. v0.1.13 Slice 2 Production 
 
 ## Next Action
 
-Next Action: v0.1.14 Production forward patch + read-only postflight — 在 Slice 1 实现与 preflight 记录推送至 `origin/main` 后，按 [测试说明](./TESTING.md)复核目标基线并执行单份已审查 patch，再核验结构、权限及既有数据。patch 尚未应用；前端 Slice 2 待 backend rollout / compatibility gate 完成后再进入。
+Next Action: v0.1.14 Slice 2 — 复用已部署的 `save_my_review_entry` 与 `mark_my_review_filled` RPC，完成 Entry save / 填写状态的前端产品链路；不重复实现 backend primitives。真实账号验收前执行前端目标与 Production backend 的 compatibility gate。
 
 ## Blockers
 
@@ -101,7 +103,7 @@ Next Action: v0.1.14 Production forward patch + read-only postflight — 在 Sli
 
 ## Important Context
 
-- v0.1.14 Design Freeze 保持 canonical；repo 与本地测试数据库已有 Slice 1 回顾表、RPC 和测试，Production 仍无回顾 backend/UI 能力。访问旧轮必须同时是当前 Space 成员和该轮 participant；leave/remove 保留 entry，新成员看不到旧轮，原 participant 重入可恢复访问。Shared 必须双人才能新建；模块缺行或关闭时隐藏正常选择并拒绝写入。完整 contract 和验收条件只以 v0.1.14 规格为准。
+- v0.1.14 Design Freeze 保持 canonical；Production 已具备 Slice 1 回顾表、RPC 和权限基础，回顾 UI 尚未实现。访问旧轮必须同时是当前 Space 成员和该轮 participant；leave/remove 保留 entry，新成员看不到旧轮，原 participant 重入可恢复访问。Shared 必须双人才能新建；模块缺行或关闭时隐藏正常选择并拒绝写入。Slice 1 已包含 save/mark RPC，Slice 2 直接复用。完整 contract 和验收条件只以 v0.1.14 规格为准。
 - Git branch、latest commit、working tree 由 project-command-center 实时 Git 扫描读取；PROJECT_STATE.md 不作为这些字段的权威来源。
 - Production URL: `https://cross-platform-shared-calendar.vercel.app/`.
 - Supabase project status is currently Active, but Free Tier inactivity pause remains an operational risk.
@@ -115,7 +117,7 @@ Next Action: v0.1.14 Production forward patch + read-only postflight — 在 Sli
 - v0.1.9 canonical scope is `docs/v0.1.9_SHARED_TASKS_SPEC.md`; Slice 1 backend is Production applied/postflight verified, Slice 2 local UI passed user-run authenticated acceptance, and Slice 3 Production Desktop A/B plus iPhone smoke passed. All three slices are CLOSED / PASS.
 - v0.1.10 is `CLOSED / PASS`: it reuses `spaces / space_members`, enforces sole-owner Personal Space with partial unique `UNIQUE(created_by) WHERE kind = 'personal'`, retains the Shared two-member limit, and keeps disabled Tasks history readable while blocking mutations. Calendar is always on; Tasks is the only v0.1.10 visible module toggle. Slice 1 / 2 / 3 passed their respective backend, frontend, and user acceptance gates. Production frontend now also includes the v0.1.11 Slice 1 navigation foundation; that rollout changed no backend/schema/RPC. Shared three-plus-member support remains deferred.
 - v0.1.11 canonical scope is `docs/v0.1.11_NAVIGATION_AGGREGATION_SPEC.md`; overall and Slices 1–4 are `CLOSED / PASS`. Production installed PWA acceptance is user-reported `PASS`; dedicated final iPhone Safari acceptance is accurately recorded as `NOT RUN` and is not a blocker. Production includes the Slice 4 frontend from feature commit `f916dc0f0a1962facca44f4174241031b4f44bf2`. Slice 3 independent Event/Task section error/retry remains `NOT RUN / DIFFICULT TO SIMULATE SAFELY`; second Shared Space is `N/A / NOT RUN`. Dedicated Slice 2 device checks remain deferred as recorded above.
-- Roadmap: v0.1.12 and v0.1.13 are `CLOSED / PASS`; v0.1.13 Slice 1/2, Production deployment, and user-reported authenticated/mobile/PWA acceptance are all `PASS`. Next Action is next-version product planning among candidates such as Structured Review / Check-in and Shared Lists; do not start implementation or assign a version before a separate scope decision. A future Personal Event share/projection direction may preserve one canonical Space owner while adding visibility elsewhere; it is not v0.1.13 scope and has no schema reservation.
+- Roadmap at the v0.1.13 closeout: v0.1.12 and v0.1.13 were `CLOSED / PASS`; v0.1.13 Slice 1/2, Production deployment, and user-reported authenticated/mobile/PWA acceptance were all `PASS`. The next-version planning checkpoint later selected v0.1.14「回顾」; its current state is recorded above. A future Personal Event share/projection direction may preserve one canonical Space owner while adding visibility elsewhere; it is not v0.1.13 scope and has no schema reservation.
 - v0.1.10 backend rollout preserved existing Space/member/Event/Task row counts and identity/invite fingerprints. The user subsequently completed the first A/B authenticated acceptance; Personal Spaces are now created by the deployed Slice 2 bootstrap. The old v0.1.9 runtime is not a safe rollback target for an account with a Personal Space. Any older-account bulk backfill remains outside Slice 2 and requires a separate review. Production Task count was 0 at backend rollout, so historical Task disable/re-enable remains locally verified rather than Production-tested.
 - v0.1.10 is closed with Shared Spaces retaining the two-member limit. It does not include cross-Space aggregation, final four-destination navigation, global `+`, Lists / Important Dates / Review implementation, or module-state Realtime. The observed member refresh behavior is a known characteristic and future consideration; it does not reopen v0.1.10.
 - `V019_SLICE2_UI_FROZEN` / `SLICE 2 IMPLEMENTED / MANUAL AUTH ACCEPTANCE PASS`: Calendar header `共享空间 · {space.name}` opens the current Space Hub; its only module entry is Tasks. Open Tasks and separate Completed Tasks use the existing Space-scoped contract. Empty `profiles.display_name` may use contextual `我 / 对方` only in the current two-member v0.1.9 UI; this is not a durable partner identity, and future Multi-space / multi-member UI uses generic member display logic. Space-entry navigation and 320px layout passed user-run acceptance; extreme-width name ellipsis is accepted.
@@ -165,4 +167,4 @@ Next Action: v0.1.14 Production forward patch + read-only postflight — 在 Sli
 
 ## Handoff Prompt
 
-v0.1.13 Space Lifecycle & Membership Safety is `CLOSED / PASS` in Production. v0.1.14「回顾」has a frozen specification at `docs/v0.1.14_STRUCTURED_CHECKIN_SPEC.md`; Slice 1 backend is implemented and locally verified in repo, with its forward patch unapplied to Production. Next Action is Production READ-ONLY preflight, then separately reviewed and authorized patch/postflight. Frontend and authenticated acceptance remain future slices.
+v0.1.13 Space Lifecycle & Membership Safety is `CLOSED / PASS`. v0.1.14「回顾」has a frozen specification at `docs/v0.1.14_STRUCTURED_CHECKIN_SPEC.md`; Slice 1 backend passed local verification, Production preflight, the exact forward patch and read-only postflight. The Production backend now has the Review foundation; the user-visible frontend and authenticated acceptance have not started. Next Action is Slice 2 frontend Entry save / filled-status integration, reusing the already deployed save/mark RPCs.

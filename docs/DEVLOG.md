@@ -1,5 +1,12 @@
 # Development Log
 
+# 2026-09-26 - v0.1.14 回顾 Slice 1 Production Backend Rollout — PASS
+
+- 在干净且与 `origin/main` 一致的 `4dc096fcb644497e15b7103af1a08212da307613` 上，确认唯一 forward patch 与已推送 Git blob 一致（306 行；SHA-256 `41cb53b1e7c373e82dcf372261047fe066d5a395851d019456903b6d8d3abf34`）。紧邻 apply 的 Production 只读检查确认回顾对象仍缺席、模块与 lifecycle 前置定义未漂移，既有数据计数和身份指纹与先前 preflight 一致。
+- 仅执行一次 `supabase db query --linked --file supabase/patches/2026-09-26-v0.1.14-review-foundation.sql`；补丁自带 `BEGIN/COMMIT`，命令退出码 0，未返回 SQL error。没有重放完整 schema、拆分执行、修补或其他 Production 写入。
+- 只读 postflight 确认两表、8 项约束、4 个索引、3 个触发器、2 条 SELECT policy 和四个窄写 RPC 已部署；RLS 开启，`authenticated` 仅有受 RLS 约束的表 SELECT 与授权 RPC EXECUTE，`anon` 无回顾表访问。回顾函数及模块开关函数体与 committed patch 一致，四个 v0.1.13 lifecycle 函数未漂移。
+- 4 Spaces、5 memberships、4 module rows、4 Events、5 Tasks、12 reminder ledger rows 的计数、身份及全行指纹在 apply 前后完全一致，邀请码指纹亦一致；review rounds、entries、module rows 均为 0。未部署回顾前端、创建 Review 测试数据或进行真实账号/设备验收。Slice 1 Production backend `PASS`；v0.1.14 整体仍在开发。下一步 Slice 2 直接复用已部署的 save/mark RPC。
+
 # 2026-09-26 - v0.1.14 回顾 Slice 1 Backend Foundation — LOCAL PASS / PRODUCTION PREFLIGHT PASS
 
 - 在已冻结 [回顾规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md)下，更新 canonical `supabase/schema.sql` 并准备单份 additive forward patch：Space-owned `review_rounds`、固定 participant snapshot `review_entries`、唯一编号与身份约束、双条件读 RLS、表级只读 ACL、四个以 `auth.uid()` 授权的窄 RPC，以及 owner-only `review` 模块开关。创建、成员生命周期和模块关闭复用现有 Space advisory + row lock 顺序；未修改 v0.1.13 lifecycle RPC。
