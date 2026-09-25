@@ -124,11 +124,11 @@ The accepted product migrated `首页 / 日历 / 空间 / 我的` to `首页 / �
 - Space remains the canonical ownership boundary (`ownership ≠ view`). This navigation/view change does not change persistence or Space schema. Preserve the v0.1.11 Home Event and Task quick-create actions as they are.
 - Scope references: [v0.1.12 frozen direction](./DECISIONS.md) and [Shared Life Architecture](./SHARED_LIFE_ARCHITECTURE.md).
 
-## v0.1.13 — Space Lifecycle & Membership Safety — IN PROGRESS
+## v0.1.13 — Space Lifecycle & Membership Safety — CLOSED / PASS
 
-`v0.1.13 Slice 1 — CLOSED / PASS`：Slice 1A backend 与窄 ACL recovery 本地验证、Slice 1B Production patch/postflight、最终 diff 和验证记录均完成。Slice 2 Space Detail lifecycle controls implementation/review `PASS`，待用户 authenticated Production acceptance。
+Slice 1 backend 与 Slice 2 frontend 均 `CLOSED / PASS`。Slice 1A backend 与窄 ACL recovery 本地验证、Slice 1B Production patch/postflight、Slice 2 Production deployment，以及用户报告的真实账号、移动端和 installed-PWA acceptance 均已通过。最终 focused Node 46/46、full Node 276/276、build、diff-check 均通过。
 
-This version covers Shared Space leave, member removal, ownership transfer, and hard delete before more Space-owned product modules. Structured Review / Check-in and Shared Lists remain future candidates. Do not assign versions beyond v0.1.13 yet.
+This version covers Shared Space leave, member removal, ownership transfer, and hard delete before more Space-owned product modules. Next Action is next-version product planning: reconsider priority among Structured Review / Check-in, Shared Lists, and other candidates; do not start implementation or assign a version before a separate scope freeze.
 
 The original roadmap carried these high-level safety principles; the Slice 1A backend design is now frozen and locally implemented:
 
@@ -146,8 +146,9 @@ The long-term relationships and v0.1.10 scope are frozen in [Shared Life Archite
 - v0.1.10 — Personal Space + Multi-space + Module Enablement Foundation; Slice 1 `PRODUCTION BACKEND ROLLOUT PASS`, Slice 2/3 and overall `CLOSED / PASS`.
 - v0.1.11 — Navigation + Aggregation Experience (`CLOSED / PASS / SLICE 1 CLOSED / PASS / SLICE 2 CLOSED / PASS / SLICE 3 CLOSED / PASS / SLICE 4 CLOSED / PASS`; Desktop and Production installed PWA acceptance `PASS`; dedicated final iPhone Safari acceptance `NOT RUN`).
 - v0.1.12 — Module Hub + Space Management Navigation (CLOSED / PASS; Slices 1–4 CLOSED / PASS; Production and installed-PWA acceptance PASS).
-- v0.1.13 — Space Lifecycle & Membership Safety (IN PROGRESS; Slice 1 CLOSED / PASS; Slice 2 local REVIEW PASS; manual acceptance pending).
+- v0.1.13 — Space Lifecycle & Membership Safety (CLOSED / PASS; Slice 1/2 CLOSED / PASS; Production deployment and user-reported authenticated/mobile/PWA acceptance PASS).
 - Later candidates after v0.1.13 without fixed versions/order: Structured Review / Check-in, Shared Lists, Important Dates, Calendar Sources v1, Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules. Priority and order may change based on real product use.
+- Future direction only: consider projecting/sharing a Personal Event into another Space while keeping one canonical Event owner Space, avoiding duplicate canonical objects, and ensuring that leaving the target Shared Space does not affect the source Event. This is outside v0.1.13; do not implement or reserve schema for it in this version.
 - Native: decision gate only; no committed implementation version.
 
 ## P1 - Near-Term Product Polish

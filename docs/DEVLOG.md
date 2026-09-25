@@ -1,8 +1,16 @@
 # Development Log
 
+# 2026-09-25 - v0.1.13 Final Regression + Closeout — CLOSED / PASS
+
+- Baseline was `main = origin/main = c08e9f1bd2d583a65fb42d68588b531ca6e0216c`, with a clean working tree before closeout. Focused lifecycle/Space Management Node tests passed **46/46**, full Node passed **276/276**, `npm run build` passed, and `git diff --check` passed.
+- Read-only Production verification: Vercel Production deployment `6662531970` for source `c08e9f1bd2d583a65fb42d68588b531ca6e0216c` is `success`; public entry and active JS/CSS assets returned HTTP 200. Supabase returned all four expected lifecycle RPC signatures with hardened `search_path`, `SECURITY DEFINER`, authenticated EXECUTE, and no anon/public/service_role EXECUTE.
+- **Authenticated / mobile / installed-PWA acceptance: user-reported PASS.** Codex did not operate user accounts, OTP/Magic Link, browser sessions, or PWA. No authenticated acceptance was repeated by Codex.
+- v0.1.13, Slice 1 and Slice 2 are recorded `CLOSED / PASS`. This closeout changes governance documentation only; no business code, UI, backend, SQL, or Production data changed.
+- Next Action is next-version product planning and candidate reprioritization (including Structured Review / Check-in and Shared Lists), not implementation. Personal Event projection/share remains a future direction with one canonical owner Space; it is outside v0.1.13.
+
 # 2026-09-25 - v0.1.13 Slice 2 Final Implementation / Review PASS
 
-- Slice 2 frontend implementation and read-only review are `PASS`; waiting for authenticated Production acceptance. The four deployed lifecycle RPC signatures/grants were rechecked read-only against the linked Production database. Full Node 276/276, `npm run build`, and `git diff --check` pass.
+- At this implementation/review checkpoint, Slice 2 was locally `PASS` and authenticated Production acceptance was still pending. The four deployed lifecycle RPC signatures/grants were rechecked read-only against Production; the user later completed acceptance, recorded in the final closeout above. Full Node 276/276, `npm run build`, and `git diff --check` passed at this checkpoint.
 - The approved changes are ready for normal commit and push through the Vercel Git integration. Production database/backend were not changed. User account, Magic Link/OTP, session, browser login and PWA acceptance remain for the user.
 
 # 2026-09-25 - v0.1.13 Slice 2 State Review Correction — PASS

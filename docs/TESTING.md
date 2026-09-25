@@ -1,5 +1,12 @@
 # Testing
 
+## v0.1.13 Final Regression + Closeout — CLOSED / PASS
+
+- Focused lifecycle/Space Management regressions: **46/46 PASS**. Full Node suite: **276/276 PASS**. `npm run build` and `git diff --check`: **PASS**.
+- Read-only Production checks: Vercel deployment `6662531970` for source `c08e9f1bd2d583a65fb42d68588b531ca6e0216c` is `success`; the public entry and current JavaScript/CSS assets returned HTTP 200. Supabase catalog confirmed all four lifecycle RPC signatures and authenticated-only EXECUTE grants with hardened function configuration. No Production mutation occurred.
+- **User-reported authenticated real-account, mobile and installed-PWA acceptance: PASS.** Codex did not operate login, OTP/Magic Link, authenticated sessions or PWA and did not repeat the user's acceptance.
+- v0.1.13, Slice 1 and Slice 2 are `CLOSED / PASS`. No further real-account acceptance is requested by this closeout.
+
 ## v0.1.13 Slice 2 — State review correction
 
 - New automated cases cover leave/delete success clearing selection and detail before a delayed/failed list refresh, persistent selection removal scoped to the current user, remove/transfer retaining detail, RPC rejection retaining selection pending canonical refresh, and Calendar/Task eligibility fallback for an invalid filter target. Focused Node: 46/46 PASS; full Node: 276/276 PASS; `npm run build` (TypeScript + Vite) and `git diff --check`: PASS.
@@ -8,7 +15,7 @@
 ## v0.1.13 Slice 2 — Local UI review checkpoint
 
 - Focused Node 8/8 and full Node 271/271 pass. Tests cover Personal/Shared role controls, other-member target validation, four exact RPC names/arguments, canonical pre-submit recheck, stale/error rejection, confirmation and duplicate-submit guards, list/detail refresh, and absence of lifecycle filter mutation. Existing Space Management regression remains in the focused run. `npm run build` (TypeScript + Vite) and `git diff --check` pass.
-- Real-account acceptance is pending. Before asking the user to run it, verify the local frontend's backend target and the deployed four RPC signatures/grants and schema alignment without handling the user's login. The user then checks Personal, owner, member, transfer → leave, remove, hard delete confirmations/cancellation, stale role/member/Space recovery, invite rotation, retained Shared Events/Tasks, and narrow mobile layout using accounts and data they choose. Destructive actions require disposable test data or deliberate user selection. No real-account session or PWA was operated in this local checkpoint.
+- At this local review checkpoint, real-account acceptance was pending. Before that later acceptance, the four deployed RPC signatures/grants and backend alignment were checked read-only. The user subsequently reported all real-account, mobile and PWA acceptance passed; see the final closeout above. Codex did not operate any real-account session or PWA.
 
 ## v0.1.13 Slice 1 — CLOSED / PASS
 
