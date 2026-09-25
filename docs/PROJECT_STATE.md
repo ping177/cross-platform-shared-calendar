@@ -12,11 +12,13 @@ v0.1.14
 
 ## Current status
 
-v0.1.14「回顾」`SLICE 1 BACKEND LOCAL PASS / READY FOR PRODUCTION READ-ONLY PREFLIGHT`。产品与验收契约见 [v0.1.14 规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md)。Production 能力仍为 v0.1.13 `CLOSED / PASS`；回顾 patch 未在 Production 应用，前端和真实账号验收未开始。
+v0.1.14「回顾」`SLICE 1 BACKEND LOCAL PASS / PRODUCTION READ-ONLY PREFLIGHT PASS`。产品与验收契约见 [v0.1.14 规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md)。Production backend 仍为 v0.1.13 `CLOSED / PASS`；回顾 patch 尚未应用，前端和真实账号验收未开始。
 
 ## Latest completed
 
 v0.1.14 Slice 1 Backend Foundation：canonical schema 与单份 forward patch 已准备；两表、participant 双条件读、四个窄 RPC、Space 锁与 review 模块开关完成。本地 DB 11 文件/505 项、回顾双会话 3/3、既有 lifecycle 双会话 9/9 PASS。Production 未变。
+
+v0.1.14 Slice 1 Production READ-ONLY preflight `PASS`：Production 与 v0.1.13 patch 前置结构兼容；回顾对象及 `review` 模块行均不存在；成员数据无 blocker；lifecycle 定义、RLS/ACL/RPC 边界、锁前置条件与 schema/patch parity 核对通过。未执行 Production 写入，blockers 为 `None`。
 
 v0.1.14 回顾 Design Freeze：固定 Personal 单人 / Shared 创建时双人 participant snapshot、历史成员访问、Space 内编号、日期更正、四字段状态、模块开关和响应式 UI；形成五个 bounded implementation slices 与验收条件。仅文档变更，未实施功能。
 
@@ -83,7 +85,7 @@ Notes: Vercel is the configured Production provider. v0.1.13 Slice 2 Production 
 - v0.1.11 — Navigation + Aggregation Experience（CLOSED / PASS；Slice 1–4 CLOSED / PASS；Production installed PWA acceptance PASS；dedicated final iPhone Safari acceptance NOT RUN）
 - v0.1.12 — Module Hub + Space Management Navigation（CLOSED / PASS；Slice 1–4 CLOSED / PASS；Production / installed-PWA acceptance PASS）
 - v0.1.13 — Space Lifecycle & Membership Safety（CLOSED / PASS；Slice 1/2 CLOSED / PASS；Production deployment、用户报告的 authenticated/mobile/PWA acceptance PASS）
-- v0.1.14 — 回顾（Slice 1 backend 本地 PASS；Production 仍为 v0.1.13；前端未开始）
+- v0.1.14 — 回顾（Slice 1 backend 本地 PASS；Production preflight PASS；Production 仍为 v0.1.13；patch 与前端未开始）
 
 ## Last verified
 
@@ -91,7 +93,7 @@ Notes: Vercel is the configured Production provider. v0.1.13 Slice 2 Production 
 
 ## Next Action
 
-Next Action: v0.1.14 Slice 1 Production READ-ONLY preflight — 按 [测试说明](./TESTING.md)核对 v0.1.13 结构、review 对象缺席、角色 ACL 与既有数据基线；另行审查和授权 forward patch / postflight。前端 Slice 2 待 backend rollout gate 完成后再进入。
+Next Action: v0.1.14 Production forward patch + read-only postflight — 在 Slice 1 实现与 preflight 记录推送至 `origin/main` 后，按 [测试说明](./TESTING.md)复核目标基线并执行单份已审查 patch，再核验结构、权限及既有数据。patch 尚未应用；前端 Slice 2 待 backend rollout / compatibility gate 完成后再进入。
 
 ## Blockers
 

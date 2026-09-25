@@ -1,31 +1,16 @@
 # Testing
 
-## v0.1.14 回顾 Slice 1 — Backend Foundation LOCAL PASS
+## v0.1.14 回顾 Slice 1 — Backend LOCAL PASS / Production Preflight PASS
 
 The canonical contract remains [v0.1.14 回顾规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md). The one-time forward patch was applied only to the local Supabase test database; Production remains v0.1.13.
 
 - `supabase test db --local`: **11 files / 505 pgTAP assertions PASS**. The new review file contributes **117 PASS** across schema/FKs/constraints, Personal and Shared eligibility, direct API ACL, RLS isolation, revisions/blank marking, date correction, module disable/re-enable, leave/remove/rejoin, transfer and Space deletion. Existing module and lifecycle regression files also pass.
 - `python3 supabase/tests/review-foundation-concurrency.py`: **3/3 PASS** for concurrent create assigning rounds 1/2, disable-first rejecting create, and create-first retaining history before disable. `python3 supabase/tests/space-lifecycle-concurrency.py`: **9/9 PASS**.
-- SQL review: the review foundation, module toggle and RPC ACL blocks in `schema.sql` and the forward patch match. The patch creates new objects and narrowly replaces `set_space_module_enabled`; it does not reset, truncate, backfill or delete existing business data. No frontend, build, authenticated browser or Production test was run for this backend-only slice.
+- SQL review: the review foundation, module toggle and RPC ACL blocks in `schema.sql` and the forward patch match. The patch creates new objects and narrowly replaces `set_space_module_enabled`; it does not reset, truncate, backfill or delete existing business data. No frontend/build, Production write, or authenticated browser/device test was run for this backend-only slice; the Production read-only preflight is recorded below.
 
-Next checkpoint: **Production READ-ONLY preflight**. At minimum verify the v0.1.13 lifecycle RPC and module toggle exist; `review_rounds`/`review_entries` and the four review RPCs are absent; `space_modules` already accepts the `review` key; the Shared owner/capacity triggers and expected role/default ACLs remain aligned. Record read-only counts/fingerprints of existing Space/member/Event/Task/module data before any separately authorized patch application, then compare postflight. A compact prerequisite query is:
-
-```sql
-select
-  to_regclass('public.review_rounds') is null as rounds_absent,
-  to_regclass('public.review_entries') is null as entries_absent,
-  to_regprocedure('public.leave_shared_space(uuid)') is not null as lifecycle_ready,
-  to_regprocedure('public.set_space_module_enabled(uuid,text,boolean)') is not null as module_toggle_ready,
-  to_regprocedure('public.create_review_round(uuid,date)') is null as create_absent,
-  to_regprocedure('public.correct_review_date(uuid,date)') is null as correction_absent,
-  to_regprocedure('public.save_my_review_entry(uuid,text,text,text,text)') is null as save_absent,
-  to_regprocedure('public.mark_my_review_filled(uuid)') is null as mark_absent,
-  exists (
-    select 1 from pg_constraint
-    where conrelid='public.space_modules'::regclass
-      and pg_get_constraintdef(oid) like '%review%'
-  ) as review_key_ready;
-```
+- Production READ-ONLY preflight: **PASS**. Production 的 v0.1.13 schema 与 patch assumptions 兼容；review tables/functions/policies/triggers/index 不存在，`space_modules` 已允许 `review` 且当前 review rows 为 0。4 个 Space、5 条成员关系无 owner/capacity/member anomaly；lifecycle definitions 与 repo canonical 一致。RLS/ACL/RPC boundaries、并发锁前置条件、existing-data safety、schema/patch parity 均通过，blockers 为 `None`。
+- Preflight 只读记录：4 Spaces、5 memberships、4 Tasks-module rows、4 Events、5 Tasks、12 reminder ledger rows；Production 未发生写入，数据检查未发现 blocker。回顾 patch 尚未应用，Production backend 仍为 v0.1.13。
+- Next checkpoint: 在 Slice 1 implementation 与 preflight 记录推送后，按独立授权应用唯一 forward patch 并执行 read-only Production postflight。前端和 authenticated/device acceptance 尚未开始。
 
 Before any later real-login/two-account/mobile/PWA acceptance, run the frontend-target/backend-capability compatibility gate. The user performs authenticated/device acceptance.
 

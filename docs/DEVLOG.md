@@ -1,10 +1,11 @@
 # Development Log
 
-# 2026-09-26 - v0.1.14 回顾 Slice 1 Backend Foundation — LOCAL PASS
+# 2026-09-26 - v0.1.14 回顾 Slice 1 Backend Foundation — LOCAL PASS / PRODUCTION PREFLIGHT PASS
 
 - 在已冻结 [回顾规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md)下，更新 canonical `supabase/schema.sql` 并准备单份 additive forward patch：Space-owned `review_rounds`、固定 participant snapshot `review_entries`、唯一编号与身份约束、双条件读 RLS、表级只读 ACL、四个以 `auth.uid()` 授权的窄 RPC，以及 owner-only `review` 模块开关。创建、成员生命周期和模块关闭复用现有 Space advisory + row lock 顺序；未修改 v0.1.13 lifecycle RPC。
 - 本地测试先验证新表/RPC 不存在的红灯，再将 patch 仅应用到本机 Supabase 测试数据库。最终 `supabase test db --local`：11 文件、505/505 PASS（新增回顾 117 项）；回顾双会话 3/3、既有 lifecycle 双会话 9/9 PASS。更新一条旧模块测试的错误文案预期，仍断言 `lists` 被拒绝。canonical schema 与 patch 的 review foundation、模块 RPC 和 ACL SQL 块逐字一致。
-- Production 仍为 v0.1.13；本轮未应用 Production patch、未改前端、未做真实账号或设备验收。下一步仅为 Production READ-ONLY preflight，核对 v0.1.13 结构及现有数据，再单独审查 forward patch rollout。
+- Production READ-ONLY preflight `PASS`：v0.1.13 schema 与 patch assumptions 兼容；review objects / functions / policies / triggers / index 均不存在，review module rows 为 0；4 个 Space、5 条成员关系无成员 invariant blocker；lifecycle definitions 与 repo canonical 一致。RLS/ACL/RPC security surface、编号锁前置条件、existing-data safety 及 schema/patch parity 均通过，blockers 为 `None`。
+- Production 仍为 v0.1.13；preflight 只执行只读查询，未应用 patch 或改变数据。前端和 authenticated manual acceptance 尚未开始。下一步为 Production forward patch + read-only postflight，须在 Slice 1 commits 推送后按独立 rollout 授权执行。
 
 # 2026-09-25 - v0.1.14 回顾 Design Freeze — DESIGN FROZEN
 
