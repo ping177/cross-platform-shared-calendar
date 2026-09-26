@@ -1,5 +1,11 @@
 # Testing
 
+## v0.1.14.1 Navigation Persistence Bounded Integration Review — PASS
+
+- 临时 Auth 读取错误的 Review 详情回退测试先失败后通过；只有明确的 `ReviewUnavailableError` 才退出详情，其他读取错误显示重试且保留 sessionStorage 目标。
+- 定向导航/Review/Space/Tasks：`node --test tests/navigation-persistence.test.ts tests/navigation.test.ts tests/task-navigation-regression.test.ts tests/review-detail-ui.test.ts tests/review-history-ui.test.ts tests/space-management.test.ts`，**22/22 PASS**。完整 `node --experimental-strip-types --test tests/*.test.ts tests/*.test.js`，**320/320 PASS**。Project State gate **19/19 PASS**；`npm run build` 与 `git diff --check` PASS。静态扫描未发现 Router/history/hash 导航、导航 localStorage、Review 草稿持久化、SQL 或依赖变更。
+- 用户待执行的最小真实浏览器刷新验收：日历、任务、指定 Space 的回顾历史、回顾详情、Space Detail；再检查 logout 后登录不会恢复前一用户的深页。仅保证同一 browser/tab session 的刷新；不覆盖 PWA 完全关闭再启动或 browser history。
+
 ## v0.1.14.1 Navigation Persistence — LOCAL PASS / Manual Acceptance Pending
 
 - `node --test tests/navigation-persistence.test.ts tests/navigation.test.ts tests/task-navigation-regression.test.ts tests/review-detail-ui.test.ts tests/review-history-ui.test.ts tests/space-management.test.ts`：**21/21 PASS**。定向测试覆盖 user-scoped sessionStorage、严格解析、异常存储、首页/日历/功能中心/我的、任务/已完成、回顾历史/详情、空间管理/详情、失效目标、Review eligibility 读取失败、dirty 取消与临时 `justCreated` 不持久化。新测试先红后绿。

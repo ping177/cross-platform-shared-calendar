@@ -12,9 +12,11 @@ v0.1.14.1
 
 ## Current status
 
-v0.1.14.1「Navigation Persistence」`LOCAL PASS`：同一 browser/tab session 刷新时，当前用户的页面目标从 sessionStorage 读取，经 membership 与 Review canonical 检查后恢复；失效目标按页面回退，读取失败保留重试。自动 Node 319/319、Project State gate 19/19 与 build 通过。尚未进行真实账号浏览器/PWA 验收，也未部署；Production 仍为 v0.1.14 `CLOSED / PASS`。暂无明确阻塞。
+v0.1.14.1「Navigation Persistence」实现 `LOCAL PASS`、bounded integration review `PASS`：同一 browser/tab session 刷新时，当前用户的页面目标经 membership 与 Review canonical 检查后恢复；失效目标按页面回退，读取失败保留重试。Review 详情的临时 Auth 读取错误已保留重试。自动 Node 320/320、Project State gate 19/19 与 build 通过。真实账号浏览器验收未执行，也未部署；Production 仍为 v0.1.14 `CLOSED / PASS`。暂无明确阻塞。
 
 ## Latest completed
+
+v0.1.14.1 bounded integration review `PASS`：核对 Auth/Space 启动顺序、用户隔离、各页面写入、dirty guard、失效目标纠偏、临时 UI 与 PWA/history 边界。修复 Review 详情首次读取时临时 Auth 错误被误判为不可访问的问题；保留重试与原目标。Targeted 22/22、full Node 320/320、Project State gate 19/19、build、diff-check PASS。仅本地前端/测试/文档变更；下一步用户在真实浏览器执行关键页面刷新验收。
 
 v0.1.14.1 Navigation Persistence 本地实现与自动验证 `LOCAL PASS`：新增按 user ID 隔离、严格解析且容忍 storage 异常的 sessionStorage 页面目标；Auth 与 Space bootstrap 后恢复，Review history/detail 使用现有 eligibility、participant 读取，Space Detail 核对当前 membership；dirty guard 与独立筛选保持原语义。Node 319/319、Project State gate 19/19、build 与 diff-check PASS。无新依赖、SQL/RPC/RLS 或 Production 操作；真实账号刷新验收待用户执行。
 
@@ -110,7 +112,7 @@ Notes: Vercel is the configured Production provider. Production remains v0.1.14 
 - v0.1.12 — Module Hub + Space Management Navigation（CLOSED / PASS；Slice 1–4 CLOSED / PASS；Production / installed-PWA acceptance PASS）
 - v0.1.13 — Space Lifecycle & Membership Safety（CLOSED / PASS；Slice 1/2 CLOSED / PASS；Production deployment、用户报告的 authenticated/mobile/PWA acceptance PASS）
 - v0.1.14 — 回顾（CLOSED / PASS；backend/date chronology Production PASS；frontend deployed；public smoke 与 Production authenticated acceptance PASS；final exact-ID cleanup PASS，Review 0/0、两条 module enabled）
-- v0.1.14.1 — Navigation Persistence（LOCAL PASS；同一 tab 刷新恢复有效页面，待 integration review 与真实浏览器验收；未部署）
+- v0.1.14.1 — Navigation Persistence（实现 LOCAL PASS、integration review PASS；待真实浏览器验收；未部署）
 
 ## Last verified
 
@@ -118,7 +120,7 @@ Notes: Vercel is the configured Production provider. Production remains v0.1.14 
 
 ## Next Action
 
-Next Action: perform a bounded v0.1.14.1 integration review, then have the user test authenticated refresh recovery in a real browser; keep Production at v0.1.14 until acceptance and separate push/deployment authorization.
+Next Action: have the user test v0.1.14.1 authenticated refresh recovery in a real browser on the local frontend; keep Production at v0.1.14 until acceptance and separate push/deployment authorization.
 
 ## Blockers
 
@@ -190,4 +192,4 @@ Next Action: perform a bounded v0.1.14.1 integration review, then have the user 
 
 ## Handoff Prompt
 
-v0.1.13 Space Lifecycle & Membership Safety and v0.1.14 Review are `CLOSED / PASS`. v0.1.14 backend/date chronology, frontend deployment, public smoke, user-reported Production authenticated acceptance and final exact-ID fixture cleanup all passed; Production Review is 0/0 with Shared and Personal Review modules enabled. Next Action is neutral post-v0.1.14 backlog review and next-version selection; no next scope has been approved. Refresh-to-home and the existing bundle warning remain non-blocking follow-up items.
+v0.1.13 and v0.1.14 are `CLOSED / PASS`; Production remains v0.1.14. v0.1.14.1 Navigation Persistence implementation is `LOCAL PASS` and bounded integration review is `PASS` (targeted 22/22, full Node 320/320, gate 19/19, build PASS). Next Action is user-run authenticated refresh acceptance of the local frontend in a real browser; no push or deployment authorization has been given. The existing bundle warning remains outside this version.

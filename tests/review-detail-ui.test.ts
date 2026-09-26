@@ -21,6 +21,12 @@ test('successful date correction refreshes the date-driven previous plan', () =>
   assert.match(detailSource, /const changed = await correctReviewDate[\s\S]*setDetail\(updated\);[\s\S]*void refreshPrevious\(changed\);/);
 });
 
+test('only canonical unavailability closes restored detail; transient auth reads remain retryable', () => {
+  assert.match(detailSource, /if \(loadError instanceof ReviewUnavailableError\) \{[\s\S]*?setPhase\('unavailable'\)/);
+  assert.doesNotMatch(detailSource, /\/登录状态已变化\/u\.test\(/);
+  assert.match(detailSource, /setPhase\('error'\)/);
+});
+
 test('Shared keeps both panels mounted with mobile switching and desktop own-left layout', async () => {
   const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
   try {

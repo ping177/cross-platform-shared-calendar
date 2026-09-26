@@ -94,7 +94,7 @@ export function ReviewDetailPage({ target, userId, onBack, onDirtyChange, onUnav
       void refreshPrevious(loaded.round);
     } catch (loadError) {
       if (!detailGuard.current.isCurrent(request)) return;
-      if (loadError instanceof ReviewUnavailableError || /登录状态已变化/u.test(loadError instanceof Error ? loadError.message : '')) {
+      if (loadError instanceof ReviewUnavailableError) {
         previousGuard.current.invalidate();
         detailRef.current = null;
         setDetail(null);

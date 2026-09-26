@@ -1,5 +1,10 @@
 # Development Log
 
+## 2026-09-26 - v0.1.14.1 Navigation Persistence Bounded Integration Review — PASS
+
+- 审核 committed 页面目标模型、Auth/Space 恢复顺序、按用户隔离、所有主导航写入、dirty guard、Review/Space/Tasks 回退、筛选独立性和 PWA/history 边界。发现首次恢复 Review 详情时，临时 `getUser()` 读取错误会因「登录状态已变化」文案被误判为不可访问且没有重试；仅让明确的 `ReviewUnavailableError` 进入失效状态，其余读取错误保留详情目标与重试。定向回归先红后绿。
+- Targeted navigation **22/22**、full Node **320/320**、Project State gate **19/19**、`npm run build`、`git diff --check` PASS。构建仍有既有 >500 kB chunk warning。无依赖、SQL/RPC/RLS、Production、真实账号、push 或 deployment 操作；下一步用户真实浏览器关键页面刷新验收。
+
 ## 2026-09-26 - v0.1.14.1 Navigation Persistence — LOCAL PASS
 
 - 在既有 React memory navigation 上加入 user-scoped sessionStorage 页面目标；仅保存页面和稳定 Space/Review ID。Auth session 与当前 Space 列表恢复后才解析目标；Review history/detail 复用现有 eligibility、participant/RLS 读取，Space Detail 核对当前 membership。失效目标按页面回退，网络读取失败保留目标与页面重试；新登录从首页开始，logout 清除当前用户目标。现有 selectedSpaceId localStorage、模块筛选和 Review dirty guard 不变。
