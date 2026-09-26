@@ -16,6 +16,7 @@ import { MyPage } from './components/MyPage';
 import { SpaceManagementPage } from './components/SpaceManagementPage';
 import { ModuleHub } from './components/ModuleHub';
 import { ReviewHistoryPage } from './components/ReviewHistoryPage';
+import { ReviewDetailPage } from './components/ReviewDetailPage';
 import { RecurrenceControls } from './components/RecurrenceControls';
 import { TasksArea } from './components/TasksArea';
 import { HomePage } from './components/HomePage';
@@ -53,7 +54,8 @@ import { newEventIdentity } from './lib/space-content';
 import { readSpaceMembers } from './lib/space-members';
 import { settleSpaceLifecycle, type SpaceLifecycleAction } from './lib/space-lifecycle';
 import { createRequestGuard } from './lib/request-guard';
-import { calendarContentSpaceId, initialNavigation, openCompletedTasks, openReviewModule, openTaskList, openTaskModule, selectTab, type TopLevelTab } from './lib/navigation';
+import { calendarContentSpaceId, initialNavigation, openCompletedTasks, openReviewDetail, openReviewModule, openTaskList, openTaskModule, selectTab, type TopLevelTab } from './lib/navigation';
+import type { ReviewDetailTarget } from './lib/review-detail';
 import {
   registerPushServiceWorker,
 } from './lib/push-notifications';
@@ -389,6 +391,7 @@ function CalendarApp({ session }: { session: Session }) {
   const [myScreen, setMyScreen] = useState<'profile' | 'management' | 'detail'>('profile');
   const [calendarFilter, setCalendarFilter] = useState<CalendarFilter>('all');
   const [reviewSpaceId, setReviewSpaceId] = useState<string | null>(null);
+  const [reviewDetail, setReviewDetail] = useState<ReviewDetailTarget | null>(null);
   const [navigation, setNavigation] = useState(initialNavigation);
   const [spaceListStatus, setSpaceListStatus] = useState<'loading' | 'ready' | 'error'>('ready');
   const [spaceActionBusy, setSpaceActionBusy] = useState(false);
@@ -578,7 +581,10 @@ function CalendarApp({ session }: { session: Session }) {
       {navigation.tab === 'modules' && spaceListStatus === 'ready' && (navigation.moduleScreen === 'hub'
         ? <ModuleHub userId={userId} onOpenTasks={() => setNavigation((current) => openTaskModule(current))} onOpenReview={() => setNavigation((current) => openReviewModule(current))} />
         : navigation.moduleScreen === 'review'
-          ? <ReviewHistoryPage userId={userId} currentSpaceId={reviewSpaceId} onSpaceChange={setReviewSpaceId} onHubBack={() => setNavigation((current) => selectTab(current, 'modules'))} />
+          ? <ReviewHistoryPage userId={userId} currentSpaceId={reviewSpaceId} onSpaceChange={setReviewSpaceId} onOpenDetail={(target) => { setReviewDetail(target); setNavigation((current) => openReviewDetail(current)); }} onHubBack={() => setNavigation((current) => selectTab(current, 'modules'))} />
+          : navigation.moduleScreen === 'review-detail'
+            ? reviewDetail ? <ReviewDetailPage key={`${reviewDetail.spaceId}:${reviewDetail.reviewId}`} target={reviewDetail} userId={userId} onBack={() => setNavigation((current) => openReviewModule(current))} />
+              : <main className="mx-auto max-w-3xl px-4 py-6"><p>这次回顾暂不可访问。</p><button className="mt-3 min-h-11 font-semibold text-teal" type="button" onClick={() => setNavigation((current) => openReviewModule(current))}>返回回顾列表</button></main>
           : <TasksArea
             key={userId}
             screen={navigation.moduleScreen}

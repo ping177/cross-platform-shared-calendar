@@ -5,12 +5,13 @@ import { createServer } from 'vite';
 test('Slice 3 navigation has four primary destinations and one bounded Tasks path', async () => {
   const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
   try {
-    const { initialNavigation, selectTab, openTaskModule, openReviewModule, openCompletedTasks, openTaskList, openCalendar } = await vite.ssrLoadModule('/src/lib/navigation.ts');
+    const { initialNavigation, selectTab, openTaskModule, openReviewModule, openReviewDetail, openCompletedTasks, openTaskList, openCalendar } = await vite.ssrLoadModule('/src/lib/navigation.ts');
     assert.deepEqual(initialNavigation, { tab: 'home', moduleScreen: 'hub' });
     const modules = selectTab(initialNavigation, 'modules');
     assert.deepEqual(modules, { tab: 'modules', moduleScreen: 'hub' });
     assert.deepEqual(openTaskModule(modules), { tab: 'modules', moduleScreen: 'tasks' });
     assert.deepEqual(openReviewModule(modules), { tab: 'modules', moduleScreen: 'review' });
+    assert.deepEqual(openReviewDetail(openReviewModule(modules)), { tab: 'modules', moduleScreen: 'review-detail' });
     assert.deepEqual(openCompletedTasks(openTaskModule(modules)), { tab: 'modules', moduleScreen: 'completed' });
     assert.deepEqual(openTaskList(openCompletedTasks(openTaskModule(modules))), { tab: 'modules', moduleScreen: 'tasks' });
     assert.deepEqual(selectTab(openCompletedTasks(openTaskModule(modules)), 'modules'), modules);

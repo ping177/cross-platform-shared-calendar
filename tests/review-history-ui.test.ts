@@ -28,11 +28,28 @@ test('Review list starts without body or create placeholder; Hub starts with Tas
     const { ModuleHub } = await vite.ssrLoadModule('/src/components/ModuleHub.tsx');
     const { ReviewHistoryPage } = await vite.ssrLoadModule('/src/components/ReviewHistoryPage.tsx');
     const hub = renderToStaticMarkup(React.createElement(ModuleHub, { userId: 'me', onOpenTasks: () => undefined, onOpenReview: () => undefined }));
-    const review = renderToStaticMarkup(React.createElement(ReviewHistoryPage, { userId: 'me', currentSpaceId: null, onSpaceChange: () => undefined, onHubBack: () => undefined }));
+    const review = renderToStaticMarkup(React.createElement(ReviewHistoryPage, { userId: 'me', currentSpaceId: null, onSpaceChange: () => undefined, onOpenDetail: () => undefined, onHubBack: () => undefined }));
     assert.match(hub, /进入任务/);
     assert.doesNotMatch(hub, /进入回顾/);
     assert.match(review, /功能中心/);
     assert.match(review, /正在读取回顾空间/);
     assert.doesNotMatch(review, /下一步计划|近期进展|我已填写/);
+  } finally { await vite.close(); }
+});
+
+test('historical row opens the canonical review id without newly-created context', async () => {
+  const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
+  try {
+    const { ReviewHistoryRows } = await vite.ssrLoadModule('/src/components/ReviewHistoryPage.tsx');
+    const round = { id: 'r2', space_id: 's', round_no: 2, review_date: '2026-09-26' };
+    const targets: unknown[] = [];
+    const tree = ReviewHistoryRows({ rows: [{ round, mine: '已填写', other: '编辑中' }], onOpenDetail: (target: unknown) => targets.push(target) });
+    const markup = renderToStaticMarkup(tree);
+    assert.match(markup, /打开第 2 次回顾/);
+    assert.match(markup, /我：已填写/);
+    assert.match(markup, /对方：编辑中/);
+    const button = (tree.props as { children: React.ReactElement[] }).children[0];
+    (button.props as { onClick: () => void }).onClick();
+    assert.deepEqual(targets, [{ spaceId: 's', reviewId: 'r2', justCreated: false }]);
   } finally { await vite.close(); }
 });

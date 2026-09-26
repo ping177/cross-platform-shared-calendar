@@ -1,5 +1,12 @@
 # Testing
 
+## v0.1.14 回顾 Slice 4 — Responsive Detail Local PASS
+
+- `node --test tests/review-detail.test.ts tests/review-detail-data.test.ts tests/review-detail-ui.test.ts tests/review-history-ui.test.ts tests/navigation.test.ts`: **12/12 PASS**。覆盖 participant snapshot 的本人/对方映射、Personal 单列、Shared 移动切换两 panel 持续挂载与桌面双列、只读四字段固定高度/框内滚动、历史打开与刚创建临时导航区别、同 Space 精确 `round_no - 1` 上一轮计划（无轮、无本人 entry、空白均无计划）、日期 RPC 精确参数/服务端结果/拒绝传播、返回 dirty 确认逻辑。
+- `node --test tests/*.test.ts tests/*.test.js`: **301/301 PASS**；`npm run build`（TypeScript + Vite）、`git diff --check`: **PASS**。Vite 仍提示 bundle >500 kB，构建成功。仓库无 lint 或 React 交互测试脚本；SSR/静态检查不构成真实浏览器、320px、账号或设备验收。
+- 详情重新聚焦刷新 RLS 可见轮次与对方内容，不重载已挂载的本人 editor；若 canonical 读取证明已失去访问条件，则移除正文。本人多端并发没有 backend expected-revision 参数，前端不声称冲突检测。日期更正返回历史后由历史组件重新挂载并读取 canonical 日期排序。上一轮计划只在刚创建的临时导航上下文中显示，失败不阻断当前轮编辑。
+- Slice 4 不改 SQL/RLS/RPC/DB tests，Production backend 保持 Slice 1 PASS；Slice 2–4 本地前端未 push、未部署，Production 前端仍为 v0.1.13、没有回顾 UI。真实账号与设备 acceptance 未开始；下一步先做完整前端 integration / pre-deploy review 和 backend compatibility gate。
+
 ## v0.1.14 回顾 Slice 3 — History / Create Frontend Local PASS
 
 - `node --test tests/review-history.test.ts tests/review-history-data.test.ts tests/review-history-ui.test.ts tests/navigation.test.ts tests/task-navigation-regression.test.ts`: **12/12 PASS**。覆盖 review module eligibility、缺行/关闭、Shared 单成员历史与双成员创建门槛、独立选择与失效纠偏、participant snapshot 状态、Slice 2 状态 helper、20 轮日期/编号游标分页、去重、精确创建 RPC 参数及服务端返回、错误传播、过期请求 guard、模块 owner/member 控件、Hub/历史初始静态结构和 Tasks 路径回归。

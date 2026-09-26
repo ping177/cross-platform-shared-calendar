@@ -1,5 +1,12 @@
 # Development Log
 
+# 2026-09-26 - v0.1.14 回顾 Slice 4 Responsive Detail + Date Correction + Previous Plan — LOCAL PASS
+
+- 历史行打开其 RLS 可见轮次；`create_review_round` 成功后用 RPC 返回的真实 id/编号进入刚创建的详情，失败仍保留 Slice 3 表单。详情按该轮固定 entries 映射本人/对方，非参与者、失去当前成员资格、Space 或模块不可用时不继续显示旧正文；过期读取不能覆盖新目标。
+- 本人直接挂载 Slice 2 `ReviewEntryEditor`，仅加可选 dirty 回调供返回历史时做窄确认；没有重写 save/mark/revision 逻辑。Shared 桌面固定我左/对方右，手机按钮切换时两 panel 保持挂载以保留未保存草稿；Personal 单列。对方四字段只读、固定高度、内部滚动并保留换行。重新聚焦只刷新轮次与对方资料，不替换本人 editor 草稿；保存/标记继续使用服务端 canonical 响应。
+- 日期更正仅调用已部署 `correct_review_date(p_review_id,p_review_date)`，保持编号与参与者身份；详情用 canonical 返回值更新，返回历史时重新读取日期排序。仅刚创建流程显示上一轮计划：用本轮服务端 `round_no - 1` 查询同 Space 的本人 entry；无紧邻轮、非 participant 或空白时显示「上一次暂无计划」，失败只影响参考区。没有复制、按日期搜索、回退更早轮或持久化新建标记。
+- Focused Node **12/12**、完整 Node **301/301**、`npm run build`、`git diff --check` PASS。SSR/静态检查覆盖响应式类名与只读结构，不能代替真实 320px/桌面浏览器或账号验收。无 SQL/RLS/RPC、依赖、Production 数据/部署、真实登录操作或 push；下一步为前端整体 integration / pre-deploy review。
+
 # 2026-09-26 - v0.1.14 回顾 Slice 3 Module Entry + Space-scoped History & Create — LOCAL PASS
 
 - 空间详情延续 owner-only 模块开关模式加入「回顾」，通过既有 `set_space_module_enabled` RPC 切换并回读 canonical 状态；普通成员仅查看。功能中心仅在当前成员且模块已开启的 Space 存在时显示回顾入口，读取失败可重试。任务入口与原开关语义保留。

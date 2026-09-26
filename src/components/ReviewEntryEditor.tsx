@@ -13,7 +13,7 @@ const fields = [
 
 const emptyDraft: ReviewEntryDraft = { focus: '', progress: '', problems: '', next_plan: '' };
 
-export function ReviewEntryEditor({ reviewId, userId }: { reviewId: string; userId: string }) {
+export function ReviewEntryEditor({ reviewId, userId, onDirtyChange }: { reviewId: string; userId: string; onDirtyChange?: (dirty: boolean) => void }) {
   const id = useId();
   const [entry, setEntry] = useState<ReviewEntry | null>(null);
   const [draft, setDraft] = useState<ReviewEntryDraft>(emptyDraft);
@@ -50,6 +50,7 @@ export function ReviewEntryEditor({ reviewId, userId }: { reviewId: string; user
 
   const currentEntry = entry?.review_id === reviewId && entry.user_id === userId ? entry : null;
   const dirty = currentEntry ? isReviewEntryDirty(currentEntry, draft) : false;
+  useEffect(() => { onDirtyChange?.(dirty); }, [dirty, onDirtyChange]);
   const status = currentEntry ? deriveReviewEntryStatus(currentEntry) : null;
   const markReady = Boolean(currentEntry && !dirty && !busy && hasReviewEntryContent(currentEntry) && status !== '已填写');
 
