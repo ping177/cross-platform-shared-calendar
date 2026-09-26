@@ -15,6 +15,7 @@ import { CreateTargetSelector, type CreateTargetControl } from './components/Glo
 import { MyPage } from './components/MyPage';
 import { SpaceManagementPage } from './components/SpaceManagementPage';
 import { ModuleHub } from './components/ModuleHub';
+import { ReviewHistoryPage } from './components/ReviewHistoryPage';
 import { RecurrenceControls } from './components/RecurrenceControls';
 import { TasksArea } from './components/TasksArea';
 import { HomePage } from './components/HomePage';
@@ -52,7 +53,7 @@ import { newEventIdentity } from './lib/space-content';
 import { readSpaceMembers } from './lib/space-members';
 import { settleSpaceLifecycle, type SpaceLifecycleAction } from './lib/space-lifecycle';
 import { createRequestGuard } from './lib/request-guard';
-import { calendarContentSpaceId, initialNavigation, openCompletedTasks, openTaskList, openTaskModule, selectTab, type TopLevelTab } from './lib/navigation';
+import { calendarContentSpaceId, initialNavigation, openCompletedTasks, openReviewModule, openTaskList, openTaskModule, selectTab, type TopLevelTab } from './lib/navigation';
 import {
   registerPushServiceWorker,
 } from './lib/push-notifications';
@@ -387,6 +388,7 @@ function CalendarApp({ session }: { session: Session }) {
   const [selectedSpaceId, setSelectedSpaceId] = useState<string | null>(null);
   const [myScreen, setMyScreen] = useState<'profile' | 'management' | 'detail'>('profile');
   const [calendarFilter, setCalendarFilter] = useState<CalendarFilter>('all');
+  const [reviewSpaceId, setReviewSpaceId] = useState<string | null>(null);
   const [navigation, setNavigation] = useState(initialNavigation);
   const [spaceListStatus, setSpaceListStatus] = useState<'loading' | 'ready' | 'error'>('ready');
   const [spaceActionBusy, setSpaceActionBusy] = useState(false);
@@ -574,8 +576,10 @@ function CalendarApp({ session }: { session: Session }) {
       {navigation.tab === 'modules' && spaceListStatus !== 'ready' && <SpaceListPending status={spaceListStatus} onRetry={() => void refreshSpaces(false)} />}
       {navigation.tab === 'home' && spaceListStatus === 'ready' && <HomePage spaces={spaces} userId={userId} EventSheetComponent={EventSheet} onMembershipRefresh={async () => { await refreshSpaces(); }} />}
       {navigation.tab === 'modules' && spaceListStatus === 'ready' && (navigation.moduleScreen === 'hub'
-        ? <ModuleHub onOpenTasks={() => setNavigation((current) => openTaskModule(current))} />
-        : <TasksArea
+        ? <ModuleHub userId={userId} onOpenTasks={() => setNavigation((current) => openTaskModule(current))} onOpenReview={() => setNavigation((current) => openReviewModule(current))} />
+        : navigation.moduleScreen === 'review'
+          ? <ReviewHistoryPage userId={userId} currentSpaceId={reviewSpaceId} onSpaceChange={setReviewSpaceId} onHubBack={() => setNavigation((current) => selectTab(current, 'modules'))} />
+          : <TasksArea
             key={userId}
             screen={navigation.moduleScreen}
             onScreenChange={(screen) => setNavigation((current) => screen === 'completed' ? openCompletedTasks(current) : openTaskList(current))}

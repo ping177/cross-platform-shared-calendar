@@ -1,7 +1,7 @@
 import type { CalendarFilter } from './aggregate-calendar';
 
 export type TopLevelTab = 'home' | 'calendar' | 'modules' | 'me';
-export type ModuleScreen = 'hub' | 'tasks' | 'completed';
+export type ModuleScreen = 'hub' | 'tasks' | 'completed' | 'review';
 export type NavigationState = { tab: TopLevelTab; moduleScreen: ModuleScreen };
 
 export const initialNavigation: NavigationState = { tab: 'home', moduleScreen: 'hub' };
@@ -12,6 +12,10 @@ export function selectTab(_current: NavigationState, tab: TopLevelTab): Navigati
 
 export function openTaskModule(_current: NavigationState): NavigationState {
   return { tab: 'modules', moduleScreen: 'tasks' };
+}
+
+export function openReviewModule(_current: NavigationState): NavigationState {
+  return { tab: 'modules', moduleScreen: 'review' };
 }
 
 export function openCompletedTasks(_current: NavigationState): NavigationState {

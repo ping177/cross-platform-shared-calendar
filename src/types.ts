@@ -45,6 +45,15 @@ export type ReviewEntry = {
   updated_at: string;
 };
 
+export type ReviewRound = {
+  id: string;
+  space_id: string;
+  round_no: number;
+  review_date: string;
+  created_by: string;
+  created_at: string;
+};
+
 export type DailyRecurrenceRule = {
   version: 1;
   frequency: 'daily';

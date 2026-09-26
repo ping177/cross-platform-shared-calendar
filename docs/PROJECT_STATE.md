@@ -12,9 +12,11 @@ v0.1.14
 
 ## Current status
 
-v0.1.14「回顾」`SLICE 2 ENTRY FRONTEND LOCAL PASS / PRODUCTION FRONTEND NOT DEPLOYED`。产品与验收契约见 [v0.1.14 规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md)。Slice 1 backend 已在 Production 应用并通过 postflight；Slice 2 本人 entry 的读取、保存、填写状态组件已在本地实现并通过自动验证，尚未接入正式导航。用户可见 Production 前端仍为 v0.1.13，v0.1.14 真实账号验收未开始，整体仍在开发。
+v0.1.14「回顾」`SLICE 3 HISTORY/CREATE FRONTEND LOCAL PASS / PRODUCTION FRONTEND NOT DEPLOYED`。产品与验收契约见 [v0.1.14 规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md)。Slice 1 backend 已在 Production 应用并通过 postflight；Slice 2 本人 entry 组件本地 PASS；Slice 3 模块开关、功能中心入口、独立 Space 历史与新建流程本地自动验证 PASS。Slice 2 编辑组件尚未挂载详情。用户可见 Production 前端仍为 v0.1.13，v0.1.14 真实账号验收未开始，整体仍在开发。
 
 ## Latest completed
+
+v0.1.14 Slice 3 Module Entry + Space-scoped History & Create 本地 `PASS`：空间管理增加 owner-only 回顾开关；功能中心仅在存在已开启且当前可访问的 Space 时显示回顾。独立单 Space 选择、参与者快照状态映射、20 轮游标分页和日期可编辑的 `+` 新建复用现有 RLS 与 `create_review_round`。Focused Node、full Node、TypeScript/Vite build 与 diff-check PASS；无 SQL/RLS/RPC、依赖、Production/frontend 部署或真实账号验收。完整详情和上一轮计划属于 Slice 4。
 
 v0.1.14 Slice 2 Entry Save & Filled Status 本地 `PASS`：新增本人 entry 的定向读取与复用已部署 save/mark RPC 的 data layer、四字段固定高度编辑组件、canonical 状态/dirty 分离和失败保留草稿。Focused Node 8/8、full Node 284/284、TypeScript/Vite build 与 diff-check 通过；没有组件测试框架，未进行组件自动交互或真实账号验收。无 SQL、Production frontend、依赖或导航变更。
 
@@ -89,7 +91,7 @@ Notes: Vercel is the configured Production provider. The v0.1.14 rollout added b
 - v0.1.11 — Navigation + Aggregation Experience（CLOSED / PASS；Slice 1–4 CLOSED / PASS；Production installed PWA acceptance PASS；dedicated final iPhone Safari acceptance NOT RUN）
 - v0.1.12 — Module Hub + Space Management Navigation（CLOSED / PASS；Slice 1–4 CLOSED / PASS；Production / installed-PWA acceptance PASS）
 - v0.1.13 — Space Lifecycle & Membership Safety（CLOSED / PASS；Slice 1/2 CLOSED / PASS；Production deployment、用户报告的 authenticated/mobile/PWA acceptance PASS）
-- v0.1.14 — 回顾（Slice 1 backend Production PASS；Slice 2 entry frontend 本地 PASS，未接入导航或部署；真实账号验收未开始；整体未关闭）
+- v0.1.14 — 回顾（Slice 1 backend Production PASS；Slice 2 entry 本地 PASS；Slice 3 history/create 本地 PASS；Production 前端未部署，真实账号验收未开始；整体未关闭）
 
 ## Last verified
 
@@ -97,7 +99,7 @@ Notes: Vercel is the configured Production provider. The v0.1.14 rollout added b
 
 ## Next Action
 
-Next Action: v0.1.14 Slice 3 — 将「回顾」接入功能中心，完成独立的 Space-scoped 历史列表与新建流程，复用 Slice 2 本人 entry 组件和已部署 backend primitives；不要提前实现完整详情布局或上一轮计划。真实账号验收前执行前端目标与 Production backend 的 compatibility gate。
+Next Action: v0.1.14 Slice 4 — 将历史轮进入完整详情，复用 Slice 2 本人 entry 组件，完成 Personal 单列、Shared 桌面并排/手机我与对方切换、日期更正及按紧邻编号读取的上一轮计划参考。真实账号验收前执行前端目标与 Production backend 的 compatibility gate。
 
 ## Blockers
 
@@ -105,7 +107,7 @@ Next Action: v0.1.14 Slice 3 — 将「回顾」接入功能中心，完成独�
 
 ## Important Context
 
-- v0.1.14 Design Freeze 保持 canonical；Production 已具备 Slice 1 回顾表、RPC 和权限基础。repo 中已有未挂载导航的 Slice 2 本人 entry 组件，Production 前端尚无回顾 UI。访问旧轮必须同时是当前 Space 成员和该轮 participant；leave/remove 保留 entry，新成员看不到旧轮，原 participant 重入可恢复访问。Shared 必须双人才能新建；模块缺行或关闭时隐藏正常选择并拒绝写入。Slice 2 直接复用已部署的 save/mark RPC。完整 contract 和验收条件只以 v0.1.14 规格为准。
+- v0.1.14 Design Freeze 保持 canonical；Production 已具备 Slice 1 回顾表、RPC 和权限基础。本地 Slice 3 已接入模块开关、Hub 入口、独立 Space 历史与新建，Slice 2 本人 entry 组件仍待 Slice 4 详情挂载；Production 前端尚无回顾 UI。访问旧轮必须同时是当前 Space 成员和该轮 participant；leave/remove 保留 entry，新成员看不到旧轮，原 participant 重入可恢复访问。Shared 必须双人才能新建；模块缺行或关闭时隐藏正常选择并拒绝写入。完整 contract 和验收条件只以 v0.1.14 规格为准。
 - Git branch、latest commit、working tree 由 project-command-center 实时 Git 扫描读取；PROJECT_STATE.md 不作为这些字段的权威来源。
 - Production URL: `https://cross-platform-shared-calendar.vercel.app/`.
 - Supabase project status is currently Active, but Free Tier inactivity pause remains an operational risk.

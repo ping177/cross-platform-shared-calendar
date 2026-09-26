@@ -11,6 +11,7 @@ import type { TasksModuleState } from '../lib/space-modules';
 import { InvitePanel } from './InvitePanel';
 import { SharedSpaceForms } from './SharedSpaceForms';
 import { useSpaceTasksModule } from './useSpaceTasksModule';
+import { useSpaceReviewModule } from './useSpaceReviewModule';
 
 type DetailProps = {
   space: CurrentSpace;
@@ -20,11 +21,16 @@ type DetailProps = {
   moduleBusy: boolean;
   onModuleRetry: () => void;
   onModuleToggle: () => void;
+  reviewModuleState?: TasksModuleState;
+  reviewModuleError?: string;
+  reviewModuleBusy?: boolean;
+  onReviewModuleRetry?: () => void;
+  onReviewModuleToggle?: () => void;
   onSpaceChange: (space: Space) => void;
   lifecycleControls?: React.ReactNode;
 };
 
-export function SpaceDetailContent({ space, members, moduleState, moduleError, moduleBusy, onModuleRetry, onModuleToggle, onSpaceChange, lifecycleControls }: DetailProps) {
+export function SpaceDetailContent({ space, members, moduleState, moduleError, moduleBusy, onModuleRetry, onModuleToggle, reviewModuleState = 'loading', reviewModuleError = '', reviewModuleBusy = false, onReviewModuleRetry = () => undefined, onReviewModuleToggle = () => undefined, onSpaceChange, lifecycleControls }: DetailProps) {
   const isOwner = space.membershipRole === 'owner';
   return (
     <div className="space-y-4">
@@ -58,6 +64,14 @@ export function SpaceDetailContent({ space, members, moduleState, moduleError, m
                 : <span className="text-sm text-ink/60">{moduleState === 'enabled' ? '已开启' : '已关闭'}</span>}
         </div>
         {moduleError && <p className="mt-2 text-sm text-coral" role="alert">{moduleError}</p>}
+        <div className="mt-3 flex min-w-0 flex-wrap items-center justify-between gap-3 border-t border-ink/10 pt-3">
+          <span className="font-semibold">回顾</span>
+          {reviewModuleState === 'loading' || reviewModuleBusy ? <span className="text-sm text-ink/60">载入中…</span>
+            : reviewModuleState === 'error' ? <button className="min-h-11 font-semibold text-teal" type="button" onClick={onReviewModuleRetry}>重试</button>
+              : isOwner ? <button className="min-h-11 rounded-lg bg-mist px-4 text-sm font-semibold" type="button" role="switch" aria-label="回顾模块" aria-checked={reviewModuleState === 'enabled'} onClick={onReviewModuleToggle}>{reviewModuleState === 'enabled' ? '关闭回顾模块' : '开启回顾模块'}</button>
+                : <span className="text-sm text-ink/60">{reviewModuleState === 'enabled' ? '已开启' : '已关闭'}</span>}
+        </div>
+        {reviewModuleError && <p className="mt-2 text-sm text-coral" role="alert">{reviewModuleError}</p>}
       </section>
       {space.kind === 'shared' && lifecycleControls}
     </div>
@@ -140,6 +154,7 @@ function SpaceDetail({ space, userId, onSpaceChange, busy, onBusyChange, onLifec
   const [membersStatus, setMembersStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const membersGuard = useRef(createRequestGuard());
   const module = useSpaceTasksModule(space);
+  const reviewModule = useSpaceReviewModule(space);
 
   async function loadMembers() {
     const request = membersGuard.current.begin();
@@ -163,7 +178,7 @@ function SpaceDetail({ space, userId, onSpaceChange, busy, onBusyChange, onLifec
   if (space.kind === 'shared' && membersStatus !== 'ready') {
     return <div role={membersStatus === 'error' ? 'alert' : 'status'}>{membersStatus === 'loading' ? '正在读取空间成员…' : '空间成员读取失败。'}{membersStatus === 'error' && <button className="ml-3 min-h-11 font-semibold text-teal" type="button" onClick={() => void loadMembers()}>重试</button>}</div>;
   }
-  return <SpaceDetailContent space={space} members={members} moduleState={module.state} moduleError={module.error} moduleBusy={module.busy} onModuleRetry={() => void module.retry()} onModuleToggle={() => void module.toggle()} onSpaceChange={onSpaceChange} lifecycleControls={<SpaceLifecycleControls space={space} members={members} userId={userId} busy={busy} onBusyChange={onBusyChange} onSettled={onLifecycleSettled} />} />;
+  return <SpaceDetailContent space={space} members={members} moduleState={module.state} moduleError={module.error} moduleBusy={module.busy} onModuleRetry={() => void module.retry()} onModuleToggle={() => void module.toggle()} reviewModuleState={reviewModule.state} reviewModuleError={reviewModule.error} reviewModuleBusy={reviewModule.busy} onReviewModuleRetry={() => void reviewModule.retry()} onReviewModuleToggle={() => void reviewModule.toggle()} onSpaceChange={onSpaceChange} lifecycleControls={<SpaceLifecycleControls space={space} members={members} userId={userId} busy={busy} onBusyChange={onBusyChange} onSettled={onLifecycleSettled} />} />;
 }
 
 export function SpaceManagementPage({ spaces, selectedSpaceId, userId, detailRevision, onSelect, onBack, onReady, onSpaceChange, onLifecycleSettled, busy, onBusyChange }: {

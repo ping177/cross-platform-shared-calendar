@@ -1,5 +1,12 @@
 # Testing
 
+## v0.1.14 回顾 Slice 3 — History / Create Frontend Local PASS
+
+- `node --test tests/review-history.test.ts tests/review-history-data.test.ts tests/review-history-ui.test.ts tests/navigation.test.ts tests/task-navigation-regression.test.ts`: **12/12 PASS**。覆盖 review module eligibility、缺行/关闭、Shared 单成员历史与双成员创建门槛、独立选择与失效纠偏、participant snapshot 状态、Slice 2 状态 helper、20 轮日期/编号游标分页、去重、精确创建 RPC 参数及服务端返回、错误传播、过期请求 guard、模块 owner/member 控件、Hub/历史初始静态结构和 Tasks 路径回归。
+- `node --test tests/*.test.ts tests/*.test.js`: **293/293 PASS**；`npm run build`（TypeScript + Vite）和 `git diff --check`: **PASS**。Vite 报告既有 bundle >500 kB 警告，构建成功；仓库无 lint 或 React 交互测试脚本。
+- 本地静态/SSR 验证没有真实登录、浏览器点击链或设备结论。History SELECT 依赖已部署的 participant RLS；列表读取四项正文列仅为复用 canonical「全空」状态判断，不展示正文。分页以 `(review_date DESC, round_no DESC)` 唯一游标加载（Space 内 `round_no` 唯一），并对跨页 ID 去重。后台日期更正等并发重排可通过页面刷新获取 canonical 顺序。
+- Slice 3 未改 SQL、RLS、RPC 或 DB tests；Production backend 保持 Slice 1 PASS，Production frontend 仍是 v0.1.13，v0.1.14 用户真实账号/移动/PWA acceptance 未开始。完整详情、上一轮计划、日期更正 UI 属于 Slice 4；其后 authenticated acceptance 前必须执行 frontend/backend compatibility gate。
+
 ## v0.1.14 回顾 Slice 2 — Entry Frontend Local PASS
 
 - `node --test tests/review-entry.test.ts tests/review-entry-data.test.ts`: **8/8 PASS**。覆盖 persisted 四状态、空白/常见空白字符、null 与空串的可见草稿比较、编辑后还原的 dirty 清除、已知 backend 拒绝文案、本人 participant 读取、精确 save/mark RPC 参数、服务端 canonical revision/时间返回、backend error、登录变化及异常响应 fail-closed。本机 Supabase 只读 SELECT 还核对了普通空格、制表符、不换行空格和全角空格的 PostgreSQL `[:space:]` 分类。

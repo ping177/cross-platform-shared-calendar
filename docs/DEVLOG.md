@@ -1,5 +1,12 @@
 # Development Log
 
+# 2026-09-26 - v0.1.14 回顾 Slice 3 Module Entry + Space-scoped History & Create — LOCAL PASS
+
+- 空间详情延续 owner-only 模块开关模式加入「回顾」，通过既有 `set_space_module_enabled` RPC 切换并回读 canonical 状态；普通成员仅查看。功能中心仅在当前成员且模块已开启的 Space 存在时显示回顾入口，读取失败可重试。任务入口与原开关语义保留。
+- 回顾页使用独立单 Space 选择（真实 Space 名称），与空间管理、日历、任务筛选分离。历史只读该 Space 的 RLS 可见轮次，按 `review_date DESC, round_no DESC` 做 20 轮游标分页；从该轮实际 participant entries 调用 Slice 2 状态 helper，列表不展示正文。Shared 单成员仍可看历史但不可新建；无历史、读取失败、载入更多失败均有窄状态与重试。
+- 右上角 `+` 的轻量表单显示目标 Space、可编辑本地日期；仅调用已部署 `create_review_round(p_space_id,p_review_date)`，以服务端返回的编号确认成功，再读取 canonical 历史。重复提交受阻，失败保留日期与表单。过期的 Space/分页请求不覆盖当前选择；不增加 Realtime、SQL/RLS/RPC、依赖或详情占位页。
+- Focused 与完整 Node 测试、TypeScript/Vite build、`git diff --check` 均 PASS；精确计数见 `docs/TESTING.md`。本地静态/SSR 只检查入口、开关和加载态；没有真实账号、设备或 Production 前端验收。Slice 4 接入详情、日期更正与上一轮计划；v0.1.14 整体仍在开发。
+
 # 2026-09-26 - v0.1.14 回顾 Slice 2 Entry Save & Filled Status — LOCAL PASS
 
 - 新增本人 `review_entries` 的定向读取、四字段草稿/持久化状态区分、填写状态纯函数与独立 `ReviewEntryEditor`。四个输入固定高度并在框内滚动；显式保存和「我已填写」互斥，空白或未保存草稿不能标记。加载/写入失败显示错误并保留未成功保存的草稿；切换 review/user 后丢弃过期读取响应。
