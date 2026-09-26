@@ -12,9 +12,11 @@ v0.1.14
 
 ## Current status
 
-v0.1.14「回顾」`DATE CHRONOLOGY BACKEND PRODUCTION PASS / FRONTEND PRE-DEPLOY GATE NEXT / PRODUCTION FRONTEND NOT DEPLOYED`。产品与验收契约见 [v0.1.14 规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md)。原 Slice 1 backend 与 date chronology forward fix 均已在 Production 应用并通过 postflight；本地真实账号验收产生的 4 个测试 rounds / 7 个 entries 已按 exact IDs 单独清理，Production Review 数据回到 0/0 clean initial state。Slice 2–4、集成审查及两轮 acceptance fixes 仍是未 push 的本地 frontend commit stack；Production 用户可见前端仍为 v0.1.13，v0.1.14 整体尚未关闭。
+v0.1.14「回顾」`BACKEND PRODUCTION PASS / FRONTEND PRE-DEPLOY GATE PASS / READY FOR AUTHORIZED PUSH / PRODUCTION FRONTEND NOT DEPLOYED`。产品与验收契约见 [v0.1.14 规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md)。原 Slice 1 backend 与 date chronology forward fix 均已在 Production 应用并通过 postflight；本地真实账号验收产生的 4 个测试 rounds / 7 个 entries 已按 exact IDs 单独清理，Production Review 数据保持 0/0 clean initial state。Slice 2–4、集成、两轮 acceptance fixes 与最终 frontend pre-deploy gate 本地 `PASS`；Production 用户可见前端仍为 v0.1.13，v0.1.14 整体尚未关闭。
 
 ## Latest completed
+
+v0.1.14 Frontend Pre-deploy / Push Gate 本地 `PASS`：整体审查 `origin/main...HEAD` 的 7-commit stack，确认最终 UI 使用 `review_date` chronology、同日唯一、authoritative count、日期驱动的上一份计划与内部-only `round_no`。Gate 发现日期更正成功后刚创建详情不会立即刷新上一份计划，已用一个 bounded frontend fix 修正并加入先红后绿回归。Production 只读核对两张表、RLS/policies、五个 RPC 精确签名/定义/ACL 与数据 0 rounds / 0 entries / 2 enabled Review modules；无写入或 cleanup。Review targeted Node 39/39、完整 Node 313/313、Project State gate 19/19、build、diff-check、secret/copy/parity scans 与 production dependency audit（0 vulnerabilities）均通过；既有 521.79 kB bundle warning 不阻断。未 push、deploy 或操作真实账号。
 
 v0.1.14 Date Chronology Production backend rollout `PASS`：cleanup 前只读复核确认唯一 4 个验收 rounds / 7 个 entries，随后按用户授权在独立事务中 exact-ID 删除并通过 FK cascade 清理 entries；两条 enabled Review module rows 与既有核心数据保持不变。SHA-256 `7adf5a8dfa34c0bfca8ab05b7b2467bcfe088d262c50213d6e24fbae939cb82f` 的 exact forward patch 通过自身 `BEGIN/COMMIT` 应用一次，exit code 0。postflight 确认 `unique(space_id, round_no)` 与 `unique(space_id, review_date)` 并存，create/correct duplicate-date 语义和 date-driven previous-plan RPC 与 canonical 一致，三者均为 authenticated-only EXECUTE；Review RLS 未变、数据保持 0/0，Space/member/module/Event/Task/reminder 计数和指纹前后一致。未部署或 push frontend，也未创建 Production fixtures。
 
@@ -101,7 +103,7 @@ Notes: Vercel is the configured Production provider. Production backend now has 
 - v0.1.11 — Navigation + Aggregation Experience（CLOSED / PASS；Slice 1–4 CLOSED / PASS；Production installed PWA acceptance PASS；dedicated final iPhone Safari acceptance NOT RUN）
 - v0.1.12 — Module Hub + Space Management Navigation（CLOSED / PASS；Slice 1–4 CLOSED / PASS；Production / installed-PWA acceptance PASS）
 - v0.1.13 — Space Lifecycle & Membership Safety（CLOSED / PASS；Slice 1/2 CLOSED / PASS；Production deployment、用户报告的 authenticated/mobile/PWA acceptance PASS）
-- v0.1.14 — 回顾（原 Slice 1 backend 与 date chronology fix 均 Production APPLIED / POSTFLIGHT PASS；验收测试数据 cleanup 完成且 Review 数据 0/0；Slice 2–4、集成审查及两轮反馈修正本地 PASS；前端未 push/deploy，整体未关闭）
+- v0.1.14 — 回顾（原 Slice 1 backend 与 date chronology fix 均 Production APPLIED / POSTFLIGHT PASS；验收测试数据 cleanup 完成且 Review 数据 0/0；Slice 2–4、集成、两轮反馈修正及 frontend pre-deploy gate 本地 PASS；READY FOR AUTHORIZED PUSH，前端未 deploy，整体未关闭）
 
 ## Last verified
 
@@ -109,7 +111,7 @@ Notes: Vercel is the configured Production provider. Production backend now has 
 
 ## Next Action
 
-Next Action: 执行 v0.1.14 frontend pre-deploy / push gate，复核本地 7-commit stack、Project State trailer、Production backend capability 与构建产物目标；通过并获得明确 Git 授权后 push，由 Vercel 部署，再由用户完成最小 authenticated date-chronology recheck。不要在 gate 前把 v0.1.14 标记为 deployed 或 CLOSED。
+Next Action: 获得用户明确 Git push 授权后，push 当前 v0.1.14 本地 commit stack，由 Vercel 完成 Production deployment；确认静态 Production 资源已切换后，再由用户执行最小 authenticated date-chronology recheck。不要在 push/deploy 和最终复验前把 v0.1.14 标记为 deployed 或 CLOSED。
 
 ## Blockers
 
@@ -117,7 +119,7 @@ Next Action: 执行 v0.1.14 frontend pre-deploy / push gate，复核本地 7-com
 
 ## Important Context
 
-- v0.1.14 Design Freeze 已同步第二轮 acceptance feedback：`review_date` 是业务时间轴且同 Space 同日唯一；上一份计划严格按日期上一篇、不 fallback；`round_no` 仅为内部技术序列。Production backend 已包含原 Slice 1 与 date chronology fix，相关约束、RPC、ACL、RLS postflight `PASS`；本地验收产生的 Review 测试数据已精确清理，当前为 0 rounds / 0 entries、两条 Review module enabled。用户此前已完成本地真实账号主要流程验收；本地 Slice 2–4 与两轮反馈修正尚未 push/deploy，Production 前端没有回顾 UI，最终 backend/frontend combined date-chronology 最小复验待部署后执行。刷新页面回首页仍是后续 UX 事项。完整 contract 和验收条件只以 v0.1.14 规格为准。
+- v0.1.14 Design Freeze 已同步第二轮 acceptance feedback：`review_date` 是业务时间轴且同 Space 同日唯一；上一份计划严格按日期上一篇、不 fallback；`round_no` 仅为内部技术序列。Production backend 已包含原 Slice 1 与 date chronology fix，相关约束、RPC、ACL、RLS postflight `PASS`；本地验收产生的 Review 测试数据已精确清理，当前为 0 rounds / 0 entries、两条 Review module enabled。用户此前已完成本地真实账号主要流程验收；本地 Slice 2–4、两轮反馈修正与 frontend pre-deploy gate 已通过，仍未 push/deploy，Production 前端没有回顾 UI，最终 backend/frontend combined date-chronology 最小复验待部署后执行。刷新页面回首页仍是后续 UX 事项。完整 contract 和验收条件只以 v0.1.14 规格为准。
 - Git branch、latest commit、working tree 由 project-command-center 实时 Git 扫描读取；PROJECT_STATE.md 不作为这些字段的权威来源。
 - Production URL: `https://cross-platform-shared-calendar.vercel.app/`.
 - Supabase project status is currently Active, but Free Tier inactivity pause remains an operational risk.
@@ -181,4 +183,4 @@ Next Action: 执行 v0.1.14 frontend pre-deploy / push gate，复核本地 7-com
 
 ## Handoff Prompt
 
-v0.1.13 Space Lifecycle & Membership Safety is `CLOSED / PASS`. v0.1.14 Production backend contains the original Slice 1 foundation plus the applied/postflight-verified date chronology fix; acceptance test Review data was cleaned separately and Production Review remains at 0/0 with two enabled module rows. Slice 2–4, integration and both acceptance fixes are locally verified but not pushed/deployed. Next Action is the frontend pre-deploy / push gate, followed by an explicitly authorized push, Vercel Production deployment and user-run minimal authenticated date-chronology recheck. Do not mark v0.1.14 closed or fix the separate refresh-to-home UX issue in this slice.
+v0.1.13 Space Lifecycle & Membership Safety is `CLOSED / PASS`. v0.1.14 Production backend contains the original Slice 1 foundation plus the applied/postflight-verified date chronology fix; acceptance test Review data was cleaned separately and Production Review remains at 0/0 with two enabled module rows. Slice 2–4, integration, both acceptance fixes and the frontend pre-deploy gate are locally verified; the stack is ready for an explicitly authorized push but is not pushed/deployed. Next Action is user authorization to push, followed by Vercel Production deployment and a user-run minimal authenticated date-chronology recheck. Do not mark v0.1.14 closed or fix the separate refresh-to-home UX issue in this slice.

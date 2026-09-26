@@ -1,5 +1,13 @@
 # Testing
 
+## v0.1.14 回顾 Frontend Pre-deploy / Push Gate — PASS
+
+- Integrated review covered the seven local commits from `origin/main` through the date-chronology rollout record. A new focused regression proved that a successful date correction refreshes the just-created detail's date-driven previous-plan context; it failed before the bounded fix and passed after it.
+- `node --experimental-strip-types --test tests/review-entry.test.ts tests/review-entry-data.test.ts tests/review-history.test.ts tests/review-history-data.test.ts tests/review-history-ui.test.ts tests/review-detail.test.ts tests/review-detail-data.test.ts tests/review-detail-ui.test.ts tests/navigation.test.ts tests/supabase-schema-review-date.test.ts`: **39/39 PASS**.
+- `node --experimental-strip-types --test tests/*.test.ts tests/*.test.js`: **313/313 PASS**. `node --test tests/project-state-push-gate.test.js`: **19/19 PASS**. `npm run build`: **PASS** with the known 521.79 kB chunk warning. Production dependency audit: **0 vulnerabilities**. `git diff --check`, sensitive-value scan, old user-visible round-copy scan, Review debug/dev-address/Realtime scan and frontend/Production RPC parity checks: **PASS**. The repository has no lint script.
+- Production read-only catalog/data check confirmed `review_rounds` / `review_entries`, RLS and participant policies; `create_review_round(uuid,date)`, `correct_review_date(uuid,date)`, `save_my_review_entry(uuid,text,text,text,text)`, `mark_my_review_filled(uuid)` and `get_my_previous_review_plan(uuid)` match the frontend and retain authenticated-only EXECUTE. Counts remain 0 rounds / 0 entries / 2 enabled Review modules. No Production write, cleanup, authenticated session, push or deployment occurred.
+- Responsive review is static/SSR only: Shared desktop two-column, 320px mine/counterpart tabs with both panels mounted, Personal single column, fixed-height internal scrolling and bounded touch controls are covered by source/render tests. Final Production authenticated recheck remains user-run after deployment; refresh-to-home remains deferred.
+
 ## v0.1.14 回顾 Date Chronology Production Backend Rollout — PASS
 
 - Pre-apply freshness: local patch SHA-256 `7adf5a8dfa34c0bfca8ab05b7b2467bcfe088d262c50213d6e24fbae939cb82f` matched HEAD; Production had 0 rounds, 0 entries, 0 duplicate groups, no date unique constraint or previous-plan RPC, the original create/correct definitions, and two enabled Review module rows. The preceding exact-ID acceptance-data cleanup removed 4 rounds / 7 entries and preserved all protected core fingerprints.

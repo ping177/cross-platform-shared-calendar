@@ -1,5 +1,12 @@
 # Development Log
 
+## 2026-09-26 - v0.1.14 Frontend Pre-deploy / Push Gate — PASS / READY FOR AUTHORIZED PUSH
+
+- Reviewed the complete seven-commit `origin/main...HEAD` stack as one deployable frontend state. Final behavior uses independent Review Space selection, enabled-module eligibility, Space-scoped paginated history with authoritative exact total, same-Space/date uniqueness, date-only user-visible identity, participant-snapshot detail, own edit/mark actions, counterpart read-only content, responsive Shared/Personal layouts, navigation dirty guards and a date-driven previous-plan RPC. No user-visible round number, client `round_no - 1`, Review Realtime, new dependency, debug route or environment-value change remains.
+- Found one bounded integration defect: after a successful date correction in the just-created detail flow, the displayed date changed but the previous-plan context was not re-read for the new chronology. Added a regression that failed first, then refreshed `get_my_previous_review_plan` from the canonical changed round; ordinary historical detail still never shows the context.
+- Production read-only metadata confirmed both Review tables with RLS, participant SELECT policies, both uniqueness constraints, and exact authenticated-only create/correct/save/mark/previous-plan RPC contracts. Review data remains 0 rounds / 0 entries with two enabled module rows; no write, cleanup, fixture, account action, push or deployment occurred.
+- Review targeted Node **39/39**, full Node **313/313**, Project State gate **19/19**, `npm run build`, `git diff --check`, secret/copy/parity scans and production dependency audit (**0 vulnerabilities**) passed. Build retains the existing 521.79 kB chunk warning. Static responsive checks do not claim real-device acceptance. Next Action is explicit push authorization, Vercel Production deployment and the user-run minimal authenticated date-chronology recheck.
+
 # 2026-09-26 - v0.1.14 回顾 Date Chronology Production Backend Rollout — PASS
 
 - Production READ-ONLY preflight confirmed the original Slice 1 baseline, zero same-Space/date duplicate groups and four local-acceptance Review rounds / seven participant entries. After explicit exact-ID authorization, those test rows were removed in one independently audited transaction; FK cascade cleared the seven entries, two enabled Review module rows remained, and Space/member/module/Event/Task/reminder counts plus row fingerprints were unchanged.
