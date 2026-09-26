@@ -1,5 +1,11 @@
 # Testing
 
+## v0.1.14 回顾 Frontend Integration / Pre-deploy Review — Local PASS
+
+- 基线为 `main` HEAD `b1bb24741e19512720fc0efdc6acc6ec40fa5d0c`，相对 `origin/main` 领先三份 Slice 2–4 提交且检查前工作区干净。审查 Hub、独立 Space 选择、日期/编号游标历史、新建 canonical id、详情、上一轮计划、本人编辑/对方只读、日期更正、返回刷新、过期请求与失权路径。发现并修复底部导航绕过 dirty 确认；回归测试先红后绿。
+- `node --experimental-strip-types --test tests/navigation.test.ts tests/review-detail.test.ts tests/review-detail-ui.test.ts`：**7/7 PASS**；全量 Node：**302/302 PASS**；`npm run build` 与 `git diff --check`：**PASS**。构建产物已核对仅指向关联的 Production Supabase 目标；生产依赖官方 npm 安全审计为 **0 漏洞**。Vite 的 >500 kB bundle 警告仍在，未阻断构建。
+- Production 只读查询核对 `create_review_round`、`save_my_review_entry`、`mark_my_review_filled`、`correct_review_date` 及 `set_space_module_enabled` 的参数/返回类型/EXECUTE，回顾两表的列、RLS、SELECT 策略和直接写权限，以及授权函数体中的当前成员+当轮 participant 与模块条件；与本地前端所用契约一致。未查询用户回顾正文或执行任何写入。无 authenticated 浏览器/320px/桌面/设备手动验收结论；该部分由用户在本地 5175 前端执行。
+
 ## v0.1.14 回顾 Slice 4 — Responsive Detail Local PASS
 
 - `node --test tests/review-detail.test.ts tests/review-detail-data.test.ts tests/review-detail-ui.test.ts tests/review-history-ui.test.ts tests/navigation.test.ts`: **12/12 PASS**。覆盖 participant snapshot 的本人/对方映射、Personal 单列、Shared 移动切换两 panel 持续挂载与桌面双列、只读四字段固定高度/框内滚动、历史打开与刚创建临时导航区别、同 Space 精确 `round_no - 1` 上一轮计划（无轮、无本人 entry、空白均无计划）、日期 RPC 精确参数/服务端结果/拒绝传播、返回 dirty 确认逻辑。

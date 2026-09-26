@@ -54,7 +54,7 @@ import { newEventIdentity } from './lib/space-content';
 import { readSpaceMembers } from './lib/space-members';
 import { settleSpaceLifecycle, type SpaceLifecycleAction } from './lib/space-lifecycle';
 import { createRequestGuard } from './lib/request-guard';
-import { calendarContentSpaceId, initialNavigation, openCompletedTasks, openReviewDetail, openReviewModule, openTaskList, openTaskModule, selectTab, type TopLevelTab } from './lib/navigation';
+import { calendarContentSpaceId, canChangeTabFromReviewDetail, initialNavigation, openCompletedTasks, openReviewDetail, openReviewModule, openTaskList, openTaskModule, selectTab, type TopLevelTab } from './lib/navigation';
 import type { ReviewDetailTarget } from './lib/review-detail';
 import {
   registerPushServiceWorker,
@@ -392,6 +392,7 @@ function CalendarApp({ session }: { session: Session }) {
   const [calendarFilter, setCalendarFilter] = useState<CalendarFilter>('all');
   const [reviewSpaceId, setReviewSpaceId] = useState<string | null>(null);
   const [reviewDetail, setReviewDetail] = useState<ReviewDetailTarget | null>(null);
+  const reviewDetailDirty = useRef(false);
   const [navigation, setNavigation] = useState(initialNavigation);
   const [spaceListStatus, setSpaceListStatus] = useState<'loading' | 'ready' | 'error'>('ready');
   const [spaceActionBusy, setSpaceActionBusy] = useState(false);
@@ -511,6 +512,8 @@ function CalendarApp({ session }: { session: Session }) {
 
   function changeTab(tab: TopLevelTab) {
     if (spaceActionBusy) return;
+    if (!canChangeTabFromReviewDetail(navigation, reviewDetailDirty.current, () => window.confirm('有未保存的回顾内容，确定离开吗？'))) return;
+    reviewDetailDirty.current = false;
     requestGuard.current.invalidate();
     setNavigation((current) => selectTab(current, tab));
     if (tab === 'me') setMyScreen('profile');
@@ -581,9 +584,9 @@ function CalendarApp({ session }: { session: Session }) {
       {navigation.tab === 'modules' && spaceListStatus === 'ready' && (navigation.moduleScreen === 'hub'
         ? <ModuleHub userId={userId} onOpenTasks={() => setNavigation((current) => openTaskModule(current))} onOpenReview={() => setNavigation((current) => openReviewModule(current))} />
         : navigation.moduleScreen === 'review'
-          ? <ReviewHistoryPage userId={userId} currentSpaceId={reviewSpaceId} onSpaceChange={setReviewSpaceId} onOpenDetail={(target) => { setReviewDetail(target); setNavigation((current) => openReviewDetail(current)); }} onHubBack={() => setNavigation((current) => selectTab(current, 'modules'))} />
+          ? <ReviewHistoryPage userId={userId} currentSpaceId={reviewSpaceId} onSpaceChange={setReviewSpaceId} onOpenDetail={(target) => { reviewDetailDirty.current = false; setReviewDetail(target); setNavigation((current) => openReviewDetail(current)); }} onHubBack={() => setNavigation((current) => selectTab(current, 'modules'))} />
           : navigation.moduleScreen === 'review-detail'
-            ? reviewDetail ? <ReviewDetailPage key={`${reviewDetail.spaceId}:${reviewDetail.reviewId}`} target={reviewDetail} userId={userId} onBack={() => setNavigation((current) => openReviewModule(current))} />
+            ? reviewDetail ? <ReviewDetailPage key={`${reviewDetail.spaceId}:${reviewDetail.reviewId}`} target={reviewDetail} userId={userId} onDirtyChange={(dirty) => { reviewDetailDirty.current = dirty; }} onBack={() => { reviewDetailDirty.current = false; setNavigation((current) => openReviewModule(current)); }} />
               : <main className="mx-auto max-w-3xl px-4 py-6"><p>这次回顾暂不可访问。</p><button className="mt-3 min-h-11 font-semibold text-teal" type="button" onClick={() => setNavigation((current) => openReviewModule(current))}>返回回顾列表</button></main>
           : <TasksArea
             key={userId}

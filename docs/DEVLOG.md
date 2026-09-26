@@ -1,5 +1,11 @@
 # Development Log
 
+# 2026-09-26 - v0.1.14 回顾 Frontend Integration / Pre-deploy Review — LOCAL PASS
+
+- 在预期 `main` 基线（HEAD `b1bb24741e19512720fc0efdc6acc6ec40fa5d0c`，相对 `origin/main` 领先 Slice 2–4 三个本地提交、工作区原本干净）审查完整回顾链路。发现底部导航可绕过详情页返回按钮的 dirty 确认并卸载未保存草稿；增加父层脏状态通知与复用现有确认规则，取消时保持详情和草稿。没有改 entry 保存、SQL/RLS/RPC 或用户可见产品语义。
+- Production 只读目录查询确认四个回顾写 RPC 与模块开关的准确参数、复合行返回类型、authenticated-only EXECUTE；两张回顾表的列、RLS、participant SELECT 策略与 authenticated 仅 SELECT 权限。当前函数体继续以 `auth.uid()`、Space 成员和当轮 participant、模块开启以及 Shared 双人条件授权。构建产物的 Supabase 目标与已关联 Production 项目一致；未直接查看 `.env` 或打印环境变量值。
+- 回归测试先复现底部导航缺失确认的失败，修复后 focused Node **7/7**、完整 Node **302/302**、`npm run build`、`git diff --check` PASS；`npm audit --omit=dev --audit-level=high --registry=https://registry.npmjs.org` 为 0 漏洞。Vite 保留既有 >500 kB bundle 警告；无可信真实登录态，因此 320px、桌面和双账号交互仍待用户验收。未执行 Production 写入、SQL/后端部署、前端 push/部署或真实账号操作。
+
 # 2026-09-26 - v0.1.14 回顾 Slice 4 Responsive Detail + Date Correction + Previous Plan — LOCAL PASS
 
 - 历史行打开其 RLS 可见轮次；`create_review_round` 成功后用 RPC 返回的真实 id/编号进入刚创建的详情，失败仍保留 Slice 3 表单。详情按该轮固定 entries 映射本人/对方，非参与者、失去当前成员资格、Space 或模块不可用时不继续显示旧正文；过期读取不能覆盖新目标。

@@ -41,7 +41,7 @@ export function ReviewDetailPanels({ detail, userId, mobilePanel, onMobilePanelC
   </>;
 }
 
-export function ReviewDetailPage({ target, userId, onBack }: { target: ReviewDetailTarget; userId: string; onBack: () => void }) {
+export function ReviewDetailPage({ target, userId, onBack, onDirtyChange }: { target: ReviewDetailTarget; userId: string; onBack: () => void; onDirtyChange: (dirty: boolean) => void }) {
   const [detail, setDetail] = useState<ReviewDetail | null>(null);
   const detailRef = useRef<ReviewDetail | null>(null);
   const [phase, setPhase] = useState<'loading' | 'ready' | 'error' | 'unavailable'>('loading');
@@ -58,6 +58,8 @@ export function ReviewDetailPage({ target, userId, onBack }: { target: ReviewDet
   const submittingDate = useRef(false);
   const detailGuard = useRef(createRequestGuard());
   const previousGuard = useRef(createRequestGuard());
+
+  useEffect(() => { onDirtyChange(dirty); }, [dirty, onDirtyChange]);
 
   async function refreshPrevious(round: ReviewDetail['round']) {
     if (!target.justCreated) return;
@@ -94,6 +96,7 @@ export function ReviewDetailPage({ target, userId, onBack }: { target: ReviewDet
         previousGuard.current.invalidate();
         detailRef.current = null;
         setDetail(null);
+        setDirty(false);
         setDateOpen(false);
         setPhase('unavailable');
       } else if (detailRef.current) {

@@ -1,4 +1,5 @@
 import type { CalendarFilter } from './aggregate-calendar';
+import { canLeaveReviewDetail } from './review-detail';
 
 export type TopLevelTab = 'home' | 'calendar' | 'modules' | 'me';
 export type ModuleScreen = 'hub' | 'tasks' | 'completed' | 'review' | 'review-detail';
@@ -8,6 +9,10 @@ export const initialNavigation: NavigationState = { tab: 'home', moduleScreen: '
 
 export function selectTab(_current: NavigationState, tab: TopLevelTab): NavigationState {
   return { tab, moduleScreen: 'hub' };
+}
+
+export function canChangeTabFromReviewDetail(current: NavigationState, dirty: boolean, confirmDiscard: () => boolean): boolean {
+  return current.tab !== 'modules' || current.moduleScreen !== 'review-detail' || canLeaveReviewDetail(dirty, confirmDiscard);
 }
 
 export function openTaskModule(_current: NavigationState): NavigationState {

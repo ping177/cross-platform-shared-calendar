@@ -35,3 +35,17 @@ test('Calendar content selection is independent of Tasks and management selectio
     await vite.close();
   }
 });
+
+test('leaving Review detail through any bottom tab protects an unsaved draft', async () => {
+  const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
+  try {
+    const { initialNavigation, openReviewDetail, canChangeTabFromReviewDetail } = await vite.ssrLoadModule('/src/lib/navigation.ts');
+    const detail = openReviewDetail(initialNavigation);
+    assert.equal(canChangeTabFromReviewDetail(detail, true, () => false), false);
+    assert.equal(canChangeTabFromReviewDetail(detail, true, () => true), true);
+    assert.equal(canChangeTabFromReviewDetail(detail, false, () => { throw new Error('clean detail must not prompt'); }), true);
+    assert.equal(canChangeTabFromReviewDetail(initialNavigation, true, () => { throw new Error('other screens must not prompt'); }), true);
+  } finally {
+    await vite.close();
+  }
+});

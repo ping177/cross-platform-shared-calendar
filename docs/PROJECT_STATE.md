@@ -12,9 +12,11 @@ v0.1.14
 
 ## Current status
 
-v0.1.14「回顾」`SLICE 4 DETAIL FRONTEND LOCAL PASS / PRODUCTION FRONTEND NOT DEPLOYED`。产品与验收契约见 [v0.1.14 规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md)。Slice 1 backend 已在 Production 应用并通过 postflight；Slice 2 本人 entry、Slice 3 历史/新建、Slice 4 响应式详情/日期更正/上一轮计划均本地自动验证 PASS。Slice 2–4 本地前端提交尚未 push。用户可见 Production 前端仍为 v0.1.13、没有回顾 UI；v0.1.14 真实账号验收未开始，整体仍在开发。
+v0.1.14「回顾」`FRONTEND INTEGRATION PRE-DEPLOY REVIEW LOCAL PASS / PRODUCTION FRONTEND NOT DEPLOYED`。产品与验收契约见 [v0.1.14 规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md)。Slice 1 backend 已在 Production 应用并通过 postflight；Slice 2–4 前端本地实现与集成审查通过，导航草稿保护修正已独立本地提交、尚未 push。用户可见 Production 前端仍为 v0.1.13、没有回顾 UI；v0.1.14 真实账号验收未开始，整体仍在开发。
 
 ## Latest completed
+
+v0.1.14 前端 integration / pre-deploy review 本地 `PASS`：核对 Hub → 单 Space 历史/新建 → 服务端 canonical id 详情 → 本人编辑/对方只读 → 日期更正/返回排序；修复底部导航离开详情时绕过未保存草稿确认的问题。构建产物指向已关联的 Production backend；Production 只读核对四个回顾写 RPC、模块开关、函数授权、表列与 RLS，未发现前端依赖未部署能力。Focused Node 7/7、完整 Node 302/302、build、diff-check 与生产依赖安全审计 PASS。未进行真实账号/设备验收、Production 写入、前端部署或 push。
 
 v0.1.14 Slice 4 Responsive Detail + Date Correction + Previous Plan 本地 `PASS`：历史行与新建成功可进入详情；Personal 单列，Shared 桌面我/对方并排、手机切换且保留本人草稿。本人复用 Slice 2 editor；对方当轮 entry 只读、固定高度框内滚动。日期经已部署 `correct_review_date` 更正并用服务端结果更新；返回历史会重新读取排序。仅刚创建流程显示按同 Space 紧邻编号读取的本人上一轮计划，不复制。Focused Node、full Node、TypeScript/Vite build、diff-check PASS；无 SQL/RLS/RPC、Production 写入/部署或真实账号验收。
 
@@ -93,7 +95,7 @@ Notes: Vercel is the configured Production provider. The v0.1.14 rollout added b
 - v0.1.11 — Navigation + Aggregation Experience（CLOSED / PASS；Slice 1–4 CLOSED / PASS；Production installed PWA acceptance PASS；dedicated final iPhone Safari acceptance NOT RUN）
 - v0.1.12 — Module Hub + Space Management Navigation（CLOSED / PASS；Slice 1–4 CLOSED / PASS；Production / installed-PWA acceptance PASS）
 - v0.1.13 — Space Lifecycle & Membership Safety（CLOSED / PASS；Slice 1/2 CLOSED / PASS；Production deployment、用户报告的 authenticated/mobile/PWA acceptance PASS）
-- v0.1.14 — 回顾（Slice 1 backend Production PASS；Slice 2–4 frontend 本地 PASS、未 push；Production 前端未部署，真实账号验收未开始；整体未关闭）
+- v0.1.14 — 回顾（Slice 1 backend Production PASS；Slice 2–4 frontend 与集成审查本地 PASS、集成修正已本地 commit 未 push；Production 前端未部署，真实账号验收未开始；整体未关闭）
 
 ## Last verified
 
@@ -101,7 +103,7 @@ Notes: Vercel is the configured Production provider. The v0.1.14 rollout added b
 
 ## Next Action
 
-Next Action: v0.1.14 frontend integration / pre-deploy review — 核对 Slice 2–4 整体链路、权限与响应式行为，并执行前端目标与 Production backend 的 compatibility gate；完成审查后再决定是否申请 push / 后续用户真实账号验收。
+Next Action: 用户在本地 5175 前端连接已核对的 Production backend，执行 v0.1.14 真实账号双人、Personal/Shared、320px/桌面与移动/PWA 验收；若通过，再单独确认本地修正的 commit/push 与前端部署。Codex 不操作登录态或真实账号会话。
 
 ## Blockers
 
