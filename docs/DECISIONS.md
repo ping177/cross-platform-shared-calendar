@@ -196,6 +196,16 @@ At the original roadmap freeze, only these high-level safety principles were rec
 - 在现有 React memory navigation 上使用按 authenticated user 隔离的 sessionStorage 小型页面目标，恢复同一 browser/tab session 的刷新位置。只保存页面与稳定 Space/Review ID；不保存筛选、业务数据、草稿、弹层或 `justCreated`。新登录从首页开始，logout 清除当前用户目标。
 - 恢复必须经过当前 membership、Review module eligibility 与 participant 读取；已确认失效时按目标页面回退，读取失败时保留重试。保持 selectedSpaceId localStorage 及 Calendar/Task/Review 各自的选择边界。此版本不迁移 router，不提供深链、browser history 改造或 PWA 完全关闭后的页面记忆承诺。
 
+## v0.1.15 Shared Lists Design Freeze — 2026-09-26
+
+- Status is `DESIGN FROZEN / NOT IMPLEMENTED`. The canonical product and technical contract is [v0.1.15 Shared Lists Specification](./v0.1.15_SHARED_LISTS_SPEC.md). v0.1.14 and v0.1.14.1 remain `CLOSED / PASS`.
+- Lists are owned by a Space and enabled independently in Personal and Shared Spaces. Three relational tables—`lists`, `list_sections`, and `list_items`—represent the fixed List → Section → Item structure. `created_by` is audit metadata only. A single redundant `list_items.space_id` is allowed only with a composite FK enforcing consistency with its parent List; nullable `section_id` represents ungrouped Items.
+- Completion is derived only from real Items; empty Lists remain active. Progress, completion status, completion time, archive state, and duplicate counters are not persisted. Deterministic integer/bigint `sort_order` remains canonical through completion/reopen; transactional reorder RPCs lock the parent List, validate current membership of the reorder set, and renumber atomically.
+- Non-empty Section deletion is frozen: “仅删除分组” moves Items to ungrouped and appends them as a stable ordered block; “删除分组及其中内容” removes them atomically. Whole-List deletion uses a two-step UI confirmation that identifies the List and its Space both times, then cascades through backend/FKs.
+- Item drag within ungrouped or the same Section is a v0.1.15 requirement. Up/down controls may be accessibility/keyboard fallbacks but do not replace drag acceptance. Cross-Section drag remains deferred; Section drag may be deferred only if Slice 4 mobile validation finds it materially complex. No drag dependency is installed during Design Freeze.
+- Membership and module eligibility are revalidated at Lists entry, focus, Realtime reconnect, and relevant mutation rejection. No perpetual Lists-specific membership polling loop is introduced. Realtime remains notification-to-reread; filtered DELETE delivery must be validated with two authenticated accounts.
+- The four frozen implementation slices are DB foundation, overview/ownership, detail/collaboration, and ordering/mobile acceptance. They are planning direction only; implementation, tests, migration, deployment, and Production acceptance have not started. Next Action: Slice 1 implementation planning / preflight.
+
 ## Future UX Consideration — Calendar Create Action
 
 现有 Slice 2 冻结行为是：Calendar 选“全部空间”时没有日程创建 `+`，筛选单一 Space 时显示创建 `+`。未来可以重新评估这项行为；本次不改，也不重开 Slice 2。

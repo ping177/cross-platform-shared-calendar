@@ -1,6 +1,6 @@
 # Shared Life Architecture Freeze
 
-Status: `ARCHITECTURE FROZEN`; v0.1.10–v0.1.14 are `CLOSED / PASS`. The v0.1.11 contract is [Navigation + Aggregation Experience Specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md); the accepted v0.1.14「回顾」contract is [v0.1.14 回顾规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md).
+Status: `ARCHITECTURE FROZEN`; v0.1.10–v0.1.14.1 are `CLOSED / PASS`; v0.1.15 Shared Lists is `DESIGN FROZEN / NOT IMPLEMENTED`. The v0.1.11 contract is [Navigation + Aggregation Experience Specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md); the accepted v0.1.14「回顾」contract is [v0.1.14 回顾规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md); the v0.1.15 contract is [Shared Lists Specification](./v0.1.15_SHARED_LISTS_SPEC.md).
 
 This document freezes the long-term product model and navigation direction plus the reviewed v0.1.10 foundation scope. It does not change the accepted v0.1.9 Production capability. Later roadmap versions remain directional and need their own scope review.
 
@@ -12,7 +12,7 @@ The currently shipped first-level navigation is `首页 / 日历 / 功能中心 
 | --- | --- |
 | 首页 | Cross-module summary; each supported section has a direct create `+` |
 | 日历 | Time views and aggregation of Calendar Sources |
-| 功能中心 | Implemented optional modules; currently only 任务 |
+| 功能中心 | Implemented optional modules; currently 任务 and 回顾 |
 | 我的 | Profile, account, Space management, notifications, devices, and settings |
 
 The initial four-destination navigation shipped in v0.1.11. Slice 3 added Home aggregation, Slice 4 added direct Event and Task creation from their Home sections, and v0.1.12 changed the third destination to 功能中心.
@@ -135,8 +135,14 @@ The Home creation form visibly shows the target Space and allows changing it. It
 | v0.1.12 | Module Hub + Space Management Navigation (CLOSED / PASS) |
 | v0.1.13 | Space Lifecycle & Membership Safety (CLOSED / PASS) |
 | v0.1.14 | 回顾 (CLOSED / PASS; backend/frontend Production, authenticated acceptance and fixture cleanup PASS) |
+| v0.1.14.1 | Navigation Persistence (CLOSED / PASS) |
+| v0.1.15 | Shared Lists (DESIGN FROZEN / NOT IMPLEMENTED) |
 
-Shared Lists, Important Dates, Calendar Sources v1, Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules remain candidates without a fixed order. Priority and order may change based on real product use. Native has a decision gate only; no native implementation version is committed.
+Important Dates, Calendar Sources v1, Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules remain candidates without a fixed order. Priority and order may change based on real product use. Native has a decision gate only; no native implementation version is committed.
+
+## v0.1.15 Shared Lists — Design Frozen / Not Implemented
+
+Shared Lists is a Space-level optional module for Personal and Shared Spaces. Space owns Lists; Lists contain optional Sections and Items. The canonical schema, RLS/mutation boundary, derived completion, deterministic ordering, Realtime contract, mobile interaction requirements, lifecycle semantics, non-goals, and four planned implementation slices are frozen in the [canonical specification](./v0.1.15_SHARED_LISTS_SPEC.md). Implementation has not started. This entry records product direction and does not create a generic module framework or a Production capability.
 
 ## v0.1.9 Slice Boundary
 

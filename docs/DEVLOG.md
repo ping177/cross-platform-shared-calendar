@@ -1,5 +1,11 @@
 # Development Log
 
+## 2026-09-26 - v0.1.15 Shared Lists Design Freeze — DESIGN FROZEN / NOT IMPLEMENTED
+
+- Reviewed and accepted the read-only Shared Lists implementation investigation, then recorded its final product clarifications in [the canonical specification](./v0.1.15_SHARED_LISTS_SPEC.md). The frozen contract covers Space ownership, the three-table model, item-derived completion, integer ordering, deterministic Section deletion, required within-region item drag, bounded eligibility revalidation, Realtime reread, lifecycle, tests, scope guard, and four implementation slices.
+- Updated README, PROJECT_STATE, DECISIONS, BACKLOG, Shared Life Architecture, TESTING, and this DEVLOG to distinguish the v0.1.15 design milestone from implementation. v0.1.14 and v0.1.14.1 remain CLOSED / PASS. Next Action is v0.1.15 Slice 1 implementation planning / preflight; no blocker was found.
+- This is documentation/governance only. No business code, SQL/schema, migration, test, dependency, deployment, or Production operation was performed. Automated tests and build were not run; documentation validation is limited to diff review and git diff --check.
+
 ## 2026-09-26 - v0.1.14.1 Navigation Persistence Final Governance Closeout — CLOSED / PASS
 
 - 用户明确报告 Production 真实账号最小刷新复验 `PASS`：Calendar、Tasks、已有 Review 历史/相关页面与 Space Detail 刷新后停留原页面；在深页 logout 后换另一账号登录，不继承前一账号目标。Production 无 Review 数据，本轮未重建 fixture、未把 Review Detail 数据场景记为线上实测；该路径保留自动 integration 与本地验收证据。Codex 未操作真实登录会话。

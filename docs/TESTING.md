@@ -1,5 +1,13 @@
 # Testing
 
+## v0.1.15 Shared Lists Design Freeze — NOT IMPLEMENTED
+
+- The product and technical acceptance contract is frozen in [v0.1.15 Shared Lists Specification](./v0.1.15_SHARED_LISTS_SPEC.md). This record is a planned verification matrix, not evidence of implemented or passing tests.
+- Planned DB coverage: Space membership and Lists module enablement, disabled historical reads and rejected writes, RLS isolation, creator-independent shared editing, lifecycle retention/cascade, Section/List delete semantics, deterministic sort preservation, stale reorder rejection, and concurrent insert/reorder/delete paths.
+- Planned Node/frontend coverage: completion/progress derivation, empty states, stable overview ordering, independent listFilter, quick-add clear/focus, completed folds, whole-List two-step confirmation identifying its List and Space, and stale eligibility/Realtime reconciliation.
+- Dual-account acceptance must verify Personal and Shared use, live create/edit/complete/reopen/delete and reorder, mobile/PWA quick-add and drag behavior, and filtered DELETE delivery with actual subscriptions under RLS and REPLICA IDENTITY FULL. Metadata alone does not establish delivery.
+- No v0.1.15 tests, build, authenticated acceptance, migration, or Production operation has been run. All implementation slices remain NOT STARTED.
+
 ## v0.1.14.1 Final Acceptance — CLOSED / PASS
 
 - 用户报告 Production authenticated refresh `PASS`：Calendar、Tasks、已有 Review 历史/相关页面、同一 Space Detail 刷新恢复；深页 logout 后另一账号登录不继承目标。Production 没有 Review 数据，故本轮没有 Review Detail 数据场景的线上重测或 fixture；自动 integration 与本地 authenticated acceptance 覆盖该目标。未验证 browser back/forward、可分享深链、PWA 完全关闭后重启或未保存草稿跨刷新恢复。

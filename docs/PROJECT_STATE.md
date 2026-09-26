@@ -8,15 +8,17 @@
 
 ## Current version
 
-v0.1.14.1
+v0.1.15
 
 ## Current status
 
-v0.1.14.1「Navigation Persistence」`CLOSED / PASS`：实现、bounded integration review、本地真实账号验收、Vercel Production 部署与公开 smoke、用户执行的 Production 真实账号刷新复验均 `PASS`。同一 browser/tab session 刷新恢复当前用户的有效页面目标，登出及换账号隔离目标；Production 未因验收创建 Review 数据。自动 targeted 22/22、full Node 320/320、Project State gate 19/19 与 build 已通过。暂无明确阻塞。
+v0.1.15 Shared Lists `DESIGN FROZEN / NOT IMPLEMENTED`。Canonical contract: [v0.1.15 Shared Lists Specification](./v0.1.15_SHARED_LISTS_SPEC.md)。设计冻结只修改文档；Shared Lists 实现尚未开始，未创建表或 migration，未修改业务代码，未进行部署或 Production 操作。v0.1.14 与 v0.1.14.1 均保持 `CLOSED / PASS`。暂无明确阻塞。
 
 ## Latest completed
 
-v0.1.14.1 final governance closeout `CLOSED / PASS`：用户报告 Production Calendar、Tasks、已有 Review 历史/相关页面与同一 Space Detail 刷新恢复通过；深页登出后另一账号不会继承原目标。Production 无 Review 数据，未重建 fixture，也未将 Review Detail 数据场景记作本轮线上实测；其恢复由自动 integration 与本地验收覆盖。Navigation Persistence 仅在既有 React memory navigation 上保存 user-scoped sessionStorage 页面及稳定 ID，经 canonical eligibility 验证失效目标并安全回退；临时读取失败可重试，dirty guard 与各筛选独立。无 Router、URL/history、深链、草稿/筛选持久化或 PWA cold-start 保证。下步只做剩余 backlog 审阅与下一版本选择/设计，尚无新版本范围获批。
+v0.1.15 Shared Lists Design Freeze `DESIGN FROZEN / NOT IMPLEMENTED`：只读仓库调查已接受并转为 canonical specification。冻结三表关系、Space ownership、completion/order invariants、Section 删除语义、item drag 要求、eligibility refresh、Realtime 和 bounded concurrency contract；implementation slices 均未开始。无业务代码、SQL/migration、测试、依赖、部署或 Production 变更。下一步是 Slice 1 implementation planning / preflight。
+
+v0.1.14.1 final governance closeout `CLOSED / PASS`：用户报告 Production Calendar、Tasks、已有 Review 历史/相关页面与同一 Space Detail 刷新恢复通过；深页登出后另一账号不会继承原目标。Production 无 Review 数据，未重建 fixture，也未将 Review Detail 数据场景记作本轮线上实测；其恢复由自动 integration 与本地验收覆盖。Navigation Persistence 仅在既有 React memory navigation 上保存 user-scoped sessionStorage 页面及稳定 ID，经 canonical eligibility 验证失效目标并安全回退；临时读取失败可重试，dirty guard 与各筛选独立。无 Router、URL/history、深链、草稿/筛选持久化或 PWA cold-start 保证。
 
 v0.1.14.1 Production rollout verification `PASS`：正常 push 将 `a534be2..8212cc8` 推至 `origin/main`，pre-push hook 通过，紧邻 push 的只读 freshness 为 `POST_PUSH_STATE_CURRENT`。GitHub 对 exact commit `8212cc820c7708e3766e9bf8cc9da84b15a5e5aa` 报告 Vercel `Production / success`；公开根页、当前 JS/CSS 与 manifest 均 HTTP 200，未登录入口正常，部署 JS 含导航 sessionStorage 标记。未执行 Production authenticated acceptance 或 backend 写入；等待用户线上最小刷新复验。
 
@@ -119,6 +121,7 @@ Notes: Vercel Production serves v0.1.14.1 navigation persistence code; exact-com
 - v0.1.13 — Space Lifecycle & Membership Safety（CLOSED / PASS；Slice 1/2 CLOSED / PASS；Production deployment、用户报告的 authenticated/mobile/PWA acceptance PASS）
 - v0.1.14 — 回顾（CLOSED / PASS；backend/date chronology Production PASS；frontend deployed；public smoke 与 Production authenticated acceptance PASS；final exact-ID cleanup PASS，Review 0/0、两条 module enabled）
 - v0.1.14.1 — Navigation Persistence（CLOSED / PASS；实现、integration review、本地及 Production 真实账号验收、Production deployment/public smoke PASS）
+- v0.1.15 — Shared Lists（DESIGN FROZEN / NOT IMPLEMENTED；docs-only freeze，implementation slices NOT STARTED）
 
 ## Last verified
 
@@ -126,7 +129,7 @@ Notes: Vercel Production serves v0.1.14.1 navigation persistence code; exact-com
 
 ## Next Action
 
-Next Action: review the remaining backlog and select/design the next version; no next-version scope is approved yet.
+Next Action: v0.1.15 Slice 1 implementation planning / preflight.
 
 ## Blockers
 
@@ -134,6 +137,7 @@ Next Action: review the remaining backlog and select/design the next version; no
 
 ## Important Context
 
+- v0.1.15 Shared Lists 的唯一 canonical contract 是 [v0.1.15_SHARED_LISTS_SPEC.md](./v0.1.15_SHARED_LISTS_SPEC.md)。产品与实施边界已冻结，三表实现、migration、前端、测试、Realtime 实测和部署均未开始；当前仓库调查没有发现阻塞 Design Freeze 的未决产品问题。下一步仅进入 Slice 1 implementation planning / preflight。
 - v0.1.14 `CLOSED / PASS`：`review_date` 是业务时间轴且同 Space 同日唯一；上一份计划严格按日期上一篇、不 fallback；`round_no` 仅为内部技术序列。Backend、frontend deployment、public smoke、用户 Production authenticated acceptance 与最终 exact-ID fixture cleanup 均通过；Production 当前 0 rounds / 0 entries、Shared 与 Personal Review module enabled。v0.1.14.1 已解决刷新回首页问题并 `CLOSED / PASS`；既有 >500 kB bundle warning 仍为非阻塞项。完整 Review contract 和验收条件只以 v0.1.14 规格为准。
 - Git branch、latest commit、working tree 由 project-command-center 实时 Git 扫描读取；PROJECT_STATE.md 不作为这些字段的权威来源。
 - Production URL: `https://cross-platform-shared-calendar.vercel.app/`.
@@ -194,8 +198,8 @@ Next Action: review the remaining backlog and select/design the next version; no
 - Future consideration — Web/PWA Push delivery precision: semantic Reminder due calculation remains exact, while once-per-minute `pg_cron` + async `pg_net` + Web Push may occasionally add sub-minute to approximately one-minute visible delivery latency. The observed recurring example had semantic due 11:45 and claim/finalize around 11:46; this is not a due-calculation defect. v0.1.8 adds no `-60s` early-dispatch allowance and keeps ordinary/recurring timing under the same semantic rule. Revisit only if real-use feedback shows material UX impact or a future native iOS/Android app adopts OS-level local notification scheduling.
 - Future consideration — physical Android heads-up presentation: functional delivery passed on Android Studio Emulator, including sound and notification-shade presence, but no heads-up banner was observed and physical hardware presentation was not validated. This may be casually revalidated on a physical Android device later; it is non-blocking and does not reopen v0.1.8.
 - v0.1.8 excludes Email reminder delivery, SMS, Bark, multiple reminders, arbitrary custom minutes, snooze, sound customization, notification inbox/history, native alarms, and per-user reminder preferences. Email OTP authentication remains unchanged.
-- `v0.1.9 Shared Tasks` Slice 1/2/3 are CLOSED / PASS: backend applied/postflight verified, frontend deployed through Vercel, Desktop A/B Production acceptance and iPhone smoke passed. Roadmap: v0.1.10 Personal Space/Multi-space/module enablement; v0.1.11 navigation/aggregation; v0.1.12 Module Hub + Space Management Navigation; v0.1.13 Space Lifecycle & Membership Safety. Structured Review / Check-in and Shared Lists remain future candidates after lifecycle safety.
+- `v0.1.9 Shared Tasks` Slice 1/2/3 are CLOSED / PASS: backend applied/postflight verified, frontend deployed through Vercel, Desktop A/B Production acceptance and iPhone smoke passed. At the v0.1.13 closeout, Structured Review / Check-in and Shared Lists were future candidates; v0.1.14/14.1 subsequently closed, and Shared Lists was selected for v0.1.15 and is now DESIGN FROZEN / NOT IMPLEMENTED.
 
 ## Handoff Prompt
 
-v0.1.13, v0.1.14 and v0.1.14.1 are `CLOSED / PASS`. v0.1.14.1 implementation, bounded integration review, local and Production user-run authenticated refresh acceptance, Vercel deployment and public smoke passed (targeted 22/22, full Node 320/320, gate 19/19, build PASS). Production had no Review data during this recheck, so Review Detail data restore was not newly tested online; automated integration and local acceptance remain the evidence for that path. Next Action is remaining-backlog review and next-version selection/design; no scope is approved. The existing bundle warning remains non-blocking.
+v0.1.14 and v0.1.14.1 are `CLOSED / PASS`. v0.1.15 Shared Lists is `DESIGN FROZEN / NOT IMPLEMENTED`; see `docs/v0.1.15_SHARED_LISTS_SPEC.md`. No Shared Lists implementation, migration, tests, deployment, or Production operation has occurred. Next Action is v0.1.15 Slice 1 implementation planning / preflight. No current blocker is recorded.

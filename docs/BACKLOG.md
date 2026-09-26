@@ -146,7 +146,15 @@ Slice 1–4、integration、两轮 acceptance fixes、frontend pre-deploy gate�
 
 ## v0.1.14.1 — Navigation Persistence — CLOSED / PASS
 
-同一 browser/tab session 刷新恢复当前用户的有效页面位置；仅持久化页面与稳定 ID，保留既有 Auth、membership、module、Review participant 检查及独立筛选。实现、integration review、本地 authenticated acceptance、Production deployment/public smoke、用户 Production authenticated refresh acceptance 均 `PASS`。Production 无 Review 数据，Review Detail 数据场景未在本轮线上重测；自动 integration 与本地验收仍覆盖该路径。刷新回首页已解决；既有 >500 kB bundle warning 非阻塞。不包含 router、browser history、可分享深链、PWA cold-start 永久记忆或草稿持久化。下一版本范围尚未批准。
+同一 browser/tab session 刷新恢复当前用户的有效页面位置；仅持久化页面与稳定 ID，保留既有 Auth、membership、module、Review participant 检查及独立筛选。实现、integration review、本地 authenticated acceptance、Production deployment/public smoke、用户 Production authenticated refresh acceptance 均 `PASS`。Production 无 Review 数据，Review Detail 数据场景未在本轮线上重测；自动 integration 与本地验收仍覆盖该路径。刷新回首页已解决；既有 >500 kB bundle warning 非阻塞。不包含 router、browser history、可分享深链、PWA cold-start 永久记忆或草稿持久化。当前 v0.1.15 Shared Lists 已完成 Design Freeze，尚未实现；下一步为 Slice 1 implementation planning / preflight。
+
+## v0.1.15 — Shared Lists — DESIGN FROZEN / NOT IMPLEMENTED
+
+Canonical contract: [v0.1.15 Shared Lists Specification](./v0.1.15_SHARED_LISTS_SPEC.md). The read-only repository investigation was reviewed and accepted as the basis for this docs-only Design Freeze. Personal and Shared Space support, the three-table model, derived List completion, deterministic ordering, atomic Section/List deletion semantics, quick-add, module eligibility, Realtime, mobile item drag, concurrency boundaries, non-goals, tests, and implementation slices are frozen there.
+
+No Shared Lists business implementation has started. No database table, migration, frontend code, test, dependency, deployment, or Production operation was performed for this freeze. All four slices remain NOT STARTED. No blocking product decision or implementation blocker is currently recorded.
+
+Next Action: v0.1.15 Slice 1 implementation planning / preflight. Slice 1 must first establish the additive DB/RLS/module/reorder/delete/Realtime contract and verify compatibility before any authenticated acceptance.
 
 ## Directional Roadmap — Shared Life Architecture Frozen
 
@@ -159,7 +167,8 @@ The long-term relationships and v0.1.10 scope are frozen in [Shared Life Archite
 - v0.1.13 — Space Lifecycle & Membership Safety (CLOSED / PASS; Slice 1/2 CLOSED / PASS; Production deployment and user-reported authenticated/mobile/PWA acceptance PASS).
 - v0.1.14 — 回顾 (CLOSED / PASS; backend/date chronology, frontend deployment, public smoke, Production authenticated acceptance and final exact-ID cleanup PASS; Review 0/0 with two enabled module rows).
 - v0.1.14.1 — Navigation Persistence (CLOSED / PASS; local and Production authenticated refresh acceptance PASS; no Review fixture created).
-- Later candidates without fixed versions/order: Shared Lists, Important Dates, Calendar Sources v1, Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules. Priority and order may change based on real product use.
+- v0.1.15 — Shared Lists (DESIGN FROZEN / NOT IMPLEMENTED; all implementation slices NOT STARTED).
+- Later candidates without fixed versions/order: Important Dates, Calendar Sources v1, Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules. Priority and order may change based on real product use.
 - Future direction only: consider projecting/sharing a Personal Event into another Space while keeping one canonical Event owner Space, avoiding duplicate canonical objects, and ensuring that leaving the target Shared Space does not affect the source Event. This is outside v0.1.13; do not implement or reserve schema for it in this version.
 - Native: decision gate only; no committed implementation version.
 
