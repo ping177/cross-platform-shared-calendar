@@ -191,6 +191,11 @@ At the original roadmap freeze, only these high-level safety principles were rec
 - 四个内容字段均可空；全空为未填写且不能标记。非空内容以服务端 content/filled revision 导出编辑中、已填写、有更新；相同内容重复保存不增加 revision。各人只能编辑、标记自己的 entry；无单次回顾删除。
 - 沿用 `space_modules`：缺行/关闭时不进入正常回顾选择器、禁止写入、保留历史，重开恢复。只扩展 owner-only 模块开关，不加 Realtime、archive/read-only 旁路或通用框架。面向用户只称「回顾」。
 
+## v0.1.14.1 Navigation Persistence — 2026-09-26
+
+- 在现有 React memory navigation 上使用按 authenticated user 隔离的 sessionStorage 小型页面目标，恢复同一 browser/tab session 的刷新位置。只保存页面与稳定 Space/Review ID；不保存筛选、业务数据、草稿、弹层或 `justCreated`。新登录从首页开始，logout 清除当前用户目标。
+- 恢复必须经过当前 membership、Review module eligibility 与 participant 读取；已确认失效时按目标页面回退，读取失败时保留重试。保持 selectedSpaceId localStorage 及 Calendar/Task/Review 各自的选择边界。此版本不迁移 router，不提供深链、browser history 改造或 PWA 完全关闭后的页面记忆承诺。
+
 ## Future UX Consideration — Calendar Create Action
 
 现有 Slice 2 冻结行为是：Calendar 选“全部空间”时没有日程创建 `+`，筛选单一 Space 时显示创建 `+`。未来可以重新评估这项行为；本次不改，也不重开 Slice 2。

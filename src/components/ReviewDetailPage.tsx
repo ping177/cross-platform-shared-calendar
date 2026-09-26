@@ -41,7 +41,7 @@ export function ReviewDetailPanels({ detail, userId, mobilePanel, onMobilePanelC
   </>;
 }
 
-export function ReviewDetailPage({ target, userId, onBack, onDirtyChange }: { target: ReviewDetailTarget; userId: string; onBack: () => void; onDirtyChange: (dirty: boolean) => void }) {
+export function ReviewDetailPage({ target, userId, onBack, onDirtyChange, onUnavailable }: { target: ReviewDetailTarget; userId: string; onBack: () => void; onDirtyChange: (dirty: boolean) => void; onUnavailable?: (reason: 'space' | 'review') => void }) {
   const [detail, setDetail] = useState<ReviewDetail | null>(null);
   const detailRef = useRef<ReviewDetail | null>(null);
   const [phase, setPhase] = useState<'loading' | 'ready' | 'error' | 'unavailable'>('loading');
@@ -78,12 +78,14 @@ export function ReviewDetailPage({ target, userId, onBack, onDirtyChange }: { ta
   async function refreshDetail() {
     if (submittingDate.current) return;
     const request = detailGuard.current.begin();
+    let spaceEligible = false;
     setRefreshError('');
     try {
       const eligible = await loadReviewEligibility(userId);
       if (!detailGuard.current.isCurrent(request)) return;
       const space = eligible.find((item) => item.id === target.spaceId);
       if (!space) throw new ReviewUnavailableError();
+      spaceEligible = true;
       const loaded = await readReviewDetail(supabase, space, target.reviewId, userId);
       if (!detailGuard.current.isCurrent(request)) return;
       detailRef.current = loaded;
@@ -99,6 +101,7 @@ export function ReviewDetailPage({ target, userId, onBack, onDirtyChange }: { ta
         setDirty(false);
         setDateOpen(false);
         setPhase('unavailable');
+        if (loadError instanceof ReviewUnavailableError) onUnavailable?.(spaceEligible ? 'review' : 'space');
       } else if (detailRef.current) {
         setRefreshError(detailError(loadError, '回顾刷新失败，请重试。'));
       } else {

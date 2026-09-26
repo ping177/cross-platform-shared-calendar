@@ -24,7 +24,7 @@ export function ReviewHistorySummary({ totalCount }: { totalCount: number }) {
   return <p className="text-sm text-ink/60">共 {totalCount} 篇回顾</p>;
 }
 
-export function ReviewHistoryPage({ userId, currentSpaceId, onSpaceChange, onOpenDetail, onHubBack }: { userId: string; currentSpaceId: string | null; onSpaceChange: (id: string | null) => void; onOpenDetail: (target: ReviewDetailTarget) => void; onHubBack: () => void }) {
+export function ReviewHistoryPage({ userId, currentSpaceId, onSpaceChange, onOpenDetail, onHubBack, onNoEligible }: { userId: string; currentSpaceId: string | null; onSpaceChange: (id: string | null) => void; onOpenDetail: (target: ReviewDetailTarget) => void; onHubBack: () => void; onNoEligible?: () => void }) {
   const [spaces, setSpaces] = useState<CurrentSpace[]>([]);
   const [eligibilityStatus, setEligibilityStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [eligibilityError, setEligibilityError] = useState('');
@@ -58,6 +58,7 @@ export function ReviewHistoryPage({ userId, currentSpaceId, onSpaceChange, onOpe
     try {
       const eligible = await loadReviewEligibility(userId);
       if (!eligibilityGuard.current.isCurrent(request)) return;
+      if (!eligible.length && onNoEligible) { onNoEligible(); return; }
       const priorId = selectedRef.current;
       const nextId = selectReviewSpace(priorId, eligible);
       selectedRef.current = nextId;

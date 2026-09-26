@@ -54,8 +54,10 @@ import { newEventIdentity } from './lib/space-content';
 import { readSpaceMembers } from './lib/space-members';
 import { settleSpaceLifecycle, type SpaceLifecycleAction } from './lib/space-lifecycle';
 import { createRequestGuard } from './lib/request-guard';
-import { calendarContentSpaceId, canChangeTabFromReviewDetail, initialNavigation, openCompletedTasks, openReviewDetail, openReviewModule, openTaskList, openTaskModule, selectTab, type TopLevelTab } from './lib/navigation';
-import type { ReviewDetailTarget } from './lib/review-detail';
+import { calendarContentSpaceId, canChangeTabFromReviewDetail, clearNavigationTarget, initialNavigation, navigationTargetForState, openCompletedTasks, openReviewDetail, openReviewModule, openTaskList, openTaskModule, readNavigationTarget, resolveNavigationTarget, selectTab, writeNavigationTarget, type NavigationTarget, type TopLevelTab } from './lib/navigation';
+import { readReviewDetail } from './lib/review-detail-data';
+import { loadReviewEligibility } from './lib/review-history-data';
+import { ReviewUnavailableError, type ReviewDetailTarget } from './lib/review-detail';
 import {
   registerPushServiceWorker,
 } from './lib/push-notifications';
@@ -169,14 +171,24 @@ function audienceClass(audience: EventAudience) {
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [loadingSession, setLoadingSession] = useState(true);
+  const [startupUserId, setStartupUserId] = useState<string | null>(null);
+  const currentUserId = useRef<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
+      setStartupUserId(data.session?.user.id ?? null);
+      currentUserId.current = data.session?.user.id ?? null;
       setSession(data.session);
       setLoadingSession(false);
     });
 
     const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      const nextUserId = nextSession?.user.id ?? null;
+      if (currentUserId.current && currentUserId.current !== nextUserId) {
+        const storage = sessionNavigationStorage();
+        if (storage) clearNavigationTarget(storage, currentUserId.current);
+      }
+      currentUserId.current = nextUserId;
       setSession(nextSession);
     });
 
@@ -195,7 +207,11 @@ export default function App() {
     return <AuthPage />;
   }
 
-  return <CalendarApp key={session.user.id} session={session} />;
+  return <CalendarApp key={session.user.id} session={session} restoreOnStartup={startupUserId === session.user.id} />;
+}
+
+function sessionNavigationStorage(): Storage | null {
+  try { return window.sessionStorage; } catch { return null; }
 }
 
 function ConfigMissing() {
@@ -384,7 +400,7 @@ function AuthPage() {
   );
 }
 
-function CalendarApp({ session }: { session: Session }) {
+function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreOnStartup: boolean }) {
   const userId = session.user.id;
   const [spaces, setSpaces] = useState<CurrentSpace[]>([]);
   const [selectedSpaceId, setSelectedSpaceId] = useState<string | null>(null);
@@ -407,25 +423,68 @@ function CalendarApp({ session }: { session: Session }) {
     const { error: ensureError } = await supabase.rpc('ensure_personal_space');
     if (ensureError) throw ensureError;
   }));
+  const restoredNavigation = useRef(false);
+
+  function applyRestoredTarget(target: NavigationTarget) {
+    switch (target.page) {
+      case 'home': setNavigation(initialNavigation); break;
+      case 'calendar': setNavigation(selectTab(initialNavigation, 'calendar')); break;
+      case 'modules': setNavigation(selectTab(initialNavigation, 'modules')); break;
+      case 'profile': setMyScreen('profile'); setNavigation(selectTab(initialNavigation, 'me')); break;
+      case 'tasks': setNavigation(openTaskModule(initialNavigation)); break;
+      case 'tasks-completed': setNavigation(openCompletedTasks(initialNavigation)); break;
+      case 'review-history':
+        setReviewSpaceId(target.spaceId ?? null);
+        setNavigation(openReviewModule(initialNavigation));
+        break;
+      case 'review-detail':
+        setReviewSpaceId(target.spaceId);
+        setReviewDetail({ spaceId: target.spaceId, reviewId: target.reviewId, justCreated: false });
+        setNavigation(openReviewDetail(initialNavigation));
+        break;
+      case 'space-management': setMyScreen('management'); setNavigation(selectTab(initialNavigation, 'me')); break;
+      case 'space-detail':
+        setMyScreen('detail');
+        setNavigation(selectTab(initialNavigation, 'me'));
+        break;
+    }
+  }
 
   async function loadSpaces(): Promise<boolean> {
     const currentRequest = requestGuard.current.begin();
     setLoading(true);
     setError('');
     try {
+      const storage = sessionNavigationStorage();
+      if (!restoredNavigation.current && !restoreOnStartup && storage) clearNavigationTarget(storage, userId);
       const result = await bootstrapSpaces(userId, window.localStorage, {
         ensurePersonalSpace: ensurePersonalSpace.current,
         listCurrentSpaces: () => listCurrentSpaces(userId),
         currentSelectionId: selectedSpaceId,
       });
       if (!requestGuard.current.isCurrent(currentRequest)) return false;
+      let restoredTarget: NavigationTarget | null = null;
+      if (!restoredNavigation.current) {
+        const saved = restoreOnStartup && storage ? readNavigationTarget(storage, userId) : null;
+        restoredTarget = await resolveNavigationTarget(saved, result.spaces, {
+          loadReviewSpaces: () => loadReviewEligibility(userId),
+          canReadReview: async (space, reviewId) => {
+            try { await readReviewDetail(supabase, space, reviewId, userId); return true; }
+            catch (readError) { if (readError instanceof ReviewUnavailableError) return false; throw readError; }
+          },
+        });
+        if (!requestGuard.current.isCurrent(currentRequest)) return false;
+        applyRestoredTarget(restoredTarget);
+        restoredNavigation.current = true;
+      }
       setSpaces(result.spaces);
       if (selectedSpaceId && selectedSpaceId !== result.selectedSpaceId) {
         setMyScreen((current) => current === 'detail' ? 'management' : current);
       }
-      setSelectedSpaceId(result.selectedSpaceId);
+      const nextSelectedSpaceId = restoredTarget?.page === 'space-detail' ? restoredTarget.spaceId : result.selectedSpaceId;
+      setSelectedSpaceId(nextSelectedSpaceId);
       setPersonalInitializationError(result.personalInitializationError ?? null);
-      writeSelectedSpaceId(window.localStorage, userId, result.selectedSpaceId);
+      writeSelectedSpaceId(window.localStorage, userId, nextSelectedSpaceId);
       return true;
     } catch (loadError) {
       if (!requestGuard.current.isCurrent(currentRequest)) return false;
@@ -435,6 +494,13 @@ function CalendarApp({ session }: { session: Session }) {
       if (requestGuard.current.isCurrent(currentRequest)) setLoading(false);
     }
   }
+
+  useEffect(() => {
+    if (!restoredNavigation.current) return;
+    const target = navigationTargetForState(navigation, myScreen, reviewDetail, reviewSpaceId, selectedSpaceId);
+    const storage = sessionNavigationStorage();
+    if (target && storage) writeNavigationTarget(storage, userId, target);
+  }, [navigation, myScreen, reviewDetail, reviewSpaceId, selectedSpaceId, userId]);
 
   useEffect(() => {
     void loadSpaces();
@@ -584,9 +650,9 @@ function CalendarApp({ session }: { session: Session }) {
       {navigation.tab === 'modules' && spaceListStatus === 'ready' && (navigation.moduleScreen === 'hub'
         ? <ModuleHub userId={userId} onOpenTasks={() => setNavigation((current) => openTaskModule(current))} onOpenReview={() => setNavigation((current) => openReviewModule(current))} />
         : navigation.moduleScreen === 'review'
-          ? <ReviewHistoryPage userId={userId} currentSpaceId={reviewSpaceId} onSpaceChange={setReviewSpaceId} onOpenDetail={(target) => { reviewDetailDirty.current = false; setReviewDetail(target); setNavigation((current) => openReviewDetail(current)); }} onHubBack={() => setNavigation((current) => selectTab(current, 'modules'))} />
+          ? <ReviewHistoryPage userId={userId} currentSpaceId={reviewSpaceId} onSpaceChange={setReviewSpaceId} onOpenDetail={(target) => { reviewDetailDirty.current = false; setReviewDetail(target); setNavigation((current) => openReviewDetail(current)); }} onHubBack={() => setNavigation((current) => selectTab(current, 'modules'))} onNoEligible={() => { setReviewSpaceId(null); setNavigation((current) => selectTab(current, 'modules')); }} />
           : navigation.moduleScreen === 'review-detail'
-            ? reviewDetail ? <ReviewDetailPage key={`${reviewDetail.spaceId}:${reviewDetail.reviewId}`} target={reviewDetail} userId={userId} onDirtyChange={(dirty) => { reviewDetailDirty.current = dirty; }} onBack={() => { reviewDetailDirty.current = false; setNavigation((current) => openReviewModule(current)); }} />
+            ? reviewDetail ? <ReviewDetailPage key={`${reviewDetail.spaceId}:${reviewDetail.reviewId}`} target={reviewDetail} userId={userId} onDirtyChange={(dirty) => { reviewDetailDirty.current = dirty; }} onBack={() => { reviewDetailDirty.current = false; setNavigation((current) => openReviewModule(current)); }} onUnavailable={(reason) => { reviewDetailDirty.current = false; if (reason === 'review') setReviewSpaceId(reviewDetail.spaceId); setNavigation((current) => reason === 'space' ? selectTab(current, 'modules') : openReviewModule(current)); }} />
               : <main className="mx-auto max-w-3xl px-4 py-6"><p>这次回顾暂不可访问。</p><button className="mt-3 min-h-11 font-semibold text-teal" type="button" onClick={() => setNavigation((current) => openReviewModule(current))}>返回回顾列表</button></main>
           : <TasksArea
             key={userId}

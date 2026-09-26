@@ -144,6 +144,10 @@ Canonical contract: [v0.1.14 回顾规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md)
 
 Slice 1–4、integration、两轮 acceptance fixes、frontend pre-deploy gate、main push、Vercel Production deployment 与公开 smoke 均通过。用户报告最终 Production authenticated acceptance `PASS`，覆盖 Personal / Shared、双账号读写边界、entry 状态、历史/新建、previous-plan、日期更正与 chronology、同日拒绝、count、响应式和 dirty navigation。最终 3 个 Personal 测试 rounds / 3 entries 经 exact-ID transaction 清理，postflight 0/0，两条 Review module enabled，核心 fingerprints 无变化。刷新浏览器回首页与既有 >500 kB bundle warning 保留为 non-blocking follow-up；v0.1.14 正式关闭。
 
+## v0.1.14.1 — Navigation Persistence — LOCAL PASS
+
+同一 browser/tab session 刷新恢复当前用户的有效页面位置；仅持久化页面与稳定 ID，保留既有 Auth、membership、module、Review participant 检查及独立筛选。自动测试与构建通过，Production 仍为 v0.1.14。下一步 bounded integration review 与用户真实浏览器验收；不包含 router、browser history、PWA cold-start 永久记忆或草稿持久化。
+
 ## Directional Roadmap — Shared Life Architecture Frozen
 
 The long-term relationships and v0.1.10 scope are frozen in [Shared Life Architecture Freeze](./SHARED_LIFE_ARCHITECTURE.md). Later version rows remain directional and require their own scope review.

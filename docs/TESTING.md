@@ -1,5 +1,11 @@
 # Testing
 
+## v0.1.14.1 Navigation Persistence — LOCAL PASS / Manual Acceptance Pending
+
+- `node --test tests/navigation-persistence.test.ts tests/navigation.test.ts tests/task-navigation-regression.test.ts tests/review-detail-ui.test.ts tests/review-history-ui.test.ts tests/space-management.test.ts`：**21/21 PASS**。定向测试覆盖 user-scoped sessionStorage、严格解析、异常存储、首页/日历/功能中心/我的、任务/已完成、回顾历史/详情、空间管理/详情、失效目标、Review eligibility 读取失败、dirty 取消与临时 `justCreated` 不持久化。新测试先红后绿。
+- `node --experimental-strip-types --test tests/*.test.ts tests/*.test.js`：**319/319 PASS**。`node --test tests/project-state-push-gate.test.js`：**19/19 PASS**。`npm run build`：**PASS**，保留既有 >500 kB chunk warning。`git diff --check`：PASS。仓库无 lint script。
+- 后续用户真实浏览器验收：在已登录的同一 tab 分别刷新首页、日历、功能中心、任务/已完成、回顾历史（指定 Space）、回顾详情、我的、空间管理、Space Detail；核对未保存内容不跨刷新保存、正常站内离开详情仍需确认、筛选互不影响。Codex 未操作 OTP、登录会话、iPhone 或 installed PWA。PWA 完全关闭后的页面记忆、browser history 与深链不在本版本承诺内。
+
 ## v0.1.14 回顾 Final Production Acceptance + Cleanup — CLOSED / PASS
 
 - 用户执行并明确报告 Production authenticated acceptance **PASS**。覆盖 Review module enablement、ModuleHub 入口、Personal / Shared、双账号读写边界、本人编辑/对方只读、四种 entry 状态、history/create、previous-plan、日期更正、date chronology、same-day duplicate rejection、authoritative count、无用户可见轮次、desktop / 320px responsive behavior 与 unsaved-draft navigation protection。Codex 未操作用户登录 session；数据库 security/concurrency/lifecycle 结论仍来自既有自动测试和 Production postflight。

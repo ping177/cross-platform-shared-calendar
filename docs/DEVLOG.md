@@ -1,5 +1,10 @@
 # Development Log
 
+## 2026-09-26 - v0.1.14.1 Navigation Persistence — LOCAL PASS
+
+- 在既有 React memory navigation 上加入 user-scoped sessionStorage 页面目标；仅保存页面和稳定 Space/Review ID。Auth session 与当前 Space 列表恢复后才解析目标；Review history/detail 复用现有 eligibility、participant/RLS 读取，Space Detail 核对当前 membership。失效目标按页面回退，网络读取失败保留目标与页面重试；新登录从首页开始，logout 清除当前用户目标。现有 selectedSpaceId localStorage、模块筛选和 Review dirty guard 不变。
+- 新增定向 Node 回归，先红后绿验证 parser、storage 异常、用户隔离、页面目标、canonical fallback 与 dirty 取消。Targeted navigation **21/21**、full Node **319/319**、Project State gate **19/19**、`npm run build`、`git diff --check` PASS；构建仍有既有 >500 kB chunk warning。无新依赖、SQL/RPC/RLS、Production 数据操作、push 或 deployment。真实账号刷新验收未执行；下一步 bounded integration review，再由用户进行浏览器验收。
+
 ## 2026-09-26 - v0.1.14 回顾 Final Governance Closeout — CLOSED / PASS
 
 - 用户明确报告 Production authenticated acceptance `PASS`。实际产品验收覆盖 Review module enablement 与 ModuleHub 入口；Personal 单人和 Shared 双账号；双方互看、本人编辑/标记、对方只读；未填写/编辑中/已填写/有更新转换且「我已填写」不锁定内容；单 Space 历史、新建、authoritative `共 N 篇回顾`、日期更正、`review_date` chronology、同 Space 同日重复拒绝、date-driven「上一份计划」且不 fallback；无用户可见 `round_no`；Shared desktop 双列、320px「我 / 对方」切换、固定高度内部滚动，以及未保存草稿导航保护。
