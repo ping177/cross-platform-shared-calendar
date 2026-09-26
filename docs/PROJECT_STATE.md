@@ -12,11 +12,13 @@ v0.1.15
 
 ## Current status
 
-v0.1.15 Shared Lists `DESIGN FROZEN / NOT IMPLEMENTED`。Canonical contract: [v0.1.15 Shared Lists Specification](./v0.1.15_SHARED_LISTS_SPEC.md)。设计冻结只修改文档；Shared Lists 实现尚未开始，未创建表或 migration，未修改业务代码，未进行部署或 Production 操作。v0.1.14 与 v0.1.14.1 均保持 `CLOSED / PASS`。暂无明确阻塞。
+v0.1.15 Shared Lists `IN PROGRESS`；Slice 1 DB foundation `LOCAL PASS`，Production backend patch `NOT YET APPLIED`，Slices 2–4 `NOT STARTED`。Canonical contract: [v0.1.15 Shared Lists Specification](./v0.1.15_SHARED_LISTS_SPEC.md)。v0.1.14 与 v0.1.14.1 均保持 `CLOSED / PASS`。暂无明确阻塞。
 
 ## Latest completed
 
-v0.1.15 Shared Lists Design Freeze `DESIGN FROZEN / NOT IMPLEMENTED`：只读仓库调查已接受并转为 canonical specification。冻结三表关系、Space ownership、completion/order invariants、Section 删除语义、item drag 要求、eligibility refresh、Realtime 和 bounded concurrency contract；implementation slices 均未开始。无业务代码、SQL/migration、测试、依赖、部署或 Production 变更。下一步是 Slice 1 implementation planning / preflight。
+v0.1.15 Slice 1 DB foundation `LOCAL PASS`：三表与约束/RLS/ACL、Lists module toggle、八个窄 mutation RPC（含 completion/reopen）、Realtime publication/FULL replica identity、canonical schema 与一份 forward patch 已实现。本地 pgTAP 13 files / 681 assertions、Lists 双会话 17/17、既有 Review 4/4 与 lifecycle 9/9、fresh/upgrade 109 项 catalog parity 均通过；既有业务 fixture 指纹不变。未操作 Production、部署、真实账号或前端。
+
+v0.1.15 Shared Lists Design Freeze `DESIGN FROZEN`：只读仓库调查已接受并转为 canonical specification，冻结 Space ownership、completion/order invariants、Section 删除、item drag、Realtime 与 bounded concurrency。此为先前设计里程碑；后续 Slice 1 已在本地实现。
 
 v0.1.14.1 final governance closeout `CLOSED / PASS`：用户报告 Production Calendar、Tasks、已有 Review 历史/相关页面与同一 Space Detail 刷新恢复通过；深页登出后另一账号不会继承原目标。Production 无 Review 数据，未重建 fixture，也未将 Review Detail 数据场景记作本轮线上实测；其恢复由自动 integration 与本地验收覆盖。Navigation Persistence 仅在既有 React memory navigation 上保存 user-scoped sessionStorage 页面及稳定 ID，经 canonical eligibility 验证失效目标并安全回退；临时读取失败可重试，dirty guard 与各筛选独立。无 Router、URL/history、深链、草稿/筛选持久化或 PWA cold-start 保证。
 
@@ -88,7 +90,7 @@ Status: public_deployed
 Public URL: https://cross-platform-shared-calendar.vercel.app/
 Provider: Vercel
 Backend: Supabase Free
-Backend rollout: v0.1.14 Slice 1 review foundation and date chronology forward patches applied and postflight verified; v0.1.13 lifecycle remains applied.
+Backend rollout: v0.1.15 Slice 1 Shared Lists patch NOT YET APPLIED; v0.1.14 Slice 1 review foundation and date chronology forward patches applied and postflight verified; v0.1.13 lifecycle remains applied.
 Notes: Vercel Production serves v0.1.14.1 navigation persistence code; exact-commit deployment, public smoke and user-reported Production authenticated refresh acceptance passed. v0.1.14.1 is `CLOSED / PASS`. Backend remains the accepted v0.1.14 contract with same-Space/date uniqueness, duplicate-safe create/date correction and `get_my_previous_review_plan`; authenticated-only ACL and participant RLS postflight passed. Final acceptance fixtures were removed by exact-ID transactions, leaving `review_rounds=0` and `review_entries=0` while Shared and Personal Review modules remain enabled. No Review fixture was created for v0.1.14.1 acceptance. Historical version-specific acceptance limits remain in DEVLOG/TESTING. `space_modules` remains outside Realtime; `send-test-push` remains ACTIVE v4 reviewed-equivalent and `send-reminders` ACTIVE v2 / `verify_jwt=false`. Vault, secrets and Cron were not changed.
 
 ## Version Index
@@ -121,7 +123,7 @@ Notes: Vercel Production serves v0.1.14.1 navigation persistence code; exact-com
 - v0.1.13 — Space Lifecycle & Membership Safety（CLOSED / PASS；Slice 1/2 CLOSED / PASS；Production deployment、用户报告的 authenticated/mobile/PWA acceptance PASS）
 - v0.1.14 — 回顾（CLOSED / PASS；backend/date chronology Production PASS；frontend deployed；public smoke 与 Production authenticated acceptance PASS；final exact-ID cleanup PASS，Review 0/0、两条 module enabled）
 - v0.1.14.1 — Navigation Persistence（CLOSED / PASS；实现、integration review、本地及 Production 真实账号验收、Production deployment/public smoke PASS）
-- v0.1.15 — Shared Lists（DESIGN FROZEN / NOT IMPLEMENTED；docs-only freeze，implementation slices NOT STARTED）
+- v0.1.15 — Shared Lists（IN PROGRESS；Slice 1 DB local PASS，Production NOT YET APPLIED；Slices 2–4 NOT STARTED）
 
 ## Last verified
 
@@ -129,7 +131,7 @@ Notes: Vercel Production serves v0.1.14.1 navigation persistence code; exact-com
 
 ## Next Action
 
-Next Action: v0.1.15 Slice 1 implementation planning / preflight.
+Next Action: v0.1.15 Slice 1 Production READ-ONLY preflight and exact forward-patch review; apply only after separate authorization, then verify postflight.
 
 ## Blockers
 
@@ -137,7 +139,7 @@ Next Action: v0.1.15 Slice 1 implementation planning / preflight.
 
 ## Important Context
 
-- v0.1.15 Shared Lists 的唯一 canonical contract 是 [v0.1.15_SHARED_LISTS_SPEC.md](./v0.1.15_SHARED_LISTS_SPEC.md)。产品与实施边界已冻结，三表实现、migration、前端、测试、Realtime 实测和部署均未开始；当前仓库调查没有发现阻塞 Design Freeze 的未决产品问题。下一步仅进入 Slice 1 implementation planning / preflight。
+- v0.1.15 Shared Lists 的唯一 canonical contract 是 [v0.1.15_SHARED_LISTS_SPEC.md](./v0.1.15_SHARED_LISTS_SPEC.md)。产品边界已冻结；Slice 1 三表、forward patch、本地 DB/并发测试与 parity 已通过。Production patch、前端 Slices 2–4、真实双账号 Realtime DELETE 验收和部署均未开始；下一步为 Production 只读 preflight 与 exact patch review。
 - v0.1.14 `CLOSED / PASS`：`review_date` 是业务时间轴且同 Space 同日唯一；上一份计划严格按日期上一篇、不 fallback；`round_no` 仅为内部技术序列。Backend、frontend deployment、public smoke、用户 Production authenticated acceptance 与最终 exact-ID fixture cleanup 均通过；Production 当前 0 rounds / 0 entries、Shared 与 Personal Review module enabled。v0.1.14.1 已解决刷新回首页问题并 `CLOSED / PASS`；既有 >500 kB bundle warning 仍为非阻塞项。完整 Review contract 和验收条件只以 v0.1.14 规格为准。
 - Git branch、latest commit、working tree 由 project-command-center 实时 Git 扫描读取；PROJECT_STATE.md 不作为这些字段的权威来源。
 - Production URL: `https://cross-platform-shared-calendar.vercel.app/`.
@@ -198,8 +200,8 @@ Next Action: v0.1.15 Slice 1 implementation planning / preflight.
 - Future consideration — Web/PWA Push delivery precision: semantic Reminder due calculation remains exact, while once-per-minute `pg_cron` + async `pg_net` + Web Push may occasionally add sub-minute to approximately one-minute visible delivery latency. The observed recurring example had semantic due 11:45 and claim/finalize around 11:46; this is not a due-calculation defect. v0.1.8 adds no `-60s` early-dispatch allowance and keeps ordinary/recurring timing under the same semantic rule. Revisit only if real-use feedback shows material UX impact or a future native iOS/Android app adopts OS-level local notification scheduling.
 - Future consideration — physical Android heads-up presentation: functional delivery passed on Android Studio Emulator, including sound and notification-shade presence, but no heads-up banner was observed and physical hardware presentation was not validated. This may be casually revalidated on a physical Android device later; it is non-blocking and does not reopen v0.1.8.
 - v0.1.8 excludes Email reminder delivery, SMS, Bark, multiple reminders, arbitrary custom minutes, snooze, sound customization, notification inbox/history, native alarms, and per-user reminder preferences. Email OTP authentication remains unchanged.
-- `v0.1.9 Shared Tasks` Slice 1/2/3 are CLOSED / PASS: backend applied/postflight verified, frontend deployed through Vercel, Desktop A/B Production acceptance and iPhone smoke passed. At the v0.1.13 closeout, Structured Review / Check-in and Shared Lists were future candidates; v0.1.14/14.1 subsequently closed, and Shared Lists was selected for v0.1.15 and is now DESIGN FROZEN / NOT IMPLEMENTED.
+- `v0.1.9 Shared Tasks` Slice 1/2/3 are CLOSED / PASS: backend applied/postflight verified, frontend deployed through Vercel, Desktop A/B Production acceptance and iPhone smoke passed. At the v0.1.13 closeout, Structured Review / Check-in and Shared Lists were future candidates; v0.1.14/14.1 subsequently closed, and Shared Lists was selected for v0.1.15. Its design is frozen and Slice 1 DB is locally verified.
 
 ## Handoff Prompt
 
-v0.1.14 and v0.1.14.1 are `CLOSED / PASS`. v0.1.15 Shared Lists is `DESIGN FROZEN / NOT IMPLEMENTED`; see `docs/v0.1.15_SHARED_LISTS_SPEC.md`. No Shared Lists implementation, migration, tests, deployment, or Production operation has occurred. Next Action is v0.1.15 Slice 1 implementation planning / preflight. No current blocker is recorded.
+v0.1.14 and v0.1.14.1 are `CLOSED / PASS`. v0.1.15 Shared Lists is `IN PROGRESS`; see `docs/v0.1.15_SHARED_LISTS_SPEC.md`. Slice 1 DB foundation is locally verified; Production patch is not applied, and frontend Slices 2–4 are not started. Next Action is the v0.1.15 Slice 1 Production READ-ONLY preflight and exact patch review before separate rollout authorization. No current blocker is recorded.

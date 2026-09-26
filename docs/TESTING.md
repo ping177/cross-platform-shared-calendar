@@ -1,12 +1,11 @@
 # Testing
 
-## v0.1.15 Shared Lists Design Freeze — NOT IMPLEMENTED
+## v0.1.15 Shared Lists Slice 1 — LOCAL DB PASS / PRODUCTION NOT APPLIED
 
-- The product and technical acceptance contract is frozen in [v0.1.15 Shared Lists Specification](./v0.1.15_SHARED_LISTS_SPEC.md). This record is a planned verification matrix, not evidence of implemented or passing tests.
-- Planned DB coverage: Space membership and Lists module enablement, disabled historical reads and rejected writes, RLS isolation, creator-independent shared editing, lifecycle retention/cascade, Section/List delete semantics, deterministic sort preservation, stale reorder rejection, and concurrent insert/reorder/delete paths.
-- Planned Node/frontend coverage: completion/progress derivation, empty states, stable overview ordering, independent listFilter, quick-add clear/focus, completed folds, whole-List two-step confirmation identifying its List and Space, and stale eligibility/Realtime reconciliation.
-- Dual-account acceptance must verify Personal and Shared use, live create/edit/complete/reopen/delete and reorder, mobile/PWA quick-add and drag behavior, and filtered DELETE delivery with actual subscriptions under RLS and REPLICA IDENTITY FULL. Metadata alone does not establish delivery.
-- No v0.1.15 tests, build, authenticated acceptance, migration, or Production operation has been run. All implementation slices remain NOT STARTED.
+- The frozen contract is [v0.1.15 Shared Lists Specification](./v0.1.15_SHARED_LISTS_SPEC.md). The working local DB received an initial patch iteration and a local function correction after pgTAP found an unqualified constraint name. The **exact final** forward patch was applied once to a disposable prior-schema database. Focused pgTAP passed **135/135** on the working DB and on each of the fresh/upgrade disposable paths; full working-DB regression passed **13 files / 681 assertions**. Existing Review concurrency passed **4/4** and Space lifecycle concurrency passed **9/9**.
+- `python3 supabase/tests/shared-lists-concurrency.py` passed **17/17** local dual-session checks: append/reorder/delete serialization, completion and reopen versus stale reorder, completion versus Item/Section deletion, two explicit completion writes, Section-delete versus insert, List-delete versus child creation, contiguous final positions, and no orphan Items or deadlock. Python syntax check passed.
+- A fresh canonical schema and prior schema plus the exact forward patch bootstrapped in two disposable local databases. **109** relevant catalog records matched across columns, constraints, indexes, triggers, RLS policies, table and column ACL, RPC definitions, publication, and replica identity; focused pgTAP passed **135/135 on both paths**. The upgrade path preserved a synthetic existing Space/member/Event/Task row fingerprint. Both disposable databases were removed after verification.
+- No frontend business code or dependency changed; no frontend build was required for this DB-only Slice. `git diff --check` passed. A real Production read-only preflight, separate patch authorization/application, postflight, frontend Slices 2–4, authenticated two-account acceptance, and filtered DELETE delivery under RLS remain pending. Metadata alone does not prove DELETE delivery; Codex did not operate Production or logged-in user sessions.
 
 ## v0.1.14.1 Final Acceptance — CLOSED / PASS
 

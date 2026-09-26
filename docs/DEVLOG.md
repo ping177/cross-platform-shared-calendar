@@ -1,5 +1,12 @@
 # Development Log
 
+## 2026-09-26 - v0.1.15 Shared Lists Slice 1 DB Foundation — LOCAL PASS / PRODUCTION NOT APPLIED
+
+- Implemented the frozen three-table Space-owned Lists foundation in `schema.sql` and one apply-once forward patch: composite parent consistency, nullable ungrouped Section, non-cascading creator audit, immutable identity, bounded text/order checks, member-readable history, enabled-member writes, narrow structural/reorder/completion RPCs, and three-table Realtime publication with FULL replica identity. Lists remains disabled by default; the existing owner-only module toggle now accepts `lists`.
+- Completion/reopen uses `set_list_item_completed(item_id, completed)` with List → Item lock order. Direct client completion and combined content/completion UPDATE are denied; content-only edits remain direct. The first local pgTAP run found that hardened RPC `search_path` required schema-qualified `SET CONSTRAINTS`; corrected the exact patch and canonical schema before final verification.
+- Local verification: focused pgTAP 135/135 on the working DB and on each fresh/upgrade disposable path, full working-DB regression 13 files / 681 assertions, new dual-session Lists checks 17/17, existing Review concurrency 4/4, existing Space lifecycle concurrency 9/9, Python syntax, and `git diff --check` PASS. Fresh schema and old schema plus the exact final patch matched on 109 relevant catalog records including column ACL; synthetic existing Space/member/Event/Task row fingerprints were unchanged. No frontend build was required for this DB-only change.
+- Production preflight, patch application/postflight, frontend Slices 2–4, authenticated user acceptance, and filtered Realtime DELETE delivery remain pending. No Production, deployment, user session, dependency, or external project-file change occurred; no commit or push was made.
+
 ## 2026-09-26 - v0.1.15 Shared Lists Design Freeze — DESIGN FROZEN / NOT IMPLEMENTED
 
 - Reviewed and accepted the read-only Shared Lists implementation investigation, then recorded its final product clarifications in [the canonical specification](./v0.1.15_SHARED_LISTS_SPEC.md). The frozen contract covers Space ownership, the three-table model, item-derived completion, integer ordering, deterministic Section deletion, required within-region item drag, bounded eligibility revalidation, Realtime reread, lifecycle, tests, scope guard, and four implementation slices.

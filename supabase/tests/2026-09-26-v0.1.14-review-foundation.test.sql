@@ -59,7 +59,7 @@ select throws_ok($$select public.create_review_round('92000000-0000-4000-8000-00
 select lives_ok($$select public.set_space_module_enabled('92000000-0000-4000-8000-000000000011','review',true)$$,'owner enables Personal review');
 select lives_ok($$select public.set_space_module_enabled('92000000-0000-4000-8000-000000000012','review',true)$$,'owner enables Shared review');
 select lives_ok($$select public.set_space_module_enabled('92000000-0000-4000-8000-000000000013','review',true)$$,'owner enables delete fixture review');
-select throws_ok($$select public.set_space_module_enabled('92000000-0000-4000-8000-000000000012','lists',true)$$,'P0001','Only Tasks and Review modules may be toggled in this version','other module remains unavailable');
+select throws_ok($$select public.set_space_module_enabled('92000000-0000-4000-8000-000000000012','important_dates',true)$$,'P0001','Only Tasks, Review, and Lists modules may be toggled in this version','other module remains unavailable');
 select lives_ok($$select public.create_review_round('92000000-0000-4000-8000-000000000011',date '2026-09-26')$$,'Personal round created');
 select is((select count(*) from public.review_entries e join public.review_rounds r on r.id=e.review_id where r.space_id='92000000-0000-4000-8000-000000000011'),1::bigint,'Personal snapshot has exactly one entry');
 select lives_ok($$select public.save_my_review_entry((select id from public.review_rounds where space_id='92000000-0000-4000-8000-000000000011'),E' \n\t',null,null,null)$$,'whitespace-only content may be saved');
