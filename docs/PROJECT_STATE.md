@@ -12,15 +12,17 @@ v0.1.14
 
 ## Current status
 
-v0.1.14「回顾」`ACCEPTANCE FEEDBACK FIX LOCAL PASS / TINY RECHECK PENDING / PRODUCTION FRONTEND NOT DEPLOYED`。产品与验收契约见 [v0.1.14 规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md)。Slice 1 backend 已在 Production 应用并通过 postflight；Slice 2–4、集成审查及真实账号验收反馈修正本地通过。用户已完成广泛本地真实账号验收；本轮修正尚待 bounded tiny recheck、push 与部署。Production 用户可见前端仍为 v0.1.13、没有回顾 UI，整体仍在开发。
+v0.1.14「回顾」`DATE CHRONOLOGY FIX LOCAL PASS / PRODUCTION READ-ONLY PREFLIGHT NEXT / PRODUCTION FRONTEND NOT DEPLOYED`。产品与验收契约见 [v0.1.14 规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md)。原 Slice 1 backend 已在 Production；Slice 2–4、集成审查、第一轮反馈修正及第二轮 date chronology 修正均为本地实现。新的 date-semantics forward patch 尚未应用 Production，前端尚未 push/deploy；Production 用户可见前端仍为 v0.1.13，整体仍在开发。
 
 ## Latest completed
 
-v0.1.14 authenticated acceptance feedback fix 本地 `PASS`：移除历史、详情、无障碍名称与日期弹窗中的可见「第 N 次」，日期成为可见身份；历史新增 RLS 下当前 Space 的 authoritative exact count「共 N 篇回顾」，分页不以已加载行数或游标局部计数覆盖；参考文案统一为「上一份计划」。内部 `round_no`、并发、游标与 `round_no - 1` 读取不变。Focused Node 11/11、完整 Node 305/305、build PASS。没有 SQL/RLS/RPC、Production 写入/部署、依赖或 Codex 登录操作。刷新页面回首页记录为后续 UX 事项，本轮未修复。
+v0.1.14 第二轮 acceptance fix 本地 `PASS`：`review_date` 成为业务时间轴，新增同 Space 同日唯一约束；create/date-correction 在既有 Space 锁内拒绝占用日期。previous-plan 改为窄只读 RPC 后端确定严格更早日期中的最近一篇，只返回本人 plan/null，无本人 entry 或空 plan 不 fallback。`round_no` 保持内部不可变序列和游标。新 pgTAP 41/41、完整 DB 12 files/546、Review concurrency 4/4、lifecycle concurrency 9/9、targeted Node 21/21、full Node 312/312、build PASS。patch 只应用本地测试库，未触碰 Production。
+
+v0.1.14 authenticated acceptance feedback fix 本地 `PASS`：移除历史、详情、无障碍名称与日期弹窗中的可见「第 N 次」，日期成为可见身份；历史新增 RLS 下当前 Space 的 authoritative exact count「共 N 篇回顾」，分页不以已加载行数或游标局部计数覆盖；参考文案统一为「上一份计划」。该第一轮节点当时保留 `round_no - 1`，现已由上方第二轮 date chronology 语义 supersede。Focused Node 11/11、完整 Node 305/305、build PASS。没有 Production 写入/部署、依赖或 Codex 登录操作。刷新页面回首页记录为后续 UX 事项，本轮未修复。
 
 v0.1.14 前端 integration / pre-deploy review 本地 `PASS`：核对 Hub → 单 Space 历史/新建 → 服务端 canonical id 详情 → 本人编辑/对方只读 → 日期更正/返回排序；修复底部导航离开详情时绕过未保存草稿确认的问题。构建产物指向已关联的 Production backend；Production 只读核对四个回顾写 RPC、模块开关、函数授权、表列与 RLS，未发现前端依赖未部署能力。Focused Node 7/7、完整 Node 302/302、build、diff-check 与生产依赖安全审计 PASS。未进行真实账号/设备验收、Production 写入、前端部署或 push。
 
-v0.1.14 Slice 4 Responsive Detail + Date Correction + Previous Plan 本地 `PASS`：历史行与新建成功可进入详情；Personal 单列，Shared 桌面我/对方并排、手机切换且保留本人草稿。本人复用 Slice 2 editor；对方当轮 entry 只读、固定高度框内滚动。日期经已部署 `correct_review_date` 更正并用服务端结果更新；返回历史会重新读取排序。仅刚创建流程显示按同 Space 紧邻编号读取的本人上一轮计划，不复制。Focused Node、full Node、TypeScript/Vite build、diff-check PASS；无 SQL/RLS/RPC、Production 写入/部署或真实账号验收。
+v0.1.14 Slice 4 Responsive Detail + Date Correction + Previous Plan 本地 `PASS`：历史行与新建成功可进入详情；Personal 单列，Shared 桌面我/对方并排、手机切换且保留本人草稿。本人复用 Slice 2 editor；对方当轮 entry 只读、固定高度框内滚动。日期经已部署 `correct_review_date` 更正并用服务端结果更新；返回历史会重新读取排序。该 Slice 当时使用紧邻内部编号读取上一份计划，现已由第二轮 date chronology 修正替代。Focused Node、full Node、TypeScript/Vite build、diff-check PASS；该节点无 SQL/RLS/RPC、Production 写入/部署或真实账号验收。
 
 v0.1.14 Slice 3 Module Entry + Space-scoped History & Create 本地 `PASS`：空间管理增加 owner-only 回顾开关；功能中心仅在存在已开启且当前可访问的 Space 时显示回顾。独立单 Space 选择、参与者快照状态映射、20 轮游标分页和日期可编辑的 `+` 新建复用现有 RLS 与 `create_review_round`。Focused Node、full Node、TypeScript/Vite build 与 diff-check PASS；无 SQL/RLS/RPC、依赖、Production/frontend 部署或真实账号验收。完整详情和上一轮计划属于 Slice 4。
 
@@ -67,7 +69,7 @@ Public URL: https://cross-platform-shared-calendar.vercel.app/
 Provider: Vercel
 Backend: Supabase Free
 Backend rollout: v0.1.14 Slice 1 review foundation forward patch applied and postflight verified; v0.1.13 lifecycle remains applied.
-Notes: Vercel is the configured Production provider. The v0.1.14 rollout added backend Review capability only; the user-visible frontend remains the previously accepted v0.1.13 baseline. v0.1.13 Slice 2 Production deployment `6662531970` completed successfully from source `c08e9f1bd2d583a65fb42d68588b531ca6e0216c`; the canonical public URL and its JavaScript/CSS assets returned HTTP 200 at that verification checkpoint. The v0.1.13 lifecycle patch remains applied and its four RPC definitions were unchanged by the Review rollout. The user reported v0.1.14 broad local authenticated acceptance; its bounded feedback fix is only local and still awaits tiny recheck, push and frontend deployment. Historical version-specific acceptance limits remain recorded in DEVLOG/TESTING. `space_modules` still has no Realtime publication; v0.1.10 and earlier deployment notes remain historical. `send-test-push` remains ACTIVE v4 reviewed-equivalent; `send-reminders` remains ACTIVE v2 / `verify_jwt=false`. Vault/secret/Cron were not changed.
+Notes: Vercel is the configured Production provider. Production has the original v0.1.14 Review foundation only; it does not yet have same-Space/date uniqueness or `get_my_previous_review_plan`. The date chronology patch is local and requires a read-only duplicate-date preflight before rollout. Real-account acceptance may have created duplicate same-day test reviews; none were queried or cleaned in this task. The user-visible frontend remains the accepted v0.1.13 baseline. Historical version-specific acceptance limits remain in DEVLOG/TESTING. `space_modules` remains outside Realtime; `send-test-push` remains ACTIVE v4 reviewed-equivalent and `send-reminders` ACTIVE v2 / `verify_jwt=false`. Vault, secrets and Cron were not changed.
 
 ## Version Index
 
@@ -97,7 +99,7 @@ Notes: Vercel is the configured Production provider. The v0.1.14 rollout added b
 - v0.1.11 — Navigation + Aggregation Experience（CLOSED / PASS；Slice 1–4 CLOSED / PASS；Production installed PWA acceptance PASS；dedicated final iPhone Safari acceptance NOT RUN）
 - v0.1.12 — Module Hub + Space Management Navigation（CLOSED / PASS；Slice 1–4 CLOSED / PASS；Production / installed-PWA acceptance PASS）
 - v0.1.13 — Space Lifecycle & Membership Safety（CLOSED / PASS；Slice 1/2 CLOSED / PASS；Production deployment、用户报告的 authenticated/mobile/PWA acceptance PASS）
-- v0.1.14 — 回顾（Slice 1 backend Production PASS；Slice 2–4、集成审查与 acceptance feedback fix 本地 PASS；广泛真实账号本地验收已完成、tiny recheck 待执行；Production 前端未部署，整体未关闭）
+- v0.1.14 — 回顾（原 Slice 1 backend Production PASS；Slice 2–4、集成审查、第一轮反馈修正及 date chronology fix 本地 PASS；新 backend patch 待 Production preflight/apply，前端未 push/deploy，整体未关闭）
 
 ## Last verified
 
@@ -105,7 +107,7 @@ Notes: Vercel is the configured Production provider. The v0.1.14 rollout added b
 
 ## Next Action
 
-Next Action: 用户在本地 `5175` 前端执行 v0.1.14 bounded tiny recheck：历史/详情不再出现「第 N 次」、当前 Space 的「共 N 篇回顾」准确、文案为「上一份计划」、新建后返回历史总数更新。通过后再确认 push 与前端部署。Codex 不操作登录态或真实账号会话。
+Next Action: 对 date-semantics forward patch 执行 Production READ-ONLY preflight，按 `(space_id, review_date)` 识别可能的 duplicate 测试回顾并精确列出 review IDs。若存在重复项，等待用户确认 exact test rows 后另行 exact-ID cleanup 与 postflight；清理前不得应用唯一约束 patch。
 
 ## Blockers
 
@@ -113,7 +115,7 @@ Next Action: 用户在本地 `5175` 前端执行 v0.1.14 bounded tiny recheck：
 
 ## Important Context
 
-- v0.1.14 Design Freeze 已同步 acceptance feedback：`round_no` 保持内部字段，日期是可见身份；历史显示 RLS authoritative total；参考区称「上一份计划」。Production 已具备 Slice 1 回顾表、RPC 和权限基础。本地 Slice 2–4 与反馈修正尚未 push 或部署；Production 前端没有回顾 UI。访问旧轮必须同时是当前 Space 成员和该轮 participant；leave/remove 保留 entry，新成员看不到旧轮，原 participant 重入可恢复访问。Shared 必须双人才能新建；模块缺行或关闭时隐藏正常选择并拒绝写入。本人多端同时编辑没有 expected-revision 冲突检测，仍遵循既有后端写入语义。刷新页面回首页是后续 UX 事项。完整 contract 和验收条件只以 v0.1.14 规格为准。
+- v0.1.14 Design Freeze 已同步第二轮 acceptance feedback：`review_date` 是业务时间轴且同 Space 同日唯一；上一份计划严格按日期上一篇、不 fallback；`round_no` 仅为内部技术序列。Production 仍只有原 Slice 1 表/RPC，新的 uniqueness、create/correct 语义和 previous-plan RPC 尚未部署。本地 Slice 2–4 与两轮反馈修正尚未 push/deploy；Production 前端没有回顾 UI。Production 可能存在真实验收产生的同日测试 rows，patch 不做自动清理。刷新页面回首页仍是后续 UX 事项。完整 contract 和验收条件只以 v0.1.14 规格为准。
 - Git branch、latest commit、working tree 由 project-command-center 实时 Git 扫描读取；PROJECT_STATE.md 不作为这些字段的权威来源。
 - Production URL: `https://cross-platform-shared-calendar.vercel.app/`.
 - Supabase project status is currently Active, but Free Tier inactivity pause remains an operational risk.
@@ -177,4 +179,4 @@ Next Action: 用户在本地 `5175` 前端执行 v0.1.14 bounded tiny recheck：
 
 ## Handoff Prompt
 
-v0.1.13 Space Lifecycle & Membership Safety is `CLOSED / PASS`. v0.1.14「回顾」Slice 1 backend is in Production; Slice 2–4, integration review and the bounded authenticated-acceptance feedback fix are locally implemented and automatically verified. The user completed broad local authenticated acceptance before requesting the two feedback changes. The Production frontend remains v0.1.13. Next Action is the user's tiny local `5175` recheck: no visible round numbering, authoritative Space total, date-only detail identity, 「上一份计划」copy, and count refresh after create. Do not repeat the full acceptance set; do not fix the separate refresh-to-home UX issue in this slice.
+v0.1.13 Space Lifecycle & Membership Safety is `CLOSED / PASS`. v0.1.14 Production contains only the original Slice 1 Review backend. Slice 2–4, integration, the first feedback fix and the second date chronology fix are local and automatically verified; the new date-semantics patch and frontend are not deployed. Next Action is Production READ-ONLY preflight for duplicate `(space_id, review_date)` rows with exact review IDs. Do not clean data or apply the patch until the user confirms any exact test rows; do not fix the separate refresh-to-home UX issue in this slice.

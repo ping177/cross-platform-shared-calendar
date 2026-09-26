@@ -1,5 +1,13 @@
 # Testing
 
+## v0.1.14 回顾 Date Chronology Acceptance Fix — Local PASS
+
+- Forward patch: `supabase/patches/2026-09-26-v0.1.14-review-date-chronology.sql`（147 行，SHA-256 `7adf5a8dfa34c0bfca8ab05b7b2467bcfe088d262c50213d6e24fbae939cb82f`）。它在事务内先拒绝 existing duplicate dates，再增加 named unique constraint、替换 create/correct RPC 并新增窄 previous-plan read RPC；没有 delete、truncate、自动改日期或重编号。
+- 新增 `supabase/tests/2026-09-26-v0.1.14-review-date-chronology.test.sql`：**41/41 PASS**。覆盖 named date unique constraint、RPC ACL/search_path；Personal/Shared 同日第二篇拒绝且 entries 不增加；跨 Space 同日、同 Space 不同日期；9/26 先建、9/25 后补、9/27 再建的日期关系；占用日期更正原子拒绝与空闲日期成功；日期更正动态关系；Personal/Space 隔离；direct insert 唯一约束；立即上一篇无本人 entry 或空 plan 时不 fallback；leave/rejoin 与非 participant 拒绝。
+- `supabase test db --local`：**12 files / 546 pgTAP assertions PASS**。`python3 supabase/tests/review-foundation-concurrency.py`：**4/4 PASS**，覆盖同 Space 同日并发恰好一成一败、无孤立 entries；不同日期均成功且业务顺序按日期；两项既有 module toggle race。`python3 supabase/tests/space-lifecycle-concurrency.py`：**9/9 PASS**。
+- Targeted Node（review detail/history UI+data 与 schema/patch contract）：**21/21 PASS**；完整 Node：**312/312 PASS**；`npm run build`：**PASS**，保留既有 >500 kB bundle warning。schema/patch changed-function parity、forward-only/no-cleanup 静态检查 PASS。仓库无 lint script。
+- Forward patch 仅应用到本地测试库。Production 未执行 preflight、清理或 patch；由于真实账号验收可能留下同 Space 同日重复测试 rows，Production rollout 前必须只读列出 exact review IDs，由用户确认后另行 exact-ID cleanup，完成 postflight 后才能应用唯一约束 patch。
+
 ## v0.1.14 回顾 Authenticated Acceptance Feedback Fix — Local PASS
 
 - 用户已完成本地真实账号广泛验收并反馈两项 bounded UX 调整。本轮自动覆盖历史/详情无可见 `round_no`、日期身份、无障碍名称、0/1/47 authoritative exact count、游标分页不覆盖总数、Space 切换清空旧总数、创建成功进入 canonical 详情，以及「上一份计划」文案。数据读取仍通过 `review_rounds` 既有 participant RLS；无 SQL/RPC 改动。

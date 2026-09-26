@@ -68,33 +68,43 @@ values ('{SPACE}','{OWNER}','owner'),('{SPACE}','{MEMBER}','member');
 commit;""")
         sql(actor_sql(OWNER, f"select public.set_space_module_enabled('{SPACE}','review',true);"))
 
-        create = lambda: f"select (public.create_review_round('{SPACE}',date '2026-09-26')).round_no;"
-        first, second = ordered_pair(
-            actor_sql(OWNER, f"{create()} select 'LOCKED'; select pg_sleep(1);"),
-            actor_sql(MEMBER, create()),
+        create = lambda review_date: f"select (public.create_review_round('{SPACE}',date '{review_date}')).round_no;"
+        first, _ = ordered_pair(
+            actor_sql(OWNER, f"{create('2026-09-26')} select 'LOCKED'; select pg_sleep(1);"),
+            actor_sql(MEMBER, create('2026-09-26')),
+            second_fails=True,
         )
         assert "1" in first.splitlines(), first
-        assert "2" in second.splitlines(), second
-        assert sql(f"select string_agg(round_no::text,',' order by round_no) from public.review_rounds where space_id='{SPACE}';") == "1,2"
-        assert sql(f"select count(*) from public.review_entries e join public.review_rounds r on r.id=e.review_id where r.space_id='{SPACE}';") == "4"
-        print("PASS concurrent create assigns rounds 1 and 2 with four participant entries")
+        assert sql(f"select count(*) from public.review_rounds where space_id='{SPACE}';") == "1"
+        assert sql(f"select count(*) from public.review_entries e join public.review_rounds r on r.id=e.review_id where r.space_id='{SPACE}';") == "2"
+        print("PASS concurrent same-date create allows one round with no orphan entries")
+
+        first, second = ordered_pair(
+            actor_sql(OWNER, f"{create('2026-09-27')} select 'LOCKED'; select pg_sleep(1);"),
+            actor_sql(MEMBER, create('2026-09-25')),
+        )
+        assert "2" in first.splitlines(), first
+        assert "3" in second.splitlines(), second
+        assert sql(f"select string_agg(round_no::text||':'||review_date::text,',' order by round_no) from public.review_rounds where space_id='{SPACE}';") == "1:2026-09-26,2:2026-09-27,3:2026-09-25"
+        assert sql(f"select string_agg(review_date::text,',' order by review_date desc) from public.review_rounds where space_id='{SPACE}';") == "2026-09-27,2026-09-26,2026-09-25"
+        print("PASS concurrent different-date create keeps round sequence technical and chronology date-driven")
 
         first, _ = ordered_pair(
             actor_sql(OWNER, f"select public.set_space_module_enabled('{SPACE}','review',false); select 'LOCKED'; select pg_sleep(1);"),
-            actor_sql(MEMBER, create()),
+            actor_sql(MEMBER, create('2026-09-28')),
             second_fails=True,
         )
         assert "LOCKED" in first
-        assert sql(f"select count(*) from public.review_rounds where space_id='{SPACE}';") == "2"
+        assert sql(f"select count(*) from public.review_rounds where space_id='{SPACE}';") == "3"
         print("PASS disable first rejects a concurrent create")
 
         sql(actor_sql(OWNER, f"select public.set_space_module_enabled('{SPACE}','review',true);"))
         first, _ = ordered_pair(
-            actor_sql(OWNER, f"{create()} select 'LOCKED'; select pg_sleep(1);"),
+            actor_sql(OWNER, f"{create('2026-09-28')} select 'LOCKED'; select pg_sleep(1);"),
             actor_sql(OWNER, f"select public.set_space_module_enabled('{SPACE}','review',false);"),
         )
-        assert "3" in first.splitlines(), first
-        assert sql(f"select count(*) from public.review_rounds where space_id='{SPACE}';") == "3"
+        assert "4" in first.splitlines(), first
+        assert sql(f"select count(*) from public.review_rounds where space_id='{SPACE}';") == "4"
         assert sql(f"select enabled from public.space_modules where space_id='{SPACE}' and module_key='review';") == "f"
         print("PASS create first commits before concurrent disable; history remains")
     finally:

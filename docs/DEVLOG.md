@@ -1,5 +1,11 @@
 # Development Log
 
+# 2026-09-26 - v0.1.14 回顾 Date Chronology Acceptance Fix — LOCAL PASS
+
+- 第二轮真实账号验收反馈将 `review_date` 冻结为业务时间轴，同一 Space 同日最多一篇；`round_no` 保留为不可变内部创建序列、锁并发与游标字段，不再定位上一份计划。canonical schema 增加 `unique(space_id, review_date)`，独立 forward-only patch 在锁内为 create/correct-date 增加同日冲突拒绝；patch 只在本地测试库应用，未触碰 Production、未清理验收数据。
+- participant RLS 会隐藏调用者未参加的真正上一篇，客户端按可见日期查询会产生错误 fallback；因此新增 `get_my_previous_review_plan(uuid)` 窄只读 `SECURITY DEFINER` RPC。它验证当前轮 membership + participant，先按同 Space `max(review_date) < current.review_date` 确定真正上一篇，只返回调用者自己的 plan 或 `null`。前端不再查询 `round_no - 1`；同日新建和日期更正冲突显示「这一天已经有一篇回顾」，既有 Sheet/详情状态保持。
+- 新 date chronology pgTAP **41/41 PASS**；完整 DB **12 files / 546 assertions PASS**；Review 双会话并发 **4/4 PASS**，既有 lifecycle 双会话 **9/9 PASS**；targeted Node **21/21 PASS**，完整 Node **312/312 PASS**，`npm run build` PASS。下一步必须先做 Production READ-ONLY duplicate-date preflight，精确列出可能由真实验收产生的同 Space 同日测试 rows；不得在 patch 中自动清理。
+
 # 2026-09-26 - v0.1.14 回顾 Authenticated Acceptance Feedback Fix — LOCAL PASS
 
 - 根据用户已完成的本地真实账号验收反馈做 bounded 前端修正：历史行、详情标题、无障碍名称和日期更正弹窗不再显示「第 N 次」；日期成为可见身份。数据库 `round_no`、日期/编号游标、并发唯一性和 `round_no - 1` 上一份计划算法保持不变。

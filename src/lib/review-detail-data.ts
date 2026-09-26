@@ -26,17 +26,12 @@ export async function readReviewDetail(client: SupabaseClient, space: CurrentSpa
 }
 
 export async function readPreviousPlan(client: SupabaseClient, round: ReviewRound, userId: string): Promise<string | null> {
-  if (round.round_no <= 1) return null;
   await assertCurrentUser(client, userId);
-  const { data: previous, error: roundError } = await client.from('review_rounds').select('id')
-    .eq('space_id', round.space_id).eq('round_no', round.round_no - 1).maybeSingle();
-  if (roundError) throw roundError;
-  if (!previous) return null;
-  const { data: own, error: entryError } = await client.from('review_entries').select('next_plan')
-    .eq('review_id', previous.id).eq('user_id', userId).maybeSingle();
-  if (entryError) throw entryError;
+  const { data, error } = await client.rpc('get_my_previous_review_plan', { p_review_id: round.id });
+  if (error) throw error;
   await assertCurrentUser(client, userId);
-  return typeof own?.next_plan === 'string' && own.next_plan.trim() ? own.next_plan : null;
+  if (data !== null && typeof data !== 'string') throw new Error('上一份计划读取不完整，请重试。');
+  return typeof data === 'string' && data.trim() ? data : null;
 }
 
 export async function correctReviewDate(client: SupabaseClient, round: ReviewRound, reviewDate: string, userId: string): Promise<ReviewRound> {

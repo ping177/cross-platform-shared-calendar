@@ -138,11 +138,11 @@ The original roadmap carried these high-level safety principles; the Slice 1A ba
 - Destructive multi-record operations should use atomic backend-owned behavior rather than fragile frontend mutation sequences.
 - Review Shared Space deletion against all Space-owned canonical data; future modules must honor the eventual lifecycle contract.
 
-## v0.1.14 — 回顾（Structured Check-in）— ACCEPTANCE FEEDBACK FIX LOCAL PASS
+## v0.1.14 — 回顾（Structured Check-in）— DATE CHRONOLOGY FIX LOCAL PASS
 
-Canonical contract: [v0.1.14 回顾规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md)。Slice 1 backend Production forward patch 与只读 postflight `PASS`；Slice 2–4 与前端集成审查均本地 `PASS`。用户已完成本地真实账号广泛验收；其反馈的可见序号移除、Space authoritative 总数和「上一份计划」文案修正已本地自动验证，尚未 push 或部署。Personal 一人和 Shared 创建时双人共用 Space-owned 数据模型；旧轮只对当前仍在 Space 且当轮参加过的用户可见，成员 leave/remove 不删除 entry，重入恢复访问。下一步仅为用户执行 bounded tiny recheck。
+Canonical contract: [v0.1.14 回顾规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md)。Slice 1 backend foundation 已在 Production；Slice 2–4、集成审查、第一轮反馈修正与第二轮 date chronology 修正均本地 `PASS`，尚未 push 或部署。第二轮以 `review_date` 作为业务时间轴，数据库保证同 Space 同日唯一，上一份计划严格按日期上一篇且不 fallback；`round_no` 仅保留内部技术语义。下一步为 Production READ-ONLY preflight，识别真实验收可能产生的 same-day duplicate test rows。
 
-实施顺序：1. backend foundation/migration/DB tests（本地与 Production rollout/postflight PASS）；2. entry save/filled status 前端 primitive（本地 PASS）；3. Hub 与 Space-scoped history/create（本地 PASS）；4. detail responsive UI/previous plan（本地 PASS）；5. integration（本地 pre-deploy review PASS）与用户执行的 authenticated acceptance（广泛路径已完成，反馈修正待 tiny recheck）。四个窄 RPC 的数据库实现属于 Slice 1；前端复用已部署 RPC，不建立第二套写模型。刷新浏览器回首页列为未来 UX 事项，不在本轮修复。v0.1.13 仍是当前 Production 用户可见前端基线；v0.1.14 整体未关闭。
+实施顺序中的 Slice 1–4 与 integration 均完成本地实现；第二轮反馈新增一份 forward-only date-semantics patch 和一个窄只读 RPC。Production 当前只有原 Slice 1 backend，尚无 date uniqueness 或 date-driven previous-plan RPC。Production 可能有验收测试产生的同日重复数据；只能先只读识别、经用户确认 exact IDs 后单独清理，再应用 patch。刷新浏览器回首页继续列为未来 UX 事项。v0.1.13 仍是当前 Production 用户可见前端基线；v0.1.14 整体未关闭。
 
 ## Directional Roadmap — Shared Life Architecture Frozen
 
@@ -153,7 +153,7 @@ The long-term relationships and v0.1.10 scope are frozen in [Shared Life Archite
 - v0.1.11 — Navigation + Aggregation Experience (`CLOSED / PASS / SLICE 1 CLOSED / PASS / SLICE 2 CLOSED / PASS / SLICE 3 CLOSED / PASS / SLICE 4 CLOSED / PASS`; Desktop and Production installed PWA acceptance `PASS`; dedicated final iPhone Safari acceptance `NOT RUN`).
 - v0.1.12 — Module Hub + Space Management Navigation (CLOSED / PASS; Slices 1–4 CLOSED / PASS; Production and installed-PWA acceptance PASS).
 - v0.1.13 — Space Lifecycle & Membership Safety (CLOSED / PASS; Slice 1/2 CLOSED / PASS; Production deployment and user-reported authenticated/mobile/PWA acceptance PASS).
-- v0.1.14 — 回顾 (Slice 1 Production backend PASS; Slice 2–4 and acceptance feedback fix local PASS, not pushed/deployed; broad authenticated local acceptance completed, bounded recheck pending; overall in development).
+- v0.1.14 — 回顾 (original Slice 1 backend in Production; Slice 2–4, integration, first feedback fix and date chronology fix local PASS; new backend patch not applied, frontend not pushed/deployed; Production duplicate-date preflight next; overall in development).
 - Later candidates without fixed versions/order: Shared Lists, Important Dates, Calendar Sources v1, Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules. Priority and order may change based on real product use.
 - Future direction only: consider projecting/sharing a Personal Event into another Space while keeping one canonical Event owner Space, avoiding duplicate canonical objects, and ensuring that leaving the target Shared Space does not affect the source Event. This is outside v0.1.13; do not implement or reserve schema for it in this version.
 - Native: decision gate only; no committed implementation version.

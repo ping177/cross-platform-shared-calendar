@@ -89,4 +89,5 @@ test('create calls only canonical RPC with exact arguments and propagates reject
   assert.equal(result.round_no, 21);
   assert.deepEqual(log.filter((item) => item.startsWith('rpc:')), ['rpc:create_review_round:{"p_space_id":"s","p_review_date":"2026-09-26"}']);
   await assert.rejects(createReviewRound(fakeClient([], { rpcError: new Error('Review participant count is incomplete') }), 's', '2026-09-26', 'me'), /incomplete/);
+  await assert.rejects(createReviewRound(fakeClient([], { rpcError: new Error('这一天已经有一篇回顾') }), 's', '2026-09-26', 'me'), /这一天已经有一篇回顾/);
 }));
