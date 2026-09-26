@@ -1,5 +1,10 @@
 # Development Log
 
+## 2026-09-26 - v0.1.14.1 Local Authenticated Acceptance — PASS
+
+- 用户明确报告本地真实浏览器验收 `PASS`：Calendar、Tasks、Review 相关页面、Space Detail 与其他已测深页刷新后停留原页面；logout 后由另一账号登录不会恢复前一账号深页。Codex 未操作真实登录会话。此结果不代表 Production 验收、browser back/forward、可分享深链或 PWA 完全关闭后重启。
+- 本次只记录验收并准备已授权的正常 push；业务代码、SQL/RPC/RLS、依赖与 Production 数据未改。自动验证沿用 bounded integration review 的 targeted 22/22、full Node 320/320、Project State gate 19/19 与 build PASS。Production 仍为 v0.1.14；v0.1.14.1 待部署和用户线上最小刷新复验，未关闭。
+
 ## 2026-09-26 - v0.1.14.1 Navigation Persistence Bounded Integration Review — PASS
 
 - 审核 committed 页面目标模型、Auth/Space 恢复顺序、按用户隔离、所有主导航写入、dirty guard、Review/Space/Tasks 回退、筛选独立性和 PWA/history 边界。发现首次恢复 Review 详情时，临时 `getUser()` 读取错误会因「登录状态已变化」文案被误判为不可访问且没有重试；仅让明确的 `ReviewUnavailableError` 进入失效状态，其余读取错误保留详情目标与重试。定向回归先红后绿。

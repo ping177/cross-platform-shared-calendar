@@ -1,5 +1,10 @@
 # Testing
 
+## v0.1.14.1 Local Authenticated Refresh Acceptance — USER-REPORTED PASS
+
+- 用户在本地真实浏览器确认 Calendar、Tasks、Review 相关页面、Space Detail 与其他已测深页刷新恢复，以及 logout → 另一账号登录不恢复前一账号深页，均 `PASS`。Codex 未驱动登录会话或重复人工测试。
+- Production authenticated refresh acceptance 仍 `PENDING`。未验证 browser back/forward、可分享深链或 PWA 完全关闭后的恢复。此前 integration review 的 targeted 22/22、full Node 320/320、Project State gate 19/19、build PASS 仍为本次发布代码的自动证据；仅文档记录无需重跑完整测试。
+
 ## v0.1.14.1 Navigation Persistence Bounded Integration Review — PASS
 
 - 临时 Auth 读取错误的 Review 详情回退测试先失败后通过；只有明确的 `ReviewUnavailableError` 才退出详情，其他读取错误显示重试且保留 sessionStorage 目标。
