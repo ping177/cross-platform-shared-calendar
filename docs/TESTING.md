@@ -1,5 +1,10 @@
 # Testing
 
+## v0.1.14.1 Production Public Smoke — PASS / Auth Recheck Pending
+
+- GitHub exact commit `8212cc820c7708e3766e9bf8cc9da84b15a5e5aa`：Vercel `Production / success`。公开 Production 根 HTML **200**、当前 JS **200**、CSS **200**、manifest **200**；未登录页面正常，JS 包含 `sessionStorage`、导航 key 和 Review 重试文案标记，未见缺失 Supabase 配置占位。
+- 这只是无认证静态核验。Production authenticated refresh recheck 仍由用户执行；Codex 未使用真实登录会话，也未重新运行此前已通过且本轮未改代码的 full Node/build。
+
 ## v0.1.14.1 Local Authenticated Refresh Acceptance — USER-REPORTED PASS
 
 - 用户在本地真实浏览器确认 Calendar、Tasks、Review 相关页面、Space Detail 与其他已测深页刷新恢复，以及 logout → 另一账号登录不恢复前一账号深页，均 `PASS`。Codex 未驱动登录会话或重复人工测试。

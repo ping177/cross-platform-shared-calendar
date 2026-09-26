@@ -1,5 +1,10 @@
 # Development Log
 
+## 2026-09-26 - v0.1.14.1 Production Deployment + Public Smoke — PASS / Auth Recheck Pending
+
+- 正常 `git push origin main` 将 `a534be2..8212cc8` 推至远端；`.githooks/pre-push` 的 Project State gate 随普通 push 通过。紧邻 push 的只读状态审查为 `POST_PUSH_STATE_CURRENT`。GitHub 精确提交 `8212cc820c7708e3766e9bf8cc9da84b15a5e5aa` 的 Vercel commit status 与 Production deployment 都是 `success`。
+- Production 根页、当前 JS/CSS、manifest 均 HTTP 200；未登录页面显示正常，部署 JS 含导航 sessionStorage/key 与 Review 重试标记，未见缺失 Supabase 配置占位。未操作真实登录账号，也未改 SQL/RPC/RLS、Production DB 或 backend。v0.1.14.1 代码已上线，但 Production authenticated refresh acceptance 仍 `PENDING`；版本未关闭，下一步由用户线上最小复验。
+
 ## 2026-09-26 - v0.1.14.1 Local Authenticated Acceptance — PASS
 
 - 用户明确报告本地真实浏览器验收 `PASS`：Calendar、Tasks、Review 相关页面、Space Detail 与其他已测深页刷新后停留原页面；logout 后由另一账号登录不会恢复前一账号深页。Codex 未操作真实登录会话。此结果不代表 Production 验收、browser back/forward、可分享深链或 PWA 完全关闭后重启。

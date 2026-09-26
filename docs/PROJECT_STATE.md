@@ -12,9 +12,11 @@ v0.1.14.1
 
 ## Current status
 
-v0.1.14.1「Navigation Persistence」实现 `LOCAL PASS`、bounded integration review `PASS`、用户执行的本地真实账号验收 `PASS`：Calendar、Tasks、Review 相关页面、Space Detail 等已测页面刷新恢复，登出后换账号不恢复前一用户深页。自动 Node 320/320、Project State gate 19/19 与 build 已通过。尚未部署或进行 Production 真实账号刷新复验；Production 仍为 v0.1.14 `CLOSED / PASS`。暂无明确阻塞。
+v0.1.14.1「Navigation Persistence」实现、bounded integration review、用户执行的本地真实账号验收均 `PASS`；代码已部署至 Vercel Production，精确提交的 Production deployment 与无认证 public smoke `PASS`。Production 真实账号刷新复验仍 `PENDING`，版本未关闭。自动 Node 320/320、Project State gate 19/19 与 build 已通过。暂无明确阻塞。
 
 ## Latest completed
+
+v0.1.14.1 Production rollout verification `PASS`：正常 push 将 `a534be2..8212cc8` 推至 `origin/main`，pre-push hook 通过，紧邻 push 的只读 freshness 为 `POST_PUSH_STATE_CURRENT`。GitHub 对 exact commit `8212cc820c7708e3766e9bf8cc9da84b15a5e5aa` 报告 Vercel `Production / success`；公开根页、当前 JS/CSS 与 manifest 均 HTTP 200，未登录入口正常，部署 JS 含导航 sessionStorage 标记。未执行 Production authenticated acceptance 或 backend 写入；等待用户线上最小刷新复验。
 
 v0.1.14.1 Local Authenticated Acceptance `PASS`：用户在本地真实浏览器确认 Calendar、Tasks、Review 相关页面、Space Detail 及其他已测深页刷新后仍在原页面；logout 后由另一账号登录不恢复前一账号深页。该报告不覆盖 Production、browser back/forward、可分享深链或 PWA 完全关闭后重启。自动验证沿用 integration review 的 targeted 22/22、full Node 320/320、gate 19/19、build PASS；本次仅记录人工验收。
 
@@ -83,7 +85,7 @@ Public URL: https://cross-platform-shared-calendar.vercel.app/
 Provider: Vercel
 Backend: Supabase Free
 Backend rollout: v0.1.14 Slice 1 review foundation and date chronology forward patches applied and postflight verified; v0.1.13 lifecycle remains applied.
-Notes: Vercel is the configured Production provider. Production remains v0.1.14 `CLOSED / PASS`; v0.1.14.1 local authenticated acceptance passed and its Production deployment/refresh recheck are pending. v0.1.14 backend has same-Space/date uniqueness, duplicate-safe create/date correction and `get_my_previous_review_plan`; authenticated-only ACL and participant RLS postflight passed. Final acceptance fixtures were removed by exact-ID transactions, leaving `review_rounds=0` and `review_entries=0` while Shared and Personal Review modules remain enabled. Historical version-specific acceptance limits remain in DEVLOG/TESTING. `space_modules` remains outside Realtime; `send-test-push` remains ACTIVE v4 reviewed-equivalent and `send-reminders` ACTIVE v2 / `verify_jwt=false`. Vault, secrets and Cron were not changed.
+Notes: Vercel Production serves v0.1.14.1 navigation persistence code; exact-commit deployment and public smoke passed. Local authenticated acceptance passed; Production authenticated refresh recheck is pending, so v0.1.14.1 is not closed. Backend remains the accepted v0.1.14 contract with same-Space/date uniqueness, duplicate-safe create/date correction and `get_my_previous_review_plan`; authenticated-only ACL and participant RLS postflight passed. Final acceptance fixtures were removed by exact-ID transactions, leaving `review_rounds=0` and `review_entries=0` while Shared and Personal Review modules remain enabled. Historical version-specific acceptance limits remain in DEVLOG/TESTING. `space_modules` remains outside Realtime; `send-test-push` remains ACTIVE v4 reviewed-equivalent and `send-reminders` ACTIVE v2 / `verify_jwt=false`. Vault, secrets and Cron were not changed.
 
 ## Version Index
 
@@ -114,7 +116,7 @@ Notes: Vercel is the configured Production provider. Production remains v0.1.14 
 - v0.1.12 — Module Hub + Space Management Navigation（CLOSED / PASS；Slice 1–4 CLOSED / PASS；Production / installed-PWA acceptance PASS）
 - v0.1.13 — Space Lifecycle & Membership Safety（CLOSED / PASS；Slice 1/2 CLOSED / PASS；Production deployment、用户报告的 authenticated/mobile/PWA acceptance PASS）
 - v0.1.14 — 回顾（CLOSED / PASS；backend/date chronology Production PASS；frontend deployed；public smoke 与 Production authenticated acceptance PASS；final exact-ID cleanup PASS，Review 0/0、两条 module enabled）
-- v0.1.14.1 — Navigation Persistence（实现 LOCAL PASS、integration review PASS、本地真实账号验收 PASS；待 Production 部署与线上复验）
+- v0.1.14.1 — Navigation Persistence（实现、integration review、本地真实账号验收、Production deployment/public smoke PASS；线上真实账号刷新复验 PENDING，未关闭）
 
 ## Last verified
 
@@ -122,7 +124,7 @@ Notes: Vercel is the configured Production provider. Production remains v0.1.14 
 
 ## Next Action
 
-Next Action: complete the authorized v0.1.14.1 rollout by verifying the pushed commit in Vercel Production and public smoke, then have the user perform a minimal Production authenticated refresh recheck.
+Next Action: USER_PRODUCTION_AUTHENTICATED_REFRESH_RECHECK — have the user verify the key v0.1.14.1 page refreshes and cross-account login isolation in Production; keep the version open until that result is reported.
 
 ## Blockers
 
@@ -194,4 +196,4 @@ Next Action: complete the authorized v0.1.14.1 rollout by verifying the pushed c
 
 ## Handoff Prompt
 
-v0.1.13 and v0.1.14 are `CLOSED / PASS`; Production remains v0.1.14. v0.1.14.1 implementation, bounded integration review and user-run local authenticated refresh acceptance are `PASS` (targeted 22/22, full Node 320/320, gate 19/19, build PASS). Normal push is authorized; verify the exact Production deployment and public assets, then have the user perform the minimal Production authenticated refresh recheck. Do not close v0.1.14.1 before that recheck. The existing bundle warning remains outside this version.
+v0.1.13 and v0.1.14 are `CLOSED / PASS`; v0.1.14.1 code is deployed to Vercel Production. v0.1.14.1 implementation, bounded integration review, user-run local authenticated refresh acceptance, exact-commit Production deployment and public smoke are `PASS` (targeted 22/22, full Node 320/320, gate 19/19, build PASS). Next Action: `USER_PRODUCTION_AUTHENTICATED_REFRESH_RECHECK`; Codex must not operate logged-in sessions or close v0.1.14.1 before the user reports this result. The existing bundle warning remains outside this version.
