@@ -33,6 +33,18 @@ export type Task = {
   updated_at: string;
 };
 
+export type ReviewEntry = {
+  review_id: string;
+  user_id: string;
+  focus: string | null;
+  progress: string | null;
+  problems: string | null;
+  next_plan: string | null;
+  content_revision: number;
+  filled_revision: number | null;
+  updated_at: string;
+};
+
 export type DailyRecurrenceRule = {
   version: 1;
   frequency: 'daily';

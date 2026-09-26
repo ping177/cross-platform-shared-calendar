@@ -1,5 +1,11 @@
 # Development Log
 
+# 2026-09-26 - v0.1.14 回顾 Slice 2 Entry Save & Filled Status — LOCAL PASS
+
+- 新增本人 `review_entries` 的定向读取、四字段草稿/持久化状态区分、填写状态纯函数与独立 `ReviewEntryEditor`。四个输入固定高度并在框内滚动；显式保存和「我已填写」互斥，空白或未保存草稿不能标记。加载/写入失败显示错误并保留未成功保存的草稿；切换 review/user 后丢弃过期读取响应。
+- 前端仅复用 Production 已部署的 `save_my_review_entry`、`mark_my_review_filled`；RPC 返回完整 canonical row 后更新内容、revision 和 `updated_at`，没有直接表 UPDATE、客户端推算 revision、自动保存或后端变更。组件尚未挂载到功能中心或完整详情页。
+- TDD focused Node **8/8 PASS**，完整 Node **284/284 PASS**，`npm run build` 与 `git diff --check` PASS。仓库没有 React 组件测试框架或 lint 脚本；没有安装依赖、进行真实账号/设备验收、修改 SQL、部署或 push 前端。Slice 2 本地 `PASS`，下一步 Slice 3 ModuleHub + Space-scoped history/create；v0.1.14 整体仍在开发。
+
 # 2026-09-26 - v0.1.14 回顾 Slice 1 Production Backend Rollout — PASS
 
 - 在干净且与 `origin/main` 一致的 `4dc096fcb644497e15b7103af1a08212da307613` 上，确认唯一 forward patch 与已推送 Git blob 一致（306 行；SHA-256 `41cb53b1e7c373e82dcf372261047fe066d5a395851d019456903b6d8d3abf34`）。紧邻 apply 的 Production 只读检查确认回顾对象仍缺席、模块与 lifecycle 前置定义未漂移，既有数据计数和身份指纹与先前 preflight 一致。

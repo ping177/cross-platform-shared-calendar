@@ -12,9 +12,11 @@ v0.1.14
 
 ## Current status
 
-v0.1.14「回顾」`SLICE 1 BACKEND PRODUCTION PASS / FRONTEND NOT IMPLEMENTED`。产品与验收契约见 [v0.1.14 规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md)。Slice 1 本地验证、Production 只读 preflight、单份 forward patch 与只读 postflight 均 `PASS`；Production backend 已包含回顾基础能力，用户可见前端仍为 v0.1.13，回顾前端和真实账号验收未开始。v0.1.14 整体仍在开发。
+v0.1.14「回顾」`SLICE 2 ENTRY FRONTEND LOCAL PASS / PRODUCTION FRONTEND NOT DEPLOYED`。产品与验收契约见 [v0.1.14 规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md)。Slice 1 backend 已在 Production 应用并通过 postflight；Slice 2 本人 entry 的读取、保存、填写状态组件已在本地实现并通过自动验证，尚未接入正式导航。用户可见 Production 前端仍为 v0.1.13，v0.1.14 真实账号验收未开始，整体仍在开发。
 
 ## Latest completed
+
+v0.1.14 Slice 2 Entry Save & Filled Status 本地 `PASS`：新增本人 entry 的定向读取与复用已部署 save/mark RPC 的 data layer、四字段固定高度编辑组件、canonical 状态/dirty 分离和失败保留草稿。Focused Node 8/8、full Node 284/284、TypeScript/Vite build 与 diff-check 通过；没有组件测试框架，未进行组件自动交互或真实账号验收。无 SQL、Production frontend、依赖或导航变更。
 
 v0.1.14 Slice 1 Production backend rollout `PASS`：已推送的唯一回顾 forward patch 在 Production 以自身 `BEGIN/COMMIT` 事务执行一次；两表、约束、索引、触发器、RLS/ACL、四个窄 RPC 与模块开关 postflight 通过。既有 Space、成员、模块、Event、Task、Reminder 的计数及全行指纹前后完全一致；回顾两表与 `review` 模块行均为 0。未部署回顾前端或执行真实账号验收。
 
@@ -87,7 +89,7 @@ Notes: Vercel is the configured Production provider. The v0.1.14 rollout added b
 - v0.1.11 — Navigation + Aggregation Experience（CLOSED / PASS；Slice 1–4 CLOSED / PASS；Production installed PWA acceptance PASS；dedicated final iPhone Safari acceptance NOT RUN）
 - v0.1.12 — Module Hub + Space Management Navigation（CLOSED / PASS；Slice 1–4 CLOSED / PASS；Production / installed-PWA acceptance PASS）
 - v0.1.13 — Space Lifecycle & Membership Safety（CLOSED / PASS；Slice 1/2 CLOSED / PASS；Production deployment、用户报告的 authenticated/mobile/PWA acceptance PASS）
-- v0.1.14 — 回顾（Slice 1 backend 本地 / Production preflight / forward patch / postflight PASS；前端与真实账号验收未开始；整体未关闭）
+- v0.1.14 — 回顾（Slice 1 backend Production PASS；Slice 2 entry frontend 本地 PASS，未接入导航或部署；真实账号验收未开始；整体未关闭）
 
 ## Last verified
 
@@ -95,7 +97,7 @@ Notes: Vercel is the configured Production provider. The v0.1.14 rollout added b
 
 ## Next Action
 
-Next Action: v0.1.14 Slice 2 — 复用已部署的 `save_my_review_entry` 与 `mark_my_review_filled` RPC，完成 Entry save / 填写状态的前端产品链路；不重复实现 backend primitives。真实账号验收前执行前端目标与 Production backend 的 compatibility gate。
+Next Action: v0.1.14 Slice 3 — 将「回顾」接入功能中心，完成独立的 Space-scoped 历史列表与新建流程，复用 Slice 2 本人 entry 组件和已部署 backend primitives；不要提前实现完整详情布局或上一轮计划。真实账号验收前执行前端目标与 Production backend 的 compatibility gate。
 
 ## Blockers
 
@@ -103,7 +105,7 @@ Next Action: v0.1.14 Slice 2 — 复用已部署的 `save_my_review_entry` 与 `
 
 ## Important Context
 
-- v0.1.14 Design Freeze 保持 canonical；Production 已具备 Slice 1 回顾表、RPC 和权限基础，回顾 UI 尚未实现。访问旧轮必须同时是当前 Space 成员和该轮 participant；leave/remove 保留 entry，新成员看不到旧轮，原 participant 重入可恢复访问。Shared 必须双人才能新建；模块缺行或关闭时隐藏正常选择并拒绝写入。Slice 1 已包含 save/mark RPC，Slice 2 直接复用。完整 contract 和验收条件只以 v0.1.14 规格为准。
+- v0.1.14 Design Freeze 保持 canonical；Production 已具备 Slice 1 回顾表、RPC 和权限基础。repo 中已有未挂载导航的 Slice 2 本人 entry 组件，Production 前端尚无回顾 UI。访问旧轮必须同时是当前 Space 成员和该轮 participant；leave/remove 保留 entry，新成员看不到旧轮，原 participant 重入可恢复访问。Shared 必须双人才能新建；模块缺行或关闭时隐藏正常选择并拒绝写入。Slice 2 直接复用已部署的 save/mark RPC。完整 contract 和验收条件只以 v0.1.14 规格为准。
 - Git branch、latest commit、working tree 由 project-command-center 实时 Git 扫描读取；PROJECT_STATE.md 不作为这些字段的权威来源。
 - Production URL: `https://cross-platform-shared-calendar.vercel.app/`.
 - Supabase project status is currently Active, but Free Tier inactivity pause remains an operational risk.
@@ -167,4 +169,4 @@ Next Action: v0.1.14 Slice 2 — 复用已部署的 `save_my_review_entry` 与 `
 
 ## Handoff Prompt
 
-v0.1.13 Space Lifecycle & Membership Safety is `CLOSED / PASS`. v0.1.14「回顾」has a frozen specification at `docs/v0.1.14_STRUCTURED_CHECKIN_SPEC.md`; Slice 1 backend passed local verification, Production preflight, the exact forward patch and read-only postflight. The Production backend now has the Review foundation; the user-visible frontend and authenticated acceptance have not started. Next Action is Slice 2 frontend Entry save / filled-status integration, reusing the already deployed save/mark RPCs.
+v0.1.13 Space Lifecycle & Membership Safety is `CLOSED / PASS`. v0.1.14「回顾」has a frozen specification at `docs/v0.1.14_STRUCTURED_CHECKIN_SPEC.md`; Slice 1 backend passed local and Production verification. Slice 2 own-entry read/save/filled-status frontend primitive is locally implemented and automatically verified but is not mounted in navigation. The user-visible Production frontend remains v0.1.13; v0.1.14 authenticated acceptance has not started. Next Action is Slice 3 ModuleHub + Space-scoped history/create, reusing the existing entry component and deployed Review RPCs.

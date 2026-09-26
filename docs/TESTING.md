@@ -1,5 +1,11 @@
 # Testing
 
+## v0.1.14 回顾 Slice 2 — Entry Frontend Local PASS
+
+- `node --test tests/review-entry.test.ts tests/review-entry-data.test.ts`: **8/8 PASS**。覆盖 persisted 四状态、空白/常见空白字符、null 与空串的可见草稿比较、编辑后还原的 dirty 清除、已知 backend 拒绝文案、本人 participant 读取、精确 save/mark RPC 参数、服务端 canonical revision/时间返回、backend error、登录变化及异常响应 fail-closed。本机 Supabase 只读 SELECT 还核对了普通空格、制表符、不换行空格和全角空格的 PostgreSQL `[:space:]` 分类。
+- `node --test tests/*.test.ts tests/*.test.js`: **284/284 PASS**；`npm run build`（TypeScript + Vite）及 `git diff --check`: **PASS**。仓库无 lint 脚本，也无 React 组件交互测试框架；因此本 Slice 没有组件自动交互或浏览器验收结论。
+- 自审确认没有 Review 直接表写入、客户端 revision 推算、自动保存或新 backend primitive；组件未挂到导航。Production backend 仍为 Slice 1 PASS，用户可见 Production 前端仍为 v0.1.13，v0.1.14 真实账号/设备验收未开始。后续正式详情接入前仍须做目标 backend compatibility gate。
+
 ## v0.1.14 回顾 Slice 1 — Production Backend Rollout / Postflight PASS
 
 - Exact forward patch: `supabase/patches/2026-09-26-v0.1.14-review-foundation.sql`（306 行，SHA-256 `41cb53b1e7c373e82dcf372261047fe066d5a395851d019456903b6d8d3abf34`）。Pre-apply read-only freshness confirmed absent Review objects, unchanged lifecycle/module definitions, and the previously recorded data baseline. `supabase db query --linked --file` executed the committed file once inside its own `BEGIN/COMMIT` transaction, exit 0 with no SQL error.
