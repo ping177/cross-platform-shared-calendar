@@ -1,5 +1,13 @@
 # Testing
 
+## v0.1.14 回顾 Date Chronology Production Backend Rollout — PASS
+
+- Pre-apply freshness: local patch SHA-256 `7adf5a8dfa34c0bfca8ab05b7b2467bcfe088d262c50213d6e24fbae939cb82f` matched HEAD; Production had 0 rounds, 0 entries, 0 duplicate groups, no date unique constraint or previous-plan RPC, the original create/correct definitions, and two enabled Review module rows. The preceding exact-ID acceptance-data cleanup removed 4 rounds / 7 entries and preserved all protected core fingerprints.
+- Apply: `supabase db query --linked --file supabase/patches/2026-09-26-v0.1.14-review-date-chronology.sql --output json` completed once with exit code 0. The patch's own `BEGIN/COMMIT` remained intact; no SQL error, partial retry, ad-hoc correction, canonical schema replay, cleanup or Production fixture occurred.
+- Catalog/security postflight: `review_rounds_space_review_date_key` is `UNIQUE(space_id, review_date)` and the existing `UNIQUE(space_id, round_no)` remains. Production create/correct/get-previous-plan definitions match the committed target semantics; each is `SECURITY DEFINER` with fixed `pg_catalog, pg_temp` search path, and the previous-plan function is `STABLE`. PUBLIC/anon/service-role EXECUTE are absent and authenticated EXECUTE is present. Review RLS remains enabled with the two participant SELECT policies unchanged.
+- Data-safety postflight: rounds 0, entries 0, orphan entries 0, duplicate groups 0; both Review modules remain enabled. Spaces 4, memberships 5, all module rows 6, Events 4, Tasks 5 and reminder deliveries 12 retained their pre-apply counts and row fingerprints. No automated suites or frontend build were rerun because the deployed artifact was the already verified exact SQL patch and the repo change is documentation-only.
+- Remaining gate: local frontend Slice 2–4, integration and both acceptance fixes are not pushed or deployed. After frontend pre-deploy/push review and Vercel rollout, the user must perform the minimal authenticated date-chronology recheck; this backend rollout does not mark v0.1.14 closed.
+
 ## v0.1.14 回顾 Date Chronology Acceptance Fix — Local PASS
 
 - Forward patch: `supabase/patches/2026-09-26-v0.1.14-review-date-chronology.sql`（147 行，SHA-256 `7adf5a8dfa34c0bfca8ab05b7b2467bcfe088d262c50213d6e24fbae939cb82f`）。它在事务内先拒绝 existing duplicate dates，再增加 named unique constraint、替换 create/correct RPC 并新增窄 previous-plan read RPC；没有 delete、truncate、自动改日期或重编号。

@@ -1,5 +1,12 @@
 # Development Log
 
+# 2026-09-26 - v0.1.14 回顾 Date Chronology Production Backend Rollout — PASS
+
+- Production READ-ONLY preflight confirmed the original Slice 1 baseline, zero same-Space/date duplicate groups and four local-acceptance Review rounds / seven participant entries. After explicit exact-ID authorization, those test rows were removed in one independently audited transaction; FK cascade cleared the seven entries, two enabled Review module rows remained, and Space/member/module/Event/Task/reminder counts plus row fingerprints were unchanged.
+- Reconfirmed clean `main` at `1a10d677866d4749a1ad6f313fb229bd695864fe`, exact patch SHA-256 `7adf5a8dfa34c0bfca8ab05b7b2467bcfe088d262c50213d6e24fbae939cb82f`, and Production `review_rounds=0` / `review_entries=0`. Applied only `supabase/patches/2026-09-26-v0.1.14-review-date-chronology.sql` through `supabase db query --linked --file`; its own `BEGIN/COMMIT` completed once with exit code 0 and no SQL error. No ad-hoc SQL, schema replay, cleanup or fixture creation occurred during rollout.
+- Read-only postflight verified both `unique(space_id, round_no)` and `unique(space_id, review_date)`; create/correct preserve the existing auth, Space locks, membership, module and participant rules while rejecting an occupied date. `get_my_previous_review_plan(uuid)` is `STABLE SECURITY DEFINER` with fixed search path, determines the strictly earlier immediate date without fallback and returns only the caller's plan/null. All three functions have authenticated-only EXECUTE; table RLS/policies are unchanged.
+- Review data remained 0/0 with no orphan or duplicate group; the two Review modules and all protected core-data fingerprints remained unchanged. The frontend commit stack remains local and unpushed, Vercel still serves v0.1.13, and no authenticated Production acceptance was run. Next Action is the frontend pre-deploy / push gate, then authorized push, Vercel deployment and a user-run minimal date-chronology recheck. Refresh-to-home remains deferred.
+
 # 2026-09-26 - v0.1.14 回顾 Date Chronology Acceptance Fix — LOCAL PASS
 
 - 第二轮真实账号验收反馈将 `review_date` 冻结为业务时间轴，同一 Space 同日最多一篇；`round_no` 保留为不可变内部创建序列、锁并发与游标字段，不再定位上一份计划。canonical schema 增加 `unique(space_id, review_date)`，独立 forward-only patch 在锁内为 create/correct-date 增加同日冲突拒绝；patch 只在本地测试库应用，未触碰 Production、未清理验收数据。
