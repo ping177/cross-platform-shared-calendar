@@ -144,6 +144,7 @@ export function ReviewDetailPage({ target, userId, onBack, onDirtyChange }: { ta
       const updated = { ...detailRef.current, round: changed };
       detailRef.current = updated;
       setDetail(updated);
+      void refreshPrevious(changed);
       setDateOpen(false);
     } catch (saveError) {
       if (detailRef.current?.round.id === detail.round.id) setDateError(detailError(saveError, '日期更正失败，请检查网络或空间状态后重试。'));

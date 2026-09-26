@@ -17,6 +17,10 @@ test('detail uses date as the visible identity and calls previous context 上一
   assert.doesNotMatch(detailSource, /第 \{detail\.round\.round_no\} 次回顾|上一次下一步计划|上一次暂无计划/);
 });
 
+test('successful date correction refreshes the date-driven previous plan', () => {
+  assert.match(detailSource, /const changed = await correctReviewDate[\s\S]*setDetail\(updated\);[\s\S]*void refreshPrevious\(changed\);/);
+});
+
 test('Shared keeps both panels mounted with mobile switching and desktop own-left layout', async () => {
   const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
   try {
