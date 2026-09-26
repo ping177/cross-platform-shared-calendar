@@ -4,13 +4,13 @@ import { selectReviewSpace } from './review-history';
 import type { CurrentSpace } from '../types';
 
 export type TopLevelTab = 'home' | 'calendar' | 'modules' | 'me';
-export type ModuleScreen = 'hub' | 'tasks' | 'completed' | 'review' | 'review-detail';
+export type ModuleScreen = 'hub' | 'tasks' | 'completed' | 'review' | 'review-detail' | 'lists';
 export type NavigationState = { tab: TopLevelTab; moduleScreen: ModuleScreen };
 
 export const initialNavigation: NavigationState = { tab: 'home', moduleScreen: 'hub' };
 
 export type NavigationTarget =
-  | { page: 'home' | 'calendar' | 'modules' | 'profile' | 'tasks' | 'tasks-completed' | 'space-management' }
+  | { page: 'home' | 'calendar' | 'modules' | 'profile' | 'tasks' | 'tasks-completed' | 'lists-overview' | 'space-management' }
   | { page: 'review-history'; spaceId?: string }
   | { page: 'review-detail'; spaceId: string; reviewId: string }
   | { page: 'space-detail'; spaceId: string };
@@ -30,7 +30,7 @@ export function parseNavigationTarget(value: string | null): NavigationTarget | 
     const target = parsed as Record<string, unknown>;
     switch (target.page) {
       case 'home': case 'calendar': case 'modules': case 'profile':
-      case 'tasks': case 'tasks-completed': case 'space-management':
+      case 'tasks': case 'tasks-completed': case 'lists-overview': case 'space-management':
         return { page: target.page };
       case 'review-history':
         return target.spaceId === undefined ? { page: 'review-history' }
@@ -82,6 +82,7 @@ export function navigationTargetForState(
         case 'hub': return { page: 'modules' };
         case 'tasks': return { page: 'tasks' };
         case 'completed': return { page: 'tasks-completed' };
+        case 'lists': return { page: 'lists-overview' };
         case 'review': return reviewSpaceId ? { page: 'review-history', spaceId: reviewSpaceId } : { page: 'review-history' };
         case 'review-detail': return reviewDetail ? { page: 'review-detail', spaceId: reviewDetail.spaceId, reviewId: reviewDetail.reviewId } : null;
       }
@@ -95,10 +96,16 @@ export async function resolveNavigationTarget(
     loadReviewSpaces: () => Promise<CurrentSpace[]>;
     canReadReview: (space: CurrentSpace, reviewId: string) => Promise<boolean>;
   },
+  lists?: { loadListsSpaces: () => Promise<CurrentSpace[]> },
 ): Promise<NavigationTarget> {
   if (!target) return { page: 'home' };
   if (target.page === 'space-detail') {
     return spaces.some((space) => space.id === target.spaceId) ? target : { page: 'space-management' };
+  }
+  if (target.page === 'lists-overview') {
+    if (!lists) return target;
+    try { return (await lists.loadListsSpaces()).length ? target : { page: 'modules' }; }
+    catch { return target; }
   }
   if (target.page !== 'review-history' && target.page !== 'review-detail') return target;
 
@@ -131,6 +138,10 @@ export function openTaskModule(_current: NavigationState): NavigationState {
 
 export function openReviewModule(_current: NavigationState): NavigationState {
   return { tab: 'modules', moduleScreen: 'review' };
+}
+
+export function openListsModule(_current: NavigationState): NavigationState {
+  return { tab: 'modules', moduleScreen: 'lists' };
 }
 
 export function openReviewDetail(_current: NavigationState): NavigationState {

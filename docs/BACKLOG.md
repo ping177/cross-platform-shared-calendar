@@ -146,15 +146,15 @@ Slice 1–4、integration、两轮 acceptance fixes、frontend pre-deploy gate�
 
 ## v0.1.14.1 — Navigation Persistence — CLOSED / PASS
 
-同一 browser/tab session 刷新恢复当前用户的有效页面位置；仅持久化页面与稳定 ID，保留既有 Auth、membership、module、Review participant 检查及独立筛选。实现、integration review、本地 authenticated acceptance、Production deployment/public smoke、用户 Production authenticated refresh acceptance 均 `PASS`。Production 无 Review 数据，Review Detail 数据场景未在本轮线上重测；自动 integration 与本地验收仍覆盖该路径。刷新回首页已解决；既有 >500 kB bundle warning 非阻塞。不包含 router、browser history、可分享深链、PWA cold-start 永久记忆或草稿持久化。当前 v0.1.15 Shared Lists Slice 1 DB foundation 已在 Production 通过 postflight；前端尚未开始。
+同一 browser/tab session 刷新恢复当前用户的有效页面位置；仅持久化页面与稳定 ID，保留既有 Auth、membership、module、Review participant 检查及独立筛选。实现、integration review、本地 authenticated acceptance、Production deployment/public smoke、用户 Production authenticated refresh acceptance 均 `PASS`。Production 无 Review 数据，Review Detail 数据场景未在本轮线上重测；自动 integration 与本地验收仍覆盖该路径。刷新回首页已解决；既有 >500 kB bundle warning 非阻塞。不包含 router、browser history、可分享深链、PWA cold-start 永久记忆或草稿持久化。当前 v0.1.15 Slice 1 DB foundation 已在 Production 通过 postflight；Slice 2 本地自动验证与用户桌面验收通过，功能中心会话可用性与三模块可见性复核已通过。
 
-## v0.1.15 — Shared Lists — IN PROGRESS / SLICE 1 CLOSED / PASS
+## v0.1.15 — Shared Lists — IN PROGRESS / SLICE 2 LOCAL AUTO PASS
 
 Canonical contract: [v0.1.15 Shared Lists Specification](./v0.1.15_SHARED_LISTS_SPEC.md). The read-only repository investigation was reviewed and accepted as the basis for this docs-only Design Freeze. Personal and Shared Space support, the three-table model, derived List completion, deterministic ordering, atomic Section/List deletion semantics, quick-add, module eligibility, Realtime, mobile item drag, concurrency boundaries, non-goals, tests, and implementation slices are frozen there.
 
-Slice 1 DB foundation is `CLOSED / PASS`: local DB/concurrency/parity checks and the exact Production patch/postflight passed. The three tables, module toggle, authorization, narrow mutation RPCs including completion/reopen, ordering, and Realtime metadata are deployed with zero Lists business/module rows. Frontend Slices 2–4 remain NOT STARTED; filtered Realtime DELETE delivery with two authenticated accounts is NOT YET PROVEN and belongs to later collaboration acceptance. No current blocker is recorded.
+Slice 1 DB foundation is `CLOSED / PASS` after local checks and Production postflight. Slice 2 Overview / Ownership has local automated validation `PASS` and user-reported desktop authenticated acceptance `PASS` for the tested flows. Dual-account filtered Realtime DELETE + RLS/canonical reread is `PASS`. ModuleHub session availability and Tasks/Review/Lists visibility have passed the final user recheck. Vercel deployment verification and post-deployment mobile/PWA acceptance remain pending; Slice 2 is not closed. Slices 3–4 remain NOT STARTED. No current blocker is recorded.
 
-Next Action: v0.1.15 Slice 2 Overview / Ownership implementation planning / preflight.
+Next Action: verify Slice 2 Vercel Production deployment, then complete user mobile/PWA acceptance.
 
 ## Directional Roadmap — Shared Life Architecture Frozen
 
@@ -167,7 +167,7 @@ The long-term relationships and v0.1.10 scope are frozen in [Shared Life Archite
 - v0.1.13 — Space Lifecycle & Membership Safety (CLOSED / PASS; Slice 1/2 CLOSED / PASS; Production deployment and user-reported authenticated/mobile/PWA acceptance PASS).
 - v0.1.14 — 回顾 (CLOSED / PASS; backend/date chronology, frontend deployment, public smoke, Production authenticated acceptance and final exact-ID cleanup PASS; Review 0/0 with two enabled module rows).
 - v0.1.14.1 — Navigation Persistence (CLOSED / PASS; local and Production authenticated refresh acceptance PASS; no Review fixture created).
-- v0.1.15 — Shared Lists (IN PROGRESS; Slice 1 DB foundation CLOSED / PASS after Production postflight; Slices 2–4 NOT STARTED).
+- v0.1.15 — Shared Lists (IN PROGRESS; Slice 1 DB foundation CLOSED / PASS; Slice 2 local automated and desktop authenticated PASS, Hub visibility recheck PASS, Vercel deployment verification and post-deployment mobile/PWA pending; Slices 3–4 NOT STARTED).
 - Later candidates without fixed versions/order: Important Dates, Calendar Sources v1, Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules. Priority and order may change based on real product use.
 - Future direction only: consider projecting/sharing a Personal Event into another Space while keeping one canonical Event owner Space, avoiding duplicate canonical objects, and ensuring that leaving the target Shared Space does not affect the source Event. This is outside v0.1.13; do not implement or reserve schema for it in this version.
 - Native: decision gate only; no committed implementation version.

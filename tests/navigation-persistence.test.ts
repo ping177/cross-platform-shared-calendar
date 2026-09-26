@@ -25,7 +25,7 @@ test('navigation targets round-trip through a strict parser and user-scoped sess
     const { parseNavigationTarget, readNavigationTarget, writeNavigationTarget, clearNavigationTarget } = await vite.ssrLoadModule('/src/lib/navigation.ts');
     const targets = [
       { page: 'home' }, { page: 'calendar' }, { page: 'modules' }, { page: 'profile' },
-      { page: 'tasks' }, { page: 'tasks-completed' }, { page: 'review-history' },
+      { page: 'tasks' }, { page: 'tasks-completed' }, { page: 'lists-overview' }, { page: 'review-history' },
       { page: 'review-history', spaceId: spaceA }, { page: 'review-detail', spaceId: spaceA, reviewId },
       { page: 'space-management' }, { page: 'space-detail', spaceId: spaceA },
     ];
@@ -91,6 +91,19 @@ test('restoration validates Space membership and Review eligibility without trea
     assert.deepEqual(await resolveNavigationTarget({ page: 'review-history', spaceId: spaceB }, memberSpaces, readFailure), { page: 'review-history', spaceId: spaceB });
     assert.deepEqual(await resolveNavigationTarget({ page: 'review-detail', spaceId: spaceB, reviewId }, memberSpaces, readFailure), { page: 'review-detail', spaceId: spaceB, reviewId });
     assert.deepEqual(await resolveNavigationTarget({ page: 'review-detail', spaceId: spaceB, reviewId }, memberSpaces, { ...reviewReaders, canReadReview: async () => { throw new Error('network'); } }), { page: 'review-detail', spaceId: spaceB, reviewId });
+  } finally { await vite.close(); }
+});
+
+test('Lists overview restoration keeps transient errors but leaves on confirmed eligibility loss', async () => {
+  const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
+  try {
+    const { resolveNavigationTarget, navigationTargetForState } = await vite.ssrLoadModule('/src/lib/navigation.ts');
+    const target = { page: 'lists-overview' };
+    const review = { loadReviewSpaces: async () => [], canReadReview: async () => false };
+    assert.deepEqual(await resolveNavigationTarget(target, memberSpaces, review, { loadListsSpaces: async () => [memberSpaces[0]] }), target);
+    assert.deepEqual(await resolveNavigationTarget(target, memberSpaces, review, { loadListsSpaces: async () => [] }), { page: 'modules' });
+    assert.deepEqual(await resolveNavigationTarget(target, memberSpaces, review, { loadListsSpaces: async () => { throw new Error('offline'); } }), target);
+    assert.deepEqual(navigationTargetForState({ tab: 'modules', moduleScreen: 'lists' }, 'profile', null, null, null), target);
   } finally { await vite.close(); }
 });
 

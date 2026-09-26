@@ -11,6 +11,22 @@ export type Space = {
 
 export type CurrentSpace = Space & { membershipRole: SpaceMember['role'] };
 
+export type List = {
+  id: string;
+  space_id: string;
+  name: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ListItemOverview = {
+  id: string;
+  list_id: string;
+  space_id: string;
+  completed: boolean;
+};
+
 export type SpaceMember = {
   space_id: string;
   user_id: string;

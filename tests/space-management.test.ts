@@ -50,12 +50,14 @@ test('Space detail limits personal controls and preserves shared roles, invitati
     const props = { space: personal, members: [], moduleState: 'disabled', moduleError: '', moduleBusy: false, onModuleRetry: noop, onModuleToggle: noop, onSpaceChange: noop };
     const personalMarkup = renderToStaticMarkup(React.createElement(SpaceDetailContent, props));
     assert.match(personalMarkup, /个人空间|使用的功能|任务|开启任务模块/);
+    assert.match(personalMarkup, /清单|开启清单模块/);
     assert.doesNotMatch(personalMarkup, /邀请码|复制邀请码|轮换邀请码|空间成员|移除成员|邀请成员|所有者/);
     const sharedMarkup = renderToStaticMarkup(React.createElement(SpaceDetailContent, { ...props, space: shared, members, moduleState: 'enabled' }));
     assert.match(sharedMarkup, /同名空间|空间成员|我|同伴|所有者|成员|VISIBLE|复制邀请码|轮换邀请码|关闭任务模块/);
     assert.match(sharedMarkup, /min-h-11/);
     const memberMarkup = renderToStaticMarkup(React.createElement(SpaceDetailContent, { ...props, space: { ...shared, membershipRole: 'member' }, members, moduleState: 'disabled' }));
     assert.match(memberMarkup, /已关闭/);
+    assert.doesNotMatch(memberMarkup, /开启清单模块|关闭清单模块/);
     assert.doesNotMatch(memberMarkup, /开启任务模块|关闭任务模块/);
     const unknownMarkup = renderToStaticMarkup(React.createElement(SpaceDetailContent, { ...props, space: shared, members, moduleState: 'error', moduleError: '读取失败' }));
     assert.match(unknownMarkup, /读取失败|重试/);

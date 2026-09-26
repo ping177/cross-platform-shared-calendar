@@ -31,15 +31,15 @@ test('Space module row follows owner/member controls without changing Tasks', as
   } finally { await vite.close(); }
 });
 
-test('Review list starts without body or create placeholder; Hub starts with Tasks', async () => {
+test('Review list starts without body or create placeholder; Hub waits for eligibility', async () => {
   const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
   try {
     const { ModuleHub } = await vite.ssrLoadModule('/src/components/ModuleHub.tsx');
     const { ReviewHistoryPage } = await vite.ssrLoadModule('/src/components/ReviewHistoryPage.tsx');
-    const hub = renderToStaticMarkup(React.createElement(ModuleHub, { userId: 'me', onOpenTasks: () => undefined, onOpenReview: () => undefined }));
+    const hub = renderToStaticMarkup(React.createElement(ModuleHub, { availability: null, onRefresh: () => undefined, onOpenTasks: () => undefined, onOpenReview: () => undefined, onOpenLists: () => undefined }));
     const review = renderToStaticMarkup(React.createElement(ReviewHistoryPage, { userId: 'me', currentSpaceId: null, onSpaceChange: () => undefined, onOpenDetail: () => undefined, onHubBack: () => undefined }));
-    assert.match(hub, /进入任务/);
-    assert.doesNotMatch(hub, /进入回顾/);
+    assert.match(hub, /正在读取功能模块/);
+    assert.doesNotMatch(hub, /进入任务|进入回顾/);
     assert.match(review, /功能中心/);
     assert.match(review, /正在读取回顾空间/);
     assert.doesNotMatch(review, /下一步计划|近期进展|我已填写/);

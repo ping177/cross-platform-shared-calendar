@@ -4,7 +4,7 @@ import { createTasksModuleToggleGuard, tasksModuleStateFromResult, type TasksMod
 import { supabase } from '../lib/supabase';
 import type { CurrentSpace } from '../types';
 
-export function useSpaceReviewModule(space: CurrentSpace) {
+export function useSpaceListsModule(space: CurrentSpace) {
   const [state, setState] = useState<TasksModuleState>('loading');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -13,7 +13,7 @@ export function useSpaceReviewModule(space: CurrentSpace) {
 
   async function read() {
     const result = await supabase.from('space_modules').select('enabled')
-      .eq('space_id', space.id).eq('module_key', 'review').maybeSingle();
+      .eq('space_id', space.id).eq('module_key', 'lists').maybeSingle();
     return tasksModuleStateFromResult(result);
   }
   async function retry() {
@@ -26,7 +26,7 @@ export function useSpaceReviewModule(space: CurrentSpace) {
     } catch {
       if (guard.current.isCurrent(request)) {
         setState('error');
-        setError('回顾模块状态读取失败，请重试。');
+        setError('清单模块状态读取失败，请重试。');
       }
     }
   }
@@ -41,7 +41,7 @@ export function useSpaceReviewModule(space: CurrentSpace) {
     setError('');
     const result = await toggleGuard.current.run(async () => {
       const { error: toggleError } = await supabase.rpc('set_space_module_enabled', {
-        p_space_id: space.id, p_module_key: 'review', p_enabled: state === 'disabled',
+        p_space_id: space.id, p_module_key: 'lists', p_enabled: state === 'disabled',
       });
       if (toggleError) throw toggleError;
     }, read);
@@ -49,10 +49,10 @@ export function useSpaceReviewModule(space: CurrentSpace) {
     setBusy(false);
     if (result === null) return;
     if ('state' in result) { setState(result.state); return result.state; }
-    else if (result.failure === 'rpc') setError('回顾模块切换失败，请确认空间权限或稍后重试。');
+    else if (result.failure === 'rpc') setError('清单模块切换失败，请确认空间权限或稍后重试。');
     else {
       setState('error');
-      setError('回顾模块状态读取失败，请重试。');
+      setError('清单模块状态读取失败，请重试。');
     }
   }
   return { state, error, busy, retry, toggle };

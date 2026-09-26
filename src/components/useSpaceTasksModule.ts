@@ -52,10 +52,10 @@ export function useSpaceTasksModule(space: CurrentSpace, screen = 'detail') {
       },
       () => read(space.id),
     );
-    if (!requestGuard.current.isCurrent(request)) return;
+    if (!requestGuard.current.isCurrent(request)) return result && 'state' in result ? result.state : undefined;
     setBusy(false);
     if (result === null) return;
-    if ('state' in result) setState(result.state);
+    if ('state' in result) { setState(result.state); return result.state; }
     else if (result.failure === 'rpc') setError('任务模块切换失败，请确认空间权限或稍后重试。');
     else {
       setState('error');

@@ -14,7 +14,8 @@ import {
 import { CreateTargetSelector, type CreateTargetControl } from './components/GlobalCreateControls';
 import { MyPage } from './components/MyPage';
 import { SpaceManagementPage } from './components/SpaceManagementPage';
-import { ModuleHub } from './components/ModuleHub';
+import { ModuleHub, useModuleAvailability } from './components/ModuleHub';
+import { ListsOverviewPage } from './components/ListsOverviewPage';
 import { ReviewHistoryPage } from './components/ReviewHistoryPage';
 import { ReviewDetailPage } from './components/ReviewDetailPage';
 import { RecurrenceControls } from './components/RecurrenceControls';
@@ -54,7 +55,8 @@ import { newEventIdentity } from './lib/space-content';
 import { readSpaceMembers } from './lib/space-members';
 import { settleSpaceLifecycle, type SpaceLifecycleAction } from './lib/space-lifecycle';
 import { createRequestGuard } from './lib/request-guard';
-import { calendarContentSpaceId, canChangeTabFromReviewDetail, clearNavigationTarget, initialNavigation, navigationTargetForState, openCompletedTasks, openReviewDetail, openReviewModule, openTaskList, openTaskModule, readNavigationTarget, resolveNavigationTarget, selectTab, writeNavigationTarget, type NavigationTarget, type TopLevelTab } from './lib/navigation';
+import { calendarContentSpaceId, canChangeTabFromReviewDetail, clearNavigationTarget, initialNavigation, navigationTargetForState, openCompletedTasks, openListsModule, openReviewDetail, openReviewModule, openTaskList, openTaskModule, readNavigationTarget, resolveNavigationTarget, selectTab, writeNavigationTarget, type NavigationTarget, type TopLevelTab } from './lib/navigation';
+import { loadListsEligibility } from './lib/lists-data';
 import { readReviewDetail } from './lib/review-detail-data';
 import { loadReviewEligibility } from './lib/review-history-data';
 import { ReviewUnavailableError, type ReviewDetailTarget } from './lib/review-detail';
@@ -403,6 +405,7 @@ function AuthPage() {
 function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreOnStartup: boolean }) {
   const userId = session.user.id;
   const [spaces, setSpaces] = useState<CurrentSpace[]>([]);
+  const moduleAvailability = useModuleAvailability(userId, spaces.length > 0);
   const [selectedSpaceId, setSelectedSpaceId] = useState<string | null>(null);
   const [myScreen, setMyScreen] = useState<'profile' | 'management' | 'detail'>('profile');
   const [calendarFilter, setCalendarFilter] = useState<CalendarFilter>('all');
@@ -433,6 +436,7 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
       case 'profile': setMyScreen('profile'); setNavigation(selectTab(initialNavigation, 'me')); break;
       case 'tasks': setNavigation(openTaskModule(initialNavigation)); break;
       case 'tasks-completed': setNavigation(openCompletedTasks(initialNavigation)); break;
+      case 'lists-overview': setNavigation(openListsModule(initialNavigation)); break;
       case 'review-history':
         setReviewSpaceId(target.spaceId ?? null);
         setNavigation(openReviewModule(initialNavigation));
@@ -472,7 +476,7 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
             try { await readReviewDetail(supabase, space, reviewId, userId); return true; }
             catch (readError) { if (readError instanceof ReviewUnavailableError) return false; throw readError; }
           },
-        });
+        }, { loadListsSpaces: async () => (await loadListsEligibility(userId)).eligibleSpaces });
         if (!requestGuard.current.isCurrent(currentRequest)) return false;
         applyRestoredTarget(restoredTarget);
         restoredNavigation.current = true;
@@ -583,12 +587,13 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
     requestGuard.current.invalidate();
     setNavigation((current) => selectTab(current, tab));
     if (tab === 'me') setMyScreen('profile');
-    if (tab === 'modules' || tab === 'calendar' || tab === 'home') void refreshSpaces(false);
+    if (tab === 'calendar' || tab === 'home') void refreshSpaces(false);
   }
 
   async function managedSpaceReady(spaceId: string) {
     const ready = await refreshSpaces(false, spaceId);
     if (ready) {
+      void moduleAvailability.refresh();
       setSelectedSpaceId(spaceId);
       writeSelectedSpaceId(window.localStorage, userId, spaceId);
       setMyScreen('detail');
@@ -607,6 +612,7 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
       remountDetail: () => setSpaceDetailRevision((current) => current + 1),
       showError: setError,
     });
+    void moduleAvailability.refresh();
   }
 
   function updateSpace(updated: Space) {
@@ -645,14 +651,16 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
       )}
       {navigation.tab === 'calendar' && spaceListStatus !== 'ready' && <SpaceListPending status={spaceListStatus} onRetry={() => void refreshSpaces()} />}
       {navigation.tab === 'home' && spaceListStatus !== 'ready' && <SpaceListPending status={spaceListStatus} onRetry={() => void refreshSpaces()} />}
-      {navigation.tab === 'modules' && spaceListStatus !== 'ready' && <SpaceListPending status={spaceListStatus} onRetry={() => void refreshSpaces(false)} />}
-      {navigation.tab === 'home' && spaceListStatus === 'ready' && <HomePage spaces={spaces} userId={userId} EventSheetComponent={EventSheet} onMembershipRefresh={async () => { await refreshSpaces(); }} />}
-      {navigation.tab === 'modules' && spaceListStatus === 'ready' && (navigation.moduleScreen === 'hub'
-        ? <ModuleHub userId={userId} onOpenTasks={() => setNavigation((current) => openTaskModule(current))} onOpenReview={() => setNavigation((current) => openReviewModule(current))} />
+      {navigation.tab === 'modules' && spaceListStatus !== 'ready' && navigation.moduleScreen !== 'hub' && <SpaceListPending status={spaceListStatus} onRetry={() => void refreshSpaces(false)} />}
+      {navigation.tab === 'home' && spaceListStatus === 'ready' && <HomePage spaces={spaces} userId={userId} EventSheetComponent={EventSheet} onMembershipRefresh={async () => { await refreshSpaces(); void moduleAvailability.refresh(); }} />}
+      {navigation.tab === 'modules' && (spaceListStatus === 'ready' || navigation.moduleScreen === 'hub') && (navigation.moduleScreen === 'hub'
+        ? <ModuleHub availability={moduleAvailability.availability} onRefresh={() => { void moduleAvailability.refresh(); }} onOpenTasks={() => setNavigation((current) => openTaskModule(current))} onOpenReview={() => setNavigation((current) => openReviewModule(current))} onOpenLists={() => setNavigation((current) => openListsModule(current))} />
+        : navigation.moduleScreen === 'lists'
+          ? <ListsOverviewPage key={userId} userId={userId} onHubBack={() => setNavigation((current) => selectTab(current, 'modules'))} onNoEligible={() => { void moduleAvailability.refresh(); setNavigation((current) => selectTab(current, 'modules')); }} />
         : navigation.moduleScreen === 'review'
-          ? <ReviewHistoryPage userId={userId} currentSpaceId={reviewSpaceId} onSpaceChange={setReviewSpaceId} onOpenDetail={(target) => { reviewDetailDirty.current = false; setReviewDetail(target); setNavigation((current) => openReviewDetail(current)); }} onHubBack={() => setNavigation((current) => selectTab(current, 'modules'))} onNoEligible={() => { setReviewSpaceId(null); setNavigation((current) => selectTab(current, 'modules')); }} />
+          ? <ReviewHistoryPage userId={userId} currentSpaceId={reviewSpaceId} onSpaceChange={setReviewSpaceId} onOpenDetail={(target) => { reviewDetailDirty.current = false; setReviewDetail(target); setNavigation((current) => openReviewDetail(current)); }} onHubBack={() => setNavigation((current) => selectTab(current, 'modules'))} onNoEligible={() => { void moduleAvailability.refresh(); setReviewSpaceId(null); setNavigation((current) => selectTab(current, 'modules')); }} />
           : navigation.moduleScreen === 'review-detail'
-            ? reviewDetail ? <ReviewDetailPage key={`${reviewDetail.spaceId}:${reviewDetail.reviewId}`} target={reviewDetail} userId={userId} onDirtyChange={(dirty) => { reviewDetailDirty.current = dirty; }} onBack={() => { reviewDetailDirty.current = false; setNavigation((current) => openReviewModule(current)); }} onUnavailable={(reason) => { reviewDetailDirty.current = false; if (reason === 'review') setReviewSpaceId(reviewDetail.spaceId); setNavigation((current) => reason === 'space' ? selectTab(current, 'modules') : openReviewModule(current)); }} />
+            ? reviewDetail ? <ReviewDetailPage key={`${reviewDetail.spaceId}:${reviewDetail.reviewId}`} target={reviewDetail} userId={userId} onDirtyChange={(dirty) => { reviewDetailDirty.current = dirty; }} onBack={() => { reviewDetailDirty.current = false; setNavigation((current) => openReviewModule(current)); }} onUnavailable={(reason) => { void moduleAvailability.refresh(); reviewDetailDirty.current = false; if (reason === 'review') setReviewSpaceId(reviewDetail.spaceId); setNavigation((current) => reason === 'space' ? selectTab(current, 'modules') : openReviewModule(current)); }} />
               : <main className="mx-auto max-w-3xl px-4 py-6"><p>这次回顾暂不可访问。</p><button className="mt-3 min-h-11 font-semibold text-teal" type="button" onClick={() => setNavigation((current) => openReviewModule(current))}>返回回顾列表</button></main>
           : <TasksArea
             key={userId}
@@ -688,6 +696,7 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
               onReady={managedSpaceReady}
               onSpaceChange={updateSpace}
               onLifecycleSettled={lifecycleSettled}
+              onModuleChanged={moduleAvailability.moduleChanged}
               busy={spaceActionBusy}
               onBusyChange={setSpaceActionBusy}
             />

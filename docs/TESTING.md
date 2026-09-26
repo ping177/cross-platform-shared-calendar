@@ -1,5 +1,32 @@
 # Testing
 
+## v0.1.15 Slice 2 final desktop acceptance — PASS / MOBILE-PWA PENDING
+
+- User-reported desktop acceptance now includes immediate ModuleHub return, Tasks hidden when all current member Spaces disable it and restored when one enables it, alongside the previously accepted Personal/Shared Lists, filtering, ownership-safe create, rename, two-step delete, module disable/re-enable, navigation refresh and dual-account Realtime flows. Real two-account filtered DELETE + RLS + canonical reread is `PASS`.
+- Full Node **338/338 PASS**, `npm run build` **PASS**, `git diff --check` **PASS**. The existing >500 kB bundle warning is the only build warning. Vercel Production deployment verification and user mobile/PWA acceptance are pending; Slice 2 is not closed. Codex did not operate authenticated browser sessions or the Production backend.
+
+## v0.1.15 Slice 2 ModuleHub three-module visibility — LOCAL PASS / USER RECHECK PENDING
+
+- User recheck confirmed immediate Hub return `PASS` and found Tasks remained visible with Tasks disabled in every current Space. Reused existing authenticated, paginated `loadTaskEligibility` in the session snapshot; Tasks, Review, and Lists now share the same at-least-one-enabled-current-member-Space visibility rule. All three disabled is an explicit empty state. Canonical toggle success patches the known set and revalidates; failed toggles leave it unchanged. Cold loading, background failure retention, retry, and account isolation remain.
+- Focused Node **17/17 PASS**, full Node **338/338 PASS**, TypeScript/Vite build and `git diff --check` PASS. User-reported remaining desktop Slice 2 functional acceptance and dual-account filtered Realtime DELETE + RLS/canonical reread remain `PASS`; Tasks visibility awaits recheck. Mobile/PWA remains pending until Vercel deployment. Slice 2 remains open. No backend/SQL, dependency, Production operation, commit, push or deployment.
+
+## v0.1.15 Slice 2 ModuleHub session availability — LOCAL PASS / USER RECHECK PENDING
+
+- `CalendarApp` now owns an in-memory Review/Lists eligibility snapshot for its authenticated user lifetime. Startup reads both canonical eligibility paths once after Spaces bootstrap; ordinary Hub navigation reuses the snapshot. Foreground/online return, successful module toggles, Space lifecycle and eligibility rejection trigger background refresh. The Hub stays visible during refresh; failed reads retain last-known cards and show retry, while a true cold start shows loading. Account changes remount the user-keyed app and discard prior state. Tasks card and ordering are unchanged.
+- User-reported desktop authenticated Slice 2 functional acceptance and two-account filtered Realtime DELETE + RLS/canonical reread remain `PASS`. Mobile/PWA acceptance remains pending until Vercel deployment; Slice 2 stays open. Focused Node **18/18 PASS**, full Node **337/337 PASS**, TypeScript/Vite build and `git diff --check` PASS. No backend/SQL, dependencies, Production operation, commit, push or deployment. User recheck of this navigation UX is next.
+
+## v0.1.15 Shared Lists Slice 2 — DESKTOP AUTHENTICATED PASS / HUB UX RECHECK PENDING
+
+- User-reported desktop authenticated flows passed for Personal/Shared Lists, ownership-safe create, filter independence, rename, two-step delete, module disable/re-enable, refresh restoration, and two-account rename and DELETE Realtime. Filtered Realtime DELETE + RLS + canonical reread is now `PASS` based on the user's real two-account test. Codex did not operate the authenticated browser session.
+- ModuleHub stagger reproduction failed before the fix: initial render showed Tasks while Review/Lists remained unresolved. Updated UI tests cover initial/partial loading, together-and-ordered final cards, a single focus-refresh result after both reads, confirmed disabled modules, and distinct Review/Lists error-retry states. Focused affected tests **14/14 PASS**, full Node **334/334 PASS**, `npm run build` **PASS**, and `git diff --check` **PASS**. Existing >500 kB bundle warning remains non-blocking.
+- The new Hub loading presentation awaits user recheck. Mobile/PWA acceptance is intentionally deferred until after Vercel deployment. Slice 2 is not closed; the frontend is uncommitted and undeployed.
+
+## v0.1.15 Shared Lists Slice 2 — LOCAL AUTOMATED PASS / AUTHENTICATED ACCEPTANCE PENDING
+
+- Focused Lists data, overview and UI tests cover eligibility, absent/disabled module rows, Personal-default ownership with disabled Personal requiring explicit Shared selection, complete pagination/incomplete-result rejection, empty/mixed/completed progress, deterministic grouping, narrow create/rename/delete payloads, two-step destructive copy, Hub visibility/error retry, Realtime burst coalescing/channel cleanup, and eligibility-before-overview reread. Navigation and Space management regressions cover overview restoration, confirmed-loss fallback, transient-read preservation, account-scoped storage, and owner-only Lists controls.
+- Full Node suite **333/333 PASS**; `npm run build` passed TypeScript and Vite. The existing >500 kB bundle warning remains non-blocking; `git diff --check` passed. No frontend authenticated session, local real-account acceptance, Production query/mutation, deployment, commit, or push was performed.
+- Before requesting user real-login/manual acceptance, run the repository environment-alignment gate for the actual local frontend target and deployed Slice 1 backend contract. The user then validates Personal/Shared switches, Hub visibility, all-Space default, ownership-safe create, shared rename/delete, progress/grouping, Realtime, and mobile/PWA behavior. Filtered Realtime DELETE + RLS with real two-account subscriptions/canonical reread remains `NOT YET PROVEN` for later collaboration acceptance.
+
 ## v0.1.15 Shared Lists Slice 1 — CLOSED / PASS
 
 - Production read-only preflight passed on PostgreSQL 17.6 with the intended linked project and the expected predecessor state. The exact SHA-256 `6e16b311a853d6cc227006cdfb9ebcfb46ecf060b9ed28b5118e4df457da4a8b` forward patch was applied once with its `BEGIN/COMMIT`; no retry or repair SQL was run.

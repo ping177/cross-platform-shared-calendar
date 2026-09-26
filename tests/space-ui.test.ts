@@ -53,7 +53,7 @@ test('four-tab Module Hub and Aggregate Tasks cards keep IDs, compact controls a
   const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
   try {
     const { BottomNavigation } = await vite.ssrLoadModule('/src/App.tsx');
-    const { ModuleHub } = await vite.ssrLoadModule('/src/components/ModuleHub.tsx');
+    const { ModuleHubContent } = await vite.ssrLoadModule('/src/components/ModuleHub.tsx');
     const { TaskFilterPicker, TaskRows, TasksArea } = await vite.ssrLoadModule('/src/components/TasksArea.tsx');
     const { MyPage } = await vite.ssrLoadModule('/src/components/MyPage.tsx');
     const nav = renderToStaticMarkup(React.createElement(BottomNavigation, { tab: 'modules', onChange: noop }));
@@ -61,7 +61,11 @@ test('four-tab Module Hub and Aggregate Tasks cards keep IDs, compact controls a
     assert.equal((nav.match(/<button/g) ?? []).length, 4);
     assert.doesNotMatch(nav, />空间<\/button>/);
     assert.match(nav, /grid-cols-4|bottom-nav.*min-h-12/);
-    const hub = renderToStaticMarkup(React.createElement(ModuleHub, { onOpenTasks: noop }));
+    const hub = renderToStaticMarkup(React.createElement(ModuleHubContent, {
+      loading: false, tasksAvailable: true, tasksError: false, reviewAvailable: false, reviewError: false,
+      listsAvailable: false, listsError: false,
+      onOpenTasks: noop, onOpenReview: noop, onOpenLists: noop, onRetryTasks: noop, onRetryReview: noop, onRetryLists: noop,
+    }));
     assert.match(hub, /功能中心.*进入任务.*任务/);
     assert.doesNotMatch(hub, /清单|Review|纪念日|Memo|开启任务模块/);
     assert.match(hub, /min-h-16|safe-bottom/);
