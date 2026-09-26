@@ -12,9 +12,11 @@ v0.1.14
 
 ## Current status
 
-v0.1.14「回顾」`BACKEND PRODUCTION PASS / FRONTEND PRODUCTION DEPLOYED / PUBLIC SMOKE PASS / AUTHENTICATED RECHECK PENDING`。产品与验收契约见 [v0.1.14 规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md)。原 Slice 1 backend 与 date chronology forward fix 均已在 Production 应用并通过 postflight；本地真实账号验收产生的 4 个测试 rounds / 7 个 entries 已按 exact IDs 单独清理，Production Review 数据保持 0/0 clean initial state。Slice 2–4、集成、两轮 acceptance fixes、frontend pre-deploy gate、main push、Vercel Production deployment 与公开 smoke 均 `PASS`；最终 Production authenticated minimal recheck 尚待用户执行，v0.1.14 整体未关闭。
+v0.1.14「回顾」`CLOSED / PASS`。Backend foundation 与 date chronology fix 均已在 Production 应用并通过 postflight；frontend 已部署并通过 public smoke。用户报告 Production authenticated acceptance `PASS`，覆盖 Personal / Shared、双账号读写边界、状态转换、历史/新建、日期更正与 chronology、同日唯一、authoritative count、上一份计划、响应式布局和未保存草稿保护。最终 3 篇 Personal Review 测试数据已按 exact IDs 在单一事务中清理，Production 回到 0 rounds / 0 entries，两条 Review module rows 保持 enabled，核心数据 fingerprints 未变化。Blockers 为 None。
 
 ## Latest completed
+
+v0.1.14 Final authenticated acceptance + governance closeout `CLOSED / PASS`：用户明确报告 Production 最终复验通过；Personal / Shared 回顾、ModuleHub 入口、双账号本人编辑/对方只读、四状态转换、历史/新建、日期更正、date chronology、同日重复拒绝、`共 N 篇回顾`、date-driven「上一份计划」、桌面/320px 响应式和 dirty navigation 均通过实际产品验收。随后以 exact-ID whitelist、Review 表锁、事务内 metadata/participant 断言和 `DELETE ... RETURNING` 精确删除 3 个 Personal 测试 rounds，FK cascade 删除 3 entries；postflight 为 0/0、orphans 0、duplicates 0，两条 Review modules enabled，Space/member/module/Event/Task/reminder counts 与 fingerprints 不变。v0.1.14 正式关闭。
 
 v0.1.14 Frontend Production push + deployment verification `PASS`：正常 `git push origin main` 将已审查的 9-commit range `f10d140..189f055` 推送到 main，repo pre-push hook 通过。GitHub 上 exact HEAD `189f055f350daae3fe118137e23c3bb938a748ea` 的 Vercel status 为 `success / Deployment has completed`。公开 Production 根页面、当前 JS/CSS 与 manifest 均 HTTP 200，manifest 名称仍为「共享日历」，部署 bundle 包含最终回顾文案，登录页没有 Supabase env 缺失错误。未登录账号、创建 Review、修改 module 或写 Production DB；最终 authenticated recheck pending。
 
@@ -75,7 +77,7 @@ Public URL: https://cross-platform-shared-calendar.vercel.app/
 Provider: Vercel
 Backend: Supabase Free
 Backend rollout: v0.1.14 Slice 1 review foundation and date chronology forward patches applied and postflight verified; v0.1.13 lifecycle remains applied.
-Notes: Vercel is the configured Production provider. Production backend has same-Space/date uniqueness, duplicate-safe create/date correction and `get_my_previous_review_plan`; authenticated-only ACL and participant RLS postflight passed. Local acceptance test Review rows were removed by a separate exact-ID cleanup, leaving `review_rounds=0` and `review_entries=0` while two Review modules remain enabled. The v0.1.14 frontend was pushed to main and its exact-commit Vercel deployment plus unauthenticated public smoke passed; authenticated Production recheck is pending. Historical version-specific acceptance limits remain in DEVLOG/TESTING. `space_modules` remains outside Realtime; `send-test-push` remains ACTIVE v4 reviewed-equivalent and `send-reminders` ACTIVE v2 / `verify_jwt=false`. Vault, secrets and Cron were not changed.
+Notes: Vercel is the configured Production provider. v0.1.14 backend has same-Space/date uniqueness, duplicate-safe create/date correction and `get_my_previous_review_plan`; authenticated-only ACL and participant RLS postflight passed. The frontend exact-commit deployment, public smoke and user-reported Production authenticated acceptance passed. Final acceptance fixtures were removed by exact-ID transactions, leaving `review_rounds=0` and `review_entries=0` while Shared and Personal Review modules remain enabled. v0.1.14 is `CLOSED / PASS`. Historical version-specific acceptance limits remain in DEVLOG/TESTING. `space_modules` remains outside Realtime; `send-test-push` remains ACTIVE v4 reviewed-equivalent and `send-reminders` ACTIVE v2 / `verify_jwt=false`. Vault, secrets and Cron were not changed.
 
 ## Version Index
 
@@ -105,7 +107,7 @@ Notes: Vercel is the configured Production provider. Production backend has same
 - v0.1.11 — Navigation + Aggregation Experience（CLOSED / PASS；Slice 1–4 CLOSED / PASS；Production installed PWA acceptance PASS；dedicated final iPhone Safari acceptance NOT RUN）
 - v0.1.12 — Module Hub + Space Management Navigation（CLOSED / PASS；Slice 1–4 CLOSED / PASS；Production / installed-PWA acceptance PASS）
 - v0.1.13 — Space Lifecycle & Membership Safety（CLOSED / PASS；Slice 1/2 CLOSED / PASS；Production deployment、用户报告的 authenticated/mobile/PWA acceptance PASS）
-- v0.1.14 — 回顾（backend Production APPLIED / POSTFLIGHT PASS；验收测试数据 cleanup 完成且 Review 数据 0/0；frontend implementation、acceptance fixes、pre-deploy gate、main push、Vercel Production deployment 与 public smoke PASS；authenticated Production recheck pending，整体未关闭）
+- v0.1.14 — 回顾（CLOSED / PASS；backend/date chronology Production PASS；frontend deployed；public smoke 与 Production authenticated acceptance PASS；final exact-ID cleanup PASS，Review 0/0、两条 module enabled）
 
 ## Last verified
 
@@ -113,7 +115,7 @@ Notes: Vercel is the configured Production provider. Production backend has same
 
 ## Next Action
 
-Next Action: 由用户在 Production 执行最小 authenticated date-chronology recheck，覆盖回顾入口、authoritative count、同日唯一拒绝、日期 chronology、上一份计划与无用户可见轮次。根据用户决定保留或另行精确清理该小轮测试数据；复验前不要把 v0.1.14 标记为 CLOSED。
+Next Action: review the post-v0.1.14 backlog and select the next version; next-version planning has not started and no candidate scope is approved.
 
 ## Blockers
 
@@ -121,7 +123,7 @@ Next Action: 由用户在 Production 执行最小 authenticated date-chronology 
 
 ## Important Context
 
-- v0.1.14 Design Freeze 已同步第二轮 acceptance feedback：`review_date` 是业务时间轴且同 Space 同日唯一；上一份计划严格按日期上一篇、不 fallback；`round_no` 仅为内部技术序列。Production backend 已包含原 Slice 1 与 date chronology fix，相关约束、RPC、ACL、RLS postflight `PASS`；本地验收产生的 Review 测试数据已精确清理，deployment sanity 再次确认 0 rounds / 0 entries、两条 Review module enabled。用户此前已完成本地真实账号主要流程验收；frontend 已进入 main 并完成 Vercel exact-commit deployment/public smoke，最终 backend/frontend combined date-chronology 最小 authenticated recheck 待用户执行。刷新页面回首页仍是后续 UX 事项。完整 contract 和验收条件只以 v0.1.14 规格为准。
+- v0.1.14 `CLOSED / PASS`：`review_date` 是业务时间轴且同 Space 同日唯一；上一份计划严格按日期上一篇、不 fallback；`round_no` 仅为内部技术序列。Backend、frontend deployment、public smoke、用户 Production authenticated acceptance 与最终 exact-ID fixture cleanup 均通过；Production 当前 0 rounds / 0 entries、Shared 与 Personal Review module enabled。刷新页面回首页仍是后续 UX issue，应先判断是既有全局 navigation 行为还是特定 regression；既有 >500 kB bundle warning 同样不阻塞本版本关闭。完整 contract 和验收条件只以 v0.1.14 规格为准。
 - Git branch、latest commit、working tree 由 project-command-center 实时 Git 扫描读取；PROJECT_STATE.md 不作为这些字段的权威来源。
 - Production URL: `https://cross-platform-shared-calendar.vercel.app/`.
 - Supabase project status is currently Active, but Free Tier inactivity pause remains an operational risk.
@@ -185,4 +187,4 @@ Next Action: 由用户在 Production 执行最小 authenticated date-chronology 
 
 ## Handoff Prompt
 
-v0.1.13 Space Lifecycle & Membership Safety is `CLOSED / PASS`. v0.1.14 Production backend contains the original Slice 1 foundation plus the applied/postflight-verified date chronology fix; acceptance test Review data was cleaned separately and the last verified clean state was 0/0 with two enabled module rows. The frontend stack is on main, exact-commit Vercel Production deployment and public smoke passed, and no authenticated session or Production DB write occurred during verification. Next Action is the user-run minimal authenticated date-chronology recheck. Do not mark v0.1.14 closed or fix the separate refresh-to-home UX issue in this step.
+v0.1.13 Space Lifecycle & Membership Safety and v0.1.14 Review are `CLOSED / PASS`. v0.1.14 backend/date chronology, frontend deployment, public smoke, user-reported Production authenticated acceptance and final exact-ID fixture cleanup all passed; Production Review is 0/0 with Shared and Personal Review modules enabled. Next Action is neutral post-v0.1.14 backlog review and next-version selection; no next scope has been approved. Refresh-to-home and the existing bundle warning remain non-blocking follow-up items.

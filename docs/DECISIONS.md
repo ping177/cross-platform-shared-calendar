@@ -183,7 +183,7 @@ At the original roadmap freeze, only these high-level safety principles were rec
 
 ## v0.1.14 回顾（Structured Check-in）Design Freeze — 2026-09-25
 
-- v0.1.14 的产品语义于 2026-09-25 完成 docs-only 设计冻结；canonical 数据、权限、UI、slices 和验收契约见 [v0.1.14 规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md)。此后 Slice 1 backend 完成 Production forward patch 与只读 postflight，Slice 2–4 前端、本地集成审查及 acceptance feedback fix 已实现并自动验证；Production 用户可见前端仍是 v0.1.13。
+- v0.1.14 的产品语义于 2026-09-25 完成 docs-only 设计冻结；canonical 数据、权限、UI、slices 和验收契约见 [v0.1.14 规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md)。Backend/date chronology、Slice 2–4 frontend、acceptance fixes、Production deployment/public smoke、用户报告的 Production authenticated acceptance 与最终 exact-ID fixture cleanup 均已通过；v0.1.14 现为 `CLOSED / PASS`。
 - 每轮回顾的 participant 在创建时以 `review_entries` 固定。读取和写入旧轮均要求当前 Space membership **及**该轮 participant 身份；leave/remove 保留历史 entry，但离开者失去访问权，新成员不能访问或补写旧轮，原 participant 重新加入后恢复旧轮访问。Personal 一人可创建；Shared 仅当前两名成员齐全时可创建，沿用现有两人上限。
 - `round_no` 是每 Space 创建时固定的内部编号，创建 RPC 锁 Space 行后取 `max+1`，以唯一约束兜底；它不在历史、详情、无障碍名称或更正日期弹窗中向用户显示，不承担业务 chronology 或 previous-plan 关系。`review_date` 是业务时间轴，可由当前成员且该轮 participant 通过窄 RPC 更正，不改编号或参与者。
 - 2026-09-26 第一轮真实账号验收后的 bounded 调整移除了用户可见序号、加入 RLS authoritative `共 N 篇回顾` 并统一「上一份计划」文案。第二轮反馈 supersede 了当时“同日多份允许、previous-plan 使用 `round_no-1`”的决定：现在数据库保证 `unique(space_id, review_date)`；同日新建/日期更正冲突明确拒绝；上一份计划严格取同 Space 中 `review_date` 小于当前日期的最近一篇。日期上的立即上一篇没有本人 entry 或 plan 为空时返回空态，不向更早日期 fallback。

@@ -1,5 +1,12 @@
 # Testing
 
+## v0.1.14 回顾 Final Production Acceptance + Cleanup — CLOSED / PASS
+
+- 用户执行并明确报告 Production authenticated acceptance **PASS**。覆盖 Review module enablement、ModuleHub 入口、Personal / Shared、双账号读写边界、本人编辑/对方只读、四种 entry 状态、history/create、previous-plan、日期更正、date chronology、same-day duplicate rejection、authoritative count、无用户可见轮次、desktop / 320px responsive behavior 与 unsaved-draft navigation protection。Codex 未操作用户登录 session；数据库 security/concurrency/lifecycle 结论仍来自既有自动测试和 Production postflight。
+- Final date-chronology recheck **PASS**。三篇 Personal fixture 分别使用 2026-09-25、2026-09-26、2026-09-27 验证按日期排序、上一份计划和同日拒绝。随后 exact-ID transaction 在锁内重新验证全库 3 rounds / 3 entries、Space/日期/编号/participant metadata，删除集合与 whitelist 完全一致；FK cascade 后 rounds `3 → 0`、entries `3 → 0`，orphans 0、duplicate groups 0、三个 IDs remaining 0。
+- Cleanup postflight：Shared 与 Personal Review module rows 仍为 enabled；spaces 4、memberships 5、modules 6、Events 4、Tasks 5、reminder deliveries 12，六组 aggregate fingerprints 前后一致。`UNIQUE(space_id, review_date)`、`UNIQUE(space_id, round_no)`、previous-plan RPC 与 create/correct date-conflict guards 仍存在。无其他 Production write、schema patch、deployment 或 repo change。
+- Closeout 为 docs-only；没有重跑 full Node、DB regression、build 或 authenticated test。最终自动证据仍为 Review targeted Node **39/39**、full Node **313/313**、Project State gate **19/19**、build PASS、production dependency audit 0 vulnerabilities，以及此前记录的 DB/concurrency suites。
+
 ## v0.1.14 回顾 Frontend Production Deployment — Public Smoke PASS
 
 - Normal `git push origin main` advanced `origin/main` from `f10d140` to `189f055`; the repository pre-push Project State hook passed. GitHub's exact-commit Vercel status for `189f055f350daae3fe118137e23c3bb938a748ea` was `success` with `Deployment has completed`.

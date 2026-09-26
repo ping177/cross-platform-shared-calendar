@@ -138,11 +138,11 @@ The original roadmap carried these high-level safety principles; the Slice 1A ba
 - Destructive multi-record operations should use atomic backend-owned behavior rather than fragile frontend mutation sequences.
 - Review Shared Space deletion against all Space-owned canonical data; future modules must honor the eventual lifecycle contract.
 
-## v0.1.14 — 回顾（Structured Check-in）— DATE CHRONOLOGY BACKEND PRODUCTION PASS
+## v0.1.14 — 回顾（Structured Check-in）— CLOSED / PASS
 
-Canonical contract: [v0.1.14 回顾规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md)。Slice 1 backend foundation 与第二轮 date chronology forward fix 均已在 Production 应用并通过 postflight；本地真实账号验收产生的 4 个 rounds / 7 个 entries 已按 exact IDs 单独清理，Production Review 当前为 0/0 clean initial state，两条 Review module 仍 enabled。第二轮以 `review_date` 作为业务时间轴，数据库保证同 Space 同日唯一，上一份计划严格按日期上一篇且不 fallback；`round_no` 仅保留内部技术语义。
+Canonical contract: [v0.1.14 回顾规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md)。Backend foundation 与 date chronology forward fix 均已在 Production 应用并通过 postflight；`review_date` 是业务时间轴，数据库保证同 Space 同日唯一，上一份计划严格按日期上一篇且不 fallback，`round_no` 仅保留内部技术语义。
 
-实施顺序中的 Slice 1–4 与 integration 均完成；两轮 acceptance fixes、frontend pre-deploy / push gate、main push、Vercel Production deployment 与公开 smoke 已通过，用户此前完成了本地真实账号主要流程验收。下一步仅为用户在 Production 执行最小 authenticated date-chronology recheck。刷新浏览器回首页继续列为未来 UX 事项，v0.1.14 整体未关闭。
+Slice 1–4、integration、两轮 acceptance fixes、frontend pre-deploy gate、main push、Vercel Production deployment 与公开 smoke 均通过。用户报告最终 Production authenticated acceptance `PASS`，覆盖 Personal / Shared、双账号读写边界、entry 状态、历史/新建、previous-plan、日期更正与 chronology、同日拒绝、count、响应式和 dirty navigation。最终 3 个 Personal 测试 rounds / 3 entries 经 exact-ID transaction 清理，postflight 0/0，两条 Review module enabled，核心 fingerprints 无变化。刷新浏览器回首页与既有 >500 kB bundle warning 保留为 non-blocking follow-up；v0.1.14 正式关闭。
 
 ## Directional Roadmap — Shared Life Architecture Frozen
 
@@ -153,7 +153,7 @@ The long-term relationships and v0.1.10 scope are frozen in [Shared Life Archite
 - v0.1.11 — Navigation + Aggregation Experience (`CLOSED / PASS / SLICE 1 CLOSED / PASS / SLICE 2 CLOSED / PASS / SLICE 3 CLOSED / PASS / SLICE 4 CLOSED / PASS`; Desktop and Production installed PWA acceptance `PASS`; dedicated final iPhone Safari acceptance `NOT RUN`).
 - v0.1.12 — Module Hub + Space Management Navigation (CLOSED / PASS; Slices 1–4 CLOSED / PASS; Production and installed-PWA acceptance PASS).
 - v0.1.13 — Space Lifecycle & Membership Safety (CLOSED / PASS; Slice 1/2 CLOSED / PASS; Production deployment and user-reported authenticated/mobile/PWA acceptance PASS).
-- v0.1.14 — 回顾 (backend Production APPLIED / POSTFLIGHT PASS; acceptance test data cleanup complete and Review data 0/0; frontend implementation, acceptance fixes, pre-deploy gate, main push, Vercel Production deployment and public smoke PASS; authenticated Production recheck pending; overall in development).
+- v0.1.14 — 回顾 (CLOSED / PASS; backend/date chronology, frontend deployment, public smoke, Production authenticated acceptance and final exact-ID cleanup PASS; Review 0/0 with two enabled module rows).
 - Later candidates without fixed versions/order: Shared Lists, Important Dates, Calendar Sources v1, Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules. Priority and order may change based on real product use.
 - Future direction only: consider projecting/sharing a Personal Event into another Space while keeping one canonical Event owner Space, avoiding duplicate canonical objects, and ensuring that leaving the target Shared Space does not affect the source Event. This is outside v0.1.13; do not implement or reserve schema for it in this version.
 - Native: decision gate only; no committed implementation version.
