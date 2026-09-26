@@ -8,7 +8,7 @@ Production URL: https://cross-platform-shared-calendar.vercel.app/
 
 - v0.1.10 foundation remains `CLOSED / PASS`; v0.1.11 Slices 1–4 and the overall version are `CLOSED / PASS`. Production includes Slice 4; user-reported Desktop and installed PWA acceptance passed. Dedicated final iPhone Safari acceptance is `NOT RUN` and is not a Slice 4 blocker. Independent Slice 3 Event/Task section error/retry simulation remains `NOT RUN / DIFFICULT TO SIMULATE SAFELY`; second Shared Space is `N/A / NOT RUN`. Home “近期日程 +” opens Event creation directly; “需要处理的任务 +” opens Task creation directly. See the [v0.1.11 Navigation + Aggregation Spec](./docs/v0.1.11_NAVIGATION_AGGREGATION_SPEC.md), [v0.1.9 Shared Tasks Spec](./docs/v0.1.9_SHARED_TASKS_SPEC.md), and [Shared Life Architecture Freeze](./docs/SHARED_LIFE_ARCHITECTURE.md).
 - v0.1.12 Module Hub + Space Management Navigation、v0.1.13 Space Lifecycle & Membership Safety 与 v0.1.14「回顾」均为 `CLOSED / PASS`。v0.1.14 的 [canonical contract](./docs/v0.1.14_STRUCTURED_CHECKIN_SPEC.md)、backend/date chronology、frontend deployment、public smoke、用户报告的 Production authenticated acceptance 与最终 exact-ID fixture cleanup 均通过；Production Review 数据为 0/0，Shared 与 Personal Review module 保持 enabled。
-- v0.1.14.1 Navigation Persistence 已在 Production 完成用户真实账号刷新验收并 `CLOSED / PASS`。v0.1.15 Shared Lists 已完成 Design Freeze，Slice 1 DB foundation 本地实现与验证通过；Production patch 尚未应用，前端 Slices 2–4 尚未开始。下一步是 Slice 1 Production 只读 preflight 与 exact patch review。详见 [v0.1.15 Shared Lists Specification](./docs/v0.1.15_SHARED_LISTS_SPEC.md)。
+- v0.1.14.1 Navigation Persistence 已在 Production 完成用户真实账号刷新验收并 `CLOSED / PASS`。v0.1.15 Shared Lists 已完成 Design Freeze，Slice 1 DB foundation 本地验证及 Production rollout/postflight 均通过，`CLOSED / PASS`；前端 Slices 2–4 尚未开始。下一步是 Slice 2 Overview / Ownership implementation planning / preflight。详见 [v0.1.15 Shared Lists Specification](./docs/v0.1.15_SHARED_LISTS_SPEC.md)。
 - `v0.1.8 — Mobile Push Reminder` 仍为 `CLOSED / PASS`：Push Infrastructure、ordinary Reminder delivery、Slice 3 Recurrence Reminder Integration 与 final cross-platform acceptance 已完成。v0.1.10 的 Personal Space、多 Space 选择、Event/Task 隔离、A/B Realtime、320px 与 iPhone/PWA 验收已通过；表单打开时切换 Space 与 Shared ↔ Shared 按本轮记录为 N/A，不是失败。整个 v0.1.10 已 `CLOSED / PASS`。
 - v0.1.8 Slice 1 已实现并验证 Push-only Service Worker、明确用户操作触发的 notification permission flow、`user + installation` subscription persistence/lifecycle，以及带安全 upstream diagnostics 的 authenticated test-push Edge Function。
 - Desktop Chrome/macOS 与 iPhone installed PWA 的真实 Push / automatic Reminder 验收已通过。Android Studio Emulator 的 notification permission/subscription、`send-test-push`、ordinary automatic Reminder、声音与 notification-shade delivery 均通过；未观察到 heads-up banner，且未在实体 Android 硬件上验证该展示行为，这不是 v0.1.8 blocker。
@@ -34,7 +34,7 @@ Shared Tasks MVP 的 Space-scoped persistence、member/shared assignment、`open
 - Apple Calendar / Google Calendar / CalDAV / 系统日历同步
 - 原生 iOS / Android App
 - v0.1.9 内的 Personal Space、多空间切换、模块开关与完整四栏导航（后续方向见架构文档）
-- Shared Lists 前端与 Production backend 尚未上线；本地 Slice 1 DB foundation 已验证，v0.1.15 产品与技术边界见 [canonical specification](./docs/v0.1.15_SHARED_LISTS_SPEC.md)。Task Reminder、recurring Tasks、纪念日、聊天、相册
+- Shared Lists 前端尚未上线；Slice 1 Production DB foundation 已通过，v0.1.15 产品与技术边界见 [canonical specification](./docs/v0.1.15_SHARED_LISTS_SPEC.md)。Task Reminder、recurring Tasks、纪念日、聊天、相册
 - 复杂 service worker 离线缓存
 
 ## 本地开发

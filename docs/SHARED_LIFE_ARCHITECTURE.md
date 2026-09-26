@@ -1,6 +1,6 @@
 # Shared Life Architecture Freeze
 
-Status: `ARCHITECTURE FROZEN`; v0.1.10–v0.1.14.1 are `CLOSED / PASS`; v0.1.15 Shared Lists is `IN PROGRESS` with Slice 1 DB foundation locally verified and Production not applied. The v0.1.11 contract is [Navigation + Aggregation Experience Specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md); the accepted v0.1.14「回顾」contract is [v0.1.14 回顾规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md); the v0.1.15 contract is [Shared Lists Specification](./v0.1.15_SHARED_LISTS_SPEC.md).
+Status: `ARCHITECTURE FROZEN`; v0.1.10–v0.1.14.1 are `CLOSED / PASS`; v0.1.15 Shared Lists is `IN PROGRESS` with Slice 1 DB foundation `CLOSED / PASS` after Production postflight. The v0.1.11 contract is [Navigation + Aggregation Experience Specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md); the accepted v0.1.14「回顾」contract is [v0.1.14 回顾规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md); the v0.1.15 contract is [Shared Lists Specification](./v0.1.15_SHARED_LISTS_SPEC.md).
 
 This document freezes the long-term product model and navigation direction plus the reviewed v0.1.10 foundation scope. It does not change the accepted v0.1.9 Production capability. Later roadmap versions remain directional and need their own scope review.
 
@@ -136,13 +136,13 @@ The Home creation form visibly shows the target Space and allows changing it. It
 | v0.1.13 | Space Lifecycle & Membership Safety (CLOSED / PASS) |
 | v0.1.14 | 回顾 (CLOSED / PASS; backend/frontend Production, authenticated acceptance and fixture cleanup PASS) |
 | v0.1.14.1 | Navigation Persistence (CLOSED / PASS) |
-| v0.1.15 | Shared Lists (IN PROGRESS; Slice 1 DB foundation local PASS, Production not applied) |
+| v0.1.15 | Shared Lists (IN PROGRESS; Slice 1 DB foundation CLOSED / PASS after Production postflight) |
 
 Important Dates, Calendar Sources v1, Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules remain candidates without a fixed order. Priority and order may change based on real product use. Native has a decision gate only; no native implementation version is committed.
 
-## v0.1.15 Shared Lists — Design Frozen / Slice 1 Local DB Verified
+## v0.1.15 Shared Lists — Design Frozen / Slice 1 DB Closed
 
-Shared Lists is a Space-level optional module for Personal and Shared Spaces. Space owns Lists; Lists contain optional Sections and Items. The canonical schema, RLS/mutation boundary, derived completion, deterministic ordering, Realtime contract, mobile interaction requirements, lifecycle semantics, non-goals, and four planned implementation slices are frozen in the [canonical specification](./v0.1.15_SHARED_LISTS_SPEC.md). Slice 1 DB foundation is locally verified; it does not yet create a frontend or Production capability.
+Shared Lists is a Space-level optional module for Personal and Shared Spaces. Space owns Lists; Lists contain optional Sections and Items. The canonical schema, RLS/mutation boundary, derived completion, deterministic ordering, Realtime contract, mobile interaction requirements, lifecycle semantics, non-goals, and four planned implementation slices are frozen in the [canonical specification](./v0.1.15_SHARED_LISTS_SPEC.md). Slice 1 DB foundation passed local verification and Production postflight; Lists frontend and authenticated collaboration acceptance remain pending.
 
 ## v0.1.9 Slice Boundary
 

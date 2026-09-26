@@ -1,5 +1,11 @@
 # Development Log
 
+## 2026-09-26 - v0.1.15 Shared Lists Slice 1 Production Closeout — CLOSED / PASS
+
+- The intended Production Supabase project passed read-only preflight. Applied the exact `supabase/patches/2026-09-26-v0.1.15-shared-lists-slice1.sql` once with its own `BEGIN/COMMIT`; SHA-256 `6e16b311a853d6cc227006cdfb9ebcfb46ecf060b9ed28b5118e4df457da4a8b`. The SQL transaction committed and read-only postflight passed without retry, repair SQL, other Production mutation, or frontend deployment.
+- Postflight verified three empty Lists tables, expected columns/constraints/indexes, six identity/timestamp triggers, seven RLS policies, narrow table/column ACLs, eight authenticated mutation RPCs plus private List lock helper, explicit-boolean completion with List → Item lock order, owner-only Lists toggle, and three new Realtime publication members with FULL replica identity. Existing Events/Tasks publication and all 10/10 pre-existing business-data counts/fingerprints matched preflight; no Lists module row was created.
+- Slice 1 DB foundation is `CLOSED / PASS`; v0.1.15 remains `IN PROGRESS`. Slices 2–4 are `NOT STARTED`. Filtered Realtime DELETE delivery under RLS with real two-account subscriptions/canonical reread is `NOT YET PROVEN` and remains a later authenticated collaboration checkpoint. Next Action: Slice 2 Overview / Ownership implementation planning / preflight. This closeout changes documentation only and does not re-query Production.
+
 ## 2026-09-26 - v0.1.15 Shared Lists Slice 1 DB Foundation — LOCAL PASS / PRODUCTION NOT APPLIED
 
 - Implemented the frozen three-table Space-owned Lists foundation in `schema.sql` and one apply-once forward patch: composite parent consistency, nullable ungrouped Section, non-cascading creator audit, immutable identity, bounded text/order checks, member-readable history, enabled-member writes, narrow structural/reorder/completion RPCs, and three-table Realtime publication with FULL replica identity. Lists remains disabled by default; the existing owner-only module toggle now accepts `lists`.
