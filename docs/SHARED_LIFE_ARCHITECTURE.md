@@ -1,6 +1,6 @@
 # Shared Life Architecture Freeze
 
-Status: `ARCHITECTURE FROZEN`; v0.1.10–v0.1.13 are `CLOSED / PASS`. The v0.1.11 contract is [Navigation + Aggregation Experience Specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md); the frozen v0.1.14「回顾」contract is [v0.1.14 回顾规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md). The v0.1.14 backend is Production verified and its frontend pre-deploy gate passed; the deployed user-visible frontend remains v0.1.13.
+Status: `ARCHITECTURE FROZEN`; v0.1.10–v0.1.13 are `CLOSED / PASS`. The v0.1.11 contract is [Navigation + Aggregation Experience Specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md); the frozen v0.1.14「回顾」contract is [v0.1.14 回顾规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md). The v0.1.14 backend and frontend are deployed and publicly verified; authenticated Production recheck is pending and the version remains open.
 
 This document freezes the long-term product model and navigation direction plus the reviewed v0.1.10 foundation scope. It does not change the accepted v0.1.9 Production capability. Later roadmap versions remain directional and need their own scope review.
 
@@ -39,7 +39,7 @@ Space remains the canonical ownership boundary. Each Event, Task, List, Importan
 
 `Space = Calendar Core + Optional Modules`.
 
-Calendar is the core capability of every Space. Optional modules may include Tasks, Lists, Important Dates, Review / Check-in, Memo, and later validated modules. Tasks is currently the only deployed user-visible optional module; the v0.1.14 Review frontend is locally ready for push. Names of later modules are architecture candidates and do not imply Production placeholders or a generic module framework.
+Calendar is the core capability of every Space. Optional modules may include Tasks, Lists, Important Dates, Review / Check-in, Memo, and later validated modules. Tasks and Review are the deployed user-visible optional modules; Review still awaits its final authenticated Production recheck. Names of later modules are architecture candidates and do not imply Production placeholders or a generic module framework.
 
 - Enablement belongs to the Space, not to an individual member's preference. Different Spaces may enable different modules.
 - A disabled module does not appear in that Space's main interface.
@@ -134,7 +134,7 @@ The Home creation form visibly shows the target Space and allows changing it. It
 | v0.1.11 | Navigation + Aggregation Experience |
 | v0.1.12 | Module Hub + Space Management Navigation (CLOSED / PASS) |
 | v0.1.13 | Space Lifecycle & Membership Safety (CLOSED / PASS) |
-| v0.1.14 | 回顾 (DESIGN FROZEN; backend Production PASS; frontend pre-deploy gate PASS / ready for authorized push; deployed frontend remains v0.1.13) |
+| v0.1.14 | 回顾 (backend/frontend Production deployed and public smoke PASS; authenticated Production recheck pending; overall open) |
 
 Shared Lists, Important Dates, Calendar Sources v1, Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules remain candidates without a fixed order. Priority and order may change based on real product use. Native has a decision gate only; no native implementation version is committed.
 

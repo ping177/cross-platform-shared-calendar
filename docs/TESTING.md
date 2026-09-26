@@ -1,5 +1,11 @@
 # Testing
 
+## v0.1.14 回顾 Frontend Production Deployment — Public Smoke PASS
+
+- Normal `git push origin main` advanced `origin/main` from `f10d140` to `189f055`; the repository pre-push Project State hook passed. GitHub's exact-commit Vercel status for `189f055f350daae3fe118137e23c3bb938a748ea` was `success` with `Deployment has completed`.
+- Unauthenticated Production smoke: root HTML **200**, current JS `/assets/index-CaBYwzOG.js` **200**, current CSS `/assets/index-BmUtdkZG.css` **200**, `/manifest.webmanifest` **200** with name `共享日历`. The deployed JS contains `回顾`, `上一份计划` and count-copy markers; the public login page does not show the missing-Supabase-environment error.
+- A minimal Production read-only sanity confirmed 0 Review rounds / 0 entries / 2 enabled Review modules. No full Node/build rerun was performed because no code changed after the passing pre-deploy gate. No authenticated browser/PWA/device test, Magic Link/OTP, Review fixture, module mutation, Supabase write or full backend postflight was performed. User-run Production authenticated minimal recheck remains pending.
+
 ## v0.1.14 回顾 Frontend Pre-deploy / Push Gate — PASS
 
 - Integrated review covered the seven local commits from `origin/main` through the date-chronology rollout record. A new focused regression proved that a successful date correction refreshes the just-created detail's date-driven previous-plan context; it failed before the bounded fix and passed after it.

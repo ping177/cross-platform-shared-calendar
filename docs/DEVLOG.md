@@ -1,5 +1,11 @@
 # Development Log
 
+## 2026-09-26 - v0.1.14 Frontend Production Push + Deployment Verification — PASS
+
+- Pushed the reviewed nine-commit range `f10d140..189f055` to `origin/main` with the normal pre-push hook; hook and push passed, then local/remote reached 0/0 with a clean tree. GitHub commit status for exact HEAD `189f055f350daae3fe118137e23c3bb938a748ea` reported Vercel `success` / `Deployment has completed`, providing commit/deployment parity without a Vercel login.
+- Public Production smoke passed at `https://cross-platform-shared-calendar.vercel.app/`: root HTML, `/assets/index-CaBYwzOG.js`, `/assets/index-BmUtdkZG.css` and `/manifest.webmanifest` returned HTTP 200; manifest name remained `共享日历`, the deployed bundle contained the final Review markers, and the login page did not show the Supabase environment-missing error.
+- No business code, SQL, dependency, environment setting, Production database data or authenticated session changed during rollout verification. A minimal read-only sanity confirmed 0 Review rounds / 0 entries / 2 enabled Review modules. Post-push freshness required this docs-only closeout because the prior Next Action still said to push; next action is the user-run Production authenticated minimal date-chronology recheck. v0.1.14 remains open; refresh-to-home and the existing >500 kB bundle warning remain deferred.
+
 ## 2026-09-26 - v0.1.14 Frontend Pre-deploy / Push Gate — PASS / READY FOR AUTHORIZED PUSH
 
 - Reviewed the complete seven-commit `origin/main...HEAD` stack as one deployable frontend state. Final behavior uses independent Review Space selection, enabled-module eligibility, Space-scoped paginated history with authoritative exact total, same-Space/date uniqueness, date-only user-visible identity, participant-snapshot detail, own edit/mark actions, counterpart read-only content, responsive Shared/Personal layouts, navigation dirty guards and a date-driven previous-plan RPC. No user-visible round number, client `round_no - 1`, Review Realtime, new dependency, debug route or environment-value change remains.
