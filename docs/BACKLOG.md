@@ -142,11 +142,11 @@ The original roadmap carried these high-level safety principles; the Slice 1A ba
 
 Canonical contract: [v0.1.14 回顾规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md)。Backend foundation 与 date chronology forward fix 均已在 Production 应用并通过 postflight；`review_date` 是业务时间轴，数据库保证同 Space 同日唯一，上一份计划严格按日期上一篇且不 fallback，`round_no` 仅保留内部技术语义。
 
-Slice 1–4、integration、两轮 acceptance fixes、frontend pre-deploy gate、main push、Vercel Production deployment 与公开 smoke 均通过。用户报告最终 Production authenticated acceptance `PASS`，覆盖 Personal / Shared、双账号读写边界、entry 状态、历史/新建、previous-plan、日期更正与 chronology、同日拒绝、count、响应式和 dirty navigation。最终 3 个 Personal 测试 rounds / 3 entries 经 exact-ID transaction 清理，postflight 0/0，两条 Review module enabled，核心 fingerprints 无变化。刷新浏览器回首页与既有 >500 kB bundle warning 保留为 non-blocking follow-up；v0.1.14 正式关闭。
+Slice 1–4、integration、两轮 acceptance fixes、frontend pre-deploy gate、main push、Vercel Production deployment 与公开 smoke 均通过。用户报告最终 Production authenticated acceptance `PASS`，覆盖 Personal / Shared、双账号读写边界、entry 状态、历史/新建、previous-plan、日期更正与 chronology、同日拒绝、count、响应式和 dirty navigation。最终 3 个 Personal 测试 rounds / 3 entries 经 exact-ID transaction 清理，postflight 0/0，两条 Review module enabled，核心 fingerprints 无变化。刷新回首页问题已由 v0.1.14.1 解决；既有 >500 kB bundle warning 保留为 non-blocking follow-up；v0.1.14 正式关闭。
 
-## v0.1.14.1 — Navigation Persistence — LOCAL PASS
+## v0.1.14.1 — Navigation Persistence — CLOSED / PASS
 
-同一 browser/tab session 刷新恢复当前用户的有效页面位置；仅持久化页面与稳定 ID，保留既有 Auth、membership、module、Review participant 检查及独立筛选。自动测试与构建通过，Production 仍为 v0.1.14。下一步 bounded integration review 与用户真实浏览器验收；不包含 router、browser history、PWA cold-start 永久记忆或草稿持久化。
+同一 browser/tab session 刷新恢复当前用户的有效页面位置；仅持久化页面与稳定 ID，保留既有 Auth、membership、module、Review participant 检查及独立筛选。实现、integration review、本地 authenticated acceptance、Production deployment/public smoke、用户 Production authenticated refresh acceptance 均 `PASS`。Production 无 Review 数据，Review Detail 数据场景未在本轮线上重测；自动 integration 与本地验收仍覆盖该路径。刷新回首页已解决；既有 >500 kB bundle warning 非阻塞。不包含 router、browser history、可分享深链、PWA cold-start 永久记忆或草稿持久化。下一版本范围尚未批准。
 
 ## Directional Roadmap — Shared Life Architecture Frozen
 
@@ -158,6 +158,7 @@ The long-term relationships and v0.1.10 scope are frozen in [Shared Life Archite
 - v0.1.12 — Module Hub + Space Management Navigation (CLOSED / PASS; Slices 1–4 CLOSED / PASS; Production and installed-PWA acceptance PASS).
 - v0.1.13 — Space Lifecycle & Membership Safety (CLOSED / PASS; Slice 1/2 CLOSED / PASS; Production deployment and user-reported authenticated/mobile/PWA acceptance PASS).
 - v0.1.14 — 回顾 (CLOSED / PASS; backend/date chronology, frontend deployment, public smoke, Production authenticated acceptance and final exact-ID cleanup PASS; Review 0/0 with two enabled module rows).
+- v0.1.14.1 — Navigation Persistence (CLOSED / PASS; local and Production authenticated refresh acceptance PASS; no Review fixture created).
 - Later candidates without fixed versions/order: Shared Lists, Important Dates, Calendar Sources v1, Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules. Priority and order may change based on real product use.
 - Future direction only: consider projecting/sharing a Personal Event into another Space while keeping one canonical Event owner Space, avoiding duplicate canonical objects, and ensuring that leaving the target Shared Space does not affect the source Event. This is outside v0.1.13; do not implement or reserve schema for it in this version.
 - Native: decision gate only; no committed implementation version.

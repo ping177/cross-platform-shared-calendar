@@ -1,5 +1,10 @@
 # Testing
 
+## v0.1.14.1 Final Acceptance — CLOSED / PASS
+
+- 用户报告 Production authenticated refresh `PASS`：Calendar、Tasks、已有 Review 历史/相关页面、同一 Space Detail 刷新恢复；深页 logout 后另一账号登录不继承目标。Production 没有 Review 数据，故本轮没有 Review Detail 数据场景的线上重测或 fixture；自动 integration 与本地 authenticated acceptance 覆盖该目标。未验证 browser back/forward、可分享深链、PWA 完全关闭后重启或未保存草稿跨刷新恢复。
+- 最终证据链：导航相关 targeted **22/22 PASS**、full Node **320/320 PASS**、Project State gate **19/19 PASS**、`npm run build`、`git diff --check` 与静态范围扫描 PASS；bounded integration review PASS；用户本地 authenticated acceptance PASS；Vercel Production deployment/public smoke PASS；用户 Production authenticated refresh acceptance PASS。此 closeout 仅为文档变更，不重跑完整 Node/build/DB 或真实账号测试。
+
 ## v0.1.14.1 Production Public Smoke — PASS / Auth Recheck Pending
 
 - GitHub exact commit `8212cc820c7708e3766e9bf8cc9da84b15a5e5aa`：Vercel `Production / success`。公开 Production 根 HTML **200**、当前 JS **200**、CSS **200**、manifest **200**；未登录页面正常，JS 包含 `sessionStorage`、导航 key 和 Review 重试文案标记，未见缺失 Supabase 配置占位。

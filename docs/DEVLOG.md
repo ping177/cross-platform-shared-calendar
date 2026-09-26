@@ -1,5 +1,10 @@
 # Development Log
 
+## 2026-09-26 - v0.1.14.1 Navigation Persistence Final Governance Closeout — CLOSED / PASS
+
+- 用户明确报告 Production 真实账号最小刷新复验 `PASS`：Calendar、Tasks、已有 Review 历史/相关页面与 Space Detail 刷新后停留原页面；在深页 logout 后换另一账号登录，不继承前一账号目标。Production 无 Review 数据，本轮未重建 fixture、未把 Review Detail 数据场景记为线上实测；该路径保留自动 integration 与本地验收证据。Codex 未操作真实登录会话。
+- v0.1.14.1 实现、bounded integration review、本地 authenticated acceptance、Production deployment/public smoke 与线上 authenticated refresh acceptance 均 `PASS`，正式 `CLOSED / PASS`。最终能力是在既有 React memory navigation 上以 user-scoped sessionStorage 保存页面位置及稳定 ID；canonical 校验、失效回退、临时读取重试、dirty guard 和独立筛选保持。Router/URL/history、深链、草稿/筛选持久化与 PWA cold-start 永久恢复不在本版范围。自动 targeted 22/22、full Node 320/320、Project State gate 19/19、build PASS 沿用此前结果；本次仅改治理文档，未重跑业务测试或构建，也未修改代码、SQL/RPC/RLS、依赖或 Production 数据。既有 >500 kB bundle warning 非阻塞。
+
 ## 2026-09-26 - v0.1.14.1 Production Deployment + Public Smoke — PASS / Auth Recheck Pending
 
 - 正常 `git push origin main` 将 `a534be2..8212cc8` 推至远端；`.githooks/pre-push` 的 Project State gate 随普通 push 通过。紧邻 push 的只读状态审查为 `POST_PUSH_STATE_CURRENT`。GitHub 精确提交 `8212cc820c7708e3766e9bf8cc9da84b15a5e5aa` 的 Vercel commit status 与 Production deployment 都是 `success`。
