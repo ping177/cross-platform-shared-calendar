@@ -1,5 +1,11 @@
 # Testing
 
+## v0.1.14 回顾 Authenticated Acceptance Feedback Fix — Local PASS
+
+- 用户已完成本地真实账号广泛验收并反馈两项 bounded UX 调整。本轮自动覆盖历史/详情无可见 `round_no`、日期身份、无障碍名称、0/1/47 authoritative exact count、游标分页不覆盖总数、Space 切换清空旧总数、创建成功进入 canonical 详情，以及「上一份计划」文案。数据读取仍通过 `review_rounds` 既有 participant RLS；无 SQL/RPC 改动。
+- `node --experimental-strip-types --test tests/review-history-data.test.ts tests/review-history-ui.test.ts tests/review-detail-ui.test.ts`：**11/11 PASS**。完整 Node suite：**305/305 PASS**。`npm run build`：**PASS**；Vite 保留既有 >500 kB bundle warning。仓库无 lint script。
+- 本轮未操作真实登录态、Production 数据或设备；用户只需执行 tiny recheck：历史/详情无「第 N 次」、Space 总数准确、文案为「上一份计划」、新建后回到历史总数更新。刷新浏览器回首页是已记录的未来 UX 事项，不属于本修正验收。
+
 ## v0.1.14 回顾 Frontend Integration / Pre-deploy Review — Local PASS
 
 - 基线为 `main` HEAD `b1bb24741e19512720fc0efdc6acc6ec40fa5d0c`，相对 `origin/main` 领先三份 Slice 2–4 提交且检查前工作区干净。审查 Hub、独立 Space 选择、日期/编号游标历史、新建 canonical id、详情、上一轮计划、本人编辑/对方只读、日期更正、返回刷新、过期请求与失权路径。发现并修复底部导航绕过 dirty 确认；回归测试先红后绿。

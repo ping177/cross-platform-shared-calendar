@@ -122,7 +122,7 @@ The Home creation form visibly shows the target Space and allows changing it. It
 - Event: when something happens.
 - Task: something that remains to be completed. A future read-only Calendar projection may show `tasks.due_on`; it does not create an Event or duplicate Task persistence.
 - v0.1.9 Slice 2 will present Completed Tasks in a separate history section with reopen and delete actions. Task Archive is deferred; there is no `archive` status in the v0.1.9 data contract.
-- 回顾 is structured Space content distinct from Memo. v0.1.14 freezes its four fields, fixed round number, actual date, participant snapshot, historical continuity and previous-plan reference in the [canonical specification](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md).
+- 回顾 is structured Space content distinct from Memo. v0.1.14 freezes its four fields, internal fixed round number, user-visible actual date, participant snapshot, historical continuity and previous-plan reference in the [canonical specification](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md).
 - Voice input remains a later goal for 回顾; it is outside v0.1.14.
 
 ## Directional Roadmap

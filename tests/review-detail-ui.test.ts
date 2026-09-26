@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { readFileSync } from 'node:fs';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createServer } from 'vite';
@@ -8,6 +9,13 @@ import type { ReviewEntry, ReviewRound } from '../src/types.ts';
 const round = { id: 'r2', space_id: 's', round_no: 2, review_date: '2026-09-26', created_by: 'me', created_at: '2026-09-26T00:00:00Z' } as ReviewRound;
 const own = { review_id: 'r2', user_id: 'me', focus: null, progress: null, problems: null, next_plan: null, content_revision: 0, filled_revision: null, updated_at: '2026-09-26T00:00:00Z' } as ReviewEntry;
 const other = { ...own, user_id: 'former-member', focus: '长期目标\n第二行', content_revision: 1 };
+const detailSource = readFileSync(new URL('../src/components/ReviewDetailPage.tsx', import.meta.url), 'utf8');
+
+test('detail uses date as the visible identity and calls previous context 上一份计划', () => {
+  assert.match(detailSource, /上一份计划/);
+  assert.match(detailSource, /上一份计划暂无内容/);
+  assert.doesNotMatch(detailSource, /第 \{detail\.round\.round_no\} 次回顾|上一次下一步计划|上一次暂无计划/);
+});
 
 test('Shared keeps both panels mounted with mobile switching and desktop own-left layout', async () => {
   const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });

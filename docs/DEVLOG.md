@@ -1,5 +1,11 @@
 # Development Log
 
+# 2026-09-26 - v0.1.14 回顾 Authenticated Acceptance Feedback Fix — LOCAL PASS
+
+- 根据用户已完成的本地真实账号验收反馈做 bounded 前端修正：历史行、详情标题、无障碍名称和日期更正弹窗不再显示「第 N 次」；日期成为可见身份。数据库 `round_no`、日期/编号游标、并发唯一性和 `round_no - 1` 上一份计划算法保持不变。
+- 历史页显示当前 Space 在既有 RLS 下的 authoritative exact count「共 N 篇回顾」。精确总数仅由首次/刷新查询取得，不能使用已加载行数；加载更多不会用游标后的局部计数覆盖总数，Space 切换会先清空旧总数。上一轮参考的用户文案统一为「上一份计划」，空态为「上一份计划暂无内容」。未改 SQL、RLS、RPC、Production backend 或依赖。
+- TDD 定向测试 **11/11 PASS**；完整 Node **305/305 PASS**；`npm run build` PASS，保留既有 >500 kB bundle warning。用户先前的 Shared/Personal、布局、权限、状态等广泛验收结论保持；下一步只需用户复核无序号、总数、详情标题、上一份计划文案及新建后总数刷新。刷新页面回首页记录为后续 UX 事项，本轮未修复。
+
 # 2026-09-26 - v0.1.14 回顾 Frontend Integration / Pre-deploy Review — LOCAL PASS
 
 - 在预期 `main` 基线（HEAD `b1bb24741e19512720fc0efdc6acc6ec40fa5d0c`，相对 `origin/main` 领先 Slice 2–4 三个本地提交、工作区原本干净）审查完整回顾链路。发现底部导航可绕过详情页返回按钮的 dirty 确认并卸载未保存草稿；增加父层脏状态通知与复用现有确认规则，取消时保持详情和草稿。没有改 entry 保存、SQL/RLS/RPC 或用户可见产品语义。

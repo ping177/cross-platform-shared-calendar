@@ -25,10 +25,10 @@ export async function loadReviewEligibility(userId: string, client: SupabaseClie
   return eligibleReviewSpaces(spaces, modules);
 }
 
-export async function loadReviewHistoryPage(client: SupabaseClient, space: CurrentSpace, userId: string, cursor: Pick<ReviewRound, 'review_date' | 'round_no'> | null): Promise<{ rows: ReviewHistoryRow[]; hasMore: boolean }> {
+export async function loadReviewHistoryPage(client: SupabaseClient, space: CurrentSpace, userId: string, cursor: Pick<ReviewRound, 'review_date' | 'round_no'> | null): Promise<{ rows: ReviewHistoryRow[]; hasMore: boolean; totalCount: number | null }> {
   await assertCurrentUser(client, userId);
   let query = client.from('review_rounds')
-    .select('id,space_id,round_no,review_date,created_by,created_at')
+    .select('id,space_id,round_no,review_date,created_by,created_at', cursor ? undefined : { count: 'exact' })
     .eq('space_id', space.id)
     .order('review_date', { ascending: false })
     .order('round_no', { ascending: false });
@@ -37,6 +37,7 @@ export async function loadReviewHistoryPage(client: SupabaseClient, space: Curre
   const page = await query.range(0, reviewHistoryPageSize);
   if (page.error) throw page.error;
   if (page.data == null) throw new Error('回顾历史读取不完整，请重试。');
+  if (!cursor && (!Number.isSafeInteger(page.count) || (page.count as number) < 0)) throw new Error('回顾总数读取不完整，请重试。');
   const hasMore = page.data.length > reviewHistoryPageSize;
   const rounds = page.data.slice(0, reviewHistoryPageSize) as ReviewRound[];
   if (page.data.length > reviewHistoryPageSize + 1 || rounds.some((round) => round.space_id !== space.id)) throw new Error('回顾历史身份校验失败，请重试。');
@@ -51,7 +52,7 @@ export async function loadReviewHistoryPage(client: SupabaseClient, space: Curre
     entries = result.data as ReviewEntry[];
   }
   await assertCurrentUser(client, userId);
-  return { rows: mapReviewHistory(rounds, entries, userId, new Map([[space.id, space]])), hasMore };
+  return { rows: mapReviewHistory(rounds, entries, userId, new Map([[space.id, space]])), hasMore, totalCount: cursor ? null : page.count as number };
 }
 
 export async function createReviewRound(client: SupabaseClient, spaceId: string, reviewDate: string, userId: string): Promise<ReviewRound> {

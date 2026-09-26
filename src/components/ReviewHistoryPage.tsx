@@ -14,10 +14,14 @@ function message(error: unknown, fallback: string): string {
 }
 
 export function ReviewHistoryRows({ rows, onOpenDetail }: { rows: ReviewHistoryRow[]; onOpenDetail: (target: ReviewDetailTarget) => void }) {
-  return <div className="space-y-2">{rows.map((row) => <button key={row.round.id} className="block min-h-16 w-full min-w-0 rounded-lg bg-white px-4 py-3 text-left shadow-sm" type="button" aria-label={`打开第 ${row.round.round_no} 次回顾`} onClick={() => onOpenDetail(reviewDetailTarget(row.round, false))} data-review-id={row.round.id}>
-    <span className="flex flex-wrap items-baseline justify-between gap-2"><span className="font-semibold">第 {row.round.round_no} 次回顾</span><time className="text-sm text-ink/60" dateTime={row.round.review_date}>{row.round.review_date}</time></span>
+  return <div className="space-y-2">{rows.map((row) => <button key={row.round.id} className="block min-h-16 w-full min-w-0 rounded-lg bg-white px-4 py-3 text-left shadow-sm" type="button" aria-label={`打开 ${row.round.review_date} 回顾，我：${row.mine}${row.other !== null ? `，对方：${row.other}` : ''}`} onClick={() => onOpenDetail(reviewDetailTarget(row.round, false))} data-review-id={row.round.id}>
+    <time className="block font-semibold" dateTime={row.round.review_date}>{row.round.review_date}</time>
     <span className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-ink/70"><span>我：{row.mine}</span>{row.other !== null && <span>对方：{row.other}</span>}</span>
   </button>)}</div>;
+}
+
+export function ReviewHistorySummary({ totalCount }: { totalCount: number }) {
+  return <p className="text-sm text-ink/60">共 {totalCount} 篇回顾</p>;
 }
 
 export function ReviewHistoryPage({ userId, currentSpaceId, onSpaceChange, onOpenDetail, onHubBack }: { userId: string; currentSpaceId: string | null; onSpaceChange: (id: string | null) => void; onOpenDetail: (target: ReviewDetailTarget) => void; onHubBack: () => void }) {
@@ -30,6 +34,7 @@ export function ReviewHistoryPage({ userId, currentSpaceId, onSpaceChange, onOpe
   const [rows, setRows] = useState<ReviewHistoryRow[]>([]);
   const [cursor, setCursor] = useState<Pick<ReviewRound, 'review_date' | 'round_no'> | null>(null);
   const [hasMore, setHasMore] = useState(false);
+  const [totalCount, setTotalCount] = useState<number | null>(null);
   const [historyStatus, setHistoryStatus] = useState<'loading' | 'ready' | 'more' | 'error'>('loading');
   const [historyError, setHistoryError] = useState('');
   const [memberCount, setMemberCount] = useState<number | null>(null);
@@ -65,6 +70,7 @@ export function ReviewHistoryPage({ userId, currentSpaceId, onSpaceChange, onOpe
         setRows([]);
         setCursor(null);
         setHasMore(false);
+        setTotalCount(null);
         setCreateOpen(false);
       } else if (nextId !== priorId) {
         setCreateOpen(false);
@@ -101,6 +107,7 @@ export function ReviewHistoryPage({ userId, currentSpaceId, onSpaceChange, onOpe
     setRows([]);
     setCursor(null);
     setHasMore(false);
+    setTotalCount(null);
     setMemberCount(null);
     setCreateOpen(false);
   }
@@ -115,6 +122,7 @@ export function ReviewHistoryPage({ userId, currentSpaceId, onSpaceChange, onOpe
       setRows((current) => reset ? page.rows : mergeReviewPages(current, page.rows));
       setCursor(page.rows[page.rows.length - 1]?.round ?? nextCursor);
       setHasMore(page.hasMore);
+      if (page.totalCount !== null) setTotalCount(page.totalCount);
       setHistoryStatus('ready');
     } catch (error) {
       if (!historyGuard.current.isCurrent(request) || selectedRef.current !== space.id) return;
@@ -129,6 +137,7 @@ export function ReviewHistoryPage({ userId, currentSpaceId, onSpaceChange, onOpe
     setRows([]);
     setCursor(null);
     setHasMore(false);
+    setTotalCount(null);
     setMemberCount(null);
     setMemberError('');
     if (!selectedSpace) return;
@@ -180,6 +189,7 @@ export function ReviewHistoryPage({ userId, currentSpaceId, onSpaceChange, onOpe
       {selectedSpace.kind === 'shared' && memberCount === 1 && <p className="mt-3 text-sm text-ink/65">当前共享空间需要两名成员才能新建回顾；已有历史仍可查看。</p>}
       {memberError && <p className="mt-3 text-sm text-coral" role="alert">{memberError}</p>}
       <section className="mt-5" aria-label="历史回顾">
+        {totalCount !== null && <div className="mb-3 flex min-w-0 items-baseline justify-between gap-3"><h2 className="font-semibold">历史回顾</h2><ReviewHistorySummary totalCount={totalCount} /></div>}
         {historyStatus === 'loading' && <p role="status">正在读取历史回顾…</p>}
         {historyStatus === 'error' && <div role="alert">{historyError}<button className="ml-2 min-h-11 font-semibold text-teal" type="button" onClick={() => void readPage(selectedSpace, rows.length ? cursor : null, rows.length === 0)}>重试</button></div>}
         {historyStatus !== 'loading' && rows.length === 0 && historyStatus !== 'error' && <p className="rounded-lg bg-white p-4 text-sm text-ink/65 shadow-sm">还没有回顾记录</p>}

@@ -163,23 +163,23 @@ export function ReviewDetailPage({ target, userId, onBack, onDirtyChange }: { ta
     {phase === 'unavailable' && <p className="mt-4 rounded-lg bg-white p-4 text-sm text-ink/70 shadow-sm" role="alert">这次回顾暂不可访问，请返回历史列表。</p>}
     {phase === 'ready' && detail && <>
       <section className="mt-4 min-w-0 rounded-lg bg-white p-4 shadow-sm">
-        <h1 className="break-words text-xl font-bold">第 {detail.round.round_no} 次回顾 · {formatReviewDate(detail.round.review_date)}</h1>
+        <h1 className="break-words text-xl font-bold">{formatReviewDate(detail.round.review_date)}</h1>
         <button className="mt-2 min-h-11 text-sm font-semibold text-teal" type="button" aria-label="更正回顾日期" onClick={openDate}>更正日期</button>
       </section>
       {refreshError && <div className="mt-3 text-sm text-coral" role="alert">{refreshError}<button className="ml-2 min-h-11 font-semibold text-teal" type="button" onClick={() => void refreshDetail()}>重试</button></div>}
-      {target.justCreated && <section className="mt-4 min-w-0 rounded-lg bg-white p-4 shadow-sm" aria-label="上一次下一步计划参考">
-        <h2 className="font-semibold">上一次下一步计划</h2>
+      {target.justCreated && <section className="mt-4 min-w-0 rounded-lg bg-white p-4 shadow-sm" aria-label="上一份计划参考">
+        <h2 className="font-semibold">上一份计划</h2>
         <p className="mt-1 text-xs text-ink/60">仅供参考，不会复制到本次回顾。</p>
-        {previousState === 'loading' && <p className="mt-3 text-sm text-ink/60" role="status">正在读取上一次计划…</p>}
-        {previousState === 'error' && <p className="mt-3 text-sm text-coral" role="alert">上一次计划暂时无法读取。<button className="ml-2 min-h-11 font-semibold text-teal" type="button" onClick={() => void refreshPrevious(detail.round)}>重试</button></p>}
-        {previousState === 'ready' && <div className="mt-3 h-36 min-w-0 overflow-y-auto whitespace-pre-wrap break-words rounded-lg border border-ink/15 bg-mist/30 px-4 py-3 text-sm">{previousPlan ?? '上一次暂无计划'}</div>}
+        {previousState === 'loading' && <p className="mt-3 text-sm text-ink/60" role="status">正在读取上一份计划…</p>}
+        {previousState === 'error' && <p className="mt-3 text-sm text-coral" role="alert">上一份计划暂时无法读取。<button className="ml-2 min-h-11 font-semibold text-teal" type="button" onClick={() => void refreshPrevious(detail.round)}>重试</button></p>}
+        {previousState === 'ready' && <div className="mt-3 h-36 min-w-0 overflow-y-auto whitespace-pre-wrap break-words rounded-lg border border-ink/15 bg-mist/30 px-4 py-3 text-sm">{previousPlan ?? '上一份计划暂无内容'}</div>}
       </section>}
       <ReviewDetailPanels detail={detail} userId={userId} mobilePanel={mobilePanel} onMobilePanelChange={setMobilePanel} onDirtyChange={setDirty} />
     </>}
     {dateOpen && detail && <div className="fixed inset-0 z-40 flex items-end bg-ink/50 p-4 md:items-center" role="dialog" aria-modal="true" aria-labelledby="review-date-title" onClick={(event) => { if (event.target === event.currentTarget && !dateBusy) setDateOpen(false); }}>
       <form className="mx-auto w-full max-w-md rounded-lg bg-white p-5 shadow-soft safe-bottom" onSubmit={(event) => void saveDate(event)}>
         <h2 id="review-date-title" className="text-lg font-bold">更正回顾日期</h2>
-        <p className="mt-2 text-sm text-ink/65">第 {detail.round.round_no} 次回顾</p>
+        <p className="mt-2 text-sm text-ink/65">当前日期：{formatReviewDate(detail.round.review_date)}</p>
         <label className="mt-4 block text-sm font-semibold" htmlFor="review-corrected-date">回顾日期</label>
         <input id="review-corrected-date" className="mt-2 min-h-11 w-full rounded-lg border border-ink/20 px-3" type="date" required value={dateDraft} onChange={(event) => setDateDraft(event.target.value)} disabled={dateBusy} />
         {dateError && <p className="mt-3 text-sm text-coral" role="alert">{dateError}</p>}

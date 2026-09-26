@@ -1,11 +1,20 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { readFileSync } from 'node:fs';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createServer } from 'vite';
 import type { CurrentSpace } from '../src/types.ts';
 
 const owner = { id: 's', name: '真实名称', kind: 'shared', membershipRole: 'owner' } as CurrentSpace;
+const historySource = readFileSync(new URL('../src/components/ReviewHistoryPage.tsx', import.meta.url), 'utf8');
+
+test('history keeps server total across pagination and clears it when Space changes', () => {
+  assert.match(historySource, /if \(page\.totalCount !== null\) setTotalCount\(page\.totalCount\)/);
+  assert.doesNotMatch(historySource, /setTotalCount\([^)]*rows\.length/);
+  assert.match(historySource, /setSelectedId\(id\)[\s\S]*setTotalCount\(null\)/);
+  assert.match(historySource, /onOpenDetail\(reviewDetailTarget\(created, true\)\)/);
+});
 
 test('Space module row follows owner/member controls without changing Tasks', async () => {
   const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
@@ -40,14 +49,18 @@ test('Review list starts without body or create placeholder; Hub starts with Tas
 test('historical row opens the canonical review id without newly-created context', async () => {
   const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
   try {
-    const { ReviewHistoryRows } = await vite.ssrLoadModule('/src/components/ReviewHistoryPage.tsx');
+    const { ReviewHistoryRows, ReviewHistorySummary } = await vite.ssrLoadModule('/src/components/ReviewHistoryPage.tsx');
     const round = { id: 'r2', space_id: 's', round_no: 2, review_date: '2026-09-26' };
     const targets: unknown[] = [];
     const tree = ReviewHistoryRows({ rows: [{ round, mine: '已填写', other: '编辑中' }], onOpenDetail: (target: unknown) => targets.push(target) });
     const markup = renderToStaticMarkup(tree);
-    assert.match(markup, /打开第 2 次回顾/);
+    assert.match(markup, /打开 2026-09-26 回顾，我：已填写，对方：编辑中/);
+    assert.match(markup, /<time[^>]*>2026-09-26<\/time>/);
+    assert.doesNotMatch(markup, /第\s*2\s*次|round_no/);
     assert.match(markup, /我：已填写/);
     assert.match(markup, /对方：编辑中/);
+    assert.match(renderToStaticMarkup(React.createElement(ReviewHistorySummary, { totalCount: 0 })), /共 0 篇回顾/);
+    assert.match(renderToStaticMarkup(React.createElement(ReviewHistorySummary, { totalCount: 47 })), /共 47 篇回顾/);
     const button = (tree.props as { children: React.ReactElement[] }).children[0];
     (button.props as { onClick: () => void }).onClick();
     assert.deepEqual(targets, [{ spaceId: 's', reviewId: 'r2', justCreated: false }]);
