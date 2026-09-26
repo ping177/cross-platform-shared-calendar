@@ -1,6 +1,6 @@
 # Shared Life Architecture Freeze
 
-Status: `ARCHITECTURE FROZEN`; v0.1.10–v0.1.14.1 are `CLOSED / PASS`; v0.1.15 Shared Lists is `IN PROGRESS` with Slice 1 DB foundation `CLOSED / PASS` and Slice 2 local automated / desktop authenticated `PASS`, with ModuleHub session availability and visibility recheck PASS, awaiting Vercel deployment verification and post-deployment mobile/PWA acceptance. The v0.1.11 contract is [Navigation + Aggregation Experience Specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md); the accepted v0.1.14「回顾」contract is [v0.1.14 回顾规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md); the v0.1.15 contract is [Shared Lists Specification](./v0.1.15_SHARED_LISTS_SPEC.md).
+Status: `ARCHITECTURE FROZEN`; v0.1.10–v0.1.14.1 are `CLOSED / PASS`; v0.1.15 Shared Lists is `IN PROGRESS` with Slice 1 DB foundation and Slice 2 Overview / Ownership `CLOSED / PASS`. Slice 2 Vercel Production deployment and mobile/PWA acceptance passed; Slices 3–4 are `NOT STARTED`. The v0.1.11 contract is [Navigation + Aggregation Experience Specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md); the accepted v0.1.14「回顾」contract is [v0.1.14 回顾规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md); the v0.1.15 contract is [Shared Lists Specification](./v0.1.15_SHARED_LISTS_SPEC.md).
 
 This document freezes the long-term product model and navigation direction plus the reviewed v0.1.10 foundation scope. It does not change the accepted v0.1.9 Production capability. Later roadmap versions remain directional and need their own scope review.
 
@@ -12,14 +12,14 @@ The currently shipped first-level navigation is `首页 / 日历 / 功能中心 
 | --- | --- |
 | 首页 | Cross-module summary; each supported section has a direct create `+` |
 | 日历 | Time views and aggregation of Calendar Sources |
-| 功能中心 | Implemented optional modules; currently 任务 and 回顾 |
+| 功能中心 | Implemented optional modules; currently 任务、回顾 and 清单 |
 | 我的 | Profile, account, Space management, notifications, devices, and settings |
 
 The initial four-destination navigation shipped in v0.1.11. Slice 3 added Home aggregation, Slice 4 added direct Event and Task creation from their Home sections, and v0.1.12 changed the third destination to 功能中心.
 
 ## v0.1.12 Module Hub + Space Management Navigation — Historical Frozen Target
 
-The v0.1.12 migration to `首页 / 日历 / 功能中心 / 我的` is complete. The Module Hub opens implemented modules directly; 任务 and 回顾 are the current Production optional modules. The following rules record the frozen v0.1.12 architecture. Unimplemented modules must not appear as placeholders; no generic module framework or plugin system is part of the direction.
+The v0.1.12 migration to `首页 / 日历 / 功能中心 / 我的` is complete. The Module Hub opens implemented modules directly; 任务、回顾 and 清单 are the current Production optional modules. The following rules record the frozen v0.1.12 architecture. Unimplemented modules must not appear as placeholders; no generic module framework or plugin system is part of the direction.
 
 Module enablement remains per-Space configuration in `space_modules`. A module page's filter is separate view state and lists only Spaces where that module is enabled. For Tasks, Spaces with Tasks disabled are excluded from its filter; disabling Tasks keeps its data. Each module owns its filter, while Calendar's `calendarFilter` remains independent and continues to support all Spaces or one Space. Do not create an app-wide Space filter.
 
@@ -136,13 +136,13 @@ The Home creation form visibly shows the target Space and allows changing it. It
 | v0.1.13 | Space Lifecycle & Membership Safety (CLOSED / PASS) |
 | v0.1.14 | 回顾 (CLOSED / PASS; backend/frontend Production, authenticated acceptance and fixture cleanup PASS) |
 | v0.1.14.1 | Navigation Persistence (CLOSED / PASS) |
-| v0.1.15 | Shared Lists (IN PROGRESS; Slice 1 DB CLOSED / PASS; Slice 2 local auto and desktop authenticated PASS, Hub recheck PASS; Vercel verification/mobile-PWA pending) |
+| v0.1.15 | Shared Lists (IN PROGRESS; Slice 1 DB and Slice 2 Overview / Ownership CLOSED / PASS; Production/mobile-PWA acceptance PASS; Slices 3–4 NOT STARTED) |
 
 Important Dates, Calendar Sources v1, Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules remain candidates without a fixed order. Priority and order may change based on real product use. Native has a decision gate only; no native implementation version is committed.
 
-## v0.1.15 Shared Lists — Design Frozen / Slice 1 DB Closed
+## v0.1.15 Shared Lists — Design Frozen / Slices 1–2 Closed
 
-Shared Lists is a Space-level optional module for Personal and Shared Spaces. Space owns Lists; Lists contain optional Sections and Items. The canonical schema, RLS/mutation boundary, derived completion, deterministic ordering, Realtime contract, mobile interaction requirements, lifecycle semantics, non-goals, and four planned implementation slices are frozen in the [canonical specification](./v0.1.15_SHARED_LISTS_SPEC.md). Slice 1 DB foundation passed local verification and Production postflight; Slice 2 overview/ownership frontend passed local automated checks and user-reported desktop authenticated flows, including two-account filtered DELETE + RLS/canonical reread. Its ModuleHub session availability and visibility recheck passed; Vercel deployment verification and mobile/PWA acceptance remain pending. Slices 3–4 remain unstarted.
+Shared Lists is a Space-level optional module for Personal and Shared Spaces. Space owns Lists; Lists contain optional Sections and Items. The canonical schema, RLS/mutation boundary, derived completion, deterministic ordering, Realtime contract, mobile interaction requirements, lifecycle semantics, non-goals, and four planned implementation slices are frozen in the [canonical specification](./v0.1.15_SHARED_LISTS_SPEC.md). Slice 1 DB foundation passed local verification and Production postflight. Slice 2 overview/ownership passed local automation, user-reported desktop authenticated and mobile/PWA acceptance, two-account filtered DELETE + RLS/canonical reread, ModuleHub recheck, and Vercel Production deployment of `3b9dfd7`; it is `CLOSED / PASS`. Slices 3–4 remain `NOT STARTED`.
 
 ## v0.1.9 Slice Boundary
 

@@ -1,5 +1,11 @@
 # Development Log
 
+## 2026-09-27 - v0.1.15 Slice 2 final Production/mobile acceptance and governance closeout
+
+- User-reported Vercel Production deployment of frontend commit `3b9dfd7` and mobile/PWA acceptance are `PASS`. Slice 2 Overview / Ownership is now `CLOSED / PASS`; Slice 1 DB foundation remains `CLOSED / PASS`, v0.1.15 remains `IN PROGRESS`, and Slices 3–4 are `NOT STARTED`.
+- Final Slice 2 evidence: full Node **338/338 PASS**, `npm run build` **PASS**, desktop authenticated acceptance **PASS** for Personal/Shared Lists, independent listFilter, Personal-default ownership safety, create/rename/two-step delete, module disable/re-enable, navigation refresh, session-scoped ModuleHub availability, and the unified Tasks/Review/Lists visibility rule. Real dual-account Realtime, including filtered DELETE + RLS/canonical reread, is **PASS**.
+- This closeout changes governance docs only; no business code, SQL, tests, dependencies, Production operation, or authenticated browser automation. Next Action: v0.1.15 Slice 3 — List Detail / Collaboration planning / preflight. No current blocker.
+
 ## 2026-09-27 - v0.1.15 Slice 2 final desktop acceptance and pre-deployment Git closeout
 
 - User-reported final desktop recheck is `PASS`: 功能中心 returns immediately from the session snapshot; Tasks disappears when disabled in every current member Space and returns when enabled in one Space. Personal/Shared Lists enablement, ModuleHub entry, 全部空间 default, independent listFilter, Personal-default ownership and explicit Shared choice, create, rename, two-step deletion, module hide/restore, navigation refresh, and dual-account rename/DELETE Realtime are accepted. Real filtered DELETE + RLS/canonical reread is `PASS` from the user's two-account test.

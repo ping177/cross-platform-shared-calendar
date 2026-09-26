@@ -1,5 +1,10 @@
 # Testing
 
+## v0.1.15 Shared Lists Slice 2 — CLOSED / PASS
+
+- Automated: full Node **338/338 PASS** and `npm run build` **PASS** for the accepted Slice 2 frontend. Desktop authenticated acceptance **PASS**: ModuleHub entry; Personal and Shared Lists; independent listFilter; Personal-default ownership and explicit Shared selection; create, rename, two-step delete; module disable/re-enable; navigation refresh; session-scoped availability; and the common Tasks/Review/Lists at-least-one-current-member-Space visibility rule.
+- User-run two-account Realtime **PASS**, including filtered DELETE + RLS + canonical reread. User-reported Vercel Production deployment of commit `3b9dfd7` **PASS** and post-deployment mobile/PWA acceptance **PASS**. Slice 1 remains `CLOSED / PASS`, v0.1.15 `IN PROGRESS`, and Slices 3–4 `NOT STARTED`. Earlier pending entries below record their historical checkpoints.
+
 ## v0.1.15 Slice 2 final desktop acceptance — PASS / MOBILE-PWA PENDING
 
 - User-reported desktop acceptance now includes immediate ModuleHub return, Tasks hidden when all current member Spaces disable it and restored when one enables it, alongside the previously accepted Personal/Shared Lists, filtering, ownership-safe create, rename, two-step delete, module disable/re-enable, navigation refresh and dual-account Realtime flows. Real two-account filtered DELETE + RLS + canonical reread is `PASS`.
