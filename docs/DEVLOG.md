@@ -1,5 +1,10 @@
 # Development Log
 
+## 2026-09-28 - v0.1.15 Shared Lists final acceptance — CLOSED / PASS
+
+- User confirms final desktop authenticated, dual-account Realtime collaboration, mobile/PWA Item drag and long-list auto-scroll acceptance `PASS`. Slices 1–4 and v0.1.15 are `CLOSED / PASS`; existing Node 356/356 and build PASS remain the automated evidence. Stale reorder is `AUTOMATED PASS / MANUAL NOT REQUIRED`.
+- Section drag remains deferred by frozen design and the existing bundle-size warning remains non-blocking. This closeout changes governance docs only and does not operate Production. Next: post-v0.1.15 backlog review / next-version selection; no next version is started.
+
 ## 2026-09-27 - v0.1.15 Shared Lists Slice 4 desktop acceptance — PASS / MOBILE PENDING
 
 - User-run desktop authenticated acceptance passed for ungrouped, same-Section and completed Item drag; canonical position after reopen; drag handle with normal scrolling; keyboard sorting/cancel; and dual-account Realtime reorder convergence. The read-only environment alignment gate passed before this acceptance. Codex did not operate authenticated sessions.

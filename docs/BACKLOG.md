@@ -148,13 +148,13 @@ Slice 1–4、integration、两轮 acceptance fixes、frontend pre-deploy gate�
 
 同一 browser/tab session 刷新恢复当前用户的有效页面位置；仅持久化页面与稳定 ID，保留既有 Auth、membership、module、Review participant 检查及独立筛选。实现、integration review、本地 authenticated acceptance、Production deployment/public smoke、用户 Production authenticated refresh acceptance 均 `PASS`。Production 无 Review 数据，Review Detail 数据场景未在本轮线上重测；自动 integration 与本地验收仍覆盖该路径。刷新回首页已解决；既有 >500 kB bundle warning 非阻塞。不包含 router、browser history、可分享深链、PWA cold-start 永久记忆或草稿持久化。当前 v0.1.15 Slices 1–2 均 `CLOSED / PASS`。
 
-## v0.1.15 — Shared Lists — IN PROGRESS / SLICES 1–3 CLOSED / PASS
+## v0.1.15 — Shared Lists — CLOSED / PASS
 
 Canonical contract: [v0.1.15 Shared Lists Specification](./v0.1.15_SHARED_LISTS_SPEC.md). The read-only repository investigation was reviewed and accepted as the basis for this docs-only Design Freeze. Personal and Shared Space support, the three-table model, derived List completion, deterministic ordering, atomic Section/List deletion semantics, quick-add, module eligibility, Realtime, mobile item drag, concurrency boundaries, non-goals, tests, and implementation slices are frozen there.
 
-Slices 1–3 are `CLOSED / PASS`; v0.1.15 remains `IN PROGRESS`. Slice 3 full Node 352/352, build, desktop authenticated, Shared dual-account detail Realtime and filtered Item/Section DELETE convergence, draft/detail restoration, responsiveness, and mobile/PWA acceptance passed. The Section-delete correction is active on Vercel; both delete modes passed device responsiveness recheck. Slice 4 Item drag local automation (full Node 356/356, build PASS) and desktop authenticated acceptance, including dual-account Realtime convergence, passed. Stale reorder is `AUTOMATED PASS / MANUAL NOT REQUIRED`; mobile/PWA acceptance is pending. Section drag is explicitly `DEFERRED`. No current blocker is recorded.
+Slices 1–4 and v0.1.15 are `CLOSED / PASS`. Final user acceptance covers desktop authenticated flows, dual-account Realtime, mobile/PWA Item drag and long-list auto-scroll. Full Node 356/356 and build passed. Stale reorder is `AUTOMATED PASS / MANUAL NOT REQUIRED`; Section drag is `DEFERRED / NON-BLOCKING`, and the existing bundle warning is non-blocking. No current blocker is recorded.
 
-Next Action: Verify Slice 4 Vercel deployment, then user-run mobile/PWA Item drag acceptance.
+Next Action: post-v0.1.15 backlog review / next-version selection; no next version has started.
 
 ## Directional Roadmap — Shared Life Architecture Frozen
 
@@ -167,7 +167,7 @@ The long-term relationships and v0.1.10 scope are frozen in [Shared Life Archite
 - v0.1.13 — Space Lifecycle & Membership Safety (CLOSED / PASS; Slice 1/2 CLOSED / PASS; Production deployment and user-reported authenticated/mobile/PWA acceptance PASS).
 - v0.1.14 — 回顾 (CLOSED / PASS; backend/date chronology, frontend deployment, public smoke, Production authenticated acceptance and final exact-ID cleanup PASS; Review 0/0 with two enabled module rows).
 - v0.1.14.1 — Navigation Persistence (CLOSED / PASS; local and Production authenticated refresh acceptance PASS; no Review fixture created).
-- v0.1.15 — Shared Lists (IN PROGRESS; Slices 1–3 CLOSED / PASS; Slice 4 Item drag local + desktop authenticated PASS, mobile/PWA PENDING; Section drag DEFERRED).
+- v0.1.15 — Shared Lists (CLOSED / PASS; Slices 1–4 CLOSED / PASS; desktop, dual-account Realtime and mobile/PWA PASS; Section drag DEFERRED / NON-BLOCKING).
 - Later candidates without fixed versions/order: Important Dates, Calendar Sources v1, Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules. Priority and order may change based on real product use.
 - Future direction only: consider projecting/sharing a Personal Event into another Space while keeping one canonical Event owner Space, avoiding duplicate canonical objects, and ensuring that leaving the target Shared Space does not affect the source Event. This is outside v0.1.13; do not implement or reserve schema for it in this version.
 - Native: decision gate only; no committed implementation version.

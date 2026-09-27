@@ -1,5 +1,10 @@
 # Testing
 
+## v0.1.15 Shared Lists final acceptance — CLOSED / PASS
+
+- User-reported desktop authenticated, dual-account Realtime collaboration and mobile/PWA acceptance **PASS**. Slice 4 Item drag on device and long-list auto-scroll **PASS**; Slices 1–4 and v0.1.15 are **CLOSED / PASS**. Prior full Node **356/356 PASS** and build **PASS** remain valid; this docs-only closeout uses `git diff --check`.
+- `STALE_REORDER = AUTOMATED PASS / MANUAL NOT REQUIRED` from Slice 1 backend stale-set/concurrency and Slice 4 rejection → canonical reread → no replay tests. Section drag is **DEFERRED / NON-BLOCKING**; the existing >500 kB bundle warning is non-blocking. No authenticated session or Production operation was performed by Codex for this closeout.
+
 ## v0.1.15 Shared Lists Slice 4 desktop authenticated acceptance — PASS / MOBILE PENDING
 
 - User-run desktop authenticated results: ungrouped, same-Section and completed Item drag **PASS**; reopen canonical position **PASS**; drag handle and ordinary scrolling **PASS**; keyboard sorting/cancel **PASS**; dual-account Realtime reorder convergence **PASS**. No repeat of these accepted checks is required.
