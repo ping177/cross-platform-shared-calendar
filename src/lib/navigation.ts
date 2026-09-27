@@ -4,7 +4,7 @@ import { selectReviewSpace } from './review-history';
 import type { CurrentSpace } from '../types';
 
 export type TopLevelTab = 'home' | 'calendar' | 'modules' | 'me';
-export type ModuleScreen = 'hub' | 'tasks' | 'completed' | 'review' | 'review-detail' | 'lists';
+export type ModuleScreen = 'hub' | 'tasks' | 'completed' | 'review' | 'review-detail' | 'lists' | 'lists-detail';
 export type NavigationState = { tab: TopLevelTab; moduleScreen: ModuleScreen };
 
 export const initialNavigation: NavigationState = { tab: 'home', moduleScreen: 'hub' };
@@ -13,6 +13,7 @@ export type NavigationTarget =
   | { page: 'home' | 'calendar' | 'modules' | 'profile' | 'tasks' | 'tasks-completed' | 'lists-overview' | 'space-management' }
   | { page: 'review-history'; spaceId?: string }
   | { page: 'review-detail'; spaceId: string; reviewId: string }
+  | { page: 'lists-detail'; spaceId: string; listId: string }
   | { page: 'space-detail'; spaceId: string };
 
 type NavigationStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
@@ -43,6 +44,10 @@ export function parseNavigationTarget(value: string | null): NavigationTarget | 
         return typeof target.spaceId === 'string' && uuidPattern.test(target.spaceId)
           && typeof target.reviewId === 'string' && uuidPattern.test(target.reviewId)
           ? { page: 'review-detail', spaceId: target.spaceId, reviewId: target.reviewId } : null;
+      case 'lists-detail':
+        return typeof target.spaceId === 'string' && uuidPattern.test(target.spaceId)
+          && typeof target.listId === 'string' && uuidPattern.test(target.listId)
+          ? { page: 'lists-detail', spaceId: target.spaceId, listId: target.listId } : null;
       default:
         return null;
     }
@@ -69,6 +74,7 @@ export function navigationTargetForState(
   reviewDetail: ReviewDetailTarget | null,
   reviewSpaceId: string | null,
   selectedSpaceId: string | null,
+  listDetail: { spaceId: string; listId: string } | null = null,
 ): NavigationTarget | null {
   switch (navigation.tab) {
     case 'home': return { page: 'home' };
@@ -83,6 +89,7 @@ export function navigationTargetForState(
         case 'tasks': return { page: 'tasks' };
         case 'completed': return { page: 'tasks-completed' };
         case 'lists': return { page: 'lists-overview' };
+        case 'lists-detail': return listDetail ? { page: 'lists-detail', ...listDetail } : null;
         case 'review': return reviewSpaceId ? { page: 'review-history', spaceId: reviewSpaceId } : { page: 'review-history' };
         case 'review-detail': return reviewDetail ? { page: 'review-detail', spaceId: reviewDetail.spaceId, reviewId: reviewDetail.reviewId } : null;
       }
@@ -96,7 +103,7 @@ export async function resolveNavigationTarget(
     loadReviewSpaces: () => Promise<CurrentSpace[]>;
     canReadReview: (space: CurrentSpace, reviewId: string) => Promise<boolean>;
   },
-  lists?: { loadListsSpaces: () => Promise<CurrentSpace[]> },
+  lists?: { loadListsSpaces: () => Promise<CurrentSpace[]>; canReadList?: (space: CurrentSpace, listId: string) => Promise<boolean> },
 ): Promise<NavigationTarget> {
   if (!target) return { page: 'home' };
   if (target.page === 'space-detail') {
@@ -106,6 +113,17 @@ export async function resolveNavigationTarget(
     if (!lists) return target;
     try { return (await lists.loadListsSpaces()).length ? target : { page: 'modules' }; }
     catch { return target; }
+  }
+  if (target.page === 'lists-detail') {
+    if (!lists?.canReadList) return target;
+    try {
+      const eligible = await lists.loadListsSpaces();
+      const space = eligible.find((item) => item.id === target.spaceId);
+      if (!space) return eligible.length ? { page: 'lists-overview' } : { page: 'modules' };
+      if (await lists.canReadList(space, target.listId)) return target;
+      const revalidated = await lists.loadListsSpaces();
+      return revalidated.length ? { page: 'lists-overview' } : { page: 'modules' };
+    } catch { return target; }
   }
   if (target.page !== 'review-history' && target.page !== 'review-detail') return target;
 
@@ -142,6 +160,10 @@ export function openReviewModule(_current: NavigationState): NavigationState {
 
 export function openListsModule(_current: NavigationState): NavigationState {
   return { tab: 'modules', moduleScreen: 'lists' };
+}
+
+export function openListDetail(_current: NavigationState): NavigationState {
+  return { tab: 'modules', moduleScreen: 'lists-detail' };
 }
 
 export function openReviewDetail(_current: NavigationState): NavigationState {

@@ -7,6 +7,7 @@ import type { CurrentSpace } from '../src/types.ts';
 const spaceA = '11111111-1111-4111-8111-111111111111';
 const spaceB = '22222222-2222-4222-8222-222222222222';
 const reviewId = '33333333-3333-4333-8333-333333333333';
+const listId = '44444444-4444-4444-8444-444444444444';
 const memberSpaces = [{ id: spaceA, membershipRole: 'owner' }, { id: spaceB, membershipRole: 'member' }] as CurrentSpace[];
 
 function fakeStorage() {
@@ -27,6 +28,7 @@ test('navigation targets round-trip through a strict parser and user-scoped sess
       { page: 'home' }, { page: 'calendar' }, { page: 'modules' }, { page: 'profile' },
       { page: 'tasks' }, { page: 'tasks-completed' }, { page: 'lists-overview' }, { page: 'review-history' },
       { page: 'review-history', spaceId: spaceA }, { page: 'review-detail', spaceId: spaceA, reviewId },
+      { page: 'lists-detail', spaceId: spaceA, listId },
       { page: 'space-management' }, { page: 'space-detail', spaceId: spaceA },
     ];
     const storage = fakeStorage();
@@ -48,6 +50,7 @@ test('malformed, unknown and incomplete targets fail closed without crashing sto
     const { parseNavigationTarget, readNavigationTarget, writeNavigationTarget, clearNavigationTarget } = await vite.ssrLoadModule('/src/lib/navigation.ts');
     for (const value of ['{', 'null', '[]', '{}', '{"page":"unknown"}', '{"page":"review-detail","spaceId":"x"}',
       '{"page":"review-detail","spaceId":"x","reviewId":"y"}', '{"page":"space-detail","spaceId":42}',
+      '{"page":"lists-detail","spaceId":"x","listId":"y"}', '{"page":"lists-detail","spaceId":"'+spaceA+'"}',
       '{"page":"review-history","spaceId":""}']) {
       assert.equal(parseNavigationTarget(value), null, value);
     }
@@ -107,6 +110,23 @@ test('Lists overview restoration keeps transient errors but leaves on confirmed 
   } finally { await vite.close(); }
 });
 
+test('List detail restoration validates target Space and distinguishes deletion from a temporary read failure', async () => {
+  const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
+  try {
+    const { resolveNavigationTarget, navigationTargetForState, openListDetail, initialNavigation } = await vite.ssrLoadModule('/src/lib/navigation.ts');
+    const review = { loadReviewSpaces: async () => [], canReadReview: async () => false };
+    const target = { page: 'lists-detail', spaceId: spaceA, listId };
+    const available = { loadListsSpaces: async () => [memberSpaces[0]], canReadList: async () => true };
+    assert.deepEqual(await resolveNavigationTarget(target, memberSpaces, review, available), target);
+    assert.deepEqual(navigationTargetForState(openListDetail(initialNavigation), 'profile', null, null, null, { spaceId: spaceA, listId }), target);
+    assert.deepEqual(await resolveNavigationTarget(target, memberSpaces, review, { ...available, canReadList: async () => false }), { page: 'lists-overview' });
+    assert.deepEqual(await resolveNavigationTarget(target, memberSpaces, review, { ...available, loadListsSpaces: async () => [memberSpaces[1]] }), { page: 'lists-overview' });
+    assert.deepEqual(await resolveNavigationTarget(target, memberSpaces, review, { ...available, loadListsSpaces: async () => [] }), { page: 'modules' });
+    assert.deepEqual(await resolveNavigationTarget(target, memberSpaces, review, { ...available, canReadList: async () => { throw new Error('offline'); } }), target);
+    assert.deepEqual(await resolveNavigationTarget(target, memberSpaces, review, { ...available, loadListsSpaces: async () => { throw new Error('offline'); } }), target);
+  } finally { await vite.close(); }
+});
+
 test('only page identity is derived from accepted navigation state', async () => {
   const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
   try {
@@ -147,7 +167,7 @@ test('App persistence follows committed page state and Review pages report only 
   const history = readFileSync(new URL('../src/components/ReviewHistoryPage.tsx', import.meta.url), 'utf8');
   const detail = readFileSync(new URL('../src/components/ReviewDetailPage.tsx', import.meta.url), 'utf8');
   assert.match(app, /if \(!canChangeTabFromReviewDetail\([\s\S]*?\)\) return;[\s\S]*?setNavigation\(\(current\) => selectTab\(current, tab\)\)/);
-  assert.match(app, /useEffect\(\(\) => \{[\s\S]*?navigationTargetForState\(navigation, myScreen, reviewDetail, reviewSpaceId, selectedSpaceId\)[\s\S]*?writeNavigationTarget\(storage, userId, target\)/);
+  assert.match(app, /useEffect\(\(\) => \{[\s\S]*?navigationTargetForState\(navigation, myScreen, reviewDetail, reviewSpaceId, selectedSpaceId, listDetail\)[\s\S]*?writeNavigationTarget\(storage, userId, target\)/);
   assert.ok(history.includes('if (!eligible.length && onNoEligible) { onNoEligible(); return; }'));
   assert.match(detail, /onUnavailable\?\.\(spaceEligible \? 'review' : 'space'\)/);
 });

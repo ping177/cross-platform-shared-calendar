@@ -152,9 +152,9 @@ Slice 1–4、integration、两轮 acceptance fixes、frontend pre-deploy gate�
 
 Canonical contract: [v0.1.15 Shared Lists Specification](./v0.1.15_SHARED_LISTS_SPEC.md). The read-only repository investigation was reviewed and accepted as the basis for this docs-only Design Freeze. Personal and Shared Space support, the three-table model, derived List completion, deterministic ordering, atomic Section/List deletion semantics, quick-add, module eligibility, Realtime, mobile item drag, concurrency boundaries, non-goals, tests, and implementation slices are frozen there.
 
-Slice 1 DB foundation is `CLOSED / PASS` after local checks and Production postflight. Slice 2 Overview / Ownership is `CLOSED / PASS`: full Node 338/338, build, desktop authenticated flows, Personal/Shared Lists, independent listFilter, Personal-default ownership safety, create/rename/two-step delete, module disable/re-enable, navigation refresh, ModuleHub session availability and unified Tasks/Review/Lists visibility all passed. Dual-account Realtime, including filtered DELETE + RLS/canonical reread, passed. User-reported Vercel Production deployment of commit `3b9dfd7` and mobile/PWA acceptance passed. Slices 3–4 remain `NOT STARTED`. No current blocker is recorded.
+Slice 1 DB foundation and Slice 2 Overview / Ownership are `CLOSED / PASS`; Slice 2 Production and mobile/PWA acceptance passed. Slice 3 List Detail / Collaboration is `LOCAL + DESKTOP AUTHENTICATED PASS`: focused Node 25/25, full Node 349/349, build and diff-check passed; user-run desktop, dual-account detail Realtime including Item/Section DELETE, draft preservation, detail restore, and responsiveness recheck passed. Slice 3 mobile/PWA acceptance awaits verified Vercel deployment. Slice 4 remains `NOT STARTED`. No current blocker is recorded.
 
-Next Action: v0.1.15 Slice 3 — List Detail / Collaboration planning / preflight.
+Next Action: verify the Slice 3 Vercel deployment, then perform user-run mobile/PWA acceptance.
 
 ## Directional Roadmap — Shared Life Architecture Frozen
 
@@ -167,7 +167,7 @@ The long-term relationships and v0.1.10 scope are frozen in [Shared Life Archite
 - v0.1.13 — Space Lifecycle & Membership Safety (CLOSED / PASS; Slice 1/2 CLOSED / PASS; Production deployment and user-reported authenticated/mobile/PWA acceptance PASS).
 - v0.1.14 — 回顾 (CLOSED / PASS; backend/date chronology, frontend deployment, public smoke, Production authenticated acceptance and final exact-ID cleanup PASS; Review 0/0 with two enabled module rows).
 - v0.1.14.1 — Navigation Persistence (CLOSED / PASS; local and Production authenticated refresh acceptance PASS; no Review fixture created).
-- v0.1.15 — Shared Lists (IN PROGRESS; Slice 1 DB foundation and Slice 2 Overview / Ownership CLOSED / PASS; Slice 2 Production deployment and mobile/PWA acceptance PASS; Slices 3–4 NOT STARTED).
+- v0.1.15 — Shared Lists (IN PROGRESS; Slices 1–2 CLOSED / PASS; Slice 3 LOCAL + DESKTOP AUTHENTICATED PASS, mobile/PWA PENDING; Slice 4 NOT STARTED).
 - Later candidates without fixed versions/order: Important Dates, Calendar Sources v1, Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules. Priority and order may change based on real product use.
 - Future direction only: consider projecting/sharing a Personal Event into another Space while keeping one canonical Event owner Space, avoiding duplicate canonical objects, and ensuring that leaving the target Shared Space does not affect the source Event. This is outside v0.1.13; do not implement or reserve schema for it in this version.
 - Native: decision gate only; no committed implementation version.

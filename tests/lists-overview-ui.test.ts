@@ -9,16 +9,17 @@ const personal = { id: 'personal', name: '我的空间', kind: 'personal', creat
 const shared = { id: 'shared', name: '共同空间', kind: 'shared', created_by: 'other', membershipRole: 'member' } as CurrentSpace;
 const list = { id: 'list-a', space_id: shared.id, name: '旅行采购', created_by: 'me', created_at: '2026-09-27', updated_at: '2026-09-27' } as List;
 
-test('overview rows show source and progress without a fake detail target', async () => {
+test('overview rows open a real detail target while rename and delete remain separate buttons', async () => {
   const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
   try {
     const { ListsRows } = await vite.ssrLoadModule('/src/components/ListsOverviewPage.tsx');
     const markup = renderToStaticMarkup(React.createElement(ListsRows, {
       rows: [{ list, totalItems: 3, completedCount: 2 }], spaces: [personal, shared], showSource: true,
-      onRename: () => undefined, onDelete: () => undefined,
+      onOpen: () => undefined, onRename: () => undefined, onDelete: () => undefined,
     }));
     assert.match(markup, /旅行采购|共同空间|已完成 2 \/ 3|改名|删除/);
-    assert.doesNotMatch(markup, /打开清单|清单详情/);
+    assert.match(markup, /aria-label="打开清单 旅行采购"/);
+    assert.equal((markup.match(/<button/g) ?? []).length, 3);
   } finally { await vite.close(); }
 });
 

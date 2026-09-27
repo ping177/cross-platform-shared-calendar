@@ -27,6 +27,23 @@ export type ListItemOverview = {
   completed: boolean;
 };
 
+export type ListSection = {
+  id: string;
+  list_id: string;
+  name: string;
+  sort_order: number;
+};
+
+export type ListItem = {
+  id: string;
+  list_id: string;
+  space_id: string;
+  section_id: string | null;
+  content: string;
+  completed: boolean;
+  sort_order: number;
+};
+
 export type SpaceMember = {
   space_id: string;
   user_id: string;

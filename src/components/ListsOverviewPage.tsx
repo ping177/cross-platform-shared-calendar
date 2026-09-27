@@ -10,20 +10,20 @@ import { useListsOverview } from './useListsOverview';
 type Editor = { mode: 'create' | 'rename'; list?: List; memberSpaces: CurrentSpace[] };
 type Deleting = { list: List; space: CurrentSpace; step: 1 | 2; busy: boolean; error: string };
 
-export function ListsRows({ rows, spaces, showSource, onRename, onDelete }: {
+export function ListsRows({ rows, spaces, showSource, onOpen, onRename, onDelete }: {
   rows: ListOverviewRow[]; spaces: CurrentSpace[]; showSource: boolean;
-  onRename: (list: List) => void; onDelete: (list: List) => void;
+  onOpen: (list: List) => void; onRename: (list: List) => void; onDelete: (list: List) => void;
 }) {
   const byId = new Map(spaces.map((space) => [space.id, space]));
   return <ul className="space-y-2">{rows.map((row) => {
     const space = byId.get(row.list.space_id);
     return <li key={row.list.id} className="min-w-0 rounded-lg bg-white px-4 py-3 shadow-sm" data-list-id={row.list.id}>
       <div className="flex min-w-0 items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <h3 className="break-words font-semibold">{row.list.name}</h3>
-          {showSource && <p className="mt-1 break-words text-xs text-teal">{space?.kind === 'personal' ? '我的空间' : space?.name ?? '空间不可用'}</p>}
-          <p className="mt-1 text-sm text-ink/60">已完成 {row.completedCount} / {row.totalItems}</p>
-        </div>
+        <button className="min-h-11 min-w-0 flex-1 text-left" type="button" onClick={() => onOpen(row.list)} aria-label={`打开清单 ${row.list.name}`}>
+          <span className="block break-words font-semibold">{row.list.name}</span>
+          {showSource && <span className="mt-1 block break-words text-xs text-teal">{space?.kind === 'personal' ? '我的空间' : space?.name ?? '空间不可用'}</span>}
+          <span className="mt-1 block text-sm text-ink/60">已完成 {row.completedCount} / {row.totalItems}</span>
+        </button>
         <div className="flex shrink-0 gap-1">
           <button className="min-h-11 rounded-lg px-2 text-sm font-semibold text-teal" type="button" onClick={() => onRename(row.list)} aria-label={`改名 ${row.list.name}`}>改名</button>
           <button className="min-h-11 rounded-lg px-2 text-sm font-semibold text-coral" type="button" onClick={() => onDelete(row.list)} aria-label={`删除 ${row.list.name}`}>删除</button>
@@ -33,12 +33,12 @@ export function ListsRows({ rows, spaces, showSource, onRename, onDelete }: {
   })}</ul>;
 }
 
-export function ListsOverviewPage({ userId, onHubBack, onNoEligible }: { userId: string; onHubBack: () => void; onNoEligible: () => void }) {
+export function ListsOverviewPage({ userId, onHubBack, onNoEligible, onOpenDetail, initialNotice = '' }: { userId: string; onHubBack: () => void; onNoEligible: () => void; onOpenDetail: (list: List) => void; initialNotice?: string }) {
   const { filter, state, syncError, chooseFilter, refresh } = useListsOverview(userId, onNoEligible);
   const [completedCollapsed, setCompletedCollapsed] = useState(true);
   const [editor, setEditor] = useState<Editor | null>(null);
   const [deleting, setDeleting] = useState<Deleting | null>(null);
-  const [notice, setNotice] = useState('');
+  const [notice, setNotice] = useState(initialNotice);
   const deletingLock = useRef(false);
   const createButton = useRef<HTMLButtonElement>(null);
   const data = state.status === 'ready' ? state.data : null;
@@ -160,10 +160,10 @@ export function ListsOverviewPage({ userId, onHubBack, onNoEligible }: { userId:
         {state.status === 'error' && <div className="rounded-lg bg-white px-4 py-5 shadow-sm" role="alert">{state.error}<button className="ml-2 min-h-11 font-semibold text-teal" type="button" onClick={() => void refresh()}>重试</button></div>}
         {data && <>
           <section aria-label="进行中清单"><h2 className="mb-3 text-sm font-semibold text-ink/60">进行中 · {active.length}</h2>
-            {active.length ? <ListsRows rows={active} spaces={data.eligibleSpaces} showSource={filter === 'all'} onRename={openRename} onDelete={openDelete} /> : <p className="rounded-lg bg-white px-4 py-5 text-sm text-ink/60 shadow-sm">暂无进行中的清单</p>}
+            {active.length ? <ListsRows rows={active} spaces={data.eligibleSpaces} showSource={filter === 'all'} onOpen={onOpenDetail} onRename={openRename} onDelete={openDelete} /> : <p className="rounded-lg bg-white px-4 py-5 text-sm text-ink/60 shadow-sm">暂无进行中的清单</p>}
           </section>
           <section aria-label="已完成清单"><button className="flex min-h-14 w-full items-center justify-between rounded-lg bg-white px-4 text-left font-semibold shadow-sm" type="button" aria-expanded={!completedCollapsed} onClick={() => setCompletedCollapsed((value) => !value)}><span>已完成 · {completed.length}</span><ChevronDown size={18} className={completedCollapsed ? 'text-ink/45' : 'rotate-180 text-ink/45'} aria-hidden="true" /></button>
-            {!completedCollapsed && <div className="mt-3">{completed.length ? <ListsRows rows={completed} spaces={data.eligibleSpaces} showSource={filter === 'all'} onRename={openRename} onDelete={openDelete} /> : <p className="rounded-lg bg-white px-4 py-5 text-sm text-ink/60 shadow-sm">暂无已完成的清单</p>}</div>}
+            {!completedCollapsed && <div className="mt-3">{completed.length ? <ListsRows rows={completed} spaces={data.eligibleSpaces} showSource={filter === 'all'} onOpen={onOpenDetail} onRename={openRename} onDelete={openDelete} /> : <p className="rounded-lg bg-white px-4 py-5 text-sm text-ink/60 shadow-sm">暂无已完成的清单</p>}</div>}
           </section>
         </>}
       </div>

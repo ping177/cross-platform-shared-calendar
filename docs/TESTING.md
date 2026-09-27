@@ -1,5 +1,21 @@
 # Testing
 
+## v0.1.15 Shared Lists Slice 3 desktop authenticated acceptance — PASS / MOBILE-PWA PENDING
+
+- User-reported desktop authenticated detail acceptance **PASS** for Personal/Shared flows, draft preservation and detail restoration. Shared dual-account detail Realtime, including Item and Section DELETE, **PASS**. User recheck of quick-add, Section create/rename and related responsiveness correction **PASS**. Do not repeat these accepted desktop checks.
+- Local automated evidence: focused affected Node **25/25 PASS**, full Node **349/349 PASS**, `npm run build` and `git diff --check` **PASS**. No SQL/backend/RPC or dependency change. Slice 3 remains open: Vercel deployment verification and user-run mobile/PWA acceptance are **PENDING**; push success alone is not acceptance.
+
+## v0.1.15 Shared Lists Slice 3 responsiveness correction — LOCAL PASS / USER RECHECK PENDING
+
+- The user reported successful desktop Item/Section mutations with multi-second mutation-to-visible latency. Confirmed RPC/UPDATE rows now update local detail before background canonical reread; Item delete removes only its confirmed target. Structural Section deletes continue to await canonical ordering and relocation. Independent Section and Item detail reads run in parallel after List validation.
+- Focused affected Node tests **25/25 PASS**, full Node **349/349 PASS**, `npm run build` and `git diff --check` **PASS**. Tests cover confirmation before a deferred reread, later canonical convergence, failure without local success, quick-add draft rules, and Section-delete boundary. The user must recheck actual desktop latency and focus; no Codex authenticated browser or Production operation occurred.
+
+## v0.1.15 Shared Lists Slice 3 — LOCAL AUTO PASS / AUTHENTICATED ACCEPTANCE PENDING
+
+- Focused `node --test tests/lists-detail.test.ts tests/lists-detail-data.test.ts tests/lists-detail-ui.test.ts tests/lists-overview-ui.test.ts tests/navigation-persistence.test.ts`: **23/23 PASS**. Full `node --test tests/*.test.ts tests/*.test.js`: **347/347 PASS**. `npm run build` and `git diff --check`: **PASS**. The existing >500 kB bundle warning remains non-blocking.
+- Automated coverage includes canonical region/order derivation, complete Section/Item pagination, exact narrow mutation payloads, zero List row versus eligibility loss versus transient error, user-scoped navigation restore, quick-add draft settlement, ordinary reread preserving drafts/folds/collapse, invalid Section draft recovery, accessible completed fold rendering, and detail Realtime subscription/cleanup source boundaries. The repository has no React DOM interaction framework; input focus and mobile keyboard behavior require user acceptance.
+- Slice 3 is **not closed**. Before requesting real-account acceptance, verify the actual local frontend target and deployed Slice 1 schema/RPC/grants/publication compatibility. The user then tests Personal and Shared detail flows and real two-account Item DELETE, both Section DELETE modes, and whole-List DELETE while the partner has detail open. Slice 2's filtered DELETE result does not prove these new detail subscriptions. Codex did not operate authenticated sessions or Production. Mobile/PWA acceptance remains after a separately authorized frontend deployment.
+
 ## v0.1.15 Shared Lists Slice 2 — CLOSED / PASS
 
 - Automated: full Node **338/338 PASS** and `npm run build` **PASS** for the accepted Slice 2 frontend. Desktop authenticated acceptance **PASS**: ModuleHub entry; Personal and Shared Lists; independent listFilter; Personal-default ownership and explicit Shared selection; create, rename, two-step delete; module disable/re-enable; navigation refresh; session-scoped availability; and the common Tasks/Review/Lists at-least-one-current-member-Space visibility rule.

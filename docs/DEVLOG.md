@@ -1,5 +1,21 @@
 # Development Log
 
+## 2026-09-27 - v0.1.15 Shared Lists Slice 3 desktop acceptance and Git closeout — DESKTOP PASS / MOBILE-PWA PENDING
+
+- User-reported Slice 3 desktop authenticated acceptance `PASS`, including Personal/Shared detail, draft preservation and refresh restoration, dual-account detail Realtime, filtered Item/Section DELETE, and the responsiveness correction recheck. These accepted desktop and two-account checks do not need repeating. Slice 3 remains open for post-deployment mobile/PWA acceptance; Slice 4 remains `NOT STARTED`.
+- Local automated evidence remains focused Node **25/25 PASS**, full Node **349/349 PASS**, `npm run build` and `git diff --check` PASS. Final pre-deployment scope review covers only Slice 3 frontend/navigation, tests and current-status docs; no drag/reorder UI, SQL/backend/RPC, dependency, secret or generated artifact change. Next after authorized Git push: verify Vercel deployment, then user-run mobile/PWA acceptance. Push success alone does not establish either result.
+
+## 2026-09-27 - v0.1.15 Shared Lists Slice 3 responsiveness correction — LOCAL PASS / USER RECHECK PENDING
+
+- User desktop testing found that successful quick-add, Section create and rename waited several seconds before the detail showed the result. The shared mutation flow awaited a complete canonical reread after each write; Section and Item reads were also sequential. The confirmed RPC/UPDATE row now updates the current detail immediately, while a background reread remains authoritative and stale in-flight reads are invalidated. Confirmed Item delete removes only that target; structural Section deletion still waits for canonical reread and backend-owned ordering/relocation. Failure retains drafts and revalidates eligibility; quick-add clears only the successful input and restores focus.
+- Focused Node **25/25 PASS**, full Node **349/349 PASS**, `npm run build` and `git diff --check` PASS. The existing >500 kB chunk warning remains. Slice 1/2 stay `CLOSED / PASS`, Slice 3 stays open pending user desktop responsiveness recheck and remaining authenticated acceptance, Slice 4 `NOT STARTED`. No SQL/backend/RPC/dependency, Production, authenticated session, commit, push or deploy operation.
+
+## 2026-09-27 - v0.1.15 Shared Lists Slice 3 — LOCAL AUTO PASS / AUTHENTICATED ACCEPTANCE PENDING
+
+- Implemented List detail navigation and user-scoped refresh restoration, complete canonical List/Section/Item reads, ungrouped-first rendering, quick-add, inline Section operations, Item edit/completion/deletion, per-region completed folds, Section collapse, both Section deletion choices, and detail Realtime. Local drafts and fold/collapse state survive ordinary canonical rereads; unexpected zero-row reads revalidate eligibility before classifying deletion, and transient failures keep a retryable target.
+- Slice 3 uses the deployed Slice 1 RPC and column-grant contract. No SQL, migration, backend, dependency, Slice 4 reorder/drag UI, Production operation, authenticated session, commit, push, or deployment changed. Focused Node **23/23 PASS**, full Node **347/347 PASS**, `npm run build` and `git diff --check` PASS; the existing >500 kB bundle warning remains.
+- Slice 1 and Slice 2 remain `CLOSED / PASS`; v0.1.15 remains `IN PROGRESS`. Slice 3 is `LOCAL AUTO PASS / AWAITING AUTHENTICATED ACCEPTANCE`, Slice 4 `NOT STARTED`. Next: environment-alignment gate, then user-run desktop Personal/Shared and two-account detail acceptance against the deployed Slice 1 backend. Detail-level filtered DELETE remains unproven until that test; mobile/PWA follows a later authorized Vercel deployment.
+
 ## 2026-09-27 - v0.1.15 Slice 2 final Production/mobile acceptance and governance closeout
 
 - User-reported Vercel Production deployment of frontend commit `3b9dfd7` and mobile/PWA acceptance are `PASS`. Slice 2 Overview / Ownership is now `CLOSED / PASS`; Slice 1 DB foundation remains `CLOSED / PASS`, v0.1.15 remains `IN PROGRESS`, and Slices 3–4 are `NOT STARTED`.

@@ -12,9 +12,15 @@ v0.1.15
 
 ## Current status
 
-v0.1.15 Shared Lists `IN PROGRESS`；Slice 1 DB foundation 与 Slice 2 Overview / Ownership 均 `CLOSED / PASS`。Slice 2 local automated 338/338、build、桌面真实账号、双账号 filtered Realtime DELETE + RLS/canonical reread、功能中心会话可用性与 Tasks/Review/Lists 可见性、Vercel Production 部署及移动端/PWA 验收均 `PASS`。Slices 3–4 `NOT STARTED`。Canonical contract: [v0.1.15 Shared Lists Specification](./v0.1.15_SHARED_LISTS_SPEC.md)。v0.1.14 与 v0.1.14.1 保持 `CLOSED / PASS`。暂无明确阻塞。
+v0.1.15 Shared Lists `IN PROGRESS`；Slice 1 DB foundation 与 Slice 2 Overview / Ownership 均 `CLOSED / PASS`。Slice 3 List Detail / Collaboration 为 `LOCAL + DESKTOP AUTHENTICATED PASS`：full Node 349/349、build、diff-check、桌面详情、双账号 Realtime 与响应性复测 PASS；移动端/PWA 待 Vercel 部署验证后验收。Slice 4 `NOT STARTED`。Slice 3 尚未 `CLOSED / PASS`。Canonical contract: [v0.1.15 Shared Lists Specification](./v0.1.15_SHARED_LISTS_SPEC.md)。暂无明确阻塞。
 
 ## Latest completed
+
+v0.1.15 Slice 3 桌面真实账号验收与 pre-deployment review `PASS`：用户确认 Personal/Shared 详情功能、双账号 detail Realtime、Item/Section DELETE 投递、草稿保留、详情刷新恢复与响应性修正复测均通过；不需重复桌面或双账号验收。聚焦 Node 25/25、完整 Node 349/349、build、diff-check PASS。完整 Slice 3 diff 限于前端详情、导航、测试和治理文档；无 Slice 4、SQL/后端、依赖或秘密。移动端/PWA 尚待部署后验收，Slice 3 未关闭。
+
+v0.1.15 Slice 3 响应性修正本地 `PASS`：用户桌面测试发现 quick-add、分组创建/改名成功后等待完整 detail 重读才显示，造成数秒停顿。现以服务端确认返回行立即更新当前详情，后台 canonical 重读收敛；Item 删除成功后仅移除目标，结构性 Section 删除仍等待后端排序/归位；Section 和 Item 的独立完整读取并行。Focused Node 25/25、full Node 349/349、build、diff-check PASS。下一步由用户复测真实桌面响应与焦点，再继续其余双账号详情验收。未改 SQL/后端/依赖，未提交、推送、部署或由 Codex 操作真实账号。
+
+v0.1.15 Slice 3 List Detail / Collaboration 本地实现及自动验证 `PASS`：真实详情导航与刷新恢复、完整 canonical 读取、顶层/分组 quick-add、Section/Item 编辑与删除、明确布尔完成 RPC、完成折叠、Section 收起及详情 Realtime 已接入。零行重验资格，普通刷新保留未提交草稿和 UI 折叠状态。Focused Node 23/23、full Node 347/347、build、diff-check PASS；未改 SQL/后端或依赖，未操作 Production/真实账号、提交、推送或部署。真实账号双人详情 DELETE 验收仍待用户执行。
 
 v0.1.15 Slice 2 Overview / Ownership 最终 `CLOSED / PASS`：用户报告 commit `3b9dfd7` 的 Vercel Production 部署和移动端/PWA 验收均通过。既有 full Node 338/338、TypeScript/Vite build、桌面真实账号 Personal/Shared Lists、独立 listFilter、Personal 默认与显式 Shared 归属、创建/改名/双步删除、模块关闭/重开、导航刷新、功能中心会话快照与三模块统一可见性、双账号 Realtime（含 filtered DELETE + RLS/canonical reread）全部 `PASS`。本次仅文档治理 closeout；Slices 3–4 未开始。
 
@@ -105,7 +111,7 @@ Public URL: https://cross-platform-shared-calendar.vercel.app/
 Provider: Vercel
 Backend: Supabase Free
 Backend rollout: v0.1.15 Slice 1 Shared Lists exact forward patch APPLIED ONCE / POSTFLIGHT PASS; v0.1.14 review foundation and date chronology forward patches remain applied; v0.1.13 lifecycle remains applied.
-Notes: User-reported Vercel Production deployment of Shared Lists Slice 2 frontend commit `3b9dfd7` and post-deployment mobile/PWA acceptance passed; Slice 2 is `CLOSED / PASS`. Slices 3–4 have not started. Slice 1 backend postflight established three empty Lists tables, zero Lists module rows, narrow RPC/RLS/ACL and Realtime metadata, with 10/10 pre-existing business-data fingerprints unchanged at that time; user desktop acceptance later exercised Lists against this Production backend. User-reported real two-account filtered DELETE + RLS/canonical reread passed. Existing Review backend keeps same-Space/date uniqueness, duplicate-safe create/date correction and `get_my_previous_review_plan`; final Review fixtures remain 0/0 while Shared and Personal Review modules remain enabled. Historical version-specific acceptance limits remain in DEVLOG/TESTING. `space_modules` remains outside Realtime; `send-test-push` remains ACTIVE v4 reviewed-equivalent and `send-reminders` ACTIVE v2 / `verify_jwt=false`. Vault, secrets and Cron were not changed.
+Notes: User-reported Vercel Production deployment of Shared Lists Slice 2 frontend commit `3b9dfd7` and post-deployment mobile/PWA acceptance passed; Slice 2 is `CLOSED / PASS`. Slice 3 desktop authenticated and dual-account detail acceptance passed against the deployed Slice 1 backend, including filtered Item/Section DELETE and responsiveness recheck. Slice 3 Vercel deployment has not yet been verified; mobile/PWA remains pending. Slice 4 has not started. Slice 1 backend postflight established three empty Lists tables, zero Lists module rows, narrow RPC/RLS/ACL and Realtime metadata, with 10/10 pre-existing business-data fingerprints unchanged at that time. Existing Review backend keeps same-Space/date uniqueness, duplicate-safe create/date correction and `get_my_previous_review_plan`; final Review fixtures remain 0/0 while Shared and Personal Review modules remain enabled. Historical version-specific acceptance limits remain in DEVLOG/TESTING. `space_modules` remains outside Realtime; `send-test-push` remains ACTIVE v4 reviewed-equivalent and `send-reminders` ACTIVE v2 / `verify_jwt=false`. Vault, secrets and Cron were not changed.
 
 ## Version Index
 
@@ -137,7 +143,7 @@ Notes: User-reported Vercel Production deployment of Shared Lists Slice 2 fronte
 - v0.1.13 — Space Lifecycle & Membership Safety（CLOSED / PASS；Slice 1/2 CLOSED / PASS；Production deployment、用户报告的 authenticated/mobile/PWA acceptance PASS）
 - v0.1.14 — 回顾（CLOSED / PASS；backend/date chronology Production PASS；frontend deployed；public smoke 与 Production authenticated acceptance PASS；final exact-ID cleanup PASS，Review 0/0、两条 module enabled）
 - v0.1.14.1 — Navigation Persistence（CLOSED / PASS；实现、integration review、本地及 Production 真实账号验收、Production deployment/public smoke PASS）
-- v0.1.15 — Shared Lists（IN PROGRESS；Slice 1 DB 与 Slice 2 Overview / Ownership CLOSED / PASS；Slice 2 Production deployment 与 mobile/PWA acceptance PASS；Slices 3–4 NOT STARTED）
+- v0.1.15 — Shared Lists（IN PROGRESS；Slices 1–2 CLOSED / PASS；Slice 3 LOCAL + DESKTOP AUTHENTICATED PASS，mobile/PWA PENDING；Slice 4 NOT STARTED）
 
 ## Last verified
 
@@ -145,7 +151,7 @@ Notes: User-reported Vercel Production deployment of Shared Lists Slice 2 fronte
 
 ## Next Action
 
-Next Action: v0.1.15 Slice 3 — List Detail / Collaboration planning / preflight.
+Next Action: verify the Slice 3 Vercel Production deployment, then complete user-run mobile/PWA acceptance; keep Slice 3 open until that evidence is recorded.
 
 ## Blockers
 
@@ -153,7 +159,7 @@ Next Action: v0.1.15 Slice 3 — List Detail / Collaboration planning / prefligh
 
 ## Important Context
 
-- v0.1.15 Shared Lists 的唯一 canonical contract 是 [v0.1.15_SHARED_LISTS_SPEC.md](./v0.1.15_SHARED_LISTS_SPEC.md)。产品边界已冻结；Slices 1–2 `CLOSED / PASS`。Slice 2 本地自动验证、用户桌面真实账号功能验收、双账号 filtered Realtime DELETE + RLS/canonical reread、功能中心会话可用性与三模块可见性、commit `3b9dfd7` 的 Vercel Production 部署、移动端/PWA 验收均通过。Slices 3–4 `NOT STARTED`。
+- v0.1.15 Shared Lists 的唯一 canonical contract 是 [v0.1.15_SHARED_LISTS_SPEC.md](./v0.1.15_SHARED_LISTS_SPEC.md)。产品边界已冻结；Slices 1–2 `CLOSED / PASS`，Slice 3 `LOCAL + DESKTOP AUTHENTICATED PASS` 且 mobile/PWA `PENDING`，Slice 4 `NOT STARTED`。用户已接受响应性复测与详情双账号 Realtime（含 Item/Section DELETE），无需重复；最新已验证的 Production 前端为 Slice 2，Slice 3 部署与移动端/PWA 尚待验证。
 - v0.1.14 `CLOSED / PASS`：`review_date` 是业务时间轴且同 Space 同日唯一；上一份计划严格按日期上一篇、不 fallback；`round_no` 仅为内部技术序列。Backend、frontend deployment、public smoke、用户 Production authenticated acceptance 与最终 exact-ID fixture cleanup 均通过；Production 当前 0 rounds / 0 entries、Shared 与 Personal Review module enabled。v0.1.14.1 已解决刷新回首页问题并 `CLOSED / PASS`；既有 >500 kB bundle warning 仍为非阻塞项。完整 Review contract 和验收条件只以 v0.1.14 规格为准。
 - Git branch、latest commit、working tree 由 project-command-center 实时 Git 扫描读取；PROJECT_STATE.md 不作为这些字段的权威来源。
 - Production URL: `https://cross-platform-shared-calendar.vercel.app/`.
@@ -218,4 +224,4 @@ Next Action: v0.1.15 Slice 3 — List Detail / Collaboration planning / prefligh
 
 ## Handoff Prompt
 
-v0.1.14 and v0.1.14.1 are `CLOSED / PASS`. v0.1.15 Shared Lists is `IN PROGRESS`; see `docs/v0.1.15_SHARED_LISTS_SPEC.md`. Slice 1 DB foundation and Slice 2 Overview / Ownership are `CLOSED / PASS`. Slice 2 full Node 338/338, build, user-reported desktop authenticated and mobile/PWA acceptance, Hub session availability and three-module visibility, two-account filtered Realtime DELETE + RLS/canonical reread, and Vercel Production deployment of `3b9dfd7` passed. Slices 3–4 are `NOT STARTED`. Next Action: v0.1.15 Slice 3 — List Detail / Collaboration planning / preflight. No current blocker is recorded.
+v0.1.14 and v0.1.14.1 are `CLOSED / PASS`. v0.1.15 Shared Lists is `IN PROGRESS`; see `docs/v0.1.15_SHARED_LISTS_SPEC.md`. Slices 1–2 are `CLOSED / PASS`; Slice 2 is deployed and accepted on mobile/PWA. Slice 3 List Detail / Collaboration has focused Node 25/25, full Node 349/349, build and diff-check PASS plus user-reported desktop authenticated, dual-account detail Realtime including Item/Section DELETE, draft/restore, and responsiveness recheck PASS. It is `LOCAL + DESKTOP AUTHENTICATED PASS`, not closed; mobile/PWA awaits verified Vercel deployment. Slice 4 has not started. Next: verify the Slice 3 Vercel deployment and perform user-run mobile/PWA acceptance. No current blocker is recorded.
