@@ -1,5 +1,16 @@
 # Testing
 
+## v0.1.15 Shared Lists Slice 4 desktop authenticated acceptance — PASS / MOBILE PENDING
+
+- User-run desktop authenticated results: ungrouped, same-Section and completed Item drag **PASS**; reopen canonical position **PASS**; drag handle and ordinary scrolling **PASS**; keyboard sorting/cancel **PASS**; dual-account Realtime reorder convergence **PASS**. No repeat of these accepted checks is required.
+- `STALE_REORDER = AUTOMATED PASS / MANUAL NOT REQUIRED`: Slice 1 backend stale-set/concurrency validation and Slice 4 tests cover rejection, canonical reread and no automatic replay. It was not manually forced. Local evidence remains full Node **356/356 PASS**, `npm run build` **PASS**, `git diff --check` **PASS**. Section drag is **DEFERRED**; Slice 4 mobile/PWA drag acceptance remains **PENDING** after deployment. v0.1.15 remains `IN PROGRESS`.
+
+## v0.1.15 Shared Lists Slice 4 Item ordering — LOCAL AUTO PASS / AUTHENTICATED ACCEPTANCE PENDING
+
+- Focused `node --test tests/lists-detail-ui.test.ts tests/lists-detail.test.ts tests/lists-detail-data.test.ts tests/lists-reorder.test.ts`: **17/17 PASS**. Full `node --test tests/*.test.ts tests/*.test.js`: **356/356 PASS**. `npm run build` and `git diff --check`: **PASS**. The existing >500 kB JS warning remains; main JS is 675.50 kB / 195.39 kB gzip versus pre-install 573.86 kB / 162.16 kB gzip.
+- Automated coverage includes four exact group payloads, crossed-region/list/Space rejection, unchanged hidden canonical slots, confirmed-only display projection, later canonical convergence, stale failure without local success or automatic replay, drag-ready render deferral, closed/open completed fold rendering, handle separation, Section collapse preservation, and no Section drag control. Browser touch/auto-scroll and authenticated two-account behavior are not proven by these Node tests.
+- Slice 4 requires a fresh frontend/backend acceptance environment alignment gate before user-run desktop/dual-account testing. After authorized deployment, user-run iPhone/Android/PWA acceptance remains pending. Section drag is explicitly **DEFERRED**; Slices 1–3 remain `CLOSED / PASS`, v0.1.15 remains `IN PROGRESS`. Codex did not operate authenticated sessions or Production.
+
 ## v0.1.15 Shared Lists Slice 3 final acceptance — CLOSED / PASS
 
 - User-confirmed Vercel Section-delete correction active; “仅删除分组” and “删除分组及其中内容” both responsive on device. Desktop authenticated detail, Shared dual-account Realtime, filtered Item/Section DELETE convergence, drafts/detail restore, prior responsiveness rechecks, and mobile/PWA acceptance all **PASS**. No repeat of accepted desktop or two-account checks is required.

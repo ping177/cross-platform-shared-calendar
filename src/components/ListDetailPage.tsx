@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChevronDown, ChevronLeft, Plus } from 'lucide-react';
+import { DragDropContext, Draggable, Droppable, type DraggableProvided, type DropResult } from '@hello-pangea/dnd';
+import { ChevronDown, ChevronLeft, GripVertical, Plus } from 'lucide-react';
 import { deleteList, renameList } from '../lib/lists-data';
-import { commitConfirmedDetailMutation, deriveListDetail, initialListDetailUiState, normalizeDetailText, reconcileListDetailUiState, settleQuickAddDraft, ungroupedKey, type DetailRegion, type ListDetailUiState } from '../lib/lists-detail';
-import { createListItem, createListSection, deleteListItem, deleteListSection, editListItem, renameListSection, setListItemCompleted, type ListDetailRead, type ListDetailTarget } from '../lib/lists-detail-data';
+import { commitConfirmedDetailMutation, commitConfirmedItemReorder, deriveListDetail, initialListDetailUiState, itemGroupKey, normalizeDetailText, planListItemReorder, reconcileListDetailUiState, settleQuickAddDraft, ungroupedKey, type DetailRegion, type ListDetailUiState } from '../lib/lists-detail';
+import { createListItem, createListSection, deleteListItem, deleteListSection, editListItem, renameListSection, reorderListItems, setListItemCompleted, type ListDetailRead, type ListDetailTarget } from '../lib/lists-detail-data';
 import { supabase } from '../lib/supabase';
 import type { ListItem, ListSection } from '../types';
 import { ListDeleteDialog, ListEditorSheet } from './ListSheets';
@@ -20,28 +21,29 @@ function QuickAdd({ label, value, busy, disabled, onInput, onChange, onSubmit }:
   </form>;
 }
 
-function ItemRow({ item, editing, busy, disabled, onToggle, onEdit, onEditChange, onSave, onCancel, onDelete }: {
-  item: ListItem; editing: ListDetailUiState['editing']; busy: boolean; disabled: boolean;
+function ItemRow({ item, editing, busy, disabled, drag, onToggle, onEdit, onEditChange, onSave, onCancel, onDelete }: {
+  item: ListItem; editing: ListDetailUiState['editing']; busy: boolean; disabled: boolean; drag: DraggableProvided;
   onToggle: () => void; onEdit: () => void; onEditChange: (value: string) => void;
   onSave: () => void; onCancel: () => void; onDelete: () => void;
 }) {
   const isEditing = editing?.kind === 'item' && editing.id === item.id;
-  return <li className="flex min-w-0 items-start gap-2 border-b border-ink/5 py-2 last:border-0" data-item-id={item.id}>
+  return <div ref={drag.innerRef} {...drag.draggableProps} className="flex min-w-0 flex-wrap items-start gap-2 border-b border-ink/5 bg-white py-2 last:border-0" data-item-id={item.id} role="listitem">
     <label className="grid min-h-11 w-11 shrink-0 place-items-center" aria-label={`${item.completed ? '重新打开' : '完成'} ${item.content}`}>
       <input className="h-5 w-5 accent-teal" type="checkbox" checked={item.completed} disabled={disabled || busy} onChange={onToggle} />
     </label>
+    <span {...drag.dragHandleProps} className="grid min-h-11 w-11 shrink-0 place-items-center rounded-lg text-ink/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal" aria-label={`排序 ${item.content}`}><GripVertical size={18} aria-hidden="true" /></span>
     {isEditing ? <form className="flex min-w-0 flex-1 flex-wrap gap-2" onSubmit={(event) => { event.preventDefault(); onSave(); }}>
       <input className="min-h-11 min-w-0 flex-1 rounded-lg border border-ink/15 px-3" aria-label="编辑项目内容" value={editing.draft} disabled={disabled || busy} onChange={(event) => onEditChange(event.target.value)} />
       <button className="min-h-11 rounded-lg px-3 font-semibold text-teal" type="submit" disabled={disabled || busy || !editing.draft.trim()}>保存</button>
       <button className="min-h-11 rounded-lg px-3" type="button" disabled={busy} onClick={onCancel}>取消</button>
     </form> : <>
       <span className={`min-w-0 flex-1 break-words py-2.5 ${item.completed ? 'text-ink/50 line-through' : ''}`}>{item.content}</span>
-      <div className="flex shrink-0 gap-1">
+      <div className="ml-auto flex shrink-0 gap-1">
         <button className="min-h-11 rounded-lg px-2 text-sm font-semibold text-teal" type="button" disabled={disabled || busy} onClick={onEdit} aria-label={`编辑 ${item.content}`}>编辑</button>
         <button className="min-h-11 rounded-lg px-2 text-sm font-semibold text-coral" type="button" disabled={disabled || busy} onClick={onDelete} aria-label={`删除 ${item.content}`}>删除</button>
       </div>
     </>}
-  </li>;
+  </div>;
 }
 
 export function ListDetailRegion({ regionKey, regionLabel, region, ui, busy, disabled, onToggleFold, onToggleItem, onEditItem, onEditChange, onSaveEdit, onCancelEdit, onDeleteItem }: {
@@ -49,16 +51,27 @@ export function ListDetailRegion({ regionKey, regionLabel, region, ui, busy, dis
   onToggleFold: () => void; onToggleItem: (item: ListItem) => void; onEditItem: (item: ListItem) => void;
   onEditChange: (value: string) => void; onSaveEdit: () => void; onCancelEdit: () => void; onDeleteItem: (item: ListItem) => void;
 }) {
-  const item = (row: ListItem) => <ItemRow key={row.id} item={row} editing={ui.editing} busy={busy} disabled={disabled}
-    onToggle={() => onToggleItem(row)} onEdit={() => onEditItem(row)} onEditChange={onEditChange}
-    onSave={onSaveEdit} onCancel={onCancelEdit} onDelete={() => onDeleteItem(row)} />;
+  const group = (rows: ListItem[], completed: boolean) => {
+    const groupId = itemGroupKey(regionKey === ungroupedKey ? null : regionKey, completed);
+    return <Droppable droppableId={groupId} type={groupId}>
+      {(drop) => <div ref={drop.innerRef} {...drop.droppableProps} role="list">
+        {rows.map((row, index) => <Draggable key={row.id} draggableId={row.id} index={index}
+          isDragDisabled={disabled || busy || (ui.editing?.kind === 'item' && ui.editing.id === row.id)}>
+          {(drag) => <ItemRow item={row} editing={ui.editing} busy={busy} disabled={disabled} drag={drag}
+            onToggle={() => onToggleItem(row)} onEdit={() => onEditItem(row)} onEditChange={onEditChange}
+            onSave={onSaveEdit} onCancel={onCancelEdit} onDelete={() => onDeleteItem(row)} />}
+        </Draggable>)}
+        {drop.placeholder}
+      </div>}
+    </Droppable>;
+  };
   return <div data-region={regionKey}>
-    {region.active.length > 0 && <ul>{region.active.map(item)}</ul>}
+    {region.active.length > 0 && group(region.active, false)}
     {region.completed.length > 0 && <div className="mt-2">
       <button className="flex min-h-11 w-full items-center justify-between rounded-lg bg-mist px-3 text-left text-sm font-semibold text-ink/65" type="button" aria-expanded={Boolean(ui.foldOpen[regionKey])} aria-label={`${regionLabel}已完成 ${region.completedCount} 项`} onClick={onToggleFold}>
         <span>已完成 {region.completedCount}</span><ChevronDown size={18} className={ui.foldOpen[regionKey] ? 'rotate-180' : ''} aria-hidden="true" />
       </button>
-      {ui.foldOpen[regionKey] && <ul id={`completed-${regionKey}`} className="mt-1">{region.completed.map(item)}</ul>}
+      {ui.foldOpen[regionKey] && <div id={`completed-${regionKey}`} className="mt-1">{group(region.completed, true)}</div>}
     </div>}
   </div>;
 }
@@ -67,7 +80,7 @@ export function ListDetailPage({ userId, target, onBack, onUnavailable }: {
   userId: string; target: ListDetailTarget; onBack: () => void;
   onUnavailable: (result: Extract<ListDetailRead, { status: 'ineligible' | 'deleted' }>) => void;
 }) {
-  const { state, syncError, refresh, reconnect, applyConfirmed } = useListDetail(userId, target, onUnavailable);
+  const { state, syncError, refresh, reconnect, applyConfirmed, startDrag, finishDrag } = useListDetail(userId, target, onUnavailable);
   const [ui, setUi] = useState(initialListDetailUiState);
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [mutationError, setMutationError] = useState('');
@@ -196,8 +209,47 @@ export function ListDetailPage({ userId, target, onBack, onUnavailable }: {
     });
   }
 
-  const derived = data ? deriveListDetail(target.listId, target.spaceId, data.sections, data.items, data.projectedUngroupedOrder) : null;
+  const derived = data ? deriveListDetail(target.listId, target.spaceId, data.sections, data.items, data.projectedUngroupedOrder, data.projectedItemOrders) : null;
   const sectionToDelete = derived?.sections.find((entry) => entry.section.id === sectionDeleteId) ?? null;
+  function handleDragEnd(result: DropResult) {
+    const destination = result.destination;
+    if (!derived || !data || disabled || !destination || destination.droppableId !== result.source.droppableId) {
+      finishDrag();
+      return;
+    }
+    const groups = [
+      { sectionId: null, completed: false, rows: derived.ungrouped.active },
+      { sectionId: null, completed: true, rows: derived.ungrouped.completed },
+      ...derived.sections.flatMap(({ section, region }) => [
+        { sectionId: section.id, completed: false, rows: region.active },
+        { sectionId: section.id, completed: true, rows: region.completed },
+      ]),
+    ];
+    const group = groups.find((entry) => itemGroupKey(entry.sectionId, entry.completed) === result.source.droppableId);
+    const plan = group && planListItemReorder(group.rows, group.sectionId, group.completed,
+      result.source.index, destination.index, result.draggableId);
+    if (!plan || mutationLock.current) { finishDrag(); return; }
+    mutationLock.current = true;
+    setBusyKey('reorder');
+    setMutationError('');
+    void (async () => {
+      try {
+        await commitConfirmedItemReorder(
+          () => reorderListItems(supabase, target.listId, plan.sectionId, plan.completed, plan.orderedIds),
+          () => applyConfirmed({ kind: 'item-reorder', ...plan }),
+          () => finishDrag(true),
+        );
+      } catch (error) {
+        const message = error && typeof error === 'object' && 'message' in error ? String(error.message) : '';
+        setMutationError(message.includes('Stale List Item order; reload')
+          ? '清单已变化，请查看最新顺序后重试。'
+          : errorMessage(error, '排序失败，请重试。'));
+      } finally {
+        mutationLock.current = false;
+        setBusyKey(null);
+      }
+    })();
+  }
   const editingChange = (draft: string) => setUi((current) => current.editing ? { ...current, editing: { ...current.editing, draft } } : current);
   const toggleFold = (key: string) => setUi((current) => ({ ...current, foldOpen: { ...current.foldOpen, [key]: !current.foldOpen[key] } }));
   const itemRegion = (key: string, label: string, region: DetailRegion) => <ListDetailRegion regionKey={key} regionLabel={label} region={region} ui={ui} busy={busyKey !== null} disabled={disabled}
@@ -216,7 +268,7 @@ export function ListDetailPage({ userId, target, onBack, onUnavailable }: {
     </header>
     {state.status === 'loading' && <p className="mt-4 rounded-lg bg-white p-4" role="status">正在读取清单详情…</p>}
     {state.status === 'error' && <div className="mt-4 rounded-lg bg-white p-4" role="alert">{state.error}<button className="ml-2 min-h-11 font-semibold text-teal" type="button" onClick={() => void refresh()}>重试</button></div>}
-    {data && derived && <>
+    {data && derived && <DragDropContext onDragStart={startDrag} onDragEnd={handleDragEnd} dragHandleUsageInstructions="按空格开始排序，使用上下方向键移动；再次按空格确认，按 Escape 取消。">
       <div className="mt-4 rounded-lg bg-white p-4 shadow-sm">
         <p className="text-xs text-teal">{data.space.kind === 'personal' ? '我的空间' : data.space.name}</p>
         <h1 className="mt-1 break-words text-xl font-bold">{data.list.name}</h1>
@@ -226,6 +278,7 @@ export function ListDetailPage({ userId, target, onBack, onUnavailable }: {
         </div>
       </div>
       {(state.error || syncError || mutationError) && <div className="mt-3 rounded-lg bg-coral/10 p-3 text-sm text-coral" role="alert">{state.error || syncError || mutationError}<button className="ml-2 min-h-11 font-semibold text-teal" type="button" onClick={reconnect}>重试读取</button></div>}
+      {busyKey === 'reorder' && <p className="mt-3 text-sm text-ink/60" role="status">正在保存顺序…</p>}
       {ui.recovered.length > 0 && <div className="mt-3 rounded-lg bg-white p-3 text-sm" role="status">原分组已不可用，以下内容未添加，请复制后自行选择位置：{ui.recovered.map((text, index) => <p key={`${index}:${text}`} className="mt-2 break-words">{text}</p>)}<button className="mt-2 min-h-11 font-semibold text-teal" type="button" onClick={() => setUi((current) => ({ ...current, recovered: [] }))}>清除提示</button></div>}
       <section className="mt-4 rounded-lg bg-white p-4 shadow-sm" aria-label="清单项目">
         {quick(ungroupedKey, '添加清单项目', null)}
@@ -251,7 +304,7 @@ export function ListDetailPage({ userId, target, onBack, onUnavailable }: {
           {!collapsed && <div className="mt-3">{itemRegion(section.id, section.name, region)}<div className="mt-3">{quick(section.id, `在${section.name}添加项目`, section.id)}</div></div>}
         </section>;
       })}</div>
-    </>}
+    </DragDropContext>}
     {renameOpen && data && <ListEditorSheet mode="rename" list={data.list} memberSpaces={[data.space]} eligibleSpaces={state.degraded ? [] : [data.space]} userId={userId} eligibilityStatus={state.degraded ? 'error' : 'ready'} eligibilityError={state.error} onRetryEligibility={() => { void refresh(); }} onSubmit={(name) => saveListName(name)} onCancel={() => setRenameOpen(false)} />}
     {listDelete && data && <ListDeleteDialog list={data.list} space={data.space} step={listDelete.step} busy={listDelete.busy} canConfirm={!disabled} error={listDelete.error} eligibilityError={state.error} onRetryEligibility={() => { void refresh(); }} onCancel={() => setListDelete(null)} onConfirm={() => void confirmListDelete()} />}
     {sectionToDelete && <div className="fixed inset-0 z-40 flex items-end bg-ink/50 p-4 md:items-center" role="dialog" aria-modal="true" aria-labelledby="section-delete-title"><div className="mx-auto w-full max-w-md rounded-lg bg-white p-5 shadow-soft safe-bottom"><h2 id="section-delete-title" className="text-lg font-bold">删除分组：{sectionToDelete.section.name}</h2><p className="mt-2 text-sm text-ink/65">其中有 {sectionToDelete.region.total} 项内容。请选择处理方式。</p><div className="mt-4 space-y-2"><button className="min-h-11 w-full rounded-lg bg-teal px-4 font-semibold text-white" type="button" disabled={disabled || busyKey !== null} onClick={() => confirmSectionDelete(sectionToDelete.section.id, true)}>仅删除分组</button><button className="min-h-11 w-full rounded-lg border border-coral px-4 font-semibold text-coral" type="button" disabled={disabled || busyKey !== null} onClick={() => confirmSectionDelete(sectionToDelete.section.id, false)}>删除分组及其中内容</button><button className="min-h-11 w-full rounded-lg px-4" type="button" disabled={busyKey !== null} onClick={() => setSectionDeleteId(null)}>取消</button></div></div></div>}

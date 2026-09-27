@@ -91,3 +91,21 @@ test('Slice 3 mutations use exact RPC parameters and only name/content direct up
     ]);
   } finally { await vite.close(); }
 });
+
+test('Item reorder sends the exact group contract and propagates a stale-set failure', async () => {
+  const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
+  try {
+    const { reorderListItems } = await vite.ssrLoadModule('/src/lib/lists-detail-data.ts');
+    const calls: unknown[] = [];
+    const client = { async rpc(name: string, args: Record<string, unknown>) {
+      calls.push([name, args]);
+      return { data: null, error: calls.length === 2 ? new Error('Stale List Item order; reload') : null };
+    } };
+    await reorderListItems(client, target.listId, null, false, ['C', 'A', 'B']);
+    await assert.rejects(reorderListItems(client, target.listId, section.id, true, ['Y', 'X']), /Stale List Item order/);
+    assert.deepEqual(calls, [
+      ['reorder_list_items', { p_list_id: target.listId, p_section_id: null, p_completed: false, p_ordered_ids: ['C', 'A', 'B'] }],
+      ['reorder_list_items', { p_list_id: target.listId, p_section_id: section.id, p_completed: true, p_ordered_ids: ['Y', 'X'] }],
+    ]);
+  } finally { await vite.close(); }
+});

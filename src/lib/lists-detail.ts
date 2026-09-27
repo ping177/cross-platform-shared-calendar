@@ -1,6 +1,7 @@
 import type { List, ListItem, ListSection } from '../types';
 
 export const ungroupedKey = 'ungrouped';
+export const itemGroupKey = (sectionId: string | null, completed: boolean) => `${sectionId ?? ungroupedKey}:${completed ? 'completed' : 'active'}`;
 export type DetailRegion = { active: ListItem[]; completed: ListItem[]; completedCount: number; total: number };
 export type ListDetailUiState = {
   quickDrafts: Record<string, string>;
@@ -30,7 +31,7 @@ function canonicalOrder<T extends { id: string; sort_order: number }>(rows: T[])
   return [...rows].sort((a, b) => a.sort_order - b.sort_order || a.id.localeCompare(b.id));
 }
 
-function region(items: ListItem[], displayOrder?: string[]): DetailRegion {
+function region(items: ListItem[], displayOrder?: string[], activeOrder?: string[], completedOrder?: string[]): DetailRegion {
   const sorted = canonicalOrder(items);
   if (displayOrder) {
     const position = new Map(displayOrder.map((id, index) => [id, index]));
@@ -38,10 +39,15 @@ function region(items: ListItem[], displayOrder?: string[]): DetailRegion {
   }
   const active = sorted.filter((item) => !item.completed);
   const completed = sorted.filter((item) => item.completed);
-  return { active, completed, completedCount: completed.length, total: sorted.length };
+  const project = (rows: ListItem[], order?: string[]) => {
+    if (!order) return rows;
+    const positions = new Map(order.map((id, index) => [id, index]));
+    return [...rows].sort((a, b) => (positions.get(a.id) ?? Number.MAX_SAFE_INTEGER) - (positions.get(b.id) ?? Number.MAX_SAFE_INTEGER));
+  };
+  return { active: project(active, activeOrder), completed: project(completed, completedOrder), completedCount: completed.length, total: sorted.length };
 }
 
-export function deriveListDetail(listId: string, spaceId: string, sections: ListSection[], items: ListItem[], projectedUngroupedOrder?: string[]) {
+export function deriveListDetail(listId: string, spaceId: string, sections: ListSection[], items: ListItem[], projectedUngroupedOrder?: string[], projectedItemOrders?: Record<string, string[]>) {
   const sectionIds = new Set<string>();
   for (const section of sections) {
     if (section.list_id !== listId || sectionIds.has(section.id) || typeof section.name !== 'string') throw new Error('清单分组数据不一致，请重试。');
@@ -57,10 +63,12 @@ export function deriveListDetail(listId: string, spaceId: string, sections: List
     itemIds.add(item.id);
   }
   return {
-    ungrouped: region(items.filter((item) => item.section_id === null), projectedUngroupedOrder),
+    ungrouped: region(items.filter((item) => item.section_id === null), projectedUngroupedOrder,
+      projectedItemOrders?.[itemGroupKey(null, false)], projectedItemOrders?.[itemGroupKey(null, true)]),
     sections: canonicalOrder(sections).map((section) => ({
       section,
-      region: region(items.filter((item) => item.section_id === section.id)),
+      region: region(items.filter((item) => item.section_id === section.id), undefined,
+        projectedItemOrders?.[itemGroupKey(section.id, false)], projectedItemOrders?.[itemGroupKey(section.id, true)]),
     })),
   };
 }
@@ -94,9 +102,10 @@ type ConfirmedDetailChange =
   | { kind: 'section'; row: ListSection }
   | { kind: 'item'; row: ListItem }
   | { kind: 'item-delete'; id: string }
+  | { kind: 'item-reorder'; sectionId: string | null; completed: boolean; orderedIds: string[] }
   | { kind: 'section-delete'; id: string; preserveItems: boolean };
 
-export function applyConfirmedDetailChange<T extends { list: List; sections: ListSection[]; items: ListItem[]; projectedUngroupedOrder?: string[] }>(data: T, change: ConfirmedDetailChange): T {
+export function applyConfirmedDetailChange<T extends { list: List; sections: ListSection[]; items: ListItem[]; projectedUngroupedOrder?: string[]; projectedItemOrders?: Record<string, string[]> }>(data: T, change: ConfirmedDetailChange): T {
   if (change.kind === 'list') return { ...data, list: change.row };
   if (change.kind === 'section') {
     return { ...data, sections: [...data.sections.filter((section) => section.id !== change.row.id), change.row] };
@@ -110,8 +119,43 @@ export function applyConfirmedDetailChange<T extends { list: List; sections: Lis
       projectedUngroupedOrder: [...ungrouped, ...moved].map((item) => item.id) };
   }
   if (change.kind === 'item-delete') return { ...data, items: data.items.filter((item) => item.id !== change.id) };
+  if (change.kind === 'item-reorder') {
+    const current = data.items.filter((item) => item.section_id === change.sectionId && item.completed === change.completed).map((item) => item.id);
+    if (current.length !== change.orderedIds.length || new Set(current).size !== new Set(change.orderedIds).size
+      || current.some((id) => !change.orderedIds.includes(id))) return data;
+    return { ...data, projectedItemOrders: { ...data.projectedItemOrders, [itemGroupKey(change.sectionId, change.completed)]: change.orderedIds } };
+  }
   if (change.row.section_id && !data.sections.some((section) => section.id === change.row.section_id)) return data;
   return { ...data, items: [...data.items.filter((item) => item.id !== change.row.id), change.row] };
+}
+
+export function planListItemReorder(items: ListItem[], sectionId: string | null, completed: boolean, from: number, to: number, draggedId: string) {
+  if (from === to || from < 0 || to < 0 || from >= items.length || to >= items.length
+    || items[from]?.id !== draggedId || items.some((item) => item.section_id !== sectionId || item.completed !== completed)
+    || items.some((item) => item.list_id !== items[0]?.list_id || item.space_id !== items[0]?.space_id)
+    || new Set(items.map((item) => item.id)).size !== items.length) return null;
+  const orderedIds = items.map((item) => item.id);
+  orderedIds.splice(to, 0, ...orderedIds.splice(from, 1));
+  return { sectionId, completed, orderedIds };
+}
+
+export function createDetailDragGate() {
+  let active = false;
+  let pending = false;
+  return {
+    start() { active = true; pending = true; },
+    defer() { if (!active) return false; pending = true; return true; },
+    finish() { active = false; const shouldRefresh = pending; pending = false; return shouldRefresh; },
+  };
+}
+
+export async function commitConfirmedItemReorder(action: () => Promise<void>, confirm: () => void, reread: () => void): Promise<void> {
+  try {
+    await action();
+    confirm();
+  } finally {
+    reread();
+  }
 }
 
 export async function commitConfirmedDetailMutation<T>(action: () => Promise<T>, commit: (result: T) => void, reread: () => Promise<unknown>): Promise<void> {

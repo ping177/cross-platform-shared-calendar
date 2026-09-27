@@ -1,5 +1,17 @@
 # Development Log
 
+## 2026-09-27 - v0.1.15 Shared Lists Slice 4 desktop acceptance — PASS / MOBILE PENDING
+
+- User-run desktop authenticated acceptance passed for ungrouped, same-Section and completed Item drag; canonical position after reopen; drag handle with normal scrolling; keyboard sorting/cancel; and dual-account Realtime reorder convergence. The read-only environment alignment gate passed before this acceptance. Codex did not operate authenticated sessions.
+- Stale reorder was not manually forced: Slice 1 backend stale-set and concurrency validation plus Slice 4 automated stale rejection → canonical reread → no replay cover it. Record `STALE_REORDER = AUTOMATED PASS / MANUAL NOT REQUIRED`. Full Node **356/356 PASS**, build and diff-check **PASS** remain the accepted local evidence. Section drag remains **DEFERRED**; Slices 1–3 remain `CLOSED / PASS`, v0.1.15 remains `IN PROGRESS`.
+- This Git closeout updates governance status only; Slice 4 mobile/PWA acceptance remains pending. Next: verify Vercel deployment after the authorized push, then user-run mobile/PWA Item drag acceptance.
+
+## 2026-09-27 - v0.1.15 Shared Lists Slice 4 Item ordering — LOCAL AUTO PASS / AUTHENTICATED ACCEPTANCE PENDING
+
+- Added handle-only Item drag for active and expanded completed groups in ungrouped and same-Section regions with authorized `@hello-pangea/dnd@18.0.1`. Each group has a distinct drop boundary; Section drag is explicitly **DEFERRED** because nesting Section and Item sortables materially expands mobile gesture and testing complexity. No SQL/backend/RPC change.
+- `reorder_list_items` receives the complete source completion-group ID set. The UI keeps canonical rows unchanged until RPC success, then projects only display order and triggers a guarded canonical reread. Stale/failing requests show a bounded notice, reread, and never replay. Active drag holds incoming ready renders until release; verified List/eligibility loss can still exit detail. Focused Node **17/17 PASS**, full Node **356/356 PASS**, build and diff-check **PASS**. Main JS grew from 573.86 kB (162.16 gzip) to 675.50 kB (195.39 gzip); existing >500 kB warning remains.
+- Slices 1–3 remain `CLOSED / PASS`; v0.1.15 remains `IN PROGRESS`. Slice 4 is local automated PASS only. No authenticated, dual-account, iPhone/Android/PWA acceptance, Production operation, commit, push, or deployment occurred. Next: environment alignment gate, then user-run desktop/dual-account acceptance; mobile/PWA follows authorized deployment.
+
 ## 2026-09-27 - v0.1.15 Shared Lists Slice 3 final device acceptance — CLOSED / PASS
 
 - User confirms the Section-delete correction is active on Vercel. “仅删除分组” and “删除分组及其中内容” both passed the final device responsiveness recheck. Slice 3 mobile/PWA acceptance is now `PASS` without repeating the already accepted desktop or dual-account checks.

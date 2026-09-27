@@ -8,7 +8,7 @@ import type { CurrentSpace, List, ListItem, ListSection } from '../types';
 export type ListDetailTarget = { spaceId: string; listId: string };
 export type ListDetailRead =
   // The optional order exists only in local detail state until the next canonical reread.
-  | { status: 'ready'; space: CurrentSpace; list: List; sections: ListSection[]; items: ListItem[]; projectedUngroupedOrder?: string[] }
+  | { status: 'ready'; space: CurrentSpace; list: List; sections: ListSection[]; items: ListItem[]; projectedUngroupedOrder?: string[]; projectedItemOrders?: Record<string, string[]> }
   | { status: 'ineligible' | 'deleted'; eligibleSpaces: CurrentSpace[] };
 
 type EligibilityReader = () => Promise<{ eligibleSpaces: CurrentSpace[] }>;
@@ -120,5 +120,12 @@ export async function deleteListItem(client: SupabaseClient, listId: string, ite
 
 export async function deleteListSection(client: SupabaseClient, listId: string, sectionId: string, preserveItems: boolean): Promise<void> {
   const { error } = await client.rpc('delete_list_section', { p_list_id: listId, p_section_id: sectionId, p_preserve_items: preserveItems });
+  if (error) throw error;
+}
+
+export async function reorderListItems(client: SupabaseClient, listId: string, sectionId: string | null, completed: boolean, orderedIds: string[]): Promise<void> {
+  const { error } = await client.rpc('reorder_list_items', {
+    p_list_id: listId, p_section_id: sectionId, p_completed: completed, p_ordered_ids: orderedIds,
+  });
   if (error) throw error;
 }

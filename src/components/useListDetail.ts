@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createListsRefreshSignal } from '../lib/lists';
-import { applyConfirmedDetailChange } from '../lib/lists-detail';
+import { applyConfirmedDetailChange, createDetailDragGate } from '../lib/lists-detail';
 import { loadListDetail, type ListDetailRead, type ListDetailTarget } from '../lib/lists-detail-data';
 import { createRequestGuard } from '../lib/request-guard';
 import { supabase } from '../lib/supabase';
@@ -16,6 +16,7 @@ export function useListDetail(userId: string, target: ListDetailTarget, onUnavai
   const [syncError, setSyncError] = useState('');
   const [connectionRevision, setConnectionRevision] = useState(0);
   const guard = useRef(createRequestGuard());
+  const dragGate = useRef(createDetailDragGate());
   const onUnavailableRef = useRef(onUnavailable);
   onUnavailableRef.current = onUnavailable;
 
@@ -28,11 +29,13 @@ export function useListDetail(userId: string, target: ListDetailTarget, onUnavai
         onUnavailableRef.current(result);
         return result;
       }
+      if (dragGate.current.defer()) return result;
       setState({ status: 'ready', data: result, error: '', degraded: false });
       setScopeReady(true);
       return result;
     } catch (error) {
       if (guard.current.isCurrent(request)) {
+        if (dragGate.current.defer()) return null;
         const message = error instanceof Error && /[\u3400-\u9fff]/u.test(error.message) ? error.message : '清单详情读取失败，请重试。';
         setState((current) => current.status === 'ready'
           ? { ...current, error: message, degraded: true }
@@ -47,12 +50,21 @@ export function useListDetail(userId: string, target: ListDetailTarget, onUnavai
     void refresh();
   }, [refresh]);
 
-  const applyConfirmed = useCallback((change: { kind: 'list'; row: List } | { kind: 'section'; row: ListSection } | { kind: 'item'; row: ListItem } | { kind: 'item-delete'; id: string } | { kind: 'section-delete'; id: string; preserveItems: boolean }) => {
+  const applyConfirmed = useCallback((change: { kind: 'list'; row: List } | { kind: 'section'; row: ListSection } | { kind: 'item'; row: ListItem } | { kind: 'item-delete'; id: string } | { kind: 'item-reorder'; sectionId: string | null; completed: boolean; orderedIds: string[] } | { kind: 'section-delete'; id: string; preserveItems: boolean }) => {
     guard.current.invalidate();
     setState((current) => current.status === 'ready'
       ? { ...current, data: applyConfirmedDetailChange(current.data, change) }
       : current);
   }, []);
+
+  const startDrag = useCallback(() => {
+    dragGate.current.start();
+    guard.current.invalidate();
+  }, []);
+
+  const finishDrag = useCallback((forceRefresh = false) => {
+    if (dragGate.current.finish() || forceRefresh) void refresh();
+  }, [refresh]);
 
   useEffect(() => {
     void refresh();
@@ -72,7 +84,7 @@ export function useListDetail(userId: string, target: ListDetailTarget, onUnavai
   useEffect(() => {
     if (!scopeReady) return;
     let active = true;
-    const signal = createListsRefreshSignal(() => { void refresh(); });
+    const signal = createListsRefreshSignal(() => { if (!dragGate.current.defer()) void refresh(); });
     const channel = supabase.channel(`lists-detail:${userId}:${target.listId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'lists', filter: `id=eq.${target.listId}` }, signal.signal)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'list_sections', filter: `list_id=eq.${target.listId}` }, signal.signal)
@@ -91,5 +103,5 @@ export function useListDetail(userId: string, target: ListDetailTarget, onUnavai
     };
   }, [scopeReady, userId, target.listId, refresh, connectionRevision]);
 
-  return { state, syncError, refresh, reconnect, applyConfirmed };
+  return { state, syncError, refresh, reconnect, applyConfirmed, startDrag, finishDrag };
 }

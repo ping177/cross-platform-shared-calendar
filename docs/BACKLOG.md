@@ -152,9 +152,9 @@ Slice 1–4、integration、两轮 acceptance fixes、frontend pre-deploy gate�
 
 Canonical contract: [v0.1.15 Shared Lists Specification](./v0.1.15_SHARED_LISTS_SPEC.md). The read-only repository investigation was reviewed and accepted as the basis for this docs-only Design Freeze. Personal and Shared Space support, the three-table model, derived List completion, deterministic ordering, atomic Section/List deletion semantics, quick-add, module eligibility, Realtime, mobile item drag, concurrency boundaries, non-goals, tests, and implementation slices are frozen there.
 
-Slices 1–3 are `CLOSED / PASS`; v0.1.15 remains `IN PROGRESS`. Slice 3 full Node 352/352, build, desktop authenticated, Shared dual-account detail Realtime and filtered Item/Section DELETE convergence, draft/detail restoration, responsiveness, and mobile/PWA acceptance passed. The Section-delete correction is active on Vercel; both “仅删除分组” and “删除分组及其中内容” passed device responsiveness recheck. Slice 4 is `NOT STARTED`. No current blocker is recorded.
+Slices 1–3 are `CLOSED / PASS`; v0.1.15 remains `IN PROGRESS`. Slice 3 full Node 352/352, build, desktop authenticated, Shared dual-account detail Realtime and filtered Item/Section DELETE convergence, draft/detail restoration, responsiveness, and mobile/PWA acceptance passed. The Section-delete correction is active on Vercel; both delete modes passed device responsiveness recheck. Slice 4 Item drag local automation (full Node 356/356, build PASS) and desktop authenticated acceptance, including dual-account Realtime convergence, passed. Stale reorder is `AUTOMATED PASS / MANUAL NOT REQUIRED`; mobile/PWA acceptance is pending. Section drag is explicitly `DEFERRED`. No current blocker is recorded.
 
-Next Action: v0.1.15 Slice 4 — Ordering / Mobile Interaction / Final Acceptance planning / preflight.
+Next Action: Verify Slice 4 Vercel deployment, then user-run mobile/PWA Item drag acceptance.
 
 ## Directional Roadmap — Shared Life Architecture Frozen
 
@@ -167,7 +167,7 @@ The long-term relationships and v0.1.10 scope are frozen in [Shared Life Archite
 - v0.1.13 — Space Lifecycle & Membership Safety (CLOSED / PASS; Slice 1/2 CLOSED / PASS; Production deployment and user-reported authenticated/mobile/PWA acceptance PASS).
 - v0.1.14 — 回顾 (CLOSED / PASS; backend/date chronology, frontend deployment, public smoke, Production authenticated acceptance and final exact-ID cleanup PASS; Review 0/0 with two enabled module rows).
 - v0.1.14.1 — Navigation Persistence (CLOSED / PASS; local and Production authenticated refresh acceptance PASS; no Review fixture created).
-- v0.1.15 — Shared Lists (IN PROGRESS; Slices 1–3 CLOSED / PASS; Slice 3 Vercel correction and final device acceptance PASS; Slice 4 NOT STARTED).
+- v0.1.15 — Shared Lists (IN PROGRESS; Slices 1–3 CLOSED / PASS; Slice 4 Item drag local + desktop authenticated PASS, mobile/PWA PENDING; Section drag DEFERRED).
 - Later candidates without fixed versions/order: Important Dates, Calendar Sources v1, Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules. Priority and order may change based on real product use.
 - Future direction only: consider projecting/sharing a Personal Event into another Space while keeping one canonical Event owner Space, avoiding duplicate canonical objects, and ensuring that leaving the target Shared Space does not affect the source Event. This is outside v0.1.13; do not implement or reserve schema for it in this version.
 - Native: decision gate only; no committed implementation version.
