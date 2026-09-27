@@ -1,5 +1,10 @@
 # Development Log
 
+## 2026-09-27 - v0.1.15 Shared Lists Slice 3 final device acceptance — CLOSED / PASS
+
+- User confirms the Section-delete correction is active on Vercel. “仅删除分组” and “删除分组及其中内容” both passed the final device responsiveness recheck. Slice 3 mobile/PWA acceptance is now `PASS` without repeating the already accepted desktop or dual-account checks.
+- Final Slice 3 evidence: full Node **352/352 PASS**, `npm run build` **PASS**, desktop authenticated acceptance **PASS**, Shared dual-account detail Realtime and Item/Section filtered DELETE convergence **PASS**, draft preservation/detail restoration **PASS**, responsiveness improvements **PASS**, and mobile/PWA acceptance **PASS**. Slice 3 is `CLOSED / PASS`; v0.1.15 remains `IN PROGRESS`, Slices 1–2 stay `CLOSED / PASS`, and Slice 4 is `NOT STARTED`. This closeout changes governance docs only; next is Slice 4 planning/preflight.
+
 ## 2026-09-27 - v0.1.15 Slice 3 Section-delete responsiveness — LOCAL PASS / USER RECHECK PENDING
 
 - User reports Slice 3 mobile/PWA acceptance otherwise `PASS`; deleting a Section remained slow because the UI awaited a complete detail reread after the RPC. Desktop authenticated, dual-account detail Realtime, and the earlier responsiveness recheck remain accepted `PASS` and need no repeat.

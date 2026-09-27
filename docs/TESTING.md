@@ -1,5 +1,10 @@
 # Testing
 
+## v0.1.15 Shared Lists Slice 3 final acceptance — CLOSED / PASS
+
+- User-confirmed Vercel Section-delete correction active; “仅删除分组” and “删除分组及其中内容” both responsive on device. Desktop authenticated detail, Shared dual-account Realtime, filtered Item/Section DELETE convergence, drafts/detail restore, prior responsiveness rechecks, and mobile/PWA acceptance all **PASS**. No repeat of accepted desktop or two-account checks is required.
+- Final automated evidence: full Node **352/352 PASS** and `npm run build` **PASS**. Slice 3 is `CLOSED / PASS`; Slice 4 remains `NOT STARTED`. This docs-only closeout runs `git diff --check`; no business code or test behavior changed.
+
 ## v0.1.15 Slice 3 Section-delete responsiveness — LOCAL PASS / USER RECHECK PENDING
 
 - User-reported mobile/PWA acceptance otherwise **PASS**. Section-delete responsiveness is the sole pending user recheck. Previously accepted desktop authenticated, two-account detail Realtime including Item/Section DELETE, draft/restore, and earlier responsiveness checks remain **PASS**.

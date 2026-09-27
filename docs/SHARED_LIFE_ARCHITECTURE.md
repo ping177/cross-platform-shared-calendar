@@ -1,6 +1,6 @@
 # Shared Life Architecture Freeze
 
-Status: `ARCHITECTURE FROZEN`; v0.1.10–v0.1.14.1 are `CLOSED / PASS`; v0.1.15 Shared Lists is `IN PROGRESS` with Slices 1–2 `CLOSED / PASS`, Slice 3 desktop `PASS` and mobile/PWA otherwise `PASS` with Section-delete responsiveness recheck pending, and Slice 4 `NOT STARTED`. Slice 2 Vercel Production deployment and mobile/PWA acceptance passed; Vercel activation of the Slice 3 correction remains to be verified. The v0.1.11 contract is [Navigation + Aggregation Experience Specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md); the accepted v0.1.14「回顾」contract is [v0.1.14 回顾规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md); the v0.1.15 contract is [Shared Lists Specification](./v0.1.15_SHARED_LISTS_SPEC.md).
+Status: `ARCHITECTURE FROZEN`; v0.1.10–v0.1.14.1 are `CLOSED / PASS`; v0.1.15 Shared Lists is `IN PROGRESS` with Slices 1–3 `CLOSED / PASS` and Slice 4 `NOT STARTED`. Slice 3 desktop/dual-account and mobile/PWA acceptance passed; the Vercel Section-delete correction and both device responsiveness modes passed. The v0.1.11 contract is [Navigation + Aggregation Experience Specification](./v0.1.11_NAVIGATION_AGGREGATION_SPEC.md); the accepted v0.1.14「回顾」contract is [v0.1.14 回顾规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md); the v0.1.15 contract is [Shared Lists Specification](./v0.1.15_SHARED_LISTS_SPEC.md).
 
 This document freezes the long-term product model and navigation direction plus the reviewed v0.1.10 foundation scope. It does not change the accepted v0.1.9 Production capability. Later roadmap versions remain directional and need their own scope review.
 
@@ -136,13 +136,13 @@ The Home creation form visibly shows the target Space and allows changing it. It
 | v0.1.13 | Space Lifecycle & Membership Safety (CLOSED / PASS) |
 | v0.1.14 | 回顾 (CLOSED / PASS; backend/frontend Production, authenticated acceptance and fixture cleanup PASS) |
 | v0.1.14.1 | Navigation Persistence (CLOSED / PASS) |
-| v0.1.15 | Shared Lists (IN PROGRESS; Slices 1–2 CLOSED / PASS; Slice 3 desktop PASS, mobile/PWA otherwise PASS, Section-delete recheck PENDING; Slice 4 NOT STARTED) |
+| v0.1.15 | Shared Lists (IN PROGRESS; Slices 1–3 CLOSED / PASS; Slice 3 Vercel and device acceptance PASS; Slice 4 NOT STARTED) |
 
 Important Dates, Calendar Sources v1, Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules remain candidates without a fixed order. Priority and order may change based on real product use. Native has a decision gate only; no native implementation version is committed.
 
-## v0.1.15 Shared Lists — Design Frozen / Slices 1–2 Closed
+## v0.1.15 Shared Lists — Design Frozen / Slices 1–3 Closed
 
-Shared Lists is a Space-level optional module for Personal and Shared Spaces. Space owns Lists; Lists contain optional Sections and Items. The canonical schema, RLS/mutation boundary, derived completion, deterministic ordering, Realtime contract, mobile interaction requirements, lifecycle semantics, non-goals, and four planned implementation slices are frozen in the [canonical specification](./v0.1.15_SHARED_LISTS_SPEC.md). Slice 1 DB foundation passed local verification and Production postflight. Slice 2 overview/ownership passed local automation, user-reported desktop authenticated and mobile/PWA acceptance, two-account filtered DELETE + RLS/canonical reread, ModuleHub recheck, and Vercel Production deployment of `3b9dfd7`; it is `CLOSED / PASS`. Slice 3 detail/collaboration passed desktop authenticated and dual-account detail Realtime acceptance, including Item/Section DELETE and earlier responsiveness. User reports mobile/PWA otherwise passed; local Section-delete responsiveness correction awaits recheck. Slice 4 is `NOT STARTED`.
+Shared Lists is a Space-level optional module for Personal and Shared Spaces. Space owns Lists; Lists contain optional Sections and Items. The canonical schema, RLS/mutation boundary, derived completion, deterministic ordering, Realtime contract, mobile interaction requirements, lifecycle semantics, non-goals, and four planned implementation slices are frozen in the [canonical specification](./v0.1.15_SHARED_LISTS_SPEC.md). Slice 1 DB foundation passed local verification and Production postflight. Slice 2 overview/ownership passed local automation, user-reported desktop authenticated and mobile/PWA acceptance, two-account filtered DELETE + RLS/canonical reread, ModuleHub recheck, and Vercel Production deployment of `3b9dfd7`; it is `CLOSED / PASS`. Slice 3 detail/collaboration passed desktop authenticated, dual-account detail Realtime including Item/Section DELETE convergence, mobile/PWA acceptance, and the final Vercel Section-delete device responsiveness recheck; it is `CLOSED / PASS`. Slice 4 is `NOT STARTED`.
 
 ## v0.1.9 Slice Boundary
 
