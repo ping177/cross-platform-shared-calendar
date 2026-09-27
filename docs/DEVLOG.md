@@ -1,5 +1,11 @@
 # Development Log
 
+## 2026-09-27 - v0.1.15 Slice 3 Section-delete responsiveness — LOCAL PASS / USER RECHECK PENDING
+
+- User reports Slice 3 mobile/PWA acceptance otherwise `PASS`; deleting a Section remained slow because the UI awaited a complete detail reread after the RPC. Desktop authenticated, dual-account detail Realtime, and the earlier responsiveness recheck remain accepted `PASS` and need no repeat.
+- After confirmed `delete_list_section` success, the local detail immediately removes the Section. Destructive delete removes its known Items; preserve delete displays known child Items at the end of ungrouped in backend order without writing `sort_order`. The dialog closes at confirmation and a guarded background canonical reread reconciles concurrent changes. Failed RPCs do not apply local success. This local implementation changed no SQL/backend/RPC, dependency, Slice 4, or Production backend state.
+- Focused Node **13/13 PASS**, full Node **352/352 PASS**, `npm run build` and `git diff --check` **PASS**. The existing >500 kB chunk warning remains non-blocking. Next: verify Vercel activation after authorized push, then user-run device responsiveness recheck; Slice 3 remains open.
+
 ## 2026-09-27 - v0.1.15 Shared Lists Slice 3 desktop acceptance and Git closeout — DESKTOP PASS / MOBILE-PWA PENDING
 
 - User-reported Slice 3 desktop authenticated acceptance `PASS`, including Personal/Shared detail, draft preservation and refresh restoration, dual-account detail Realtime, filtered Item/Section DELETE, and the responsiveness correction recheck. These accepted desktop and two-account checks do not need repeating. Slice 3 remains open for post-deployment mobile/PWA acceptance; Slice 4 remains `NOT STARTED`.

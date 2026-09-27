@@ -7,7 +7,8 @@ import type { CurrentSpace, List, ListItem, ListSection } from '../types';
 
 export type ListDetailTarget = { spaceId: string; listId: string };
 export type ListDetailRead =
-  | { status: 'ready'; space: CurrentSpace; list: List; sections: ListSection[]; items: ListItem[] }
+  // The optional order exists only in local detail state until the next canonical reread.
+  | { status: 'ready'; space: CurrentSpace; list: List; sections: ListSection[]; items: ListItem[]; projectedUngroupedOrder?: string[] }
   | { status: 'ineligible' | 'deleted'; eligibleSpaces: CurrentSpace[] };
 
 type EligibilityReader = () => Promise<{ eligibleSpaces: CurrentSpace[] }>;

@@ -93,19 +93,13 @@ export function ListDetailPage({ userId, target, onBack, onUnavailable }: {
     return error instanceof Error && /[\u3400-\u9fff]/u.test(error.message) ? error.message : fallback;
   }
 
-  async function runMutation<T>(key: string, action: () => Promise<T>, onSuccess?: (result: T) => void, awaitCanonical = false) {
+  async function runMutation<T>(key: string, action: () => Promise<T>, onSuccess?: (result: T) => void) {
     if (mutationLock.current || disabled) return;
     mutationLock.current = true;
     setBusyKey(key);
     setMutationError('');
     try {
-      if (awaitCanonical) {
-        const result = await action();
-        onSuccess?.(result);
-        await refresh();
-      } else {
-        await commitConfirmedDetailMutation(action, (result) => onSuccess?.(result), refresh);
-      }
+      await commitConfirmedDetailMutation(action, (result) => onSuccess?.(result), refresh);
     } catch (error) {
       setMutationError(errorMessage(error, '操作失败，请检查网络或空间资格后重试。'));
       await refresh();
@@ -190,11 +184,19 @@ export function ListDetailPage({ userId, target, onBack, onUnavailable }: {
 
   function requestSectionDelete(section: ListSection, total: number) {
     if (total === 0) {
-      void runMutation(`delete-section:${section.id}`, () => deleteListSection(supabase, target.listId, section.id, true), undefined, true);
+      confirmSectionDelete(section.id, true);
     } else setSectionDeleteId(section.id);
   }
 
-  const derived = data ? deriveListDetail(target.listId, target.spaceId, data.sections, data.items) : null;
+  function confirmSectionDelete(sectionId: string, preserveItems: boolean) {
+    void runMutation(`delete-section:${sectionId}`, () => deleteListSection(supabase, target.listId, sectionId, preserveItems), () => {
+      applyConfirmed({ kind: 'section-delete', id: sectionId, preserveItems });
+      if (!preserveItems) setUi((current) => ({ ...current, quickDrafts: Object.fromEntries(Object.entries(current.quickDrafts).filter(([key]) => key !== sectionId)) }));
+      setSectionDeleteId(null);
+    });
+  }
+
+  const derived = data ? deriveListDetail(target.listId, target.spaceId, data.sections, data.items, data.projectedUngroupedOrder) : null;
   const sectionToDelete = derived?.sections.find((entry) => entry.section.id === sectionDeleteId) ?? null;
   const editingChange = (draft: string) => setUi((current) => current.editing ? { ...current, editing: { ...current.editing, draft } } : current);
   const toggleFold = (key: string) => setUi((current) => ({ ...current, foldOpen: { ...current.foldOpen, [key]: !current.foldOpen[key] } }));
@@ -252,6 +254,6 @@ export function ListDetailPage({ userId, target, onBack, onUnavailable }: {
     </>}
     {renameOpen && data && <ListEditorSheet mode="rename" list={data.list} memberSpaces={[data.space]} eligibleSpaces={state.degraded ? [] : [data.space]} userId={userId} eligibilityStatus={state.degraded ? 'error' : 'ready'} eligibilityError={state.error} onRetryEligibility={() => { void refresh(); }} onSubmit={(name) => saveListName(name)} onCancel={() => setRenameOpen(false)} />}
     {listDelete && data && <ListDeleteDialog list={data.list} space={data.space} step={listDelete.step} busy={listDelete.busy} canConfirm={!disabled} error={listDelete.error} eligibilityError={state.error} onRetryEligibility={() => { void refresh(); }} onCancel={() => setListDelete(null)} onConfirm={() => void confirmListDelete()} />}
-    {sectionToDelete && <div className="fixed inset-0 z-40 flex items-end bg-ink/50 p-4 md:items-center" role="dialog" aria-modal="true" aria-labelledby="section-delete-title"><div className="mx-auto w-full max-w-md rounded-lg bg-white p-5 shadow-soft safe-bottom"><h2 id="section-delete-title" className="text-lg font-bold">删除分组：{sectionToDelete.section.name}</h2><p className="mt-2 text-sm text-ink/65">其中有 {sectionToDelete.region.total} 项内容。请选择处理方式。</p><div className="mt-4 space-y-2"><button className="min-h-11 w-full rounded-lg bg-teal px-4 font-semibold text-white" type="button" disabled={disabled || busyKey !== null} onClick={() => void runMutation(`delete-section:${sectionToDelete.section.id}`, () => deleteListSection(supabase, target.listId, sectionToDelete.section.id, true), () => setSectionDeleteId(null), true)}>仅删除分组</button><button className="min-h-11 w-full rounded-lg border border-coral px-4 font-semibold text-coral" type="button" disabled={disabled || busyKey !== null} onClick={() => void runMutation(`delete-section:${sectionToDelete.section.id}`, () => deleteListSection(supabase, target.listId, sectionToDelete.section.id, false), () => setSectionDeleteId(null), true)}>删除分组及其中内容</button><button className="min-h-11 w-full rounded-lg px-4" type="button" disabled={busyKey !== null} onClick={() => setSectionDeleteId(null)}>取消</button></div></div></div>}
+    {sectionToDelete && <div className="fixed inset-0 z-40 flex items-end bg-ink/50 p-4 md:items-center" role="dialog" aria-modal="true" aria-labelledby="section-delete-title"><div className="mx-auto w-full max-w-md rounded-lg bg-white p-5 shadow-soft safe-bottom"><h2 id="section-delete-title" className="text-lg font-bold">删除分组：{sectionToDelete.section.name}</h2><p className="mt-2 text-sm text-ink/65">其中有 {sectionToDelete.region.total} 项内容。请选择处理方式。</p><div className="mt-4 space-y-2"><button className="min-h-11 w-full rounded-lg bg-teal px-4 font-semibold text-white" type="button" disabled={disabled || busyKey !== null} onClick={() => confirmSectionDelete(sectionToDelete.section.id, true)}>仅删除分组</button><button className="min-h-11 w-full rounded-lg border border-coral px-4 font-semibold text-coral" type="button" disabled={disabled || busyKey !== null} onClick={() => confirmSectionDelete(sectionToDelete.section.id, false)}>删除分组及其中内容</button><button className="min-h-11 w-full rounded-lg px-4" type="button" disabled={busyKey !== null} onClick={() => setSectionDeleteId(null)}>取消</button></div></div></div>}
   </main>;
 }

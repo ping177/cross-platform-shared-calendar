@@ -30,14 +30,18 @@ function canonicalOrder<T extends { id: string; sort_order: number }>(rows: T[])
   return [...rows].sort((a, b) => a.sort_order - b.sort_order || a.id.localeCompare(b.id));
 }
 
-function region(items: ListItem[]): DetailRegion {
+function region(items: ListItem[], displayOrder?: string[]): DetailRegion {
   const sorted = canonicalOrder(items);
+  if (displayOrder) {
+    const position = new Map(displayOrder.map((id, index) => [id, index]));
+    sorted.sort((a, b) => (position.get(a.id) ?? Number.MAX_SAFE_INTEGER) - (position.get(b.id) ?? Number.MAX_SAFE_INTEGER));
+  }
   const active = sorted.filter((item) => !item.completed);
   const completed = sorted.filter((item) => item.completed);
   return { active, completed, completedCount: completed.length, total: sorted.length };
 }
 
-export function deriveListDetail(listId: string, spaceId: string, sections: ListSection[], items: ListItem[]) {
+export function deriveListDetail(listId: string, spaceId: string, sections: ListSection[], items: ListItem[], projectedUngroupedOrder?: string[]) {
   const sectionIds = new Set<string>();
   for (const section of sections) {
     if (section.list_id !== listId || sectionIds.has(section.id) || typeof section.name !== 'string') throw new Error('清单分组数据不一致，请重试。');
@@ -53,7 +57,7 @@ export function deriveListDetail(listId: string, spaceId: string, sections: List
     itemIds.add(item.id);
   }
   return {
-    ungrouped: region(items.filter((item) => item.section_id === null)),
+    ungrouped: region(items.filter((item) => item.section_id === null), projectedUngroupedOrder),
     sections: canonicalOrder(sections).map((section) => ({
       section,
       region: region(items.filter((item) => item.section_id === section.id)),
@@ -89,12 +93,21 @@ type ConfirmedDetailChange =
   | { kind: 'list'; row: List }
   | { kind: 'section'; row: ListSection }
   | { kind: 'item'; row: ListItem }
-  | { kind: 'item-delete'; id: string };
+  | { kind: 'item-delete'; id: string }
+  | { kind: 'section-delete'; id: string; preserveItems: boolean };
 
-export function applyConfirmedDetailChange<T extends { list: List; sections: ListSection[]; items: ListItem[] }>(data: T, change: ConfirmedDetailChange): T {
+export function applyConfirmedDetailChange<T extends { list: List; sections: ListSection[]; items: ListItem[]; projectedUngroupedOrder?: string[] }>(data: T, change: ConfirmedDetailChange): T {
   if (change.kind === 'list') return { ...data, list: change.row };
   if (change.kind === 'section') {
     return { ...data, sections: [...data.sections.filter((section) => section.id !== change.row.id), change.row] };
+  }
+  if (change.kind === 'section-delete') {
+    const sections = data.sections.filter((section) => section.id !== change.id);
+    if (!change.preserveItems) return { ...data, sections, items: data.items.filter((item) => item.section_id !== change.id) };
+    const ungrouped = canonicalOrder(data.items.filter((item) => item.section_id === null));
+    const moved = canonicalOrder(data.items.filter((item) => item.section_id === change.id));
+    return { ...data, sections, items: data.items.map((item) => item.section_id === change.id ? { ...item, section_id: null } : item),
+      projectedUngroupedOrder: [...ungrouped, ...moved].map((item) => item.id) };
   }
   if (change.kind === 'item-delete') return { ...data, items: data.items.filter((item) => item.id !== change.id) };
   if (change.row.section_id && !data.sections.some((section) => section.id === change.row.section_id)) return data;

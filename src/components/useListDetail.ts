@@ -47,7 +47,7 @@ export function useListDetail(userId: string, target: ListDetailTarget, onUnavai
     void refresh();
   }, [refresh]);
 
-  const applyConfirmed = useCallback((change: { kind: 'list'; row: List } | { kind: 'section'; row: ListSection } | { kind: 'item'; row: ListItem } | { kind: 'item-delete'; id: string }) => {
+  const applyConfirmed = useCallback((change: { kind: 'list'; row: List } | { kind: 'section'; row: ListSection } | { kind: 'item'; row: ListItem } | { kind: 'item-delete'; id: string } | { kind: 'section-delete'; id: string; preserveItems: boolean }) => {
     guard.current.invalidate();
     setState((current) => current.status === 'ready'
       ? { ...current, data: applyConfirmedDetailChange(current.data, change) }

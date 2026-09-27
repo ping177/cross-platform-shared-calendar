@@ -148,13 +148,13 @@ Slice 1–4、integration、两轮 acceptance fixes、frontend pre-deploy gate�
 
 同一 browser/tab session 刷新恢复当前用户的有效页面位置；仅持久化页面与稳定 ID，保留既有 Auth、membership、module、Review participant 检查及独立筛选。实现、integration review、本地 authenticated acceptance、Production deployment/public smoke、用户 Production authenticated refresh acceptance 均 `PASS`。Production 无 Review 数据，Review Detail 数据场景未在本轮线上重测；自动 integration 与本地验收仍覆盖该路径。刷新回首页已解决；既有 >500 kB bundle warning 非阻塞。不包含 router、browser history、可分享深链、PWA cold-start 永久记忆或草稿持久化。当前 v0.1.15 Slices 1–2 均 `CLOSED / PASS`。
 
-## v0.1.15 — Shared Lists — IN PROGRESS / SLICE 2 CLOSED / PASS
+## v0.1.15 — Shared Lists — IN PROGRESS / SLICES 1–2 CLOSED / PASS
 
 Canonical contract: [v0.1.15 Shared Lists Specification](./v0.1.15_SHARED_LISTS_SPEC.md). The read-only repository investigation was reviewed and accepted as the basis for this docs-only Design Freeze. Personal and Shared Space support, the three-table model, derived List completion, deterministic ordering, atomic Section/List deletion semantics, quick-add, module eligibility, Realtime, mobile item drag, concurrency boundaries, non-goals, tests, and implementation slices are frozen there.
 
-Slice 1 DB foundation and Slice 2 Overview / Ownership are `CLOSED / PASS`; Slice 2 Production and mobile/PWA acceptance passed. Slice 3 List Detail / Collaboration is `LOCAL + DESKTOP AUTHENTICATED PASS`: focused Node 25/25, full Node 349/349, build and diff-check passed; user-run desktop, dual-account detail Realtime including Item/Section DELETE, draft preservation, detail restore, and responsiveness recheck passed. Slice 3 mobile/PWA acceptance awaits verified Vercel deployment. Slice 4 remains `NOT STARTED`. No current blocker is recorded.
+Slice 1 DB foundation and Slice 2 Overview / Ownership are `CLOSED / PASS`; Slice 2 Production and mobile/PWA acceptance passed. Slice 3 desktop authenticated, dual-account detail Realtime including Item/Section DELETE, draft preservation, detail restore, and earlier responsiveness recheck passed. User reports Slice 3 mobile/PWA acceptance otherwise passed; Section-delete responsiveness has a local frontend correction awaiting user recheck. Slice 3 remains open; Slice 4 is `NOT STARTED`. No current blocker is recorded.
 
-Next Action: verify the Slice 3 Vercel deployment, then perform user-run mobile/PWA acceptance.
+Next Action: verify Vercel activation of the corrected frontend, then perform the user-run Section-delete device responsiveness recheck.
 
 ## Directional Roadmap — Shared Life Architecture Frozen
 

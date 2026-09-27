@@ -39,8 +39,11 @@ test('detail source keeps Slice 4 controls and unsupported Item fields absent', 
   assert.match(source, /setListItemCompleted|deleteListItem/);
   assert.match(source, /requestAnimationFrame\(\(\) => inputRefs\.current\.get\(key\)\?\.focus\(\)\)/);
   assert.match(source, /commitConfirmedDetailMutation/);
-  assert.match(source, /deleteListSection[\s\S]*?true\), undefined, true\)/);
-  assert.doesNotMatch(source, /applyConfirmed\(\{ kind: 'section-delete'/);
+  assert.match(source, /applyConfirmed\(\{ kind: 'section-delete'/);
+  assert.match(source, /applyConfirmed\(\{ kind: 'section-delete'[\s\S]*?setSectionDeleteId\(null\)/);
+  assert.match(source, /confirmSectionDelete\(sectionToDelete\.section\.id, true\)/);
+  assert.match(source, /confirmSectionDelete\(sectionToDelete\.section\.id, false\)/);
+  assert.doesNotMatch(source, /awaitCanonical/);
   assert.match(realtime, /guard\.current\.invalidate\(\)/);
   for (const table of ['lists', 'list_sections', 'list_items']) assert.match(realtime, new RegExp(`table: '${table}'`));
   assert.match(realtime, /signal\.stop\(\)[\s\S]*?removeChannel\(channel\)/);

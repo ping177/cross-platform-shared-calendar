@@ -1,5 +1,10 @@
 # Testing
 
+## v0.1.15 Slice 3 Section-delete responsiveness — LOCAL PASS / USER RECHECK PENDING
+
+- User-reported mobile/PWA acceptance otherwise **PASS**. Section-delete responsiveness is the sole pending user recheck. Previously accepted desktop authenticated, two-account detail Realtime including Item/Section DELETE, draft/restore, and earlier responsiveness checks remain **PASS**.
+- Focused `node --test tests/lists-detail.test.ts tests/lists-detail-ui.test.ts tests/lists-detail-data.test.ts`: **13/13 PASS**. Full `node --test tests/*.test.ts tests/*.test.js`: **352/352 PASS**. `npm run build` and `git diff --check`: **PASS**. The tests cover confirmation-only destructive and preserve updates, ungrouped append order without client `sort_order` edits, dialog closure path, failure, UI state retention, background canonical convergence, and stale-read guarding. Existing >500 kB chunk warning is non-blocking.
+
 ## v0.1.15 Shared Lists Slice 3 desktop authenticated acceptance — PASS / MOBILE-PWA PENDING
 
 - User-reported desktop authenticated detail acceptance **PASS** for Personal/Shared flows, draft preservation and detail restoration. Shared dual-account detail Realtime, including Item and Section DELETE, **PASS**. User recheck of quick-add, Section create/rename and related responsiveness correction **PASS**. Do not repeat these accepted desktop checks.
