@@ -1,11 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { createServer } from 'vite';
 import {
   createAggregateTaskLoader,
   defaultTaskCreateTarget,
   eligibleTaskSpaces,
   normalizeTaskFilter,
   readAggregateTasks,
+  readEligibleTasks,
   subscribeTaskRealtimeScope,
   taskFilterSpaces,
   taskRealtimeSpaceIds,
@@ -98,9 +100,59 @@ test('aggregate Tasks reads every Space and page, including completed, distant, 
   assert.ok(result.grouped.open.some((item) => item.id === 'other-assignee'));
   assert.deepEqual(reads, [
     { spaceId: personal.id, start: 0, end: 499 },
-    { spaceId: personal.id, start: 500, end: 999 },
     { spaceId: shared.id, start: 0, end: 499 },
+    { spaceId: personal.id, start: 500, end: 999 },
   ]);
+});
+
+test('eligible Space Task reads overlap without skipping per-Space pagination', async () => {
+  let releaseFirst!: () => void;
+  const firstPage = new Promise<void>((resolve) => { releaseFirst = resolve; });
+  const started: string[] = [];
+  const loaded = readEligibleTasks([personal, shared], 'all', async (spaceId, start) => {
+    started.push(`${spaceId}:${start}`);
+    if (spaceId === personal.id && start === 0) {
+      await firstPage;
+      return { data: Array.from({ length: 500 }, (_, index) => task(`p${index}`, personal.id, null)), count: 501, error: null };
+    }
+    if (spaceId === personal.id) return { data: [task('p500', personal.id, null)], count: 501, error: null };
+    return { data: [task('s', shared.id, null)], count: 1, error: null };
+  });
+  await Promise.resolve();
+  assert.deepEqual(started, ['personal:0', 'shared:0']);
+  releaseFirst();
+  assert.equal((await loaded).grouped.open.length, 502);
+  assert.deepEqual(started, ['personal:0', 'shared:0', 'personal:500']);
+});
+
+test('warm Tasks entry skips Space/module discovery while reading Tasks and members', async () => {
+  const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
+  try {
+    const { supabase } = await vite.ssrLoadModule('/src/lib/supabase.ts');
+    const { loadAggregateTasks } = await vite.ssrLoadModule('/src/lib/aggregate-tasks-data.ts');
+    const originalFrom = supabase.from;
+    const originalGetUser = supabase.auth.getUser;
+    const visited: string[] = [];
+    try {
+      supabase.auth.getUser = async () => ({ data: { user: { id: 'me' } }, error: null });
+      supabase.from = (table: string) => {
+        visited.push(table);
+        if (table !== 'tasks' && table !== 'space_members') throw new Error(`redundant discovery: ${table}`);
+        return {
+          select() { return this; }, eq() { return this; },
+          order(key: string) { return table === 'space_members' && key === 'user_id'
+            ? Promise.resolve({ data: [], error: null }) : this; },
+          async range() { return { data: [task('t', personal.id, null)], count: 1, error: null }; },
+        };
+      };
+      const result = await loadAggregateTasks('me', 'all', { memberSpaces: [personal], eligibleSpaces: [personal] });
+      assert.deepEqual(visited, ['tasks', 'space_members']);
+      assert.deepEqual(result.grouped.open.map((item: Task) => item.id), ['t']);
+    } finally {
+      supabase.from = originalFrom;
+      supabase.auth.getUser = originalGetUser;
+    }
+  } finally { await vite.close(); }
 });
 
 test('eligible module rows paginate beyond 500 Spaces without dropping later Spaces', async () => {

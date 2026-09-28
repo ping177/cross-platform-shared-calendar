@@ -70,23 +70,21 @@ export async function readListOverview(eligible: CurrentSpace[], operations: {
   listPage: (spaceId: string, start: number, end: number) => Promise<Page<List>>;
   itemPage: (spaceId: string, start: number, end: number) => Promise<Page<ListItemOverview>>;
 }) {
-  const lists: List[] = [];
-  const items: ListItemOverview[] = [];
-  for (const space of eligible) {
-    lists.push(...await completeRows(async (start, end) => {
+  const groups = await Promise.all(eligible.map(async (space) => Promise.all([
+    completeRows(async (start, end) => {
       const page = await operations.listPage(space.id, start, end);
       if (!page.error && page.data === null) throw new Error('清单数据读取不完整，请重试。');
       return page;
     },
-      (row) => row.id, (row) => row.space_id === space.id, '清单'));
-    items.push(...await completeRows(async (start, end) => {
+      (row) => row.id, (row) => row.space_id === space.id, '清单'),
+    completeRows(async (start, end) => {
       const page = await operations.itemPage(space.id, start, end);
       if (!page.error && page.data === null) throw new Error('清单项目数据读取不完整，请重试。');
       return page;
     },
-      (row) => row.id, (row) => row.space_id === space.id, '清单项目'));
-  }
-  return groupOverviewLists(lists, items);
+      (row) => row.id, (row) => row.space_id === space.id, '清单项目'),
+  ])));
+  return groupOverviewLists(groups.flatMap(([lists]) => lists), groups.flatMap(([, items]) => items));
 }
 
 export function createListsRefreshSignal(refresh: () => void, delayMs = 150) {

@@ -62,6 +62,36 @@ test('Lists overview reads every page and rejects incomplete Item results', asyn
   } finally { await vite.close(); }
 });
 
+test('Lists and Items begin together across eligible Spaces and publish only a consistent result', async () => {
+  const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
+  try {
+    const { readListOverview } = await vite.ssrLoadModule('/src/lib/lists.ts');
+    const started: string[] = [];
+    let release!: () => void;
+    const held = new Promise<void>((resolve) => { release = resolve; });
+    const loading = readListOverview([personal, shared], {
+      listPage: async (spaceId: string) => {
+        started.push(`list:${spaceId}`);
+        if (spaceId === personal.id) await held;
+        return { data: [list(`list-${spaceId}`, spaceId)], count: 1, error: null };
+      },
+      itemPage: async (spaceId: string) => {
+        started.push(`item:${spaceId}`);
+        return { data: [item(`item-${spaceId}`, `list-${spaceId}`, spaceId, true)], count: 1, error: null };
+      },
+    });
+    await Promise.resolve();
+    assert.deepEqual(started, ['list:personal', 'item:personal', 'list:shared', 'item:shared']);
+    release();
+    const result = await loading;
+    assert.equal(result.completed.length, 2);
+    await assert.rejects(readListOverview([personal], {
+      listPage: async () => ({ data: [], count: 0, error: null }),
+      itemPage: async () => ({ data: [item('orphan', 'missing', personal.id, true)], count: 1, error: null }),
+    }), /读取不一致/);
+  } finally { await vite.close(); }
+});
+
 test('overview Realtime signals coalesce bursts and clean old Space channels', async () => {
   const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
   try {

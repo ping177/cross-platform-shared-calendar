@@ -21,21 +21,41 @@ export async function resolveHubEligibility(
 }
 
 // CalendarApp owns this hook for the lifetime of one authenticated user session.
-export function useModuleAvailability(userId: string, ready: boolean) {
+export function useModuleAvailability(userId: string, spaces: CurrentSpace[]) {
   const [availability, setAvailability] = useState<ModuleAvailability | null>(null);
+  const [validatedSpacesKey, setValidatedSpacesKey] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   const guard = useRef(createRequestGuard());
-  async function refresh() {
+  const pending = useRef<{ key: string; promise: Promise<void> } | null>(null);
+  const spacesKey = spaces.map((space) => `${space.id}:${space.membershipRole}`).join(',');
+  const latestSpacesKey = useRef(spacesKey);
+  latestSpacesKey.current = spacesKey;
+  function invalidate() {
+    guard.current.invalidate();
+    pending.current = null;
+    setValidatedSpacesKey(null);
+  }
+  function refresh(force = false): Promise<void> {
+    if (!force && pending.current?.key === spacesKey) return pending.current.promise;
     const request = guard.current.begin();
-    const read = await resolveHubEligibility(() => loadTaskEligibility(userId), () => loadReviewEligibility(userId), () => loadListsEligibility(userId));
-    if (guard.current.isCurrent(request)) setAvailability((previous) => mergeModuleAvailability(previous, read));
+    setRefreshing(true);
+    const operation = resolveHubEligibility(() => loadTaskEligibility(userId), () => loadReviewEligibility(userId), () => loadListsEligibility(userId)).then((read) => {
+      if (!guard.current.isCurrent(request) || latestSpacesKey.current !== spacesKey) return;
+      setAvailability((previous) => mergeModuleAvailability(previous, read));
+      setValidatedSpacesKey(spacesKey);
+      setRefreshing(false);
+    });
+    pending.current = { key: spacesKey, promise: operation };
+    void operation.then(() => { if (pending.current?.promise === operation) pending.current = null; });
+    return operation;
   }
   function moduleChanged(key: ModuleKey, spaceId: string, state: 'enabled' | 'disabled') {
-    guard.current.invalidate();
+    invalidate();
     setAvailability((previous) => applyModuleToggle(previous, key, spaceId, state));
-    void refresh();
+    void refresh(true);
   }
   useEffect(() => {
-    if (!ready) return;
+    if (!spaces.length) return;
     void refresh();
     const onForeground = () => { if (document.visibilityState === 'visible') void refresh(); };
     const onOnline = () => { void refresh(); };
@@ -47,9 +67,10 @@ export function useModuleAvailability(userId: string, ready: boolean) {
       window.removeEventListener('online', onOnline);
       document.removeEventListener('visibilitychange', onForeground);
       guard.current.invalidate();
+      pending.current = null;
     };
-  }, [userId, ready]);
-  return { availability, refresh, moduleChanged };
+  }, [userId, spacesKey]);
+  return { availability, refreshing: refreshing || validatedSpacesKey !== spacesKey, refresh, invalidate, moduleChanged };
 }
 
 export function ModuleHub({ availability, onRefresh, onOpenTasks, onOpenReview, onOpenLists }: {

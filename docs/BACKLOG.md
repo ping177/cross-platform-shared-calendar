@@ -154,7 +154,11 @@ Canonical contract: [v0.1.15 Shared Lists Specification](./v0.1.15_SHARED_LISTS_
 
 Slices 1–4 and v0.1.15 are `CLOSED / PASS`. Final user acceptance covers desktop authenticated flows, dual-account Realtime, mobile/PWA Item drag and long-list auto-scroll. Full Node 356/356 and build passed. Stale reorder is `AUTOMATED PASS / MANUAL NOT REQUIRED`; Section drag is `DEFERRED / NON-BLOCKING`, and the existing bundle warning is non-blocking. No current blocker is recorded.
 
-Next Action: post-v0.1.15 backlog review / next-version selection; no next version has started.
+The next selected version is v0.1.16 below.
+
+## v0.1.16 — Module Entry Responsiveness / Data Flow Simplification — IN PROGRESS
+
+First authenticated Tasks re-entry acceptance FAILED: navigating to the Hub unmounted the view and discarded validated rows. The read-only RCA led to `V016_REENTRY_RETENTION_DESIGN_FROZEN` and bounded same-session display snapshots for Tasks, Review, and Lists. The second local authenticated acceptance PASSED for all three; Lists had no second full-page loading flash. Local implementation and automated verification passed; Production/Vercel mobile/PWA recheck remains pending. Valid entry hints remove repeated Space/module discovery; module-specific canonical reads, invalidation, completeness, RLS, and view-owned Realtime rereads remain. First-entry latency was intentionally not redesigned. No generic data framework, backend change, or dependency was added.
 
 ## Directional Roadmap — Shared Life Architecture Frozen
 
@@ -168,6 +172,7 @@ The long-term relationships and v0.1.10 scope are frozen in [Shared Life Archite
 - v0.1.14 — 回顾 (CLOSED / PASS; backend/date chronology, frontend deployment, public smoke, Production authenticated acceptance and final exact-ID cleanup PASS; Review 0/0 with two enabled module rows).
 - v0.1.14.1 — Navigation Persistence (CLOSED / PASS; local and Production authenticated refresh acceptance PASS; no Review fixture created).
 - v0.1.15 — Shared Lists (CLOSED / PASS; Slices 1–4 CLOSED / PASS; desktop, dual-account Realtime and mobile/PWA PASS; Section drag DEFERRED / NON-BLOCKING).
+- v0.1.16 — Module Entry Responsiveness / Data Flow Simplification (IN PROGRESS; local automated and authenticated desktop PASS; Production/Vercel mobile/PWA recheck pending).
 - Later candidates without fixed versions/order: Important Dates, Calendar Sources v1, Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules. Priority and order may change based on real product use.
 - Future direction only: consider projecting/sharing a Personal Event into another Space while keeping one canonical Event owner Space, avoiding duplicate canonical objects, and ensuring that leaving the target Shared Space does not affect the source Event. This is outside v0.1.13; do not implement or reserve schema for it in this version.
 - Native: decision gate only; no committed implementation version.

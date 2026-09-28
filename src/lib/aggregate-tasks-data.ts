@@ -1,5 +1,6 @@
-import { readAggregateTasks, readTaskEligibility, taskFilterSpaces, type TaskFilter, type TaskModuleRow } from './aggregate-tasks.ts';
+import { readEligibleTasks, readTaskEligibility, taskFilterSpaces, type TaskFilter, type TaskModuleRow } from './aggregate-tasks.ts';
 import { listCurrentSpaces } from './current-spaces.ts';
+import type { ModuleEntry } from './module-availability.ts';
 import { readSpaceMembers } from './space-members.ts';
 import { supabase } from './supabase.ts';
 import type { Task } from '../types.ts';
@@ -23,19 +24,19 @@ export async function loadTaskEligibility(userId: string) {
   return { memberSpaces, eligibleSpaces };
 }
 
-export async function loadAggregateTasks(userId: string, filter: TaskFilter) {
+export async function loadAggregateTasks(userId: string, filter: TaskFilter, entry?: ModuleEntry) {
   await assertCurrentUser(userId);
-  const spaces = await listCurrentSpaces(userId);
-  const result = await readAggregateTasks(spaces, filter, {
-    modulePage: taskModulePage,
-    taskPage: async (spaceId, start, end) => {
-      const page = await supabase.from('tasks').select('*', { count: 'exact' })
-        .eq('space_id', spaceId).order('id').range(start, end);
-      return { data: page.data as Task[] | null, count: page.count, error: page.error };
-    },
-  });
-  const memberPairs = await Promise.all(taskFilterSpaces(result.eligibleSpaces, result.filter)
-    .map(async (space) => [space.id, await readSpaceMembers(space.id)] as const));
+  const eligibility = entry ?? await loadTaskEligibility(userId);
+  const taskPage = async (spaceId: string, start: number, end: number) => {
+    const page = await supabase.from('tasks').select('*', { count: 'exact' })
+      .eq('space_id', spaceId).order('id').range(start, end);
+    return { data: page.data as Task[] | null, count: page.count, error: page.error };
+  };
+  const [result, memberPairs] = await Promise.all([
+    readEligibleTasks(eligibility.eligibleSpaces, filter, taskPage),
+    Promise.all(taskFilterSpaces(eligibility.eligibleSpaces, filter)
+      .map(async (space) => [space.id, await readSpaceMembers(space.id)] as const)),
+  ]);
   await assertCurrentUser(userId);
-  return { ...result, memberSpaces: spaces, membersBySpaceId: Object.fromEntries(memberPairs) };
+  return { ...result, memberSpaces: eligibility.memberSpaces, membersBySpaceId: Object.fromEntries(memberPairs) };
 }

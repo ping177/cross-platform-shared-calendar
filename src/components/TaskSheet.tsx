@@ -19,9 +19,10 @@ type TaskSheetProps = {
   sourceSpaceLabel?: string;
   createTarget?: CreateTargetControl;
   validateGlobalCreate?: (assignedUserId: string | null) => Promise<void>;
+  actionsAllowed?: boolean;
 };
 
-export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, onSaved, onMutationError, sourceSpaceLabel, createTarget, validateGlobalCreate }: TaskSheetProps) {
+export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, onSaved, onMutationError, sourceSpaceLabel, createTarget, validateGlobalCreate, actionsAllowed = true }: TaskSheetProps) {
   const [title, setTitle] = useState(task?.title ?? '');
   const [assignment, setAssignment] = useState(task?.assigned_to_user_id ?? '');
   const [dueOn, setDueOn] = useState(task?.due_on ?? '');
@@ -45,6 +46,7 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
 
   async function save(event?: FormEvent, confirmed = false) {
     event?.preventDefault();
+    if (!actionsAllowed) return;
 
     let normalizedTitle: string;
     let assignedToUserId: string | null;
@@ -101,7 +103,7 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
   }
 
   async function deleteTask() {
-    if (!task) return;
+    if (!task || !actionsAllowed) return;
     setBusy(true);
     setError('');
     try {
@@ -143,7 +145,7 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
             <p className="text-sm text-ink/70">将保存到：<strong className="block break-words text-base text-ink">{createTarget?.spaces.find((item) => item.id === spaceId)?.name ?? ''}</strong></p>
             <div className="flex gap-3">
               <button className="h-12 flex-1 rounded-lg bg-mist font-semibold" type="button" disabled={busy} onClick={() => setConfirmingCreateTargetId(null)}>取消</button>
-              <button className="h-12 flex-1 rounded-lg bg-teal font-semibold text-white disabled:opacity-50" type="button" disabled={busy || !createReady} onClick={() => void save(undefined, true)}>{busy ? '保存中' : '确认保存'}</button>
+              <button className="h-12 flex-1 rounded-lg bg-teal font-semibold text-white disabled:opacity-50" type="button" disabled={busy || !actionsAllowed || !createReady} onClick={() => void save(undefined, true)}>{busy ? '保存中' : '确认保存'}</button>
             </div>
           </div>
         ) : confirmingDelete && task ? (
@@ -151,7 +153,7 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
             <p className="text-sm text-ink/70">确定删除「{task.title}」吗？删除后无法恢复。</p>
             <div className="flex gap-3">
               <button className="h-12 flex-1 rounded-lg bg-mist font-semibold disabled:opacity-60" type="button" disabled={busy} onClick={() => setConfirmingDelete(false)}>取消</button>
-              <button className="h-12 flex-1 rounded-lg bg-coral font-semibold text-white disabled:opacity-60" type="button" disabled={busy} onClick={() => void deleteTask()}>{busy ? '删除中' : '确认删除'}</button>
+              <button className="h-12 flex-1 rounded-lg bg-coral font-semibold text-white disabled:opacity-60" type="button" disabled={busy || !actionsAllowed} onClick={() => void deleteTask()}>{busy ? '删除中' : '确认删除'}</button>
             </div>
           </div>
         ) : (
@@ -177,11 +179,11 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
             </div>
             <div className="flex gap-3 pt-2">
               {task && (
-                <button className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-coral/10 text-coral disabled:opacity-60" type="button" onClick={() => setConfirmingDelete(true)} disabled={busy} aria-label="删除任务">
+                <button className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-coral/10 text-coral disabled:opacity-60" type="button" onClick={() => setConfirmingDelete(true)} disabled={busy || !actionsAllowed} aria-label="删除任务">
                   <Trash2 size={20} />
                 </button>
               )}
-              <button className="min-h-12 flex-1 break-words rounded-lg bg-teal px-2 py-2 font-semibold text-white disabled:opacity-60" type="submit" disabled={busy || !createReady}>{busy ? '保存中' : createTarget && !task ? `保存到「${createTarget.spaces.find((item) => item.id === createTarget.selectedId)?.name ?? ''}」` : '保存'}</button>
+              <button className="min-h-12 flex-1 break-words rounded-lg bg-teal px-2 py-2 font-semibold text-white disabled:opacity-60" type="submit" disabled={busy || !actionsAllowed || !createReady}>{busy ? '保存中' : createTarget && !task ? `保存到「${createTarget.spaces.find((item) => item.id === createTarget.selectedId)?.name ?? ''}」` : '保存'}</button>
             </div>
           </form>
         )}

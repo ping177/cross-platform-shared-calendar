@@ -1,5 +1,14 @@
 # Decisions
 
+## v0.1.16 Module Entry Responsiveness — Design Frozen — 2026-09-28
+
+- `V016_REENTRY_RETENTION_DESIGN_FROZEN` amends the design after first authenticated Tasks acceptance failed: module unmount discarded its validated business view. CalendarApp now retains three narrow, user- and scope-bound in-memory display snapshots for Tasks, Review, and Lists. A safe Hub re-entry restores the last validated view immediately and starts that module's canonical reread in the background. This does not authorize mutations or replace Supabase/RLS. Confirmed eligibility or membership loss, mutation rejection, and true auth boundaries invalidate affected snapshots; routine same-user token refresh does not.
+- A future Space-level optional module should reuse valid CalendarApp/session entry information and restore its own still-safe validated view on ordinary same-session Hub re-entry, then read its own canonical business data in the background. Module-specific snapshots provide display continuity, not business authority; no generic cache layer is implied.
+- Space-level module entry reuses authenticated CalendarApp current Spaces and valid session-scoped module eligibility as hints, then reads that module's canonical business data. Repeated entry does not rediscover current Spaces or `space_modules` while the hint is valid. Supabase, RLS, bounded invalidation, and canonical mutation checks remain authoritative.
+- Only entry discovery is shared. Tasks retain paginated Tasks and member reads; Review retains rounds → entries; Lists retain complete Lists/Items reads and consistency checks. Independent reads may overlap, while background rereads keep validated content visible. No generic module framework, persistent business-data cache, dependency, SQL, or backend change is planned.
+- First-entry latency is outside this correction: no partial publication, prefetch, business-data cache, Hub business-data loading, or timing framework. Reconsider only if real use later finds first entry materially problematic.
+- Implementation complexity target is `SIMPLER`. The second local authenticated acceptance PASSED for Tasks, Review, and Lists after the initial Tasks failure; v0.1.16 remains `IN PROGRESS` pending Production/Vercel mobile/PWA recheck.
+
 ## v0.1 Product Shape
 
 - v0.1 is a Web/PWA, not a native iOS or Android app.

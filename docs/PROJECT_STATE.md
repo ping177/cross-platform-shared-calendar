@@ -8,13 +8,15 @@
 
 ## Current version
 
-v0.1.15
+v0.1.16
 
 ## Current status
 
-v0.1.15 Shared Lists `CLOSED / PASS`；Slices 1–4 均 `CLOSED / PASS`。用户最终确认桌面真实账号、双账号 Realtime 协作、移动端/PWA Item drag 与长列表自动滚动验收 `PASS`；完整 Node 356/356、build `PASS`。stale reorder 为 `AUTOMATED PASS / MANUAL NOT REQUIRED`；Section drag 按冻结设计 `DEFERRED / NON-BLOCKING`，既有 >500 kB bundle warning 仍非阻塞。Canonical contract: [v0.1.15 Shared Lists Specification](./v0.1.15_SHARED_LISTS_SPEC.md)。暂无明确阻塞。
+v0.1.16 Module Entry Responsiveness / Data Flow Simplification `IN PROGRESS`；本地实现、Node 371/371、build 与用户真实账号桌面复测均 PASS。首次 Tasks 重入验收曾因卸载丢失已验证视图而 FAILED，修正后 Tasks/Review/Lists 重入均 PASS，Lists 无二次整页 loading 闪回。Production/Vercel 移动端/PWA 复测待执行，尚非最终 `CLOSED / PASS`。v0.1.15 保持 `CLOSED / PASS`。暂无明确阻塞。
 
 ## Latest completed
+
+v0.1.16 `LOCAL_AUTHENTICATED_ACCEPTANCE = PASS`：用户确认 Tasks 返回功能中心后再次进入明显更快，Review 立即显示已验证历史，Lists 立即显示已验证总览且后台/SUBSCRIBED 刷新无二次整页 loading。此前首次 Tasks 验收 FAILED；只读 RCA 确认卸载导致视图状态丢失，三模块同会话视图保留修正后复测通过。完整 Node 371/371 与 build PASS；Production/Vercel 移动端/PWA 复测待执行。
 
 v0.1.15 Shared Lists 最终用户验收 `CLOSED / PASS`：四个 Slice 均关闭；Slice 4 移动端/PWA Item drag、长列表自动滚动通过，保留此前桌面、双账号 Realtime 与自动 stale-set 验证结论。Section drag 与 bundle warning 均不阻塞本版关闭；本次仅做治理文档 closeout，未改业务代码或 Production。
 
@@ -121,7 +123,8 @@ Public URL: https://cross-platform-shared-calendar.vercel.app/
 Provider: Vercel
 Backend: Supabase Free
 Backend rollout: v0.1.15 Slice 1 Shared Lists exact forward patch APPLIED ONCE / POSTFLIGHT PASS; v0.1.14 review foundation and date chronology forward patches remain applied; v0.1.13 lifecycle remains applied.
-Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/mobile acceptance passed. User reports final Slice 4 desktop, dual-account Realtime, mobile/PWA Item drag and long-list auto-scroll acceptance `PASS`; v0.1.15 is `CLOSED / PASS`. This docs-only closeout does not independently recheck Vercel or operate Production. Existing Review backend keeps same-Space/date uniqueness, duplicate-safe create/date correction and `get_my_previous_review_plan`; final Review fixtures remain 0/0 while Shared and Personal Review modules remain enabled. Historical version-specific acceptance limits remain in DEVLOG/TESTING. `space_modules` remains outside Realtime; `send-test-push` remains ACTIVE v4 reviewed-equivalent and `send-reminders` ACTIVE v2 / `verify_jwt=false`. Vault, secrets and Cron were not changed.
+v0.1.16 frontend: local authenticated acceptance PASS; Production/Vercel mobile/PWA recheck pending. No v0.1.16 frontend deployment is claimed.
+Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/mobile acceptance passed. User reports final Slice 4 desktop, dual-account Realtime, mobile/PWA Item drag and long-list auto-scroll acceptance `PASS`; v0.1.15 is `CLOSED / PASS`. This v0.1.16 local closeout does not independently recheck Vercel or operate Production. Existing Review backend keeps same-Space/date uniqueness, duplicate-safe create/date correction and `get_my_previous_review_plan`; final Review fixtures remain 0/0 while Shared and Personal Review modules remain enabled. Historical version-specific acceptance limits remain in DEVLOG/TESTING. `space_modules` remains outside Realtime; `send-test-push` remains ACTIVE v4 reviewed-equivalent and `send-reminders` ACTIVE v2 / `verify_jwt=false`. Vault, secrets and Cron were not changed.
 
 ## Version Index
 
@@ -154,6 +157,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 - v0.1.14 — 回顾（CLOSED / PASS；backend/date chronology Production PASS；frontend deployed；public smoke 与 Production authenticated acceptance PASS；final exact-ID cleanup PASS，Review 0/0、两条 module enabled）
 - v0.1.14.1 — Navigation Persistence（CLOSED / PASS；实现、integration review、本地及 Production 真实账号验收、Production deployment/public smoke PASS）
 - v0.1.15 — Shared Lists（CLOSED / PASS；Slices 1–4 CLOSED / PASS；desktop、dual-account Realtime、mobile/PWA PASS；Section drag DEFERRED / NON-BLOCKING）
+- v0.1.16 — Module Entry Responsiveness / Data Flow Simplification（IN PROGRESS；local automated + authenticated desktop PASS；Production/Vercel mobile/PWA recheck pending）
 
 ## Last verified
 
@@ -161,7 +165,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-Next Action: post-v0.1.15 backlog review / next-version selection。尚未选定或启动下一版本。
+Next Action: 在本地验收通过的 v0.1.16 提交经明确授权后推送前端，确认 Vercel 部署，再由用户执行 Production 移动端/PWA 重入复测；通过后再评估最终 `CLOSED / PASS`。
 
 ## Blockers
 
@@ -234,4 +238,4 @@ Next Action: post-v0.1.15 backlog review / next-version selection。尚未选定
 
 ## Handoff Prompt
 
-v0.1.15 Shared Lists and Slices 1–4 are `CLOSED / PASS`; see `docs/v0.1.15_SHARED_LISTS_SPEC.md`. User-reported desktop authenticated, dual-account Realtime, mobile/PWA Item drag and long-list auto-scroll acceptance passed; full Node 356/356 and build passed. Stale reorder is `AUTOMATED PASS / MANUAL NOT REQUIRED`; Section drag is deferred by design and the bundle warning remains non-blocking. Next: post-v0.1.15 backlog review / next-version selection. No current blocker; no next version has started.
+v0.1.16 module-entry simplification remains `IN PROGRESS`. The first authenticated Tasks re-entry failed from unmount state loss; the bounded three-module correction now has user-reported `LOCAL_AUTHENTICATED_ACCEPTANCE = PASS` and full Node 371/371/build PASS. First-entry latency was not redesigned. Next: explicitly authorized frontend push, Vercel confirmation, then user Production mobile/PWA recheck. Do not mark `CLOSED / PASS` before that acceptance. v0.1.15 remains `CLOSED / PASS`.

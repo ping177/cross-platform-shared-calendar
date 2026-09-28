@@ -2,6 +2,7 @@ import { completeRows, type Page } from './aggregate-calendar.ts';
 import { homeCreateTarget } from './global-create.ts';
 import { createRequestGuard } from './request-guard.ts';
 import { groupTasks } from './task.ts';
+import type { ModuleEntry } from './module-availability.ts';
 import type { CurrentSpace, Space, Task } from '../types.ts';
 
 export type TaskFilter = 'all' | { spaceId: string };
@@ -62,30 +63,35 @@ export async function readAggregateTasks(spaces: CurrentSpace[], filter: TaskFil
   taskPage: (spaceId: string, start: number, end: number) => Promise<Page<Task>>;
 }) {
   const eligibleSpaces = await readTaskEligibility(spaces, operations.modulePage);
+  return readEligibleTasks(eligibleSpaces, filter, operations.taskPage);
+}
+
+export async function readEligibleTasks(eligibleSpaces: CurrentSpace[], filter: TaskFilter,
+  taskPage: (spaceId: string, start: number, end: number) => Promise<Page<Task>>) {
   const validFilter = normalizeTaskFilter(filter, eligibleSpaces);
-  const tasks: Task[] = [];
   const sourceSpacesById: Record<string, SourceSpace> = {};
-  for (const space of taskFilterSpaces(eligibleSpaces, validFilter)) {
+  const taskGroups = await Promise.all(taskFilterSpaces(eligibleSpaces, validFilter).map(async (space) => {
     sourceSpacesById[space.id] = { id: space.id, name: space.name, kind: space.kind };
-    tasks.push(...await completeRows(
-      (start, end) => operations.taskPage(space.id, start, end),
+    return completeRows(
+      (start, end) => taskPage(space.id, start, end),
       (task) => task.id,
       (task) => task.space_id === space.id,
       '任务',
-    ));
-  }
+    );
+  }));
+  const tasks = taskGroups.flat();
   if (new Set(tasks.map((task) => task.id)).size !== tasks.length) throw new Error('任务来源身份重复，请重试。');
   return { filter: validFilter, eligibleSpaces, grouped: groupTasks(tasks), sourceSpacesById };
 }
 
-export function createAggregateTaskLoader<T>(read: (userId: string, filter: TaskFilter) => Promise<T>) {
+export function createAggregateTaskLoader<T>(read: (userId: string, filter: TaskFilter, entry?: ModuleEntry) => Promise<T>) {
   const guard = createRequestGuard();
   return {
-    async load(userId: string, filter: TaskFilter, publish: (result: { status: 'ready'; data: T } | { status: 'error'; error: unknown }) => void) {
+    async load(userId: string, filter: TaskFilter, publish: (result: { status: 'ready'; data: T } | { status: 'error'; error: unknown }) => void, entry?: ModuleEntry) {
       const request = guard.begin();
       let data: T;
       try {
-        data = await read(userId, filter);
+        data = await read(userId, filter, entry);
       } catch (error) {
         if (guard.isCurrent(request)) publish({ status: 'error', error });
         return;

@@ -63,6 +63,7 @@ test('history uses bounded date/number cursor and participant snapshot rows', as
   assert.ok(log.includes('order:round_no:false'));
   assert.ok(log.includes('range:0:20'));
   assert.ok(log.includes('in:review_id:20'));
+  assert.ok(log.indexOf('from:review_rounds') < log.indexOf('from:review_entries'));
   assert.ok(!log.some((item) => item.startsWith('order:created_at')));
   const cursorLog: string[] = [];
   const next = await loadReviewHistoryPage(fakeClient(cursorLog, { roundRows: [], totalCount: 7 }), space, 'me', { review_date: '2026-09-26', round_no: 2 });

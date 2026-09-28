@@ -1,57 +1,73 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { loadListsOverview } from '../lib/lists-data';
+import { listCurrentSpaces } from '../lib/current-spaces';
+import { sameModuleScope, type ModuleEntry } from '../lib/module-availability';
 import { createListsRefreshSignal, normalizeListFilter, subscribeListsRealtimeScope, type ListFilter } from '../lib/lists';
 import { createRequestGuard } from '../lib/request-guard';
 import { supabase } from '../lib/supabase';
 
-type OverviewData = Awaited<ReturnType<typeof loadListsOverview>>;
+export type OverviewData = Awaited<ReturnType<typeof loadListsOverview>>;
 type OverviewState = { status: 'loading' | 'error'; error: string; data: null }
   | { status: 'ready'; error: ''; data: OverviewData };
 
-export function useListsOverview(userId: string, onNoEligible: () => void) {
-  const [filter, setFilter] = useState<ListFilter>('all');
-  const [state, setState] = useState<OverviewState>({ status: 'loading', data: null, error: '' });
-  const [scopeIds, setScopeIds] = useState('');
+export function useListsOverview(userId: string, onNoEligible: () => void, entry: ModuleEntry | null, entryPending: boolean, initialData?: OverviewData, initialFilter: ListFilter = 'all', onValidated?: (data: OverviewData, filter: ListFilter) => void) {
+  const [filter, setFilter] = useState<ListFilter>(initialFilter);
+  const [state, setState] = useState<OverviewState>(initialData ? { status: 'ready', data: initialData, error: '' } : { status: 'loading', data: null, error: '' });
+  const [scopeIds, setScopeIds] = useState(initialData?.eligibleSpaces.map((space) => space.id).sort().join(',') ?? '');
   const [syncError, setSyncError] = useState('');
+  const [refreshError, setRefreshError] = useState('');
   const guard = useRef(createRequestGuard());
+  const entryRef = useRef(entry);
+  const pendingRef = useRef(entryPending);
+  entryRef.current = entry;
+  pendingRef.current = entryPending;
   const onNoEligibleRef = useRef(onNoEligible);
   onNoEligibleRef.current = onNoEligible;
+  const onValidatedRef = useRef(onValidated);
+  onValidatedRef.current = onValidated;
+  const filterRef = useRef(filter);
+  filterRef.current = filter;
 
-  const refresh = useCallback(async (): Promise<OverviewData | null> => {
+  const refresh = useCallback(async (revalidateEligibility = false): Promise<OverviewData | null> => {
+    if (pendingRef.current && !revalidateEligibility) return null;
     const request = guard.current.begin();
-    setState({ status: 'loading', data: null, error: '' });
+    setState((current) => current.data ? current : { status: 'loading', data: null, error: '' });
     try {
-      const data = await loadListsOverview(userId);
+      const data = await loadListsOverview(userId, supabase, listCurrentSpaces, revalidateEligibility ? undefined : entryRef.current ?? undefined);
       if (!guard.current.isCurrent(request)) return null;
-      setFilter((current) => normalizeListFilter(current, data.eligibleSpaces));
+      setRefreshError('');
+      const normalizedFilter = normalizeListFilter(filterRef.current, data.eligibleSpaces);
+      setFilter(normalizedFilter);
       setScopeIds(data.eligibleSpaces.map((space) => space.id).sort().join(','));
       if (!data.eligibleSpaces.length) {
         onNoEligibleRef.current();
         return data;
       }
       setState({ status: 'ready', data, error: '' });
+      if (sameModuleScope(entryRef.current, data.memberSpaces, data.eligibleSpaces)) onValidatedRef.current?.(data, normalizedFilter);
       return data;
     } catch (error) {
       if (guard.current.isCurrent(request)) {
-        setScopeIds('');
-        setState({ status: 'error', data: null, error: error instanceof Error && /[\u3400-\u9fff]/u.test(error.message)
-          ? error.message : '清单读取失败，请重试。' });
+        const errorText = error instanceof Error && /[\u3400-\u9fff]/u.test(error.message)
+          ? error.message : '清单读取失败，请重试。';
+        setRefreshError(errorText);
+        setState((current) => current.data ? current : { status: 'error', data: null, error: errorText });
       }
       return null;
     }
   }, [userId]);
 
   useEffect(() => {
-    void refresh();
-    const onFocus = () => { void refresh(); };
-    window.addEventListener('focus', onFocus);
-    return () => { window.removeEventListener('focus', onFocus); guard.current.invalidate(); };
-  }, [refresh]);
+    if (!entryPending) void refresh();
+    return () => { guard.current.invalidate(); };
+  }, [entry, entryPending, refresh]);
 
+  const lostSpace = Boolean(entry && state.data && !sameModuleScope(entry, state.data.memberSpaces, state.data.eligibleSpaces));
+  const activeScopeIds = lostSpace ? '' : scopeIds;
   useEffect(() => {
-    if (!scopeIds) return;
+    if (!activeScopeIds) return;
     let active = true;
-    const ids = scopeIds.split(',');
+    const ids = activeScopeIds.split(',');
     const connected = new Set<string>();
     const signal = createListsRefreshSignal(() => { void refresh(); });
     setSyncError('');
@@ -73,12 +89,15 @@ export function useListsOverview(userId: string, onNoEligible: () => void) {
       signal.stop();
       cleanup();
     };
-  }, [scopeIds, userId, refresh]);
+  }, [activeScopeIds, userId, refresh]);
 
   function chooseFilter(next: ListFilter) {
     if (state.status !== 'ready') return;
-    setFilter(normalizeListFilter(next, state.data.eligibleSpaces));
+    const normalized = normalizeListFilter(next, state.data.eligibleSpaces);
+    setFilter(normalized);
+    if (sameModuleScope(entryRef.current, state.data.memberSpaces, state.data.eligibleSpaces)) onValidatedRef.current?.(state.data, normalized);
   }
 
-  return { filter, state, syncError, chooseFilter, refresh };
+  const visibleState: OverviewState = lostSpace ? { status: 'loading', data: null, error: '' } : state;
+  return { filter, state: visibleState, syncError, refreshError, canAct: Boolean(entry) && !lostSpace, chooseFilter, refresh };
 }

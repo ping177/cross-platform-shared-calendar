@@ -23,7 +23,7 @@ function readableError(error: unknown, fallback: string) {
   return /[\u3400-\u9fff]/.test(message) ? message : fallback;
 }
 
-export function useTaskModuleEditor(userId: string, filter: TaskFilter, refresh: () => Promise<void>) {
+export function useTaskModuleEditor(userId: string, filter: TaskFilter, refresh: (showLoading?: boolean, revalidateEligibility?: boolean) => Promise<void>, onInvalidateEligibility?: () => void) {
   const [create, setCreate] = useState<CreateContext | null>(null);
   const [editing, setEditing] = useState<EditContext | null>(null);
   const [openingCreate, setOpeningCreate] = useState(false);
@@ -70,7 +70,7 @@ export function useTaskModuleEditor(userId: string, filter: TaskFilter, refresh:
       const eligibility = await loadTaskEligibility(userId);
       if (generation !== createGeneration.current) return;
       if (filter !== 'all' && !eligibility.eligibleSpaces.some((space) => space.id === filter.spaceId)) {
-        await refresh();
+        await refresh(false, true);
         throw new Error('当前筛选空间已不可用，请重新选择后创建任务。');
       }
       const selectedId = defaultTaskCreateTarget(filter, eligibility.memberSpaces, eligibility.eligibleSpaces, userId) ?? '';
@@ -79,6 +79,7 @@ export function useTaskModuleEditor(userId: string, filter: TaskFilter, refresh:
       setCreate({ ...eligibility, selectedId, space, members: [], state: 'loading', error: '' });
       if (selectedId) void loadCreateTarget(selectedId, generation, eligibility);
     } catch (error) {
+      onInvalidateEligibility?.();
       if (generation === createGeneration.current) setActionError(readableError(error, '无法确认可用空间，请重试。'));
     } finally {
       if (generation === createGeneration.current) setOpeningCreate(false);
@@ -129,9 +130,10 @@ export function useTaskModuleEditor(userId: string, filter: TaskFilter, refresh:
       await currentUser();
       if (generation === openGeneration.current) setEditing({ task: data as Task, space, members });
     } catch (error) {
+      onInvalidateEligibility?.();
       if (generation === openGeneration.current) {
         setActionError(readableError(error, taskErrorMessage(error)));
-        await refresh();
+        await refresh(false, true);
       }
     } finally {
       if (generation === openGeneration.current) setOpeningTask(false);
@@ -149,27 +151,29 @@ export function useTaskModuleEditor(userId: string, filter: TaskFilter, refresh:
       if (!data?.length) throw new Error('任务已变化，请重新读取列表后重试。');
       await refresh();
     } catch (error) {
+      onInvalidateEligibility?.();
       setActionError(taskErrorMessage(error));
-      await refresh();
+      await refresh(false, true);
     } finally {
       setBusyTaskId(null);
     }
   }
 
   async function revalidateMutation(targetSpaceId: string) {
+    onInvalidateEligibility?.();
     try {
       const eligibility = await loadTaskEligibility(userId);
       if (!eligibility.eligibleSpaces.some((space) => space.id === targetSpaceId)) {
         if (editing?.task.space_id === targetSpaceId) setEditing(null);
         if (create?.selectedId === targetSpaceId) setCreate((current) => current ? { ...current, ...eligibility, state: 'blocked', members: [] } : current);
         setActionError('当前空间的任务已不可用，请重新选择或重试。');
-        await refresh();
+        await refresh(false, true);
         return Boolean(editing);
       }
     } catch {
       setActionError('任务模块状态读取失败，请重试。');
     }
-    await refresh();
+    await refresh(false, true);
     return false;
   }
 

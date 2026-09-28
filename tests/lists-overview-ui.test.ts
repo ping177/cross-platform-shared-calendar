@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { readFileSync } from 'node:fs';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createServer } from 'vite';
@@ -8,6 +9,12 @@ import type { CurrentSpace, List } from '../src/types.ts';
 const personal = { id: 'personal', name: '我的空间', kind: 'personal', created_by: 'me', membershipRole: 'owner' } as CurrentSpace;
 const shared = { id: 'shared', name: '共同空间', kind: 'shared', created_by: 'other', membershipRole: 'member' } as CurrentSpace;
 const list = { id: 'list-a', space_id: shared.id, name: '旅行采购', created_by: 'me', created_at: '2026-09-27', updated_at: '2026-09-27' } as List;
+const overviewHookSource = readFileSync(new URL('../src/components/useListsOverview.ts', import.meta.url), 'utf8');
+
+test('Lists initial SUBSCRIBED reread preserves validated overview rows', () => {
+  assert.match(overviewHookSource, /setState\(\(current\) => current\.data \? current : \{ status: 'loading'/);
+  assert.match(overviewHookSource, /status === 'SUBSCRIBED'[\s\S]*signal\.signal\(\)/);
+});
 
 test('overview rows open a real detail target while rename and delete remain separate buttons', async () => {
   const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });

@@ -3,8 +3,9 @@ import { createAggregateTaskLoader, subscribeTaskRealtimeScope, taskRealtimeSpac
 import { loadAggregateTasks } from '../lib/aggregate-tasks-data';
 import { supabase } from '../lib/supabase';
 import { taskRealtimeConfig } from '../lib/task';
+import { sameModuleScope, type ModuleEntry } from '../lib/module-availability';
 
-type TaskData = Awaited<ReturnType<typeof loadAggregateTasks>>;
+export type TaskData = Awaited<ReturnType<typeof loadAggregateTasks>>;
 type TaskState = { status: 'loading' | 'error'; data: TaskData | null; error: string } | { status: 'ready'; data: TaskData; error: '' };
 
 function loadErrorText(error: unknown) {
@@ -12,41 +13,48 @@ function loadErrorText(error: unknown) {
   return /[\u3400-\u9fff]/.test(message) ? message : '任务读取失败，请重试。';
 }
 
-export function useAggregateTasks(userId: string) {
-  const [filter, setFilter] = useState<TaskFilter>('all');
-  const [state, setState] = useState<TaskState>({ status: 'loading', data: null, error: '' });
+export function useAggregateTasks(userId: string, entry: ModuleEntry | null, entryPending: boolean, initialData?: TaskData, onValidated?: (data: TaskData) => void) {
+  const [filter, setFilter] = useState<TaskFilter>(initialData?.filter ?? 'all');
+  const [state, setState] = useState<TaskState>(initialData ? { status: 'ready', data: initialData, error: '' } : { status: 'loading', data: null, error: '' });
   const [syncError, setSyncError] = useState('');
-  const filterRef = useRef<TaskFilter>('all');
+  const [refreshError, setRefreshError] = useState('');
+  const filterRef = useRef<TaskFilter>(initialData?.filter ?? 'all');
+  const onValidatedRef = useRef(onValidated);
+  onValidatedRef.current = onValidated;
+  const entryRef = useRef(entry);
+  const pendingRef = useRef(entryPending);
   const loader = useRef(createAggregateTaskLoader(loadAggregateTasks));
+  entryRef.current = entry;
+  pendingRef.current = entryPending;
 
-  const refresh = useCallback(async (showLoading = false) => {
-    if (showLoading) setState((current) => ({ status: 'loading', data: current.data, error: '' }));
+  const refresh = useCallback(async (showLoading = false, revalidateEligibility = false) => {
+    if (pendingRef.current && !revalidateEligibility) return;
+    if (showLoading) setState((current) => current.data ? current : { status: 'loading', data: null, error: '' });
     await loader.current.load(userId, filterRef.current, (result) => {
       if (result.status === 'error') {
-        setState({ status: 'error', data: null, error: loadErrorText(result.error) });
+        const error = loadErrorText(result.error);
+        setRefreshError(error);
+        setState((current) => current.data ? current : { status: 'error', data: null, error });
         return;
       }
+      setRefreshError('');
       const currentFilter = filterRef.current;
       if (result.data.filter === 'all' ? currentFilter !== 'all' : currentFilter === 'all' || currentFilter.spaceId !== result.data.filter.spaceId) {
         filterRef.current = result.data.filter;
         setFilter(result.data.filter);
       }
       setState({ status: 'ready', data: result.data, error: '' });
-    });
+      if (sameModuleScope(entryRef.current, result.data.memberSpaces, result.data.eligibleSpaces)) onValidatedRef.current?.(result.data);
+    }, revalidateEligibility ? undefined : entryRef.current ?? undefined);
   }, [userId]);
 
   useEffect(() => {
-    void refresh(true);
+    if (!entryPending) void refresh(true);
     return () => loader.current.invalidate();
-  }, [filter, refresh]);
+  }, [filter, entry, entryPending, refresh]);
 
-  useEffect(() => {
-    const refocus = () => { void refresh(true); };
-    window.addEventListener('focus', refocus);
-    return () => window.removeEventListener('focus', refocus);
-  }, [refresh]);
-
-  const scopeIds = state.status === 'ready' ? taskRealtimeSpaceIds(state.data.eligibleSpaces, state.data.filter).join(',') : '';
+  const lostSpace = Boolean(entry && state.data && !sameModuleScope(entry, state.data.memberSpaces, state.data.eligibleSpaces));
+  const scopeIds = state.status === 'ready' && !lostSpace ? taskRealtimeSpaceIds(state.data.eligibleSpaces, state.data.filter).join(',') : '';
   useEffect(() => {
     if (!scopeIds) return;
     let active = true;
@@ -77,7 +85,9 @@ export function useAggregateTasks(userId: string) {
     setFilter(next);
     setState((current) => ({ status: 'loading', data: current.data, error: '' }));
     setSyncError('');
+    setRefreshError('');
   }
 
-  return { filter, state, syncError, chooseFilter, refresh };
+  const visibleState: TaskState = lostSpace ? { status: 'loading', data: null, error: '' } : state;
+  return { filter, state: visibleState, syncError, refreshError, canAct: Boolean(entry) && !lostSpace, chooseFilter, refresh };
 }

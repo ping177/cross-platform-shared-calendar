@@ -70,3 +70,25 @@ test('canonical overview reread resolves eligibility before Lists and Items', as
     assert.deepEqual(visited, ['auth', 'spaces', 'space_modules', 'auth', 'lists', 'list_items', 'auth']);
   } finally { await vite.close(); }
 });
+
+test('warm Lists entry skips current-Space and module discovery but keeps canonical rows', async () => {
+  const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
+  try {
+    const { loadListsOverview } = await vite.ssrLoadModule('/src/lib/lists-data.ts');
+    const visited: string[] = [];
+    const client = {
+      auth: { async getUser() { return { data: { user: { id: 'me' } }, error: null }; } },
+      from(table: string) {
+        visited.push(table);
+        if (table === 'space_modules') throw new Error('redundant module discovery');
+        return {
+          select() { return this; }, eq() { return this; }, order() { return this; },
+          async range() { return { data: table === 'lists' ? [row] : [], count: table === 'lists' ? 1 : 0, error: null }; },
+        };
+      },
+    };
+    const result = await loadListsOverview('me', client, async () => { throw new Error('redundant Space discovery'); }, { memberSpaces: [space], eligibleSpaces: [space] });
+    assert.deepEqual(visited, ['lists', 'list_items']);
+    assert.deepEqual(result.grouped.active.map((entry: { list: List }) => entry.list.id), [row.id]);
+  } finally { await vite.close(); }
+});

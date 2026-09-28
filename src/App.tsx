@@ -17,10 +17,12 @@ import { SpaceManagementPage } from './components/SpaceManagementPage';
 import { ModuleHub, useModuleAvailability } from './components/ModuleHub';
 import { ListsOverviewPage } from './components/ListsOverviewPage';
 import { ListDetailPage } from './components/ListDetailPage';
-import { ReviewHistoryPage } from './components/ReviewHistoryPage';
+import { ReviewHistoryPage, type ReviewHistorySnapshot } from './components/ReviewHistoryPage';
 import { ReviewDetailPage } from './components/ReviewDetailPage';
 import { RecurrenceControls } from './components/RecurrenceControls';
 import { TasksArea } from './components/TasksArea';
+import type { TaskData } from './components/useAggregateTasks';
+import type { OverviewData } from './components/useListsOverview';
 import { HomePage } from './components/HomePage';
 import { calendarVisibleRange } from './lib/calendar-display';
 import { calendarSpaces, readAggregateCalendar, spaceLabel, validCalendarFilter, type CalendarFilter } from './lib/aggregate-calendar';
@@ -56,6 +58,8 @@ import { newEventIdentity } from './lib/space-content';
 import { readSpaceMembers } from './lib/space-members';
 import { settleSpaceLifecycle, type SpaceLifecycleAction } from './lib/space-lifecycle';
 import { createRequestGuard } from './lib/request-guard';
+import { moduleEntry, sameModuleScope } from './lib/module-availability';
+import type { ListFilter } from './lib/lists';
 import { calendarContentSpaceId, canChangeTabFromReviewDetail, clearNavigationTarget, initialNavigation, navigationTargetForState, openCompletedTasks, openListDetail, openListsModule, openReviewDetail, openReviewModule, openTaskList, openTaskModule, readNavigationTarget, resolveNavigationTarget, selectTab, writeNavigationTarget, type NavigationTarget, type TopLevelTab } from './lib/navigation';
 import { loadListsEligibility } from './lib/lists-data';
 import type { ListDetailTarget } from './lib/lists-detail-data';
@@ -175,6 +179,7 @@ function audienceClass(audience: EventAudience) {
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [loadingSession, setLoadingSession] = useState(true);
+  const [authEpoch, setAuthEpoch] = useState(0);
   const [startupUserId, setStartupUserId] = useState<string | null>(null);
   const currentUserId = useRef<string | null>(null);
 
@@ -186,7 +191,8 @@ export default function App() {
       setLoadingSession(false);
     });
 
-    const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    const { data } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      if (event === 'SIGNED_OUT') setAuthEpoch((value) => value + 1);
       const nextUserId = nextSession?.user.id ?? null;
       if (currentUserId.current && currentUserId.current !== nextUserId) {
         const storage = sessionNavigationStorage();
@@ -211,7 +217,7 @@ export default function App() {
     return <AuthPage />;
   }
 
-  return <CalendarApp key={session.user.id} session={session} restoreOnStartup={startupUserId === session.user.id} />;
+  return <CalendarApp key={`${session.user.id}:${authEpoch}`} session={session} restoreOnStartup={startupUserId === session.user.id} />;
 }
 
 function sessionNavigationStorage(): Storage | null {
@@ -407,11 +413,25 @@ function AuthPage() {
 function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreOnStartup: boolean }) {
   const userId = session.user.id;
   const [spaces, setSpaces] = useState<CurrentSpace[]>([]);
-  const moduleAvailability = useModuleAvailability(userId, spaces.length > 0);
+  const moduleAvailability = useModuleAvailability(userId, spaces);
+  const tasksEntry = useMemo(() => moduleEntry(spaces, moduleAvailability.availability, 'tasks', moduleAvailability.refreshing), [spaces, moduleAvailability.availability, moduleAvailability.refreshing]);
+  const reviewEntry = useMemo(() => moduleEntry(spaces, moduleAvailability.availability, 'review', moduleAvailability.refreshing), [spaces, moduleAvailability.availability, moduleAvailability.refreshing]);
+  const listsEntry = useMemo(() => moduleEntry(spaces, moduleAvailability.availability, 'lists', moduleAvailability.refreshing), [spaces, moduleAvailability.availability, moduleAvailability.refreshing]);
+  const tasksSnapshot = useRef<{ userId: string; data: TaskData } | null>(null);
+  const listsSnapshot = useRef<{ userId: string; data: OverviewData; filter: ListFilter } | null>(null);
+  const reviewSnapshot = useRef<{ userId: string; memberSpaces: CurrentSpace[]; eligibleSpaces: CurrentSpace[]; history: ReviewHistorySnapshot } | null>(null);
+  const retainedTasks = tasksSnapshot.current?.userId === userId && sameModuleScope(tasksEntry, tasksSnapshot.current.data.memberSpaces, tasksSnapshot.current.data.eligibleSpaces) ? tasksSnapshot.current.data : undefined;
+  const retainedLists = listsSnapshot.current?.userId === userId && sameModuleScope(listsEntry, listsSnapshot.current.data.memberSpaces, listsSnapshot.current.data.eligibleSpaces) ? listsSnapshot.current : null;
   const [selectedSpaceId, setSelectedSpaceId] = useState<string | null>(null);
   const [myScreen, setMyScreen] = useState<'profile' | 'management' | 'detail'>('profile');
   const [calendarFilter, setCalendarFilter] = useState<CalendarFilter>('all');
   const [reviewSpaceId, setReviewSpaceId] = useState<string | null>(null);
+  const retainedReview = reviewSnapshot.current?.userId === userId && reviewSnapshot.current.history.selectedSpaceId === reviewSpaceId && sameModuleScope(reviewEntry, reviewSnapshot.current.memberSpaces, reviewSnapshot.current.eligibleSpaces) ? reviewSnapshot.current.history : undefined;
+  useEffect(() => {
+    if (tasksEntry && tasksSnapshot.current && !sameModuleScope(tasksEntry, tasksSnapshot.current.data.memberSpaces, tasksSnapshot.current.data.eligibleSpaces)) tasksSnapshot.current = null;
+    if (listsEntry && listsSnapshot.current && !sameModuleScope(listsEntry, listsSnapshot.current.data.memberSpaces, listsSnapshot.current.data.eligibleSpaces)) listsSnapshot.current = null;
+    if (reviewEntry && reviewSnapshot.current && !sameModuleScope(reviewEntry, reviewSnapshot.current.memberSpaces, reviewSnapshot.current.eligibleSpaces)) reviewSnapshot.current = null;
+  }, [tasksEntry, listsEntry, reviewEntry]);
   const [reviewDetail, setReviewDetail] = useState<ReviewDetailTarget | null>(null);
   const [listDetail, setListDetail] = useState<ListDetailTarget | null>(null);
   const [listNotice, setListNotice] = useState('');
@@ -671,14 +691,14 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
       {navigation.tab === 'modules' && (spaceListStatus === 'ready' || navigation.moduleScreen === 'hub') && (navigation.moduleScreen === 'hub'
         ? <ModuleHub availability={moduleAvailability.availability} onRefresh={() => { void moduleAvailability.refresh(); }} onOpenTasks={() => setNavigation((current) => openTaskModule(current))} onOpenReview={() => setNavigation((current) => openReviewModule(current))} onOpenLists={() => { setListNotice(''); setNavigation((current) => openListsModule(current)); }} />
         : navigation.moduleScreen === 'lists'
-          ? <ListsOverviewPage key={userId} userId={userId} initialNotice={listNotice} onOpenDetail={(list) => { setListNotice(''); setListDetail({ spaceId: list.space_id, listId: list.id }); setNavigation((current) => openListDetail(current)); }} onHubBack={() => setNavigation((current) => selectTab(current, 'modules'))} onNoEligible={() => { void moduleAvailability.refresh(); setNavigation((current) => selectTab(current, 'modules')); }} />
+          ? <ListsOverviewPage key={userId} userId={userId} entry={listsEntry} entryPending={moduleAvailability.refreshing} initialData={retainedLists?.data} initialFilter={retainedLists?.filter} onValidated={(data, filter) => { if (sameModuleScope(listsEntry, data.memberSpaces, data.eligibleSpaces)) listsSnapshot.current = { userId, data, filter }; }} onInvalidateEligibility={() => { listsSnapshot.current = null; moduleAvailability.invalidate(); void moduleAvailability.refresh(true); }} initialNotice={listNotice} onOpenDetail={(list) => { setListNotice(''); setListDetail({ spaceId: list.space_id, listId: list.id }); setNavigation((current) => openListDetail(current)); }} onHubBack={() => setNavigation((current) => selectTab(current, 'modules'))} onNoEligible={() => { listsSnapshot.current = null; void moduleAvailability.refresh(); setNavigation((current) => selectTab(current, 'modules')); }} />
         : navigation.moduleScreen === 'lists-detail'
-          ? listDetail ? <ListDetailPage key={`${userId}:${listDetail.spaceId}:${listDetail.listId}`} userId={userId} target={listDetail} onBack={() => { setListDetail(null); setNavigation((current) => openListsModule(current)); }} onUnavailable={(result) => { void moduleAvailability.refresh(); setListNotice(result.status === 'deleted' ? '此清单已删除，列表已刷新。' : '清单空间资格已变化，列表已刷新。'); setListDetail(null); setNavigation((current) => result.eligibleSpaces.length ? openListsModule(current) : selectTab(current, 'modules')); }} />
+          ? listDetail ? <ListDetailPage key={`${userId}:${listDetail.spaceId}:${listDetail.listId}`} userId={userId} target={listDetail} onBack={() => { setListDetail(null); setNavigation((current) => openListsModule(current)); }} onUnavailable={(result) => { listsSnapshot.current = null; void moduleAvailability.refresh(); setListNotice(result.status === 'deleted' ? '此清单已删除，列表已刷新。' : '清单空间资格已变化，列表已刷新。'); setListDetail(null); setNavigation((current) => result.eligibleSpaces.length ? openListsModule(current) : selectTab(current, 'modules')); }} />
             : <main className="mx-auto max-w-3xl px-4 py-6"><p>此清单暂不可访问。</p><button className="mt-3 min-h-11 font-semibold text-teal" type="button" onClick={() => setNavigation((current) => openListsModule(current))}>返回清单总览</button></main>
         : navigation.moduleScreen === 'review'
-          ? <ReviewHistoryPage userId={userId} currentSpaceId={reviewSpaceId} onSpaceChange={setReviewSpaceId} onOpenDetail={(target) => { reviewDetailDirty.current = false; setReviewDetail(target); setNavigation((current) => openReviewDetail(current)); }} onHubBack={() => setNavigation((current) => selectTab(current, 'modules'))} onNoEligible={() => { void moduleAvailability.refresh(); setReviewSpaceId(null); setNavigation((current) => selectTab(current, 'modules')); }} />
+          ? <ReviewHistoryPage userId={userId} entry={reviewEntry} entryPending={moduleAvailability.refreshing} initialSnapshot={retainedReview} onValidated={(history) => { if (reviewEntry && reviewSpaceId === history.selectedSpaceId) reviewSnapshot.current = { userId, memberSpaces: reviewEntry.memberSpaces, eligibleSpaces: reviewEntry.eligibleSpaces, history }; }} onInvalidateEligibility={() => { reviewSnapshot.current = null; moduleAvailability.invalidate(); void moduleAvailability.refresh(true); }} currentSpaceId={reviewSpaceId} onSpaceChange={(id) => { if (id !== reviewSpaceId) reviewSnapshot.current = null; setReviewSpaceId(id); }} onOpenDetail={(target) => { reviewDetailDirty.current = false; setReviewDetail(target); setNavigation((current) => openReviewDetail(current)); }} onHubBack={() => setNavigation((current) => selectTab(current, 'modules'))} onNoEligible={() => { reviewSnapshot.current = null; void moduleAvailability.refresh(); setReviewSpaceId(null); setNavigation((current) => selectTab(current, 'modules')); }} />
           : navigation.moduleScreen === 'review-detail'
-            ? reviewDetail ? <ReviewDetailPage key={`${reviewDetail.spaceId}:${reviewDetail.reviewId}`} target={reviewDetail} userId={userId} onDirtyChange={(dirty) => { reviewDetailDirty.current = dirty; }} onBack={() => { reviewDetailDirty.current = false; setNavigation((current) => openReviewModule(current)); }} onUnavailable={(reason) => { void moduleAvailability.refresh(); reviewDetailDirty.current = false; if (reason === 'review') setReviewSpaceId(reviewDetail.spaceId); setNavigation((current) => reason === 'space' ? selectTab(current, 'modules') : openReviewModule(current)); }} />
+            ? reviewDetail ? <ReviewDetailPage key={`${reviewDetail.spaceId}:${reviewDetail.reviewId}`} target={reviewDetail} userId={userId} onDirtyChange={(dirty) => { reviewDetailDirty.current = dirty; }} onBack={() => { reviewDetailDirty.current = false; setNavigation((current) => openReviewModule(current)); }} onUnavailable={(reason) => { reviewSnapshot.current = null; void moduleAvailability.refresh(); reviewDetailDirty.current = false; if (reason === 'review') setReviewSpaceId(reviewDetail.spaceId); setNavigation((current) => reason === 'space' ? selectTab(current, 'modules') : openReviewModule(current)); }} />
               : <main className="mx-auto max-w-3xl px-4 py-6"><p>这次回顾暂不可访问。</p><button className="mt-3 min-h-11 font-semibold text-teal" type="button" onClick={() => setNavigation((current) => openReviewModule(current))}>返回回顾列表</button></main>
           : <TasksArea
             key={userId}
@@ -686,6 +706,11 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
             onScreenChange={(screen) => setNavigation((current) => screen === 'completed' ? openCompletedTasks(current) : openTaskList(current))}
             onHubBack={() => setNavigation((current) => selectTab(current, 'modules'))}
             userId={userId}
+            entry={tasksEntry}
+            entryPending={moduleAvailability.refreshing}
+            initialData={retainedTasks}
+            onValidated={(data) => { if (sameModuleScope(tasksEntry, data.memberSpaces, data.eligibleSpaces)) tasksSnapshot.current = { userId, data }; }}
+            onInvalidateEligibility={() => { tasksSnapshot.current = null; moduleAvailability.invalidate(); void moduleAvailability.refresh(true); }}
           />)}
       {navigation.tab === 'calendar' && spaceListStatus === 'ready' && contentSpace && (
         <CurrentSpaceApp
@@ -714,7 +739,7 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
               onReady={managedSpaceReady}
               onSpaceChange={updateSpace}
               onLifecycleSettled={lifecycleSettled}
-              onModuleChanged={moduleAvailability.moduleChanged}
+              onModuleChanged={(key, spaceId, state) => { if (state === 'disabled') { if (key === 'tasks') tasksSnapshot.current = null; if (key === 'review') reviewSnapshot.current = null; if (key === 'lists') listsSnapshot.current = null; } moduleAvailability.moduleChanged(key, spaceId, state); }}
               busy={spaceActionBusy}
               onBusyChange={setSpaceActionBusy}
             />

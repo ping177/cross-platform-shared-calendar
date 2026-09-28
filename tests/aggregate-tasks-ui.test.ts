@@ -95,3 +95,18 @@ test('disabled Personal default remains selected in the TaskSheet and cannot be 
     assert.match(markup, /type="submit" disabled=""/);
   } finally { await vite.close(); }
 });
+
+test('an open TaskSheet keeps its draft but blocks save when module eligibility is dirty', async () => {
+  const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
+  try {
+    const { TaskSheet } = await vite.ssrLoadModule('/src/components/TaskSheet.tsx');
+    const markup = renderToStaticMarkup(React.createElement(TaskSheet, {
+      task: task('draft', shared.id), spaceId: shared.id, spaceKind: shared.kind,
+      userId: 'me', members: [{ ...member, space_id: shared.id }], actionsAllowed: false,
+      onClose: () => undefined, onSaved: async () => undefined,
+    }));
+    assert.match(markup, /value="draft"/);
+    assert.match(markup, /type="submit" disabled=""/);
+    assert.match(markup, /disabled="" aria-label="删除任务"/);
+  } finally { await vite.close(); }
+});

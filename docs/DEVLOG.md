@@ -1,5 +1,28 @@
 # Development Log
 
+## 2026-09-28 - v0.1.16 Module Re-entry — LOCAL AUTHENTICATED ACCEPTANCE PASS / ROLLOUT PENDING
+
+- User-reported `LOCAL_AUTHENTICATED_ACCEPTANCE = PASS` after the first Tasks acceptance failed and the read-only RCA identified unmount/remount loss of validated hook state. The bounded CalendarApp session-view correction now passes Tasks, Review, and Lists re-entry: each restores its last safe validated view immediately after the first canonical load; Lists stays visible during background/SUBSCRIBED convergence without a second full-loading flash.
+- Final pre-commit review found no scope or correctness blocker. Business reads remain canonical and module-owned; Tasks/Lists Realtime remains visible-view scoped. First-entry latency was not redesigned: no partial publication, prefetch, business-data cache, Hub business-data loading, or timing framework. No generic module framework, new dependency, SQL, backend, Production, or authenticated browser operation by Codex. v0.1.16 remains `IN PROGRESS` until the authorized frontend rollout and Production/mobile/PWA recheck.
+- Final local checks: focused Node **44/44 PASS**, full Node **371/371 PASS**, `npm run build` **PASS**, and `git diff --check` **PASS**. The existing >500 kB bundle warning is non-blocking. The previously passing read-only frontend/backend alignment gate still applies because neither target nor backend capabilities changed.
+
+## 2026-09-28 - v0.1.16 Re-entry Retention — LOCAL AUTO PASS / MANUAL RECHECK PENDING
+
+- First authenticated Tasks acceptance FAILED: Hub navigation unmounted `TasksArea`, destroyed its validated hook rows, and caused a full canonical-loading screen on return. The accepted read-only RCA froze `V016_REENTRY_RETENTION_DESIGN_FROZEN`; v0.1.16 remains `IN PROGRESS`.
+- CalendarApp now owns three narrow in-memory validated view snapshots. Tasks and Lists remount from their last safe result, Review remounts with selected-Space history and pagination, and each runs its existing canonical reread in the background. Scope, user, module-disable, membership loss, detail unavailability, mutation rejection, and auth boundaries guard reuse. Tasks/Lists Realtime subscriptions remain attached only to the mounted view. No first-entry redesign, generic cache, persistent storage, dependency, SQL, or backend change.
+- Focused re-entry/render and scope tests PASS; full Node **371/371 PASS** and build PASS. SSR remount tests prove immediate initial view rendering; live client effect/subscription timing remains for user authenticated acceptance. No authenticated browser use, Production write, commit, push, or deployment.
+
+## 2026-09-28 - v0.1.16 Module Entry Responsiveness — LOCAL AUTO PASS / MANUAL PENDING
+
+- CalendarApp now passes validated session entry hints to Tasks, Review, and Lists. Valid warm entry skips duplicate current-Space and module eligibility discovery; each module still reads its own canonical data. Tasks parallelizes eligible Space pages and member reads, Lists overlaps complete List/Item reads, and Review preserves rounds → entries while removing same-selection history reset. Existing completeness, stale guards, RLS authority, and Realtime notification → reread remain.
+- Background rereads retain confirmed content, including Lists initial SUBSCRIBED convergence. Dirty/failed hints block mutations and trigger bounded canonical revalidation. Sign-out increments the auth key; same-user token refresh does not clear the CalendarApp session scope. Future-module convention remains a narrow entry rule in `docs/DECISIONS.md`, without a generic loader/store.
+- Focused Node 33/33 plus TaskSheet eligibility-gate coverage, full Node 365/365, `npm run build`, and `git diff --check` PASS. Read-only alignment matched local frontend to the linked backend and confirmed required tables, RLS, RPCs, and Realtime publication. Existing >500 kB bundle warning remains. No SQL/backend/dependency, Production write, authenticated browser use, commit, push, or deployment. User manual acceptance remains pending; v0.1.16 is `IN PROGRESS`.
+
+## 2026-09-28 - v0.1.16 Module Entry Responsiveness — DESIGN FROZEN / IN PROGRESS
+
+- Accepted the read-only module-loading investigation and the shared entry-discovery simplification. CalendarApp current Spaces and valid session eligibility are entry hints; Tasks, Review, and Lists retain their own canonical reads and bounded revalidation. Complexity target is `SIMPLER`; no generic framework, persistent business-data cache, SQL, backend, or dependency change is planned.
+- Implementation and automated verification follow. This design record does not establish authenticated, device, or Production acceptance.
+
 ## 2026-09-28 - v0.1.15 Shared Lists final acceptance — CLOSED / PASS
 
 - User confirms final desktop authenticated, dual-account Realtime collaboration, mobile/PWA Item drag and long-list auto-scroll acceptance `PASS`. Slices 1–4 and v0.1.15 are `CLOSED / PASS`; existing Node 356/356 and build PASS remain the automated evidence. Stale reorder is `AUTOMATED PASS / MANUAL NOT REQUIRED`.

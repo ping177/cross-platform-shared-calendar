@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { listCurrentSpaces } from './current-spaces';
+import type { ModuleEntry } from './module-availability';
 import { readListEligibility, readListOverview, normalizeListName, type ListModuleRow } from './lists';
 import { supabase } from './supabase';
 import type { List, ListItemOverview } from '../types';
@@ -21,8 +22,9 @@ export async function loadListsEligibility(userId: string, client: SupabaseClien
   return { memberSpaces, eligibleSpaces };
 }
 
-export async function loadListsOverview(userId: string, client: SupabaseClient = supabase, readSpaces = listCurrentSpaces) {
-  const eligibility = await loadListsEligibility(userId, client, readSpaces);
+export async function loadListsOverview(userId: string, client: SupabaseClient = supabase, readSpaces = listCurrentSpaces, entry?: ModuleEntry) {
+  if (entry) await assertCurrentUser(client, userId);
+  const eligibility = entry ?? await loadListsEligibility(userId, client, readSpaces);
   const grouped = await readListOverview(eligibility.eligibleSpaces, {
     listPage: async (spaceId, start, end) => {
       const page = await client.from('lists').select('id,space_id,name,created_by,created_at,updated_at', { count: 'exact' })

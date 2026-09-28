@@ -2,9 +2,10 @@ import { useRef, type ChangeEvent } from 'react';
 import { CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Circle, Plus } from 'lucide-react';
 import { taskAssignmentLabel, canChangeTaskStatus, formatTaskDueDate } from '../lib/task';
 import type { TaskFilter } from '../lib/aggregate-tasks';
+import type { ModuleEntry } from '../lib/module-availability';
 import type { CurrentSpace, Space, SpaceMember, Task } from '../types';
 import { TaskSheet } from './TaskSheet';
-import { useAggregateTasks } from './useAggregateTasks';
+import { useAggregateTasks, type TaskData } from './useAggregateTasks';
 import { useTaskModuleEditor } from './useTaskModuleEditor';
 
 type TasksScreen = 'tasks' | 'completed';
@@ -68,15 +69,20 @@ export function TaskRows({ tasks, sourceSpacesById, membersBySpaceId, userId, co
   </ul>;
 }
 
-export function TasksArea({ screen, onScreenChange, onHubBack, userId }: {
+export function TasksArea({ screen, onScreenChange, onHubBack, userId, entry = null, entryPending = false, initialData, onValidated, onInvalidateEligibility }: {
   screen: TasksScreen;
   onScreenChange: (screen: TasksScreen) => void;
   onHubBack: () => void;
   userId: string;
+  entry?: ModuleEntry | null;
+  entryPending?: boolean;
+  initialData?: TaskData;
+  onValidated?: (data: TaskData) => void;
+  onInvalidateEligibility?: () => void;
 }) {
   const createButton = useRef<HTMLButtonElement>(null);
-  const { filter, state, syncError, chooseFilter, refresh } = useAggregateTasks(userId);
-  const editor = useTaskModuleEditor(userId, filter, refresh);
+  const { filter, state, syncError, refreshError, canAct, chooseFilter, refresh } = useAggregateTasks(userId, entry, entryPending, initialData, onValidated);
+  const editor = useTaskModuleEditor(userId, filter, refresh, onInvalidateEligibility);
   const data = state.data;
   const list = state.status === 'ready' ? screen === 'completed' ? state.data.grouped.completed : state.data.grouped.open : [];
   const create = editor.create;
@@ -91,7 +97,7 @@ export function TasksArea({ screen, onScreenChange, onHubBack, userId }: {
             <span className="truncate">{screen === 'completed' ? '任务' : '功能中心'}</span>
           </button>
           <h1 className="min-w-0 truncate text-xl font-bold">{screen === 'completed' ? '已完成任务' : '任务'}</h1>
-          {screen === 'tasks' ? <button ref={createButton} className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-teal text-white disabled:opacity-50" type="button" disabled={editor.openingCreate || create !== null || state.status !== 'ready'} onClick={() => void editor.beginCreate()} aria-label="新建任务"><Plus size={20} /></button>
+          {screen === 'tasks' ? <button ref={createButton} className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-teal text-white disabled:opacity-50" type="button" disabled={!canAct || editor.openingCreate || create !== null || state.status !== 'ready'} onClick={() => void editor.beginCreate()} aria-label="新建任务"><Plus size={20} /></button>
             : <span className="w-11 shrink-0" aria-hidden="true" />}
         </div>
         {data && <TaskFilterPicker spaces={data.eligibleSpaces} filter={filter} onChange={chooseFilter} />}
@@ -100,6 +106,7 @@ export function TasksArea({ screen, onScreenChange, onHubBack, userId }: {
       <section className="flex-1 space-y-4 px-4 py-4 safe-bottom">
         {editor.actionError && <p className="rounded-lg bg-coral/10 px-4 py-3 text-sm text-coral" role="alert">{editor.actionError}</p>}
         {syncError && <p className="rounded-lg bg-coral/10 px-4 py-3 text-sm text-coral" role="alert">{syncError}</p>}
+        {refreshError && state.status === 'ready' && <p className="rounded-lg bg-coral/10 px-4 py-3 text-sm text-coral" role="alert">{refreshError}<button className="ml-2 min-h-11 font-semibold text-teal" type="button" onClick={() => void refresh()}>重试</button></p>}
         {state.status === 'loading' && <p className="rounded-lg bg-white px-4 py-5 text-sm text-ink/60 shadow-sm" role="status">正在读取任务…</p>}
         {state.status === 'error' && <div className="rounded-lg bg-white px-4 py-5 shadow-sm" role="alert">
           <p className="text-sm text-coral">{state.error}</p>
@@ -109,7 +116,7 @@ export function TasksArea({ screen, onScreenChange, onHubBack, userId }: {
           {screen === 'tasks' && <h2 className="text-sm font-semibold text-ink/60">待完成 · {state.data.grouped.open.length}</h2>}
           {state.data.eligibleSpaces.length === 0 ? <p className="rounded-lg bg-white px-4 py-5 text-sm text-ink/60 shadow-sm">暂无已开启任务的空间。可在“我的 → 空间管理”中查看模块状态。</p>
             : list.length === 0 ? <p className="rounded-lg bg-white px-4 py-5 text-sm text-ink/60 shadow-sm">{screen === 'completed' ? '暂无已完成事项' : '暂无待完成事项'}</p>
-              : <TaskRows tasks={list} sourceSpacesById={state.data.sourceSpacesById} membersBySpaceId={state.data.membersBySpaceId} userId={userId} completed={screen === 'completed'} busyTaskId={editor.busyTaskId} openingTask={editor.openingTask} onOpen={(task) => void editor.openTask(task)} onChangeStatus={(task, status) => void editor.changeStatus(task, status)} />}
+              : <TaskRows tasks={list} sourceSpacesById={state.data.sourceSpacesById} membersBySpaceId={state.data.membersBySpaceId} userId={userId} completed={screen === 'completed'} busyTaskId={canAct ? editor.busyTaskId : 'eligibility-pending'} openingTask={!canAct || editor.openingTask} onOpen={(task) => void editor.openTask(task)} onChangeStatus={(task, status) => void editor.changeStatus(task, status)} />}
           {screen === 'tasks' && <button className="flex min-h-14 w-full items-center justify-between rounded-lg bg-white px-4 text-left font-semibold shadow-sm" type="button" onClick={() => onScreenChange('completed')}>
             <span>已完成 · {state.data.grouped.completed.length}</span><ChevronRight size={18} className="text-ink/45" aria-hidden="true" />
           </button>}
@@ -125,14 +132,14 @@ export function TasksArea({ screen, onScreenChange, onHubBack, userId }: {
         <button className="mt-4 min-h-11 font-semibold text-ink/60" type="button" onClick={() => { editor.closeCreate(); createButton.current?.focus(); }}>取消</button>
       </section>
     </div>}
-    {create?.space && <TaskSheet key="aggregate-create" task={null} spaceId={create.selectedId} spaceKind={create.space.kind} userId={userId} members={create.members}
+    {create?.space && <TaskSheet key="aggregate-create" task={null} spaceId={create.selectedId} spaceKind={create.space.kind} userId={userId} members={create.members} actionsAllowed={canAct}
       createTarget={{ spaces: create.memberSpaces, selectedId: create.selectedId, enabledIds: create.eligibleSpaces.map((space) => space.id), state: create.state, error: create.error, onSelect: editor.chooseCreateTarget, onRetry: () => editor.chooseCreateTarget(create.selectedId) }}
       validateGlobalCreate={editor.validateCreateTarget}
       onSaved={refresh}
       onMutationError={() => editor.revalidateMutation(create.selectedId)}
       onClose={() => { editor.closeCreate(); createButton.current?.focus(); }}
     />}
-    {editing && <TaskSheet key={editing.task.space_id + ':' + editing.task.id} task={editing.task} spaceId={editing.task.space_id} spaceKind={editing.space.kind} userId={userId} members={editing.members} sourceSpaceLabel={editing.space.name}
+    {editing && <TaskSheet key={editing.task.space_id + ':' + editing.task.id} task={editing.task} spaceId={editing.task.space_id} spaceKind={editing.space.kind} userId={userId} members={editing.members} sourceSpaceLabel={editing.space.name} actionsAllowed={canAct}
       onSaved={refresh} onMutationError={() => editor.revalidateMutation(editing.task.space_id)} onClose={editor.closeTask}
     />}
   </main>;

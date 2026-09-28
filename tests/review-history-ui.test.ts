@@ -46,6 +46,28 @@ test('Review list starts without body or create placeholder; Hub waits for eligi
   } finally { await vite.close(); }
 });
 
+test('warm Review entry selects its Space before canonical history loads', async () => {
+  const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
+  try {
+    const { ReviewHistoryPage } = await vite.ssrLoadModule('/src/components/ReviewHistoryPage.tsx');
+    const review = renderToStaticMarkup(React.createElement(ReviewHistoryPage, {
+      userId: 'me', entry: { memberSpaces: [owner], eligibleSpaces: [owner] }, currentSpaceId: null,
+      onSpaceChange: () => undefined, onOpenDetail: () => undefined, onHubBack: () => undefined,
+    }));
+    assert.match(review, /真实名称/);
+    assert.match(review, /正在读取历史回顾/);
+    assert.doesNotMatch(review, /正在读取回顾空间/);
+  } finally { await vite.close(); }
+});
+
+test('same-Space Review refresh keeps confirmed history mounted', () => {
+  assert.match(historySource, /else if \(rereadSameSpace\)[\s\S]*readPage\(space, null, true, true\)/);
+  assert.match(historySource, /if \(!background\) setHistoryStatus/);
+  assert.match(historySource, /setHistoryStatus\(background \? 'ready' : 'error'\)/);
+  assert.match(historySource, /historyStatus === 'ready' \? readPage\(selectedSpace, null, true, true\)/);
+  assert.doesNotMatch(historySource, /\brevision\b/);
+});
+
 test('historical row opens the canonical review id without newly-created context', async () => {
   const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
   try {
