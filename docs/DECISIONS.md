@@ -7,7 +7,7 @@
 - Space-level module entry reuses authenticated CalendarApp current Spaces and valid session-scoped module eligibility as hints, then reads that module's canonical business data. Repeated entry does not rediscover current Spaces or `space_modules` while the hint is valid. Supabase, RLS, bounded invalidation, and canonical mutation checks remain authoritative.
 - Only entry discovery is shared. Tasks retain paginated Tasks and member reads; Review retains rounds → entries; Lists retain complete Lists/Items reads and consistency checks. Independent reads may overlap, while background rereads keep validated content visible. No generic module framework, persistent business-data cache, dependency, SQL, or backend change is planned.
 - First-entry latency is outside this correction: no partial publication, prefetch, business-data cache, Hub business-data loading, or timing framework. Reconsider only if real use later finds first entry materially problematic.
-- Implementation complexity target is `SIMPLER`. The second local authenticated acceptance PASSED for Tasks, Review, and Lists after the initial Tasks failure; v0.1.16 remains `IN PROGRESS` pending Production/Vercel mobile/PWA recheck.
+- Implementation complexity target is `SIMPLER`. After the initial Tasks failure, the second local authenticated acceptance and user-reported Production installed-PWA acceptance PASSED for Tasks, Review, and Lists; v0.1.16 is `CLOSED / PASS`.
 
 ## v0.1 Product Shape
 

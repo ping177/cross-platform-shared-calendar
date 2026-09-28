@@ -1,5 +1,11 @@
 # Development Log
 
+## 2026-09-28 - v0.1.16 Production installed-PWA acceptance — CLOSED / PASS
+
+- Initial implementation removed duplicate current-Space and module-eligibility discovery. First authenticated Tasks re-entry FAILED because navigation unmounted the validated view; read-only RCA identified remount state loss. Narrow, user- and scope-bound CalendarApp session snapshots then restored safe Tasks/Review/Lists views without keeping hidden modules mounted or adding a generic cache/store/query framework. Second local authenticated acceptance PASSED.
+- Implementation and automated verification PASS (Node 371/371, build). GitHub records a successful Vercel Production deployment of `543fa4956dbb58cdc1671b91bafb5b46da98adc0`; user reports installed-PWA Tasks, Review, and Lists re-entry immediately shows validated content after first load, with the former full-loading cycle absent. Production installed-PWA acceptance PASS; Android-specific acceptance was not reported. v0.1.16 is `CLOSED / PASS`.
+- First-entry business-data loading was deliberately not redesigned: no partial publication, prefetch, persistent business-data cache, Hub business-data preload, or timing framework. Revisit only if real usage shows material first-entry latency. This closeout changes governance docs only; no business code, test, dependency, SQL/backend, or Production data change.
+
 ## 2026-09-28 - v0.1.16 Module Re-entry — LOCAL AUTHENTICATED ACCEPTANCE PASS / ROLLOUT PENDING
 
 - User-reported `LOCAL_AUTHENTICATED_ACCEPTANCE = PASS` after the first Tasks acceptance failed and the read-only RCA identified unmount/remount loss of validated hook state. The bounded CalendarApp session-view correction now passes Tasks, Review, and Lists re-entry: each restores its last safe validated view immediately after the first canonical load; Lists stays visible during background/SUBSCRIBED convergence without a second full-loading flash.

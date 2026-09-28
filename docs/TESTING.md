@@ -1,5 +1,11 @@
 # Testing
 
+## v0.1.16 Final acceptance — CLOSED / PASS
+
+- Implementation and automated verification: full Node **371/371 PASS**, `npm run build` **PASS**. Local authenticated desktop acceptance **PASS** after the initial Tasks re-entry failure and three-module retention correction.
+- User reports Production installed-PWA acceptance **PASS** on deployed commit `543fa4956dbb58cdc1671b91bafb5b46da98adc0`: after first validated load, Hub → Tasks/Review/Lists each restores content immediately; the repeated full-loading re-entry problem did not recur. Android-specific acceptance was not reported. Earlier pending checkpoints below remain historical.
+- First-entry business-data loading was intentionally outside scope; no partial publication, prefetch, persistent business-data cache, Hub business-data preload, or timing/benchmark framework. This is non-blocking unless real use shows material latency.
+
 ## v0.1.16 Local Authenticated Acceptance — PASS / PRODUCTION RECHECK PENDING
 
 - User reports `LOCAL_AUTHENTICATED_ACCEPTANCE = PASS`: after first validated loading, Tasks Hub re-entry is fast without the former full-loading cycle; Review immediately restores validated history; Lists immediately restores its validated overview and has no second full-page loading flash during background/SUBSCRIBED refresh. The first Tasks attempt had FAILED before the read-only RCA and bounded three-module correction; that history remains recorded below.
