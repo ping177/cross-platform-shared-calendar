@@ -22,6 +22,7 @@
   },
   "include": [
     "src",
+    "supabase/functions/_shared/important-date.ts",
     "supabase/functions/_shared/time-zone.ts",
     "supabase/functions/_shared/reminder-due.ts"
   ]

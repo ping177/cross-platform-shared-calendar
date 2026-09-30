@@ -1,6 +1,14 @@
 # Testing
 
-## v0.1.18 重要日 — Design Freeze checks / implementation NOT STARTED
+## v0.1.18 Slice 1 Task 1 — Pure-date contract — PASS / 2026-09-30
+
+- Shared implementation: `supabase/functions/_shared/important-date.ts`; tests: `tests/important-date.test.ts`. Four pure APIs validate fields, resolve one target-year occurrence, find next including today, and derive typed display states. No UI copy, system-clock input, local-midnight duration arithmetic, Event engine mutation, or third-party date dependency.
+- Important Date **15/15 PASS**. Covers real-date rejection, optional annual start/full non-repeat date, `2028-02-29` first occurrence and `2029-02-28` first anniversary, no occurrence before the `2030-09-30` anchor, Day 1/positive anniversary secondary target, true calendar anniversaries, yearless countdown/today, Past elapsed versus inclusive count, cross-year/leap/century/small-year/overflow cases, and input immutability. Separate processes under UTC, America/New_York and Pacific/Auckland prove identical civil results across DST boundaries.
+- Focused command: `node --test tests/important-date.test.ts tests/recurrence.test.ts tests/time-zone.test.ts tests/reminder-due.test.ts tests/recurring-reminders.test.ts tests/event-reminder.test.ts` — **75/75 PASS**, including the 15 Important Date tests. Existing Event yearly February 29 still skips non-leap years.
+- Full `node --test tests/*.test.ts tests/*.test.js` — **389/389 PASS**; `npm run build`, `deno check supabase/functions/_shared/important-date.ts`, and `git diff --check` — **PASS**. Build retains the existing >500 kB chunk warning. The shared file is explicitly included in app TypeScript checks; it has no runtime imports and needs no browser/Edge wrapper.
+- Task 1 verification is pure-date/compatibility evidence only. No schema/RLS/RPC/SQL test execution, module UI/navigation, sender/ledger/claim, Home/Calendar projection, dependencies, Production write, deployment, push or authenticated/device acceptance. Slice 1 remains in progress; Task 2 canonical database foundation is next.
+
+## v0.1.18 重要日 — Design Freeze checks / historical NOT STARTED checkpoint
 
 Canonical contract and acceptance boundaries: [v0.1.18 Specification](./v0.1.18_IMPORTANT_DATES_SPEC.md). This round is docs-only: governance/spec consistency and `git diff --check` are the required checks; no business code, schema, migration, Edge Function or dependency changes, and no new build/SQL/authenticated/Production/Push acceptance are claimed. The prior read-only audit's 113/113 existing Node tests are reuse evidence only, not v0.1.18 feature tests. All three implementation Slices and feature acceptance remain `NOT STARTED`.
 

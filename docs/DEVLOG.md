@@ -1,5 +1,12 @@
 # Development Log
 
+## 2026-09-30 - v0.1.18 Slice 1 Task 1 — Pure-date contract — PASS
+
+- Started from clean `main`, HEAD/local origin/main `986c9b1ca3251d19d030148c16200b0ab76caebd`, after the repo-first `SLICE1_IMPLEMENTATION_READY` gate and explicit Task 1 implementation/local-commit authorization. Task 2 and Production/Git push/deployment remain separately authorized work.
+- Added one dependency-free browser/Edge-compatible date core with four pure APIs and typed display data; Gregorian ordinal arithmetic preserves civil days, anchor eligibility, Feb 29 fallback, Day 1 and real anniversary semantics. No rule duplication, Event recurrence change, database, page, navigation, Reminder delivery or projection implementation.
+- Added focused tests first (RED: missing shared module), then implementation (GREEN). Important Date 15/15, focused date/Event regression 75/75, full Node 389/389, build, Deno check and diff-check PASS; detailed cases/commands are in [Testing](./TESTING.md). Existing bundle warning remains non-blocking. No authenticated/device or Production acceptance is claimed.
+- Added the shared file to existing app TypeScript checking and updated dashboard state to `DESIGN FROZEN / SLICE 1 IN PROGRESS`, Task 1 PASS; next is Task 2 canonical database foundation. No dependencies, external project files, schema/patches, secrets, deploy, Production write or push changed. Local commit is authorized; no push is authorized.
+
 ## 2026-09-30 - v0.1.18 重要日 — DESIGN FROZEN / IMPLEMENTATION PLANNING
 
 - User formally approved the completed `IMPORTANT_DATES_DESIGN_FREEZE_READY` audit and established v0.1.18. Revalidated clean `main`, HEAD/local origin/main/live remote main `5895229d7e9632ede7ec50da4d3acb0191a8679c` and the referenced module, date, projection, reminder/ledger and lifecycle source/schema; no drift from the audit. v0.1.17 remains `CLOSED / PASS`.
