@@ -1,11 +1,17 @@
 # Development Log
 
-## 2026-09-30 - v0.1.17 Local Authenticated Acceptance — PASS / ROLLOUT PENDING
+## 2026-09-30 - v0.1.17 Space-aware List Create Default — CLOSED / PASS
+
+- Implementation / automated verification, local authenticated acceptance, and user-reported Production/PWA acceptance are all `PASS`. Local acceptance confirmed the all/Personal/Shared defaults and that changing the visible form target determines the saved List Space. On the deployed Vercel build, the user confirmed the all-Space default is Personal, the Personal filter defaults to that Space, and the Shared filter defaults to that Space. Android-specific acceptance was not reported.
+- Freeze: `CURRENT FILTER AS DEFAULT PRESELECTION, NOT OWNERSHIP AUTHORITY`. Tasks already conform; Review conforms through its single-Space flow; Lists was corrected in v0.1.17; Calendar behavior was intentionally unchanged. Future Space-level modules, including Important Dates, should follow the convention. The earlier Shared Space manual-selection rule was superseded after real-use consistency review and remains documented as history.
+- v0.1.17 is `CLOSED / PASS`; v0.1.16 remains `CLOSED / PASS`. No business code, backend/schema/RLS/RPC, dependency, or Production data changed for this governance closeout. No Android-specific acceptance is claimed.
+
+## 2026-09-30 - v0.1.17 Local Authenticated Acceptance — PASS / ROLLOUT PENDING (initial checkpoint)
 
 - User-reported `LOCAL_AUTHENTICATED_ACCEPTANCE = PASS`: Lists 全部空间 → `+` preselected Personal; Personal filter → `+` preselected that Personal Space; Shared filter → `+` preselected that Shared Space. The user changed the Space inside the create Sheet and confirmed the new List belonged to the explicitly selected form target, independent of the outer filter.
 - Final local review retains `CURRENT FILTER AS DEFAULT PRESELECTION, NOT OWNERSHIP AUTHORITY`. Tasks, Review, Calendar, and the Calendar 全部空间 no-create rule remain unchanged; Important Dates is out of scope. v0.1.16 remains `CLOSED / PASS`. v0.1.17 Production/PWA acceptance is pending; no push, deployment, Production write, or Codex-operated authenticated session occurred in this checkpoint.
 
-## 2026-09-30 - v0.1.17 Space-aware Lists Create Default — LOCAL IMPLEMENTATION / MANUAL ACCEPTANCE PENDING
+## 2026-09-30 - v0.1.17 Space-aware Lists Create Default — LOCAL IMPLEMENTATION / MANUAL ACCEPTANCE PENDING (initial checkpoint)
 
 - After real-use review, the frozen cross-module convention supersedes only the old Lists unconditional Personal default. Lists 全部空间 still preselects Personal; a specific eligible Space filter initializes the visible create Sheet target to that Space. The Sheet's own selection remains stable after opening, can be changed by the user, and supplies the canonical `space_id` on submit. An invalid specific filter requires re-selection; disabled Personal under 全部空间 never silently falls back to Shared.
 - Focused Lists Node 20/20, full Node 374/374, `npm run build`, and `git diff --check` PASS; user-run authenticated acceptance remains pending. An already-open Sheet also keeps an ineligible Shared target visibly blocked until re-selection. Tasks, Review, Calendar, Home creation, backend/SQL, dependencies, and v0.1.16 `CLOSED / PASS` behavior remain unchanged. No Codex authenticated session, Production write, commit, push, or deployment belongs to this local checkpoint.

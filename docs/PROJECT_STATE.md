@@ -12,13 +12,13 @@ v0.1.17
 
 ## Current status
 
-v0.1.17 Space-aware Lists Create Default `LOCAL AUTOMATED PASS / LOCAL AUTHENTICATED ACCEPTANCE PASS / PRODUCTION-PWA PENDING`：Lists 新建默认预选遵循独立 `listFilter`；聚焦 Node 20/20、完整 Node 374/374、build 与 diff-check PASS。Production 前端仍为已验收的 v0.1.16；v0.1.17 发布与 Production/PWA 验收未完成。v0.1.16 保持 `CLOSED / PASS`，暂无明确阻塞。
+v0.1.17 Space-aware List create default `CLOSED / PASS`：implementation / automated verification = PASS（focused Lists 20/20、full Node 374/374、build、diff-check）；local authenticated acceptance = PASS，包含表单改选后的归属验证；user-reported Production/PWA acceptance = PASS（deployed Vercel build 的全部空间、Personal、Shared 默认预选）。Android-specific acceptance 未报告。v0.1.16 保持 `CLOSED / PASS`。暂无明确阻塞。
 
 ## Latest completed
 
-v0.1.17 用户报告本地真实账号验收 PASS：Lists 全部空间、Personal、Shared 三种筛选下新建默认均正确；在表单内改选 Space 后，新清单归属表单所选 Space，而非外层筛选。Production/PWA 验收待后续发布。
+v0.1.17 Space-aware List create default `CLOSED / PASS`：本地实现与自动验证、local authenticated acceptance、user-reported Production/PWA acceptance 均 PASS。全部空间默认 Personal，筛选到 Personal/Shared 时默认当前 Space；本地验收确认表单内改选后，新清单归属表单目标。Production/PWA 验收覆盖部署的 Vercel build 上全部空间、Personal、Shared 默认预选；Android-specific acceptance 未报告。冻结规则为 `CURRENT FILTER AS DEFAULT PRESELECTION, NOT OWNERSHIP AUTHORITY`。
 
-v0.1.17 本地实现及自动验证 PASS：全部空间默认 Personal，具体合格 Space 默认该 Space；表单可改选且提交使用表单目标，失效目标不能静默保存。Tasks/Review/Calendar 行为未改；无 SQL/backend/依赖变化。此初始检查点时真实账号手工验收尚待用户执行，随后已按上条记录通过。
+v0.1.17 初始本地实现及自动验证记录：全部空间默认 Personal，具体合格 Space 默认该 Space；表单可改选且提交使用表单目标，失效目标不能静默保存。Tasks/Review/Calendar 行为未改；无 SQL/backend/依赖变化。该检查点时真实账号手工验收尚待用户执行，随后本地及 Production/PWA 验收均已通过，见上条。
 
 v0.1.16 最终 `CLOSED / PASS`：实现及自动验证（Node 371/371、build）PASS，本地真实账号桌面验收 PASS，用户报告 Production installed-PWA 验收 PASS。首次 Tasks 验收 FAILED 后，只读 RCA 确认卸载导致视图状态丢失；三模块加入有边界的同会话已验证视图保留后，本地复测与 Production PWA 重入均通过。首次进入业务数据加载未重设计，非本版阻塞。
 
@@ -128,6 +128,7 @@ Provider: Vercel
 Backend: Supabase Free
 Backend rollout: v0.1.15 Slice 1 Shared Lists exact forward patch APPLIED ONCE / POSTFLIGHT PASS; v0.1.14 review foundation and date chronology forward patches remain applied; v0.1.13 lifecycle remains applied.
 v0.1.16 frontend: GitHub records successful Vercel Production deployment of `543fa4956dbb58cdc1671b91bafb5b46da98adc0`; user-reported installed-PWA acceptance PASS for Tasks/Review/Lists re-entry. Android-specific acceptance was not reported.
+v0.1.17 frontend: user-reported Production/PWA acceptance PASS on the deployed Vercel build for Lists create defaults in 全部空间, Personal, and Shared filters. Explicit form-target ownership passed in local authenticated acceptance. Android-specific acceptance was not reported; this frontend-only correction required no backend rollout.
 Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/mobile acceptance passed. User reports final Slice 4 desktop, dual-account Realtime, mobile/PWA Item drag and long-list auto-scroll acceptance `PASS`; v0.1.15 is `CLOSED / PASS`. The v0.1.16 deployment record was checked read-only; Codex did not operate Production or authenticated sessions. Existing Review backend keeps same-Space/date uniqueness, duplicate-safe create/date correction and `get_my_previous_review_plan`; final Review fixtures remain 0/0 while Shared and Personal Review modules remain enabled. Historical version-specific acceptance limits remain in DEVLOG/TESTING. `space_modules` remains outside Realtime; `send-test-push` remains ACTIVE v4 reviewed-equivalent and `send-reminders` ACTIVE v2 / `verify_jwt=false`. Vault, secrets and Cron were not changed.
 
 ## Version Index
@@ -162,7 +163,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 - v0.1.14.1 — Navigation Persistence（CLOSED / PASS；实现、integration review、本地及 Production 真实账号验收、Production deployment/public smoke PASS）
 - v0.1.15 — Shared Lists（CLOSED / PASS；Slices 1–4 CLOSED / PASS；desktop、dual-account Realtime、mobile/PWA PASS；Section drag DEFERRED / NON-BLOCKING）
 - v0.1.16 — Module Entry Responsiveness / Data Flow Simplification（CLOSED / PASS；implementation/automated、local authenticated desktop、Production installed-PWA acceptance PASS）
-- v0.1.17 — Space-aware Lists Create Default（LOCAL AUTOMATED / AUTHENTICATED PASS；PRODUCTION-PWA PENDING）
+- v0.1.17 — Space-aware List create default（CLOSED / PASS；implementation/automated verification、local authenticated、Production/PWA acceptance PASS；Android-specific acceptance 未报告）
 
 ## Last verified
 
@@ -170,7 +171,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-Next Action: 完成另行授权的 v0.1.17 前端发布与 Production/PWA 验收；本地实现、自动验证及真实账号验收已通过，push/deploy 均须分别获得授权。
+Next Action: 仅继续 Important Dates 产品设计探索；尚未选定或启动下一实现版本。
 
 ## Blockers
 
@@ -178,7 +179,7 @@ Next Action: 完成另行授权的 v0.1.17 前端发布与 Production/PWA 验收
 
 ## Important Context
 
-- v0.1.17 仅修正 Lists 创建 Sheet 的默认预选；`CURRENT FILTER AS DEFAULT PRESELECTION, NOT OWNERSHIP AUTHORITY`。旧 v0.1.15 Lists 无条件 Personal 默认已被后续真实使用一致性决定取代。本地真实账号验收 PASS；Production/PWA 待验收。Calendar 全部空间仍无创建 `+`，Important Dates 尚未实现。无 backend/SQL/依赖变化。
+- v0.1.17 `CLOSED / PASS`；冻结约定为 `CURRENT FILTER AS DEFAULT PRESELECTION, NOT OWNERSHIP AUTHORITY`。Tasks 已符合，Review 通过单 Space 流程符合，Lists 在 v0.1.17 修正并验收，Calendar 行为有意保持不变；未来 Space-level modules（包括 Important Dates）遵循此约定。旧的 Shared Space 必须手动选择规则已在真实使用一致性复核后被取代。Important Dates 仅处于产品设计探索，不属于 v0.1.17；尚未选定或启动下一实现版本。无 backend/SQL/依赖变化。
 - v0.1.15 Shared Lists 的唯一 canonical contract 是 [v0.1.15_SHARED_LISTS_SPEC.md](./v0.1.15_SHARED_LISTS_SPEC.md)。Slices 1–4 与整个版本 `CLOSED / PASS`；Item drag 设备验收及长列表自动滚动通过。Section drag 按冻结设计延后且不阻塞；stale reorder `AUTOMATED PASS / MANUAL NOT REQUIRED`，既有 bundle warning 非阻塞。
 - v0.1.14 `CLOSED / PASS`：`review_date` 是业务时间轴且同 Space 同日唯一；上一份计划严格按日期上一篇、不 fallback；`round_no` 仅为内部技术序列。Backend、frontend deployment、public smoke、用户 Production authenticated acceptance 与最终 exact-ID fixture cleanup 均通过；Production 当前 0 rounds / 0 entries、Shared 与 Personal Review module enabled。v0.1.14.1 已解决刷新回首页问题并 `CLOSED / PASS`；既有 >500 kB bundle warning 仍为非阻塞项。完整 Review contract 和验收条件只以 v0.1.14 规格为准。
 - Git branch、latest commit、working tree 由 project-command-center 实时 Git 扫描读取；PROJECT_STATE.md 不作为这些字段的权威来源。
@@ -244,4 +245,4 @@ Next Action: 完成另行授权的 v0.1.17 前端发布与 Production/PWA 验收
 
 ## Handoff Prompt
 
-v0.1.17 Space-aware Lists Create Default passed local automated verification (focused 20/20, full Node 374/374, build, diff-check) and user-reported local authenticated acceptance for all/Personal/Shared defaults plus explicit form-target ownership. Production still runs accepted v0.1.16; v0.1.17 rollout and Production/PWA acceptance remain pending, with push/deploy requiring separate authorization. v0.1.16 and v0.1.15 remain `CLOSED / PASS`. Calendar aggregate create and Important Dates are out of scope.
+v0.1.17 Space-aware List create default is `CLOSED / PASS`: implementation/automated verification, local authenticated acceptance (including explicit form-target ownership), and user-reported Production/PWA acceptance on the deployed Vercel build all passed. Android-specific acceptance was not reported. v0.1.16 and v0.1.15 remain `CLOSED / PASS`. The frozen convention is `CURRENT FILTER AS DEFAULT PRESELECTION, NOT OWNERSHIP AUTHORITY`. Current product discussion is Important Dates design exploration only; no next implementation version has been selected or started.

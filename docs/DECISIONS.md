@@ -1,9 +1,9 @@
 # Decisions
 
-## Space-aware Create Defaults — 2026-09-30
+## Space-aware Create Defaults — Frozen Convention — 2026-09-30
 
-- `SPACE_AWARE_CREATE_DEFAULT_CONVENTION`: `CURRENT FILTER AS DEFAULT PRESELECTION, NOT OWNERSHIP AUTHORITY`. A module's 全部空间 view preselects the user's Personal Space; a specific eligible Space filter preselects that Space; a single-Space module uses its selected Space. The visible form target or create RPC payload establishes canonical `space_id`, subject to current membership, module eligibility, RLS, and backend checks. An invalid target must not cause a silent redirect and save. Module filters remain independent.
-- This later real-use consistency decision supersedes the v0.1.15 Lists rule that Shared must always be manually selected, even when the Lists view already filters to it. Lists now uses `listFilter` only to initialize its create Sheet target; the user may change that target. Tasks and Review already conform and retain their behavior. Calendar 全部空间 still has no `+` under its separate frozen decision. Future Important Dates will follow this convention when implemented; no Important Dates scope is added here.
+- `SPACE_AWARE_CREATE_DEFAULT_CONVENTION`: `CURRENT FILTER AS DEFAULT PRESELECTION, NOT OWNERSHIP AUTHORITY`. Aggregate 全部空间 defaults to the user's Personal Space; a specific eligible Space filter defaults to that Space. The create form target remains explicit and user-visible; final ownership comes from the target selected in that form. Current membership, module eligibility, RLS, and backend validation remain authoritative. Invalid targets cannot silently redirect and save. Module filters remain independent.
+- Tasks already conform; Review conforms through its single-Space flow; Lists was corrected in v0.1.17 and accepted; Calendar behavior was intentionally unchanged. Future Space-level modules, including Important Dates, should follow this convention. The prior v0.1.15 safety rule that a Shared Space must always be manually selected—even when already filtered—was replaced after real-use consistency review. This supersession does not erase the historical rule; the v0.1.15 spec history remains available. No generic create framework is implied. v0.1.17 is `CLOSED / PASS` with implementation/automated, local authenticated, and Production/PWA acceptance all passed.
 
 ## v0.1.16 Module Entry Responsiveness — Design Frozen — 2026-09-28
 
@@ -97,7 +97,7 @@
 
 ## v0.1.9 Shared Tasks MVP Scope Freeze and Slice 1 Foundation
 
-- Status is `v0.1.9 CLOSED / PASS; SLICE 1/2/3 CLOSED / PASS`. The canonical detailed contract is `docs/v0.1.9_SHARED_TASKS_SPEC.md`; the backend was applied/postflight verified and the Vercel frontend passed user-run Desktop A/B and iPhone Production acceptance. v0.1.9 is the latest accepted user-facing Production capability.
+- Status is `v0.1.9 CLOSED / PASS; SLICE 1/2/3 CLOSED / PASS`. The canonical detailed contract is `docs/v0.1.9_SHARED_TASKS_SPEC.md`; the backend was applied/postflight verified and the Vercel frontend passed user-run Desktop A/B and iPhone Production acceptance. At that milestone, v0.1.9 was the latest accepted user-facing Production capability.
 - A Task means something that remains to be completed; an Event means when something happens. Every Task belongs to exactly one explicit Space, and a Task due date never creates or mutates an Event.
 - `created_by` is immutable creator attribution only. Assignment identifies responsibility: null means shared; a current same-Space member ID owns status transitions while not restricting collaborative visibility, editing, reassignment, or deletion.
 - Every current Space member may view, edit title/due date, reassign, and delete every Task. Shared Task complete/reopen is open to any current member; assigned Task complete/reopen belongs only to its current assignee. Former and non-members have no access. RLS plus a database trigger checking `OLD.assigned_to_user_id` remain authoritative.

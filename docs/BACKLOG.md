@@ -10,9 +10,13 @@
 
 ## Latest Completed Product Slice
 
+### v0.1.17 — Space-aware List Create Default — CLOSED / PASS
+
+Implementation/automated verification, local authenticated acceptance, and user-reported Production/PWA acceptance on the deployed Vercel build all passed. Local acceptance confirmed explicit form-target ownership; Production/PWA checks confirmed the Personal default in 全部空间 and the current Space default under Personal and Shared filters. Android-specific acceptance was not reported. The frozen create-default convention is recorded in [Decisions](./DECISIONS.md). Important Dates remains design exploration only; no next implementation version is selected or started.
+
 ### v0.1.9 — Shared Tasks MVP
 
-Status: `CLOSED / PASS`. Slice 1/2/3 均 CLOSED / PASS；Production backend applied/postflight verified、Vercel frontend deployed/accepted、Desktop A/B Production acceptance PASS、iPhone Production smoke PASS。v0.1.9 remains a closed historical milestone; later Production state is recorded under v0.1.10 and v0.1.11 below. 详细范围和历史切片见下方 Current Frozen Product Scope。
+Status: `CLOSED / PASS`. Slice 1/2/3 均 CLOSED / PASS；Production backend applied/postflight verified、Vercel frontend deployed/accepted、Desktop A/B Production acceptance PASS、iPhone Production smoke PASS。At the v0.1.9 milestone it was the latest accepted user-facing Production capability; later Production state is recorded in subsequent milestones. 详细范围和历史切片见下方 Current Frozen Product Scope。
 
 ### v0.1.8 — Mobile Push Reminder
 
@@ -68,7 +72,7 @@ Future compatibility:
 
 ### v0.1.9 — Shared Tasks MVP
 
-Status: `CLOSED / PASS; SLICE 1/2/3 CLOSED / PASS`. Production backend applied/verified, Vercel frontend deployed/accepted, Desktop A/B Production acceptance PASS, and iPhone Production smoke PASS. v0.1.9 is the latest accepted user-facing Production capability. Canonical Task scope: [v0.1.9 Shared Tasks Spec](./v0.1.9_SHARED_TASKS_SPEC.md); long-term model: [Shared Life Architecture Freeze](./SHARED_LIFE_ARCHITECTURE.md).
+Status: `CLOSED / PASS; SLICE 1/2/3 CLOSED / PASS`. Production backend applied/verified, Vercel frontend deployed/accepted, Desktop A/B Production acceptance PASS, and iPhone Production smoke PASS. At that milestone, v0.1.9 was the latest accepted user-facing Production capability. Canonical Task scope: [v0.1.9 Shared Tasks Spec](./v0.1.9_SHARED_TASKS_SPEC.md); long-term model: [Shared Life Architecture Freeze](./SHARED_LIFE_ARCHITECTURE.md).
 
 In scope:
 
@@ -154,7 +158,7 @@ Canonical contract: [v0.1.15 Shared Lists Specification](./v0.1.15_SHARED_LISTS_
 
 Slices 1–4 and v0.1.15 are `CLOSED / PASS`. Final user acceptance covers desktop authenticated flows, dual-account Realtime, mobile/PWA Item drag and long-list auto-scroll. Full Node 356/356 and build passed. Stale reorder is `AUTOMATED PASS / MANUAL NOT REQUIRED`; Section drag is `DEFERRED / NON-BLOCKING`, and the existing bundle warning is non-blocking. No current blocker is recorded.
 
-The next selected version was v0.1.16 below; no subsequent version is selected yet.
+v0.1.16 and v0.1.17 are closed below. No next implementation version is selected or started. The current product discussion is Important Dates design exploration only.
 
 ## v0.1.16 — Module Entry Responsiveness / Data Flow Simplification — CLOSED / PASS
 
@@ -173,7 +177,8 @@ The long-term relationships and v0.1.10 scope are frozen in [Shared Life Archite
 - v0.1.14.1 — Navigation Persistence (CLOSED / PASS; local and Production authenticated refresh acceptance PASS; no Review fixture created).
 - v0.1.15 — Shared Lists (CLOSED / PASS; Slices 1–4 CLOSED / PASS; desktop, dual-account Realtime and mobile/PWA PASS; Section drag DEFERRED / NON-BLOCKING).
 - v0.1.16 — Module Entry Responsiveness / Data Flow Simplification (CLOSED / PASS; automated, local authenticated desktop, and Production installed-PWA acceptance PASS; Android-specific acceptance not reported).
-- Later candidates without fixed versions/order: Important Dates, Calendar Sources v1, Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules. Priority and order may change based on real product use.
+- v0.1.17 — Space-aware List create default (CLOSED / PASS; implementation/automated, local authenticated, and Production/PWA acceptance PASS; Android-specific acceptance not reported).
+- Later candidates without fixed versions/order: Important Dates, Calendar Sources v1, Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules. The current product discussion is Important Dates design exploration only; no next implementation version/scope is selected. Other candidates remain unselected and their priority may change based on real product use.
 - Future direction only: consider projecting/sharing a Personal Event into another Space while keeping one canonical Event owner Space, avoiding duplicate canonical objects, and ensuring that leaving the target Shared Space does not affect the source Event. This is outside v0.1.13; do not implement or reserve schema for it in this version.
 - Native: decision gate only; no committed implementation version.
 

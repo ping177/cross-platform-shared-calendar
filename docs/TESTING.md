@@ -1,11 +1,17 @@
 # Testing
 
-## v0.1.17 Local Authenticated Acceptance — PASS / PRODUCTION-PWA PENDING
+## v0.1.17 Final Acceptance — CLOSED / PASS
+
+- Implementation / automated verification: focused Lists Node **20/20 PASS**; full Node **374/374 PASS**; `npm run build` and `git diff --check` **PASS**. The build's existing >500 kB chunk warning remains non-blocking.
+- Local authenticated acceptance: **PASS**. The user confirmed Lists 全部空间 → `+` preselects Personal; Personal filter preselects that Personal Space; Shared filter preselects that Shared Space. The user changed the Space in the form and confirmed the saved List belongs to the form-selected target.
+- Production/PWA acceptance: user-reported **PASS** on the deployed Vercel build for the all-Space, Personal, and Shared default selections. Android-specific acceptance was not reported. No backend change or Production write was required for this frontend-only correction.
+
+## v0.1.17 Local Authenticated Acceptance — PASS / PRODUCTION-PWA PENDING (initial checkpoint)
 
 - User-reported `LOCAL_AUTHENTICATED_ACCEPTANCE = PASS`: Lists 全部空间 `+` preselected Personal; specific Personal `+` preselected that Personal Space; specific Shared `+` preselected that Shared Space. After changing the Space inside the create form and saving, the new List belonged to the form-selected Space, not the outer filter. These are user-run real-account checks; Codex did not operate the authenticated session.
 - The local implementation and automated results are recorded below. v0.1.17 has not passed Production/PWA acceptance and is not `CLOSED / PASS`. No backend change or Production write was needed.
 
-## v0.1.17 Space-aware Lists Create Default — LOCAL AUTO / MANUAL AUTHENTICATED ACCEPTANCE PENDING
+## v0.1.17 Space-aware Lists Create Default — LOCAL AUTO / MANUAL AUTHENTICATED ACCEPTANCE PENDING (initial checkpoint)
 
 - Focused Lists Node **20/20 PASS**; full `node --test tests/*.test.ts tests/*.test.js` **374/374 PASS**; `npm run build` and `git diff --check` **PASS**. The build retains the existing >500 kB chunk warning. Tests cover 全部空间/Personal/eligible Shared defaults, disabled Personal and sole eligible Shared without automatic fallback, invalid specific filter requiring re-selection, a newly ineligible Shared target shown as blocked, visible and changeable Sheet target, target stability after opening, and canonical insert payload. Existing Tasks, Review, Calendar aggregate no-create, and Lists ownership/eligibility tests remain passing regression gates. SSR and source-contract tests do not replace authenticated browser acceptance.
 - The previously passing read-only frontend/backend alignment gate remains applicable: the frontend Supabase target code/config, Lists schema/RLS/RPC contract, and backend capabilities are unchanged in this frontend-only correction; v0.1.15 Lists Production backend postflight and v0.1.16 alignment are recorded below. The fixed-port local Vite server responds HTTP 200 at `http://127.0.0.1:5175` without login. The user checks that address in their authenticated browser: Lists 全部空间 → `+` shows Personal; specific Personal → `+` shows Personal; specific Shared → `+` shows that Shared; change the Sheet target explicitly and confirm the new List belongs to the chosen Space. Codex does not operate this logged-in session. Manual acceptance is pending; no Production deployment or write is implied.
@@ -395,7 +401,7 @@ No other failure was reported. The real-user acceptance above is distinct from l
 
 ## v0.1.9 Shared Tasks MVP Acceptance and Verification
 
-Status: `v0.1.9 CLOSED / PASS; SLICE 1/2/3 CLOSED / PASS`. The canonical behavior and boundaries are defined in [v0.1.9 Shared Tasks Spec](./v0.1.9_SHARED_TASKS_SPEC.md). The Production backend was applied/postflight verified, the Vercel frontend was deployed, and v0.1.9 is the latest accepted user-facing Production capability.
+Status: `v0.1.9 CLOSED / PASS; SLICE 1/2/3 CLOSED / PASS`. The canonical behavior and boundaries are defined in [v0.1.9 Shared Tasks Spec](./v0.1.9_SHARED_TASKS_SPEC.md). The Production backend was applied/postflight verified, the Vercel frontend was deployed, and v0.1.9 was the latest accepted user-facing Production capability at that milestone.
 
 ### Slice 3 Production acceptance — PASS (user-reported, 2026-09-23)
 
