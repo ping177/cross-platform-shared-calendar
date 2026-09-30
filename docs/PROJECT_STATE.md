@@ -12,7 +12,7 @@ v0.1.18
 
 ## Current status
 
-v0.1.18 重要日 `DESIGN FROZEN / SLICE 1 IN PROGRESS`：Task 1 pure-date contract 与 Task 2 canonical database foundation 本地实现/自动验证 `PASS`；Task 3 module core 尚未开始，Slices 2–3 `NOT STARTED`。尚无已批准的 Production write、deployment 或 push。v0.1.17 保持 `CLOSED / PASS`，既有验收证据不变。暂无明确阻塞。
+v0.1.18 重要日 `DESIGN FROZEN / SLICE 1 IN PROGRESS`：Task 1 pure-date contract 与 Task 2 canonical database foundation 本地实现/自动验证 `PASS`；Task 2 commit `e7f9333077867459ed00249046d90ffbbbad9e9a` 已同步至 `origin/main` 与实时远端 `main`。Task 3 module core 尚未开始，Slices 2–3 `NOT STARTED`。尚无 Production write 或 deployment；v0.1.17 保持 `CLOSED / PASS`，既有验收证据不变。暂无明确阻塞。
 
 ## Latest completed
 
@@ -135,7 +135,7 @@ Backend: Supabase Free
 Backend rollout: v0.1.15 Slice 1 Shared Lists exact forward patch APPLIED ONCE / POSTFLIGHT PASS; v0.1.14 review foundation and date chronology forward patches remain applied; v0.1.13 lifecycle remains applied.
 v0.1.16 frontend: GitHub records successful Vercel Production deployment of `543fa4956dbb58cdc1671b91bafb5b46da98adc0`; user-reported installed-PWA acceptance PASS for Tasks/Review/Lists re-entry. Android-specific acceptance was not reported.
 v0.1.17 frontend: user-reported Production/PWA acceptance PASS on the deployed Vercel build for Lists create defaults in 全部空间, Personal, and Shared filters. Explicit form-target ownership passed in local authenticated acceptance. Android-specific acceptance was not reported; this frontend-only correction required no backend rollout.
-v0.1.18: Slice 1 Tasks 1–2 pure-date helper and canonical database foundation implemented and automatically verified locally. One new forward patch is prepared and tested only in disposable local databases; it has NOT been applied to Production. No backend rollout, reminder publication, frontend deployment, Production write or push is approved/performed; existing deployed product remains the accepted v0.1.17 baseline.
+v0.1.18: Slice 1 Tasks 1–2 pure-date helper and canonical database foundation implemented and automatically verified locally. Task 2 commit `e7f9333077867459ed00249046d90ffbbbad9e9a` is synchronized to `origin/main` and realtime remote `main`. One new forward patch is prepared and tested only in disposable local databases; it has NOT been applied to Production. No backend rollout, reminder publication, frontend deployment or Production write has occurred; existing deployed product remains the accepted v0.1.17 baseline.
 Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/mobile acceptance passed. User reports final Slice 4 desktop, dual-account Realtime, mobile/PWA Item drag and long-list auto-scroll acceptance `PASS`; v0.1.15 is `CLOSED / PASS`. The v0.1.16 deployment record was checked read-only; Codex did not operate Production or authenticated sessions. Existing Review backend keeps same-Space/date uniqueness, duplicate-safe create/date correction and `get_my_previous_review_plan`; final Review fixtures remain 0/0 while Shared and Personal Review modules remain enabled. Historical version-specific acceptance limits remain in DEVLOG/TESTING. `space_modules` remains outside Realtime; `send-test-push` remains ACTIVE v4 reviewed-equivalent and `send-reminders` ACTIVE v2 / `verify_jwt=false`. Vault, secrets and Cron were not changed.
 
 ## Version Index
@@ -179,7 +179,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-Next Action: v0.1.18 Slice 1 Task 3 — Important Dates module core。Tasks 1–2 已完成；取得 Task 3 实施授权后再开始独立模块的数据读取/Space filter/create-edit-delete flow；导航及 lifecycle 文案按后续任务边界推进。真实账号验收前必须核对实际 backend capability；Production write / deployment / push 需另行明确授权。
+Next Action: v0.1.18 Slice 1 Task 3 — Important Dates module core。Tasks 1–2 已完成；取得 Task 3 实施授权后再开始独立模块的数据读取/Space filter/create-edit-delete flow；导航及 lifecycle 文案按后续任务边界推进。真实账号验收前必须核对实际 backend capability；Production write / deployment 需另行明确授权，后续 Git release 按目标 commit 执行 Project State Push Gate。
 
 ## Blockers
 
@@ -254,4 +254,4 @@ Next Action: v0.1.18 Slice 1 Task 3 — Important Dates module core。Tasks 1–
 
 ## Handoff Prompt
 
-v0.1.18 重要日 is `DESIGN FROZEN / SLICE 1 IN PROGRESS`; read docs/v0.1.18_IMPORTANT_DATES_SPEC.md as the canonical contract. Tasks 1–2 pure-date contract and canonical database foundation are LOCAL PASS; shared date core is supabase/functions/_shared/important-date.ts. Next: v0.1.18 Slice 1 Task 3 — Important Dates module core, only after separate Task 3 implementation authorization. One new forward patch is tested only in disposable local databases and NOT applied to Production. UI/navigation/Push/projection remain unimplemented; Slices 2–3 NOT STARTED. Verify actual backend compatibility before authenticated acceptance. Preserve future-start occurrence eligibility, RPC-only writes/Space lock order, the Slice 2 reminder publication gate and bounded Shared Space deletion copy correction. No Production write/deployment/push is approved. v0.1.17 remains CLOSED / PASS; preserve existing acceptance and CURRENT FILTER AS DEFAULT PRESELECTION, NOT OWNERSHIP AUTHORITY. Task Reminder stays separate; Shared without assignee recipient is unresolved.
+v0.1.18 重要日 is `DESIGN FROZEN / SLICE 1 IN PROGRESS`; read docs/v0.1.18_IMPORTANT_DATES_SPEC.md as the canonical contract. Tasks 1–2 pure-date contract and canonical database foundation are LOCAL PASS; Task 2 commit e7f9333077867459ed00249046d90ffbbbad9e9a is synchronized to origin/main and realtime remote main. Shared date core is supabase/functions/_shared/important-date.ts. Next: v0.1.18 Slice 1 Task 3 — Important Dates module core, only after separate Task 3 implementation authorization. One new forward patch is tested only in disposable local databases and NOT applied to Production. UI/navigation/Push/projection remain unimplemented; Slices 2–3 NOT STARTED. Verify actual backend compatibility before authenticated acceptance. Preserve future-start occurrence eligibility, RPC-only writes/Space lock order, the Slice 2 reminder publication gate and bounded Shared Space deletion copy correction. No Production write or deployment has occurred. v0.1.17 remains CLOSED / PASS; preserve existing acceptance and CURRENT FILTER AS DEFAULT PRESELECTION, NOT OWNERSHIP AUTHORITY. Task Reminder stays separate; Shared without assignee recipient is unresolved.
