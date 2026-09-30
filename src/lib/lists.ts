@@ -15,7 +15,8 @@ export function normalizeListFilter(filter: ListFilter, eligible: CurrentSpace[]
   return filter === 'all' || eligible.some((space) => space.id === filter.spaceId) ? filter : 'all';
 }
 
-export function defaultListCreateTarget(memberSpaces: CurrentSpace[], userId: string): string | null {
+export function defaultListCreateTarget(filter: ListFilter, memberSpaces: CurrentSpace[], eligibleSpaces: CurrentSpace[], userId: string): string | null {
+  if (filter !== 'all') return eligibleSpaces.some((space) => space.id === filter.spaceId) ? filter.spaceId : null;
   return homeCreateTarget(memberSpaces, userId);
 }
 

@@ -1,5 +1,15 @@
 # Development Log
 
+## 2026-09-30 - v0.1.17 Local Authenticated Acceptance — PASS / ROLLOUT PENDING
+
+- User-reported `LOCAL_AUTHENTICATED_ACCEPTANCE = PASS`: Lists 全部空间 → `+` preselected Personal; Personal filter → `+` preselected that Personal Space; Shared filter → `+` preselected that Shared Space. The user changed the Space inside the create Sheet and confirmed the new List belonged to the explicitly selected form target, independent of the outer filter.
+- Final local review retains `CURRENT FILTER AS DEFAULT PRESELECTION, NOT OWNERSHIP AUTHORITY`. Tasks, Review, Calendar, and the Calendar 全部空间 no-create rule remain unchanged; Important Dates is out of scope. v0.1.16 remains `CLOSED / PASS`. v0.1.17 Production/PWA acceptance is pending; no push, deployment, Production write, or Codex-operated authenticated session occurred in this checkpoint.
+
+## 2026-09-30 - v0.1.17 Space-aware Lists Create Default — LOCAL IMPLEMENTATION / MANUAL ACCEPTANCE PENDING
+
+- After real-use review, the frozen cross-module convention supersedes only the old Lists unconditional Personal default. Lists 全部空间 still preselects Personal; a specific eligible Space filter initializes the visible create Sheet target to that Space. The Sheet's own selection remains stable after opening, can be changed by the user, and supplies the canonical `space_id` on submit. An invalid specific filter requires re-selection; disabled Personal under 全部空间 never silently falls back to Shared.
+- Focused Lists Node 20/20, full Node 374/374, `npm run build`, and `git diff --check` PASS; user-run authenticated acceptance remains pending. An already-open Sheet also keeps an ineligible Shared target visibly blocked until re-selection. Tasks, Review, Calendar, Home creation, backend/SQL, dependencies, and v0.1.16 `CLOSED / PASS` behavior remain unchanged. No Codex authenticated session, Production write, commit, push, or deployment belongs to this local checkpoint.
+
 ## 2026-09-28 - v0.1.16 Production installed-PWA acceptance — CLOSED / PASS
 
 - Initial implementation removed duplicate current-Space and module-eligibility discovery. First authenticated Tasks re-entry FAILED because navigation unmounted the validated view; read-only RCA identified remount state loss. Narrow, user- and scope-bound CalendarApp session snapshots then restored safe Tasks/Review/Lists views without keeping hidden modules mounted or adding a generic cache/store/query framework. Second local authenticated acceptance PASSED.

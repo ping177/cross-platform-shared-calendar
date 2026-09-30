@@ -8,13 +8,17 @@
 
 ## Current version
 
-v0.1.16
+v0.1.17
 
 ## Current status
 
-v0.1.16 Module Entry Responsiveness / Data Flow Simplification `CLOSED / PASS`；本地实现与 Node 371/371、build PASS，本地真实账号桌面验收 PASS。用户报告部署在 Vercel Production 的 `543fa4956dbb58cdc1671b91bafb5b46da98adc0` 已通过 installed-PWA 验收：Tasks/Review/Lists 首次验证加载后的功能中心重入均立即显示内容，重复整页 loading 未复现。未报告 Android 专项验收。v0.1.15 保持 `CLOSED / PASS`。暂无明确阻塞。
+v0.1.17 Space-aware Lists Create Default `LOCAL AUTOMATED PASS / LOCAL AUTHENTICATED ACCEPTANCE PASS / PRODUCTION-PWA PENDING`：Lists 新建默认预选遵循独立 `listFilter`；聚焦 Node 20/20、完整 Node 374/374、build 与 diff-check PASS。Production 前端仍为已验收的 v0.1.16；v0.1.17 发布与 Production/PWA 验收未完成。v0.1.16 保持 `CLOSED / PASS`，暂无明确阻塞。
 
 ## Latest completed
+
+v0.1.17 用户报告本地真实账号验收 PASS：Lists 全部空间、Personal、Shared 三种筛选下新建默认均正确；在表单内改选 Space 后，新清单归属表单所选 Space，而非外层筛选。Production/PWA 验收待后续发布。
+
+v0.1.17 本地实现及自动验证 PASS：全部空间默认 Personal，具体合格 Space 默认该 Space；表单可改选且提交使用表单目标，失效目标不能静默保存。Tasks/Review/Calendar 行为未改；无 SQL/backend/依赖变化。此初始检查点时真实账号手工验收尚待用户执行，随后已按上条记录通过。
 
 v0.1.16 最终 `CLOSED / PASS`：实现及自动验证（Node 371/371、build）PASS，本地真实账号桌面验收 PASS，用户报告 Production installed-PWA 验收 PASS。首次 Tasks 验收 FAILED 后，只读 RCA 确认卸载导致视图状态丢失；三模块加入有边界的同会话已验证视图保留后，本地复测与 Production PWA 重入均通过。首次进入业务数据加载未重设计，非本版阻塞。
 
@@ -158,14 +162,15 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 - v0.1.14.1 — Navigation Persistence（CLOSED / PASS；实现、integration review、本地及 Production 真实账号验收、Production deployment/public smoke PASS）
 - v0.1.15 — Shared Lists（CLOSED / PASS；Slices 1–4 CLOSED / PASS；desktop、dual-account Realtime、mobile/PWA PASS；Section drag DEFERRED / NON-BLOCKING）
 - v0.1.16 — Module Entry Responsiveness / Data Flow Simplification（CLOSED / PASS；implementation/automated、local authenticated desktop、Production installed-PWA acceptance PASS）
+- v0.1.17 — Space-aware Lists Create Default（LOCAL AUTOMATED / AUTHENTICATED PASS；PRODUCTION-PWA PENDING）
 
 ## Last verified
 
-2026-09-28
+2026-09-30
 
 ## Next Action
 
-Next Action: 持续观察 v0.1.16 的真实使用体验；仅当首次进入延迟在实际使用中明显影响体验时重新评估。下一版本从真实产品优先级中另行选择，不预设功能。
+Next Action: 完成另行授权的 v0.1.17 前端发布与 Production/PWA 验收；本地实现、自动验证及真实账号验收已通过，push/deploy 均须分别获得授权。
 
 ## Blockers
 
@@ -173,6 +178,7 @@ Next Action: 持续观察 v0.1.16 的真实使用体验；仅当首次进入延�
 
 ## Important Context
 
+- v0.1.17 仅修正 Lists 创建 Sheet 的默认预选；`CURRENT FILTER AS DEFAULT PRESELECTION, NOT OWNERSHIP AUTHORITY`。旧 v0.1.15 Lists 无条件 Personal 默认已被后续真实使用一致性决定取代。本地真实账号验收 PASS；Production/PWA 待验收。Calendar 全部空间仍无创建 `+`，Important Dates 尚未实现。无 backend/SQL/依赖变化。
 - v0.1.15 Shared Lists 的唯一 canonical contract 是 [v0.1.15_SHARED_LISTS_SPEC.md](./v0.1.15_SHARED_LISTS_SPEC.md)。Slices 1–4 与整个版本 `CLOSED / PASS`；Item drag 设备验收及长列表自动滚动通过。Section drag 按冻结设计延后且不阻塞；stale reorder `AUTOMATED PASS / MANUAL NOT REQUIRED`，既有 bundle warning 非阻塞。
 - v0.1.14 `CLOSED / PASS`：`review_date` 是业务时间轴且同 Space 同日唯一；上一份计划严格按日期上一篇、不 fallback；`round_no` 仅为内部技术序列。Backend、frontend deployment、public smoke、用户 Production authenticated acceptance 与最终 exact-ID fixture cleanup 均通过；Production 当前 0 rounds / 0 entries、Shared 与 Personal Review module enabled。v0.1.14.1 已解决刷新回首页问题并 `CLOSED / PASS`；既有 >500 kB bundle warning 仍为非阻塞项。完整 Review contract 和验收条件只以 v0.1.14 规格为准。
 - Git branch、latest commit、working tree 由 project-command-center 实时 Git 扫描读取；PROJECT_STATE.md 不作为这些字段的权威来源。
@@ -238,4 +244,4 @@ Next Action: 持续观察 v0.1.16 的真实使用体验；仅当首次进入延�
 
 ## Handoff Prompt
 
-v0.1.16 module-entry simplification is `CLOSED / PASS`: implementation/automated checks, local authenticated desktop acceptance, and user-reported Production installed-PWA re-entry acceptance passed for Tasks/Review/Lists on deployed commit `543fa4956dbb58cdc1671b91bafb5b46da98adc0`. First-entry latency was not redesigned. Continue real-use observation and select the next version from product priorities; Android-specific acceptance was not reported. v0.1.15 remains `CLOSED / PASS`.
+v0.1.17 Space-aware Lists Create Default passed local automated verification (focused 20/20, full Node 374/374, build, diff-check) and user-reported local authenticated acceptance for all/Personal/Shared defaults plus explicit form-target ownership. Production still runs accepted v0.1.16; v0.1.17 rollout and Production/PWA acceptance remain pending, with push/deploy requiring separate authorization. v0.1.16 and v0.1.15 remain `CLOSED / PASS`. Calendar aggregate create and Important Dates are out of scope.

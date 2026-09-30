@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { canSaveListInSpace, defaultListCreateTarget, normalizeListName } from '../lib/lists';
+import { homeCreateTarget } from '../lib/global-create';
+import { canSaveListInSpace, normalizeListName } from '../lib/lists';
 import type { CurrentSpace, List } from '../types';
 
 type EditorProps = {
@@ -8,6 +9,7 @@ type EditorProps = {
   memberSpaces: CurrentSpace[];
   eligibleSpaces: CurrentSpace[];
   userId: string;
+  initialTargetId?: string | null;
   eligibilityStatus?: 'ready' | 'loading' | 'error';
   eligibilityError?: string;
   onRetryEligibility?: () => void;
@@ -15,10 +17,9 @@ type EditorProps = {
   onCancel: () => void;
 };
 
-export function ListEditorSheet({ mode, list, memberSpaces, eligibleSpaces, userId, eligibilityStatus = 'ready', eligibilityError = '', onRetryEligibility, onSubmit, onCancel }: EditorProps) {
-  const personalId = defaultListCreateTarget(memberSpaces, userId);
-  const [targetId, setTargetId] = useState(mode === 'create' ? personalId ?? '' : list?.space_id ?? '');
-  const [explicitChoice, setExplicitChoice] = useState(false);
+export function ListEditorSheet({ mode, list, memberSpaces, eligibleSpaces, userId, initialTargetId, eligibilityStatus = 'ready', eligibilityError = '', onRetryEligibility, onSubmit, onCancel }: EditorProps) {
+  const personalId = homeCreateTarget(memberSpaces, userId);
+  const [targetId, setTargetId] = useState(mode === 'create' ? initialTargetId ?? '' : list?.space_id ?? '');
   const [name, setName] = useState(mode === 'rename' ? list?.name ?? '' : '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -26,8 +27,7 @@ export function ListEditorSheet({ mode, list, memberSpaces, eligibleSpaces, user
   const nameInput = useRef<HTMLInputElement>(null);
   const target = memberSpaces.find((space) => space.id === targetId);
   const targetEnabled = canSaveListInSpace(targetId, eligibleSpaces);
-  const canSubmit = eligibilityStatus === 'ready' && (mode === 'rename'
-    ? targetEnabled : targetEnabled && (targetId === personalId || explicitChoice));
+  const canSubmit = eligibilityStatus === 'ready' && targetEnabled;
 
   useEffect(() => { nameInput.current?.focus(); }, []);
 
@@ -54,8 +54,9 @@ export function ListEditorSheet({ mode, list, memberSpaces, eligibleSpaces, user
     <form className="mx-auto w-full max-w-md rounded-lg bg-white p-5 shadow-soft safe-bottom" onSubmit={(event) => void submit(event)}>
       <h2 id="list-editor-title" className="text-lg font-bold">{mode === 'create' ? '新建清单' : '清单改名'}</h2>
       <label className="mt-4 block text-sm font-semibold" htmlFor="list-space">空间</label>
-      {mode === 'create' ? <select id="list-space" className="mt-2 min-h-11 w-full min-w-0 rounded-lg border border-ink/20 bg-white px-3" value={targetId} disabled={busy} onChange={(event) => { setTargetId(event.target.value); setExplicitChoice(true); setError(''); }}>
-        {!personalId && <option value="">请主动选择空间</option>}
+      {mode === 'create' ? <select id="list-space" className="mt-2 min-h-11 w-full min-w-0 rounded-lg border border-ink/20 bg-white px-3" value={targetId} disabled={busy} onChange={(event) => { setTargetId(event.target.value); setError(''); }}>
+        {!targetId && <option value="">请主动选择空间</option>}
+        {targetId && targetId !== personalId && !targetEnabled && <option value={targetId} disabled>当前空间已不可用，请重新选择</option>}
         {memberSpaces.filter((space) => space.id === personalId || eligibleSpaces.some((eligible) => eligible.id === space.id)).map((space) => <option key={space.id} value={space.id}>{space.kind === 'personal' ? '我的空间' : space.name}{eligibilityStatus !== 'ready' || canSaveListInSpace(space.id, eligibleSpaces) ? '' : '（未启用清单）'}</option>)}
       </select> : <p id="list-space" className="mt-2 min-h-11 rounded-lg bg-mist px-3 py-3 text-sm">{target?.kind === 'personal' ? '我的空间' : target?.name ?? '空间不可用'}</p>}
       {eligibilityStatus === 'loading' && <p className="mt-2 text-sm text-ink/65" role="status">正在核对清单空间资格…</p>}

@@ -8,7 +8,7 @@ import type { ModuleEntry } from '../lib/module-availability';
 import { ListDeleteDialog, ListEditorSheet } from './ListSheets';
 import { useListsOverview, type OverviewData } from './useListsOverview';
 
-type Editor = { mode: 'create' | 'rename'; list?: List; memberSpaces: CurrentSpace[] };
+type Editor = { mode: 'create' | 'rename'; list?: List; memberSpaces: CurrentSpace[]; initialTargetId?: string | null };
 type Deleting = { list: List; space: CurrentSpace; step: 1 | 2; busy: boolean; error: string };
 
 export function ListsRows({ rows, spaces, showSource, disabled = false, onOpen, onRename, onDelete }: {
@@ -74,7 +74,8 @@ export function ListsOverviewPage({ userId, entry = null, entryPending = false, 
   function openCreate() {
     if (!canAct || !data?.eligibleSpaces.length) return;
     setNotice('');
-    setEditor({ mode: 'create', memberSpaces: data.memberSpaces });
+    setEditor({ mode: 'create', memberSpaces: data.memberSpaces,
+      initialTargetId: defaultListCreateTarget(filter, data.memberSpaces, data.eligibleSpaces, userId) });
   }
   function openRename(list: List) {
     if (!data) return;
@@ -174,7 +175,7 @@ export function ListsOverviewPage({ userId, entry = null, entryPending = false, 
         </>}
       </div>
     </div>
-    {editor && <ListEditorSheet key={editor.mode === 'create' ? 'create' : editor.list?.id} mode={editor.mode} list={editor.list} memberSpaces={editingSpaces} eligibleSpaces={editorEligible} userId={userId} eligibilityStatus={canAct ? state.status : 'loading'} eligibilityError={state.status === 'error' ? state.error : ''} onRetryEligibility={() => { void refresh(true); }} onSubmit={saveEditor} onCancel={() => { setEditor(null); createButton.current?.focus(); }} />}
+    {editor && <ListEditorSheet key={editor.mode === 'create' ? 'create' : editor.list?.id} mode={editor.mode} list={editor.list} memberSpaces={editingSpaces} eligibleSpaces={editorEligible} userId={userId} initialTargetId={editor.initialTargetId} eligibilityStatus={canAct ? state.status : 'loading'} eligibilityError={state.status === 'error' ? state.error : ''} onRetryEligibility={() => { void refresh(true); }} onSubmit={saveEditor} onCancel={() => { setEditor(null); createButton.current?.focus(); }} />}
     {deleting && <ListDeleteDialog list={deleting.list} space={deleting.space} step={deleting.step} busy={deleting.busy} canConfirm={canAct && state.status === 'ready'} error={deleting.error} eligibilityError={state.status === 'error' ? state.error : ''} onRetryEligibility={() => { void refresh(true); }} onCancel={() => setDeleting(null)} onConfirm={() => void confirmDelete()} />}
   </main>;
 }

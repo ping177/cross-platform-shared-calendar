@@ -1,5 +1,10 @@
 # Decisions
 
+## Space-aware Create Defaults — 2026-09-30
+
+- `SPACE_AWARE_CREATE_DEFAULT_CONVENTION`: `CURRENT FILTER AS DEFAULT PRESELECTION, NOT OWNERSHIP AUTHORITY`. A module's 全部空间 view preselects the user's Personal Space; a specific eligible Space filter preselects that Space; a single-Space module uses its selected Space. The visible form target or create RPC payload establishes canonical `space_id`, subject to current membership, module eligibility, RLS, and backend checks. An invalid target must not cause a silent redirect and save. Module filters remain independent.
+- This later real-use consistency decision supersedes the v0.1.15 Lists rule that Shared must always be manually selected, even when the Lists view already filters to it. Lists now uses `listFilter` only to initialize its create Sheet target; the user may change that target. Tasks and Review already conform and retain their behavior. Calendar 全部空间 still has no `+` under its separate frozen decision. Future Important Dates will follow this convention when implemented; no Important Dates scope is added here.
+
 ## v0.1.16 Module Entry Responsiveness — Design Frozen — 2026-09-28
 
 - `V016_REENTRY_RETENTION_DESIGN_FROZEN` amends the design after first authenticated Tasks acceptance failed: module unmount discarded its validated business view. CalendarApp now retains three narrow, user- and scope-bound in-memory display snapshots for Tasks, Review, and Lists. A safe Hub re-entry restores the last validated view immediately and starts that module's canonical reread in the background. This does not authorize mutations or replace Supabase/RLS. Confirmed eligibility or membership loss, mutation rejection, and true auth boundaries invalidate affected snapshots; routine same-user token refresh does not.

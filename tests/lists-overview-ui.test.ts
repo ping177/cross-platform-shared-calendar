@@ -50,11 +50,59 @@ test('New List keeps disabled Personal selected and requires an active Shared ch
     const { ListEditorSheet } = await vite.ssrLoadModule('/src/components/ListSheets.tsx');
     const markup = renderToStaticMarkup(React.createElement(ListEditorSheet, {
       mode: 'create', memberSpaces: [personal, shared], eligibleSpaces: [shared], userId: 'me',
+      initialTargetId: personal.id,
       onSubmit: async () => undefined, onCancel: () => undefined,
     }));
     assert.match(markup, /value="personal" selected=""/);
     assert.match(markup, /我的空间未启用清单/);
     assert.match(markup, /value="shared"/);
+    assert.match(markup, /type="submit" disabled=""/);
+  } finally { await vite.close(); }
+});
+
+test('New List shows a filtered Shared default and keeps the chosen target in sheet state', async () => {
+  const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
+  try {
+    const { ListEditorSheet } = await vite.ssrLoadModule('/src/components/ListSheets.tsx');
+    const markup = renderToStaticMarkup(React.createElement(ListEditorSheet, {
+      mode: 'create', memberSpaces: [personal, shared], eligibleSpaces: [personal, shared], userId: 'me', initialTargetId: shared.id,
+      onSubmit: async () => undefined, onCancel: () => undefined,
+    }));
+    assert.match(markup, /value="shared" selected=""/);
+    assert.match(markup, /value="personal"/);
+    assert.doesNotMatch(markup, /请主动选择空间/);
+    const source = readFileSync(new URL('../src/components/ListSheets.tsx', import.meta.url), 'utf8');
+    const overview = readFileSync(new URL('../src/components/ListsOverviewPage.tsx', import.meta.url), 'utf8');
+    assert.match(source, /useState\(mode === 'create' \? initialTargetId/);
+    assert.match(overview, /setEditor\(\{ mode: 'create', memberSpaces: data\.memberSpaces,\s+initialTargetId:/);
+    assert.match(source, /onSubmit\(normalized, target\.id\)/, 'submit uses the sheet target');
+  } finally { await vite.close(); }
+});
+
+test('New List with an invalid filtered target requires re-selection', async () => {
+  const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
+  try {
+    const { ListEditorSheet } = await vite.ssrLoadModule('/src/components/ListSheets.tsx');
+    const markup = renderToStaticMarkup(React.createElement(ListEditorSheet, {
+      mode: 'create', memberSpaces: [personal, shared], eligibleSpaces: [personal], userId: 'me', initialTargetId: null,
+      onSubmit: async () => undefined, onCancel: () => undefined,
+    }));
+    assert.match(markup, /value="" selected=""/);
+    assert.match(markup, /请主动选择空间/);
+    assert.match(markup, /type="submit" disabled=""/);
+  } finally { await vite.close(); }
+});
+
+test('New List keeps a newly ineligible Shared target visibly blocked until re-selection', async () => {
+  const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
+  try {
+    const { ListEditorSheet } = await vite.ssrLoadModule('/src/components/ListSheets.tsx');
+    const markup = renderToStaticMarkup(React.createElement(ListEditorSheet, {
+      mode: 'create', memberSpaces: [personal, shared], eligibleSpaces: [personal], userId: 'me', initialTargetId: shared.id,
+      onSubmit: async () => undefined, onCancel: () => undefined,
+    }));
+    assert.match(markup, /value="shared" disabled="" selected=""/);
+    assert.match(markup, /当前空间已不可用/);
     assert.match(markup, /type="submit" disabled=""/);
   } finally { await vite.close(); }
 });

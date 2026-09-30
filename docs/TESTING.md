@@ -1,5 +1,15 @@
 # Testing
 
+## v0.1.17 Local Authenticated Acceptance — PASS / PRODUCTION-PWA PENDING
+
+- User-reported `LOCAL_AUTHENTICATED_ACCEPTANCE = PASS`: Lists 全部空间 `+` preselected Personal; specific Personal `+` preselected that Personal Space; specific Shared `+` preselected that Shared Space. After changing the Space inside the create form and saving, the new List belonged to the form-selected Space, not the outer filter. These are user-run real-account checks; Codex did not operate the authenticated session.
+- The local implementation and automated results are recorded below. v0.1.17 has not passed Production/PWA acceptance and is not `CLOSED / PASS`. No backend change or Production write was needed.
+
+## v0.1.17 Space-aware Lists Create Default — LOCAL AUTO / MANUAL AUTHENTICATED ACCEPTANCE PENDING
+
+- Focused Lists Node **20/20 PASS**; full `node --test tests/*.test.ts tests/*.test.js` **374/374 PASS**; `npm run build` and `git diff --check` **PASS**. The build retains the existing >500 kB chunk warning. Tests cover 全部空间/Personal/eligible Shared defaults, disabled Personal and sole eligible Shared without automatic fallback, invalid specific filter requiring re-selection, a newly ineligible Shared target shown as blocked, visible and changeable Sheet target, target stability after opening, and canonical insert payload. Existing Tasks, Review, Calendar aggregate no-create, and Lists ownership/eligibility tests remain passing regression gates. SSR and source-contract tests do not replace authenticated browser acceptance.
+- The previously passing read-only frontend/backend alignment gate remains applicable: the frontend Supabase target code/config, Lists schema/RLS/RPC contract, and backend capabilities are unchanged in this frontend-only correction; v0.1.15 Lists Production backend postflight and v0.1.16 alignment are recorded below. The fixed-port local Vite server responds HTTP 200 at `http://127.0.0.1:5175` without login. The user checks that address in their authenticated browser: Lists 全部空间 → `+` shows Personal; specific Personal → `+` shows Personal; specific Shared → `+` shows that Shared; change the Sheet target explicitly and confirm the new List belongs to the chosen Space. Codex does not operate this logged-in session. Manual acceptance is pending; no Production deployment or write is implied.
+
 ## v0.1.16 Final acceptance — CLOSED / PASS
 
 - Implementation and automated verification: full Node **371/371 PASS**, `npm run build` **PASS**. Local authenticated desktop acceptance **PASS** after the initial Tasks re-entry failure and three-module retention correction.

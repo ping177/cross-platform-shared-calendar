@@ -12,17 +12,21 @@ const item = (id: string, listId: string, spaceId: string, completed: boolean) =
   id, list_id: listId, space_id: spaceId, completed,
 }) as ListItemOverview;
 
-test('Lists eligibility, independent filter, and Personal creation target', async () => {
+test('Lists eligibility, independent filter, and filter-aware creation target', async () => {
   const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
   try {
     const { eligibleListSpaces, normalizeListFilter, defaultListCreateTarget, canSaveListInSpace } = await vite.ssrLoadModule('/src/lib/lists.ts');
     const eligible = eligibleListSpaces([personal, shared], [{ space_id: shared.id, enabled: true }]);
     assert.deepEqual(eligible.map((space: CurrentSpace) => space.id), [shared.id]);
     assert.equal(normalizeListFilter({ spaceId: personal.id }, eligible), 'all');
-    assert.equal(defaultListCreateTarget([personal, shared], 'me'), personal.id);
+    assert.equal(defaultListCreateTarget('all', [personal, shared], [shared], 'me'), personal.id);
+    assert.equal(defaultListCreateTarget({ spaceId: personal.id }, [personal, shared], [personal, shared], 'me'), personal.id);
+    assert.equal(defaultListCreateTarget({ spaceId: shared.id }, [personal, shared], [shared], 'me'), shared.id);
+    assert.equal(defaultListCreateTarget({ spaceId: shared.id }, [personal, shared], [personal], 'me'), null);
+    assert.equal(defaultListCreateTarget('all', [personal, shared], [shared], 'me'), personal.id, 'disabled Personal and sole eligible Shared do not cause fallback');
     assert.equal(canSaveListInSpace(personal.id, eligible), false);
     assert.equal(canSaveListInSpace(shared.id, eligible), true);
-    assert.equal(defaultListCreateTarget([shared], 'me'), null);
+    assert.equal(defaultListCreateTarget('all', [shared], [shared], 'me'), null);
   } finally { await vite.close(); }
 });
 
