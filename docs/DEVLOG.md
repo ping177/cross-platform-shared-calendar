@@ -1,5 +1,13 @@
 # Development Log
 
+## 2026-10-01 - v0.1.18 Slice 1 Task 2 — Canonical database foundation — LOCAL PASS
+
+- Started from clean `main`, HEAD/origin/main `012d151ff9c1ee5ebbd703f6538bc1de40d5820c`, with explicit Task 2 implementation and local-commit authorization. Added one canonical Important Dates table, date/identity/schedule guards, member SELECT RLS, restricted ACL and three authenticated CRUD RPCs; creator is audit only. Space advisory → Space row → object row locks revalidate current membership, module enablement and immutable target after waits. Owner toggle extends only the existing allowlist/lock path.
+- Updated bootstrap and added one guarded transactional forward patch; no historical patch edits, backfill, automatic module enablement, derived date persistence or Production action. Reminder fields prepare the frozen Slice 2 contract, but create always stores null and current CRUD cannot publish reminders. Space deletion retains the existing FK/lifecycle behavior.
+- New assertions were first RED against the absent baseline table. Both disposable bootstrap/upgrade paths now pass 86 Important Dates SQL assertions, 1,596 date-core constraint comparisons, 19 observed lock races, all 681 existing SQL assertions and existing Review/Lists/lifecycle concurrency 4/17/9. Full public schema/ACL parity, atomic drift/replay rejection and fourteen unchanged legacy table fingerprints PASS. Fixture setup includes the previously applied Reminder ACL correction under broad defaults; the historical bootstrap omission was not changed. Details and commands: [Testing](./TESTING.md).
+- Full Node 389/389, build, Python syntax and diff-check PASS; existing bundle warning remains non-blocking. Scope/security/quality self-review found no unresolved blocker. No frontend/Event engine/Reminder runtime/ledger, dependency, external project file or secret change; no real secret/.env read or printing. Only disposable local DBs were used, and all were removed after testing.
+- Project State records Tasks 1–2 PASS and Slice 1 IN PROGRESS; next is Task 3 Important Dates module core. Project State freshness fields were reviewed before the authorized local commit, with `Project-State-Review: updated`. No push/deployment/Production write is authorized or performed; authenticated/manual acceptance has not begun.
+
 ## 2026-09-30 - v0.1.18 Slice 1 Task 1 — Pure-date contract — PASS
 
 - Started from clean `main`, HEAD/local origin/main `986c9b1ca3251d19d030148c16200b0ab76caebd`, after the repo-first `SLICE1_IMPLEMENTATION_READY` gate and explicit Task 1 implementation/local-commit authorization. Task 2 and Production/Git push/deployment remain separately authorized work.

@@ -47,7 +47,7 @@ select throws_ok($$insert into public.lists(space_id,name) values ('95000000-000
 select lives_ok($$select public.set_space_module_enabled('95000000-0000-4000-8000-000000000011','lists',true)$$,'Personal owner enables Lists');
 select lives_ok($$select public.set_space_module_enabled('95000000-0000-4000-8000-000000000012','lists',true)$$,'Shared owner enables Lists');
 select lives_ok($$select public.set_space_module_enabled('95000000-0000-4000-8000-000000000014','lists',true)$$,'delete fixture enables Lists');
-select throws_ok($$select public.set_space_module_enabled('95000000-0000-4000-8000-000000000012','memo',true)$$,'P0001','Only Tasks, Review, and Lists modules may be toggled in this version','unsupported key is rejected');
+select throws_ok($$select public.set_space_module_enabled('95000000-0000-4000-8000-000000000012','memo',true)$$,'P0001','Only Tasks, Review, Lists, and Important Dates modules may be toggled in this version','unsupported key is rejected');
 select lives_ok($$insert into public.lists(space_id,name) values ('95000000-0000-4000-8000-000000000011','Personal List')$$,'Personal member creates List');
 select lives_ok($$insert into public.lists(space_id,name) values ('95000000-0000-4000-8000-000000000012','Shared List')$$,'Shared owner creates List');
 select is((select created_by from public.lists where name='Shared List'),'95000000-0000-4000-8000-000000000001'::uuid,'List creator derives from actor');
