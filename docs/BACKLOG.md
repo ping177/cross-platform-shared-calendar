@@ -8,11 +8,21 @@
 
 - Complete two-session Email OTP recurrence Realtime and supported-browser DST-zone coverage; this is not a v0.1.8 product-line blocker.
 
+## v0.1.18 — 重要日 — DESIGN FROZEN / IMPLEMENTATION PLANNING
+
+Canonical contract: [v0.1.18 重要日 Specification](./v0.1.18_IMPORTANT_DATES_SPEC.md). User approved design/governance/planning only. Business implementation, backend rollout, reminder publication, deployment and acceptance are `NOT STARTED`; no Production write is approved. v0.1.17 remains `CLOSED / PASS`.
+
+1. **Slice 1 — Important Date core object flow — NOT STARTED:** pure-date/future-start rules, persistence/RLS, toggle/module page, explicit-target CRUD, navigation, Personal/Shared permissions, disable/reopen, bounded Shared Space delete copy correction. Reminder persistence may be prepared but Reminder UI stays unexposed until Slice 2 capability is ready.
+2. **Slice 2 — Date-level Push flow — NOT STARTED:** existing presets/timezone, source candidates/occurrences, ledger/claim, pre-send member/module/source/subscription checks, existing scheduler, idempotency and old Event regression; full publication gate required, no second scheduler/framework.
+3. **Slice 3 — Home / Calendar projections — NOT STARTED:** top three, independent eligibility/filter, visible/historical ranges, annual/non-repeat/future-start boundary, consistent Emoji/default icon and own-object interaction; no hidden Event.
+
+Next: Slice 1 minimal task planning / implementation gate before separately authorized business implementation. Keep testing/rollout evidence in TESTING/PROJECT_STATE rather than treating this design as delivered functionality.
+
 ## Latest Completed Product Slice
 
 ### v0.1.17 — Space-aware List Create Default — CLOSED / PASS
 
-Implementation/automated verification, local authenticated acceptance, and user-reported Production/PWA acceptance on the deployed Vercel build all passed. Local acceptance confirmed explicit form-target ownership; Production/PWA checks confirmed the Personal default in 全部空间 and the current Space default under Personal and Shared filters. Android-specific acceptance was not reported. The frozen create-default convention is recorded in [Decisions](./DECISIONS.md). Important Dates remains design exploration only; no next implementation version is selected or started.
+Implementation/automated verification, local authenticated acceptance, and user-reported Production/PWA acceptance on the deployed Vercel build all passed. Local acceptance confirmed explicit form-target ownership; Production/PWA checks confirmed the Personal default in 全部空间 and the current Space default under Personal and Shared filters. Android-specific acceptance was not reported. The frozen create-default convention is recorded in [Decisions](./DECISIONS.md). Important Dates is now selected as v0.1.18 Design Freeze / implementation planning; business implementation has not started.
 
 ### v0.1.9 — Shared Tasks MVP
 
@@ -158,7 +168,7 @@ Canonical contract: [v0.1.15 Shared Lists Specification](./v0.1.15_SHARED_LISTS_
 
 Slices 1–4 and v0.1.15 are `CLOSED / PASS`. Final user acceptance covers desktop authenticated flows, dual-account Realtime, mobile/PWA Item drag and long-list auto-scroll. Full Node 356/356 and build passed. Stale reorder is `AUTOMATED PASS / MANUAL NOT REQUIRED`; Section drag is `DEFERRED / NON-BLOCKING`, and the existing bundle warning is non-blocking. No current blocker is recorded.
 
-v0.1.16 and v0.1.17 are closed below. No next implementation version is selected or started. The current product discussion is Important Dates design exploration only.
+v0.1.16 and v0.1.17 are closed below. v0.1.18 重要日 is now `DESIGN FROZEN / IMPLEMENTATION PLANNING`; its canonical spec is linked above and business implementation is `NOT STARTED`.
 
 ## v0.1.16 — Module Entry Responsiveness / Data Flow Simplification — CLOSED / PASS
 
@@ -178,7 +188,8 @@ The long-term relationships and v0.1.10 scope are frozen in [Shared Life Archite
 - v0.1.15 — Shared Lists (CLOSED / PASS; Slices 1–4 CLOSED / PASS; desktop, dual-account Realtime and mobile/PWA PASS; Section drag DEFERRED / NON-BLOCKING).
 - v0.1.16 — Module Entry Responsiveness / Data Flow Simplification (CLOSED / PASS; automated, local authenticated desktop, and Production installed-PWA acceptance PASS; Android-specific acceptance not reported).
 - v0.1.17 — Space-aware List create default (CLOSED / PASS; implementation/automated, local authenticated, and Production/PWA acceptance PASS; Android-specific acceptance not reported).
-- Later candidates without fixed versions/order: Important Dates, Calendar Sources v1, Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules. The current product discussion is Important Dates design exploration only; no next implementation version/scope is selected. Other candidates remain unselected and their priority may change based on real product use.
+- v0.1.18 — 重要日 (DESIGN FROZEN / IMPLEMENTATION PLANNING; Slices 1–3/business implementation NOT STARTED; no Production write approved).
+- Later candidates without fixed versions/order: Task due-date Push Reminder, Calendar Sources v1, Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules. These remain unselected and their priority may change based on real product use.
 - Future direction only: consider projecting/sharing a Personal Event into another Space while keeping one canonical Event owner Space, avoiding duplicate canonical objects, and ensuring that leaving the target Shared Space does not affect the source Event. This is outside v0.1.13; do not implement or reserve schema for it in this version.
 - Native: decision gate only; no committed implementation version.
 
@@ -194,7 +205,13 @@ The long-term relationships and v0.1.10 scope are frozen in [Shared Life Archite
 - Space member management and invitation experience improvements.
 - Multi-space v0.1.10 scope is frozen above; do not bind Push Subscriptions to a Space.
 - Reconsider `space_members.nickname` only after multi-space support creates a real per-space naming need.
-- Add countdowns.
+- Countdown/count-up/anniversary displays are covered by the unified v0.1.18 Important Date contract; do not create separate countdown objects.
+
+### Task due-date Push Reminder — independent future backlog
+
+- Current Tasks have optional date-only `due_on` and no Push reminder. This is outside v0.1.18; no Task reminder fields, claim, or sender work is approved here.
+- Future date-level UX direction: 不提醒 / 当天08:00 / 前一天20:00; default 当天08:00. No due_on means no reminder. Completion before due, due removal/change, or reminder disable must invalidate stale delivery.
+- Recipient direction remains Task-specific: Personal → self; Shared + assignee → assignee; **Shared + no assignee → unresolved**. Do not select the latter recipient in Important Date implementation.
 
 ## P3 - Long-Term Directions
 

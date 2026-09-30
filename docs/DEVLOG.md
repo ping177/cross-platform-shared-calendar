@@ -1,5 +1,12 @@
 # Development Log
 
+## 2026-09-30 - v0.1.18 重要日 — DESIGN FROZEN / IMPLEMENTATION PLANNING
+
+- User formally approved the completed `IMPORTANT_DATES_DESIGN_FREEZE_READY` audit and established v0.1.18. Revalidated clean `main`, HEAD/local origin/main/live remote main `5895229d7e9632ede7ec50da4d3acb0191a8679c` and the referenced module, date, projection, reminder/ledger and lifecycle source/schema; no drift from the audit. v0.1.17 remains `CLOSED / PASS`.
+- Added [canonical specification](./v0.1.18_IMPORTANT_DATES_SPEC.md) and synchronized governance responsibilities. Three additional frozen boundaries: no annual occurrence before canonical start date; no Reminder UI/publication before complete Slice 2 capability/test gate; bounded Shared Space permanent-delete copy correction in Slice 1, without lifecycle/RPC semantics changes. Planned Slices: core object flow, date-level Push, Home/Calendar projections; all `NOT STARTED`.
+- Task due-date Push remains a separate future backlog; Shared without assignee recipient stays unresolved. No business implementation, React/TypeScript/SQL/migration/Edge Function/dependency/external-project change, Production write, deployment, push or authenticated session belongs to this round. No .env or real secret values were read/printed.
+- Docs-only verification: `git diff --check`, canonical/governance consistency and docs-only scope review all `PASS`; exactly six docs changed, one approved numeric Version Index addition, legacy entries unchanged, links valid, and referenced business/schema files unchanged. No build or feature tests are required/claimed. Next: v0.1.18 Slice 1 minimal task planning / implementation gate; business implementation and Production/Git/deployment actions need their respective explicit authorization.
+
 ## 2026-09-30 - v0.1.17 Space-aware List Create Default — CLOSED / PASS
 
 - Implementation / automated verification, local authenticated acceptance, and user-reported Production/PWA acceptance are all `PASS`. Local acceptance confirmed the all/Personal/Shared defaults and that changing the visible form target determines the saved List Space. On the deployed Vercel build, the user confirmed the all-Space default is Personal, the Personal filter defaults to that Space, and the Shared filter defaults to that Space. Android-specific acceptance was not reported.

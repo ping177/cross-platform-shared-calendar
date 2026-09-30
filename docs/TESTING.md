@@ -1,5 +1,23 @@
 # Testing
 
+## v0.1.18 重要日 — Design Freeze checks / implementation NOT STARTED
+
+Canonical contract and acceptance boundaries: [v0.1.18 Specification](./v0.1.18_IMPORTANT_DATES_SPEC.md). This round is docs-only: governance/spec consistency and `git diff --check` are the required checks; no business code, schema, migration, Edge Function or dependency changes, and no new build/SQL/authenticated/Production/Push acceptance are claimed. The prior read-only audit's 113/113 existing Node tests are reuse evidence only, not v0.1.18 feature tests. All three implementation Slices and feature acceptance remain `NOT STARTED`.
+
+Freeze verification: diff-check, governance/spec consistency and six-doc-only scope review `PASS`; Current version/Next Action/Blockers/Version Index/Deployment agree, existing version history is preserved, and local documentation links resolve. This is documentation verification, not feature acceptance.
+
+Future verification checkpoints:
+
+| Slice | Required coverage before claiming implementation/acceptance |
+| --- | --- |
+| 1 — core | Day 1, real anniversaries, annual without year, valid date/Past cases, Feb 29 fallback, future-year first occurrence and absence before start; explicit target/no fallback; Personal/Shared and nonmember RLS/ACL; immutable identity; disabled retention/rejection/reopen; leave/remove/transfer/cascade; navigation and confirmed deletion; accurate bounded Space deletion copy; no exposed nonfunctional Reminder UI |
+| 2 — Push | exact all-day presets/default, preserved IANA timezone/DST, first legal occurrence (including previous-day preset), bounded discovery/grace/year boundary, raw schedule marker precision, current recipients, claim and pre-send member/module/source/subscription rejection, deleted/edited/disabled source, concurrent claims, source-aware ledger uniqueness and historical upgrade, old ordinary/recurring Event regression, shared run budget and existing scheduler/send/finalize |
+| 3 — projections | same date helper across list/Home/Calendar/Reminder; top three ranked by next occurrence; eligibility/filter independence; historical non-repeat and annual start boundary; Today/Week/42-cell month range; Emoji/default icon and own edit path; independent errors/completeness/stale guards; unchanged Event behavior |
+
+Use disposable DB bootstrap/ordered-upgrade, pgTAP and concurrency tests for SQL/ledger/ACL behavior. For code implementation run relevant focused Node tests, `node --test tests/*.test.ts tests/*.test.js`, `npm run build`, and diff-check; do not install dependencies or apply Production changes through a test command. Slice 2 Reminder publication requires all candidate/due/ledger/claim/revalidation/subscription/send/idempotency/Event-regression checks and the actual backend capability gate, not just field persistence.
+
+Before user-run real-login/shared/iPhone/Android/PWA/manual Push acceptance, Codex must verify actual frontend target and backend schema/RPC/Edge Function compatibility under AGENTS.md. Backend rollout/postflight, Git release and deployment require separate authorization. The user drives authenticated sessions/devices; no v0.1.18 end-to-end acceptance has happened. Local acceptance address remains `http://127.0.0.1:5175`.
+
 ## v0.1.17 Final Acceptance — CLOSED / PASS
 
 - Implementation / automated verification: focused Lists Node **20/20 PASS**; full Node **374/374 PASS**; `npm run build` and `git diff --check` **PASS**. The build's existing >500 kB chunk warning remains non-blocking.

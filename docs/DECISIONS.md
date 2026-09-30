@@ -1,5 +1,15 @@
 # Decisions
 
+## v0.1.18 — 重要日 Design Freeze — 2026-09-30
+
+- User-approved canonical contract: [v0.1.18 重要日 Specification](./v0.1.18_IMPORTANT_DATES_SPEC.md). Status is `DESIGN FROZEN / IMPLEMENTATION PLANNING`; business implementation and Slices 1–3 are `NOT STARTED`. v0.1.17 remains `CLOSED / PASS`. This approval covers docs/governance and a docs-only commit, not implementation, Production writes, deployment, or push.
+- 重要日 is a first-class 功能中心 module, with one Space-owned canonical object for Personal/Shared; countdown/count-up/anniversary are derived. Reuse existing Space module/permission/entry/navigation conventions and v0.1.17 explicit form-target ownership. Disabling preserves records/settings while excluding availability, Home/Calendar projections and Push eligibility.
+- Annual with year has a true canonical start date: no earlier occurrence in any consumer. The same pure-date contract supplies Day 1, real anniversaries, and February 29 → February 28 in non-leap years. Existing Event leap-day skip semantics stay unchanged.
+- Reuse all-day Event presets (不提醒 / 当天08:00 / 前一天20:00), one persisted IANA timezone and shared object-level setting. Extend the existing scheduler with Important Date-specific candidate/claim/pre-send revalidation and ledger source identity; no hidden Events, second scheduler, generic framework, or per-member preference.
+- Slice 1 may prepare reminder persistence but must not expose unusable settings. Reminder publication waits for the complete Slice 2 path and actual backend capability gate, idempotency and Event regression. Slice 1 may correct Shared Space permanent-delete copy to include all affected business data, including 回顾、清单、重要日, without changing lifecycle semantics/RPCs or unrelated UI.
+- Three planned Slices: core object flow; date-level Push; Home/Calendar projections. No Realtime in v1; canonical rereads and bounded same-session display continuity remain the state model. No archive/trash/undo or global state/cache/repository abstraction.
+- Task due-date Push remains a separate future backlog. Shared without assignee recipient is unresolved and outside this version; the detailed backlog is in [Backlog](./BACKLOG.md).
+
 ## Space-aware Create Defaults — Frozen Convention — 2026-09-30
 
 - `SPACE_AWARE_CREATE_DEFAULT_CONVENTION`: `CURRENT FILTER AS DEFAULT PRESELECTION, NOT OWNERSHIP AUTHORITY`. Aggregate 全部空间 defaults to the user's Personal Space; a specific eligible Space filter defaults to that Space. The create form target remains explicit and user-visible; final ownership comes from the target selected in that form. Current membership, module eligibility, RLS, and backend validation remain authoritative. Invalid targets cannot silently redirect and save. Module filters remain independent.
