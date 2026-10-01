@@ -1,4 +1,18 @@
 import type { ReminderKind } from '../supabase/functions/_shared/reminder-due.ts';
+import type { ImportantDateFields } from '../supabase/functions/_shared/important-date.ts';
+
+export type ImportantDate = ImportantDateFields & {
+  id: string;
+  space_id: string;
+  name: string;
+  emoji: string | null;
+  reminder_kind: 'all_day_same_day_08' | 'all_day_previous_day_20' | null;
+  time_zone: string;
+  reminder_schedule_changed_at: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+};
 
 export type Space = {
   id: string;
