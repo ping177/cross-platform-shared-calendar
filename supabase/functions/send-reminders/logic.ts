@@ -13,6 +13,12 @@ import type {
   RecurringReminderSnapshot,
 } from './recurring.ts';
 import { projectRecurringReminderCandidates } from './recurring.ts';
+import {
+  projectImportantDateReminderCandidates,
+  type ImportantDateReminderSource,
+  type ImportantDateReminderCandidate,
+} from './important-dates.ts';
+import type { ImportantDateClaimInput } from './important-date-claim.ts';
 import type { EventOccurrenceException } from '../../../src/types.ts';
 
 export const CANDIDATE_PAGE_SIZE = 100;
@@ -47,6 +53,12 @@ export type EligibleReminderCandidate = {
   rawReminderScheduleChangedAt: string;
 };
 
+type EligibleImportantDateCandidate = ImportantDateReminderCandidate & {
+  expectedReminderKind: ImportantDateClaimInput['expectedReminderKind'];
+  rawReminderScheduleChangedAt: string;
+};
+type EligibleDeliveryCandidate = EligibleReminderCandidate | EligibleImportantDateCandidate;
+
 export type SpaceMembership = {
   space_id: string;
   user_id: string;
@@ -56,15 +68,26 @@ export type ReminderSubscription = StoredPushSubscription & {
   disabled_at: string | null;
 };
 
-export type DeliveryTask = {
-  eventId: string;
-  eventTitle: string;
+type DeliveryTaskDetails = {
   recipientUserId: string;
   subscription: ReminderSubscription;
   dueAt: Date;
   rawReminderScheduleChangedAt: string;
+};
+type EventDeliveryTask = DeliveryTaskDetails & {
+  eventId: string;
+  eventTitle: string;
   recurrence: RecurringReminderSnapshot | null;
 };
+type ImportantDateDeliveryTask = DeliveryTaskDetails & {
+  importantDate: {
+    id: string;
+    name: string;
+    occurrenceDate: string;
+    reminderKind: ImportantDateClaimInput['expectedReminderKind'];
+  };
+};
+export type DeliveryTask = EventDeliveryTask | ImportantDateDeliveryTask;
 
 export type LedgerFinalResult = {
   status: 'sent' | 'failed';
@@ -111,6 +134,7 @@ export type FinalizeReminderInput = {
 export type RunSendRemindersDependencies = {
   fetchCandidatePage: (request: CandidatePageRequest) => Promise<ReminderCandidate[]>;
   fetchRecurringCandidatePage: (request: CandidatePageRequest) => Promise<RecurringReminderSource[]>;
+  fetchImportantDateCandidatePage: (request: CandidatePageRequest) => Promise<ImportantDateReminderSource[]>;
   fetchRecurringExceptions: (eventIds: string[]) => Promise<RecurringExceptionScanResult>;
   fetchMemberships: (spaceIds: string[]) => Promise<SpaceMembership[]>;
   fetchSubscriptions: (
@@ -119,6 +143,8 @@ export type RunSendRemindersDependencies = {
   ) => Promise<ReminderSubscription[]>;
   claim: (input: ClaimReminderInput) => Promise<string | null>;
   claimRecurring: (input: ClaimRecurringReminderInput) => Promise<string | null>;
+  claimImportantDate: (input: ImportantDateClaimInput) => Promise<string | null>;
+  checkImportantDate: (deliveryId: string, kind: ImportantDateClaimInput['expectedReminderKind'], rawMarker: string) => Promise<void>;
   send: (
     subscription: StoredPushSubscription,
     payload: WebPushPayload,
@@ -222,17 +248,21 @@ export async function handleSendRemindersRequest(
   }
 }
 
-function assertStableCandidatePage<T extends { id: string }>(
+export function assertStableCandidatePage<T extends { id: string }>(
   page: T[],
   afterId: string | null,
   limit: number,
 ) {
+  if (!Array.isArray(page)) throw new Error('Candidate page is incomplete.');
   if (page.length > limit) {
     throw new Error('Candidate page exceeded the requested limit.');
   }
 
   let previousId = afterId;
   for (const event of page) {
+    if (event === null || typeof event?.id !== 'string' || event.id.length === 0) {
+      throw new Error('Candidate page has no stable id.');
+    }
     if (previousId !== null && event.id <= previousId) {
       throw new Error('Candidate page is not strictly ordered by id.');
     }
@@ -401,12 +431,12 @@ function activeSubscription(
 }
 
 type RecipientPair = {
-  candidate: EligibleReminderCandidate;
+  candidate: EligibleDeliveryCandidate;
   userId: string;
 };
 
 function recipientPairsFor(
-  eligible: EligibleReminderCandidate[],
+  eligible: EligibleDeliveryCandidate[],
   memberships: SpaceMembership[],
 ) {
   const membersBySpace = new Map<string, Set<string>>();
@@ -418,8 +448,9 @@ function recipientPairsFor(
 
   const recipientPairs: RecipientPair[] = [];
   for (const candidate of eligible) {
-    const currentMembers = membersBySpace.get(candidate.event.space_id) ?? new Set<string>();
-    if (candidate.event.scope === 'personal') {
+    const spaceId = 'event' in candidate ? candidate.event.space_id : candidate.source.space_id;
+    const currentMembers = membersBySpace.get(spaceId) ?? new Set<string>();
+    if ('event' in candidate && candidate.event.scope === 'personal') {
       const ownerId = candidate.event.owner_user_id;
       if (ownerId !== null && currentMembers.has(ownerId)) {
         recipientPairs.push({ candidate, userId: ownerId });
@@ -436,7 +467,7 @@ function recipientPairsFor(
 }
 
 export function createDeliveryTasks(
-  eligible: EligibleReminderCandidate[],
+  eligible: EligibleDeliveryCandidate[],
   memberships: SpaceMembership[],
   subscriptions: ReminderSubscription[],
   runNow: Date,
@@ -466,15 +497,30 @@ export function createDeliveryTasks(
   const tasks: DeliveryTask[] = [];
   for (const pair of recipientPairs) {
     for (const subscription of subscriptionsByUser.get(pair.userId) ?? []) {
-      tasks.push({
-        eventId: pair.candidate.event.id,
-        eventTitle: pair.candidate.event.title,
+      const details: DeliveryTaskDetails = {
         recipientUserId: pair.userId,
         subscription,
         dueAt: pair.candidate.dueAt,
         rawReminderScheduleChangedAt: pair.candidate.rawReminderScheduleChangedAt,
-        recurrence: 'recurrence' in pair.candidate.event ? pair.candidate.event.recurrence : null,
-      });
+      };
+      if ('event' in pair.candidate) {
+        tasks.push({
+          ...details,
+          eventId: pair.candidate.event.id,
+          eventTitle: pair.candidate.event.title,
+          recurrence: 'recurrence' in pair.candidate.event ? pair.candidate.event.recurrence : null,
+        });
+      } else {
+        tasks.push({
+          ...details,
+          importantDate: {
+            id: pair.candidate.source.id,
+            name: pair.candidate.source.name,
+            occurrenceDate: pair.candidate.occurrenceDate,
+            reminderKind: pair.candidate.expectedReminderKind,
+          },
+        });
+      }
     }
   }
 
@@ -490,9 +536,14 @@ function compareStrings(left: string, right: string) {
 }
 
 function compareDeliveryTasks(left: DeliveryTask, right: DeliveryTask) {
+  const leftId = 'importantDate' in left ? left.importantDate.id : left.eventId;
+  const rightId = 'importantDate' in right ? right.importantDate.id : right.eventId;
+  const leftOccurrence = 'importantDate' in left ? left.importantDate.occurrenceDate : left.recurrence?.occurrenceDate ?? '';
+  const rightOccurrence = 'importantDate' in right ? right.importantDate.occurrenceDate : right.recurrence?.occurrenceDate ?? '';
   return left.dueAt.getTime() - right.dueAt.getTime()
-    || compareStrings(left.eventId, right.eventId)
-    || compareStrings(left.recurrence?.occurrenceDate ?? '', right.recurrence?.occurrenceDate ?? '')
+    || compareStrings(leftId, rightId)
+    || Number('importantDate' in left) - Number('importantDate' in right)
+    || compareStrings(leftOccurrence, rightOccurrence)
     || compareStrings(left.recipientUserId, right.recipientUserId)
     || compareStrings(left.subscription.id, right.subscription.id);
 }
@@ -573,28 +624,40 @@ async function processDeliveryTask(
 ) {
   let deliveryId: string | null;
   try {
-    deliveryId = task.recurrence === null
-      ? await dependencies.claim({
-        eventId: task.eventId,
+    if ('importantDate' in task) {
+      deliveryId = await dependencies.claimImportantDate({
+        importantDateId: task.importantDate.id,
+        occurrenceDate: task.importantDate.occurrenceDate,
         recipientUserId: task.recipientUserId,
         subscriptionId: task.subscription.id,
         dueAt: task.dueAt.toISOString(),
+        expectedReminderKind: task.importantDate.reminderKind,
         expectedReminderScheduleChangedAt: task.rawReminderScheduleChangedAt,
-      })
-      : await dependencies.claimRecurring({
-        sourceEventId: task.eventId,
-        logicalSeriesId: task.recurrence.logicalSeriesId,
-        occurrenceDate: task.recurrence.occurrenceDate,
-        recipientUserId: task.recipientUserId,
-        subscriptionId: task.subscription.id,
-        dueAt: task.dueAt.toISOString(),
-        expectedSourceUpdatedAt: task.recurrence.sourceUpdatedAt,
-        expectedReminderScheduleChangedAt: task.recurrence.sourceReminderScheduleChangedAt,
-        expectedExceptionId: task.recurrence.exceptionId,
-        expectedExceptionUpdatedAt: task.recurrence.exceptionUpdatedAt,
-        expectedExceptionType: task.recurrence.exceptionType,
-        effectiveScheduleChangedAt: effectiveScheduleChangedAt(task.recurrence),
       });
+    } else {
+      deliveryId = task.recurrence === null
+        ? await dependencies.claim({
+          eventId: task.eventId,
+          recipientUserId: task.recipientUserId,
+          subscriptionId: task.subscription.id,
+          dueAt: task.dueAt.toISOString(),
+          expectedReminderScheduleChangedAt: task.rawReminderScheduleChangedAt,
+        })
+        : await dependencies.claimRecurring({
+          sourceEventId: task.eventId,
+          logicalSeriesId: task.recurrence.logicalSeriesId,
+          occurrenceDate: task.recurrence.occurrenceDate,
+          recipientUserId: task.recipientUserId,
+          subscriptionId: task.subscription.id,
+          dueAt: task.dueAt.toISOString(),
+          expectedSourceUpdatedAt: task.recurrence.sourceUpdatedAt,
+          expectedReminderScheduleChangedAt: task.recurrence.sourceReminderScheduleChangedAt,
+          expectedExceptionId: task.recurrence.exceptionId,
+          expectedExceptionUpdatedAt: task.recurrence.exceptionUpdatedAt,
+          expectedExceptionType: task.recurrence.exceptionType,
+          effectiveScheduleChangedAt: effectiveScheduleChangedAt(task.recurrence),
+        });
+    }
   } catch {
     diagnostics.unexpected_task_errors += 1;
     return;
@@ -608,9 +671,12 @@ async function processDeliveryTask(
 
   let finalResult: LedgerFinalResult;
   try {
+    if ('importantDate' in task) {
+      await dependencies.checkImportantDate(deliveryId, task.importantDate.reminderKind, task.rawReminderScheduleChangedAt);
+    }
     const senderResult = await dependencies.send(task.subscription, {
       title: '共享日历',
-      body: task.eventTitle,
+      body: 'importantDate' in task ? task.importantDate.name : task.eventTitle,
       url: '/',
       tag,
     });
@@ -657,12 +723,13 @@ export async function runSendReminders(
   dependencies: RunSendRemindersDependencies,
 ) {
   const diagnostics = emptyDiagnostics();
-  const [scan, recurringSourceScan] = await Promise.all([
+  const [scan, recurringSourceScan, importantDateScan] = await Promise.all([
     scanReminderCandidates(dependencies.fetchCandidatePage),
     scanReminderCandidates(dependencies.fetchRecurringCandidatePage, MAX_RECURRING_SOURCES),
+    scanReminderCandidates(dependencies.fetchImportantDateCandidatePage),
   ]);
-  diagnostics.candidates_scanned = scan.candidatesScanned + recurringSourceScan.candidatesScanned;
-  diagnostics.candidate_truncated = scan.candidateTruncated || recurringSourceScan.candidateTruncated;
+  diagnostics.candidates_scanned = scan.candidatesScanned + recurringSourceScan.candidatesScanned + importantDateScan.candidatesScanned;
+  diagnostics.candidate_truncated = scan.candidateTruncated || recurringSourceScan.candidateTruncated || importantDateScan.candidateTruncated;
 
   if (diagnostics.candidate_truncated) {
     diagnostics.status = 'candidate_limit_exceeded';
@@ -692,19 +759,40 @@ export async function runSendReminders(
   }
 
   const due = classifyReminderCandidates([...scan.candidates, ...recurringCandidates], context.runNow);
-  diagnostics.due_eligible = due.eligible.length;
+  const importantDateProjection = projectImportantDateReminderCandidates(importantDateScan.candidates, context.runNow);
+  if (importantDateProjection.errors.length > 0) throw new Error('Important Date Reminder projection failed.');
+  const importantDateEligible: EligibleImportantDateCandidate[] = [];
+  for (const candidate of importantDateProjection.candidates) {
+    const rawMarker = candidate.source.reminder_schedule_changed_at;
+    const beforeMarker = dueIsBeforeMarker(candidate.dueAt, rawMarker);
+    if (beforeMarker === null || candidate.source.reminder_kind === null) {
+      due.invalidSkipped += 1;
+      continue;
+    }
+    if (beforeMarker) {
+      due.newlyPastSkipped += 1;
+      continue;
+    }
+    importantDateEligible.push({
+      ...candidate,
+      expectedReminderKind: candidate.source.reminder_kind,
+      rawReminderScheduleChangedAt: rawMarker,
+    });
+  }
+  const eligible: EligibleDeliveryCandidate[] = [...due.eligible, ...importantDateEligible];
+  diagnostics.due_eligible = eligible.length;
   diagnostics.future_skipped = due.futureSkipped;
   diagnostics.newly_past_skipped = due.newlyPastSkipped;
   diagnostics.grace_expired_skipped = due.graceExpiredSkipped;
   diagnostics.invalid_skipped = due.invalidSkipped;
 
-  if (due.eligible.length === 0) {
+  if (eligible.length === 0) {
     return finishDiagnostics(diagnostics, context);
   }
 
-  const spaceIds = [...new Set(due.eligible.map((candidate) => candidate.event.space_id))];
+  const spaceIds = [...new Set(eligible.map((candidate) => 'event' in candidate ? candidate.event.space_id : candidate.source.space_id))];
   const memberships = await dependencies.fetchMemberships(spaceIds);
-  const recipientPairs = recipientPairsFor(due.eligible, memberships);
+  const recipientPairs = recipientPairsFor(eligible, memberships);
   diagnostics.recipients = recipientPairs.length;
 
   if (recipientPairs.length === 0) {
@@ -713,7 +801,7 @@ export async function runSendReminders(
 
   const recipientUserIds = [...new Set(recipientPairs.map((pair) => pair.userId))];
   const subscriptions = await dependencies.fetchSubscriptions(recipientUserIds, context.runNow);
-  const delivery = createDeliveryTasks(due.eligible, memberships, subscriptions, context.runNow);
+  const delivery = createDeliveryTasks(eligible, memberships, subscriptions, context.runNow);
   diagnostics.active_subscriptions = delivery.activeSubscriptions;
   diagnostics.delivery_tasks = delivery.tasks.length;
 
@@ -736,11 +824,13 @@ export async function runSendReminders(
 
       let tag: string;
       try {
-        tag = await createReminderTag(
-          task.recurrence?.logicalSeriesId ?? task.eventId,
-          task.dueAt,
-          task.recurrence?.occurrenceDate ?? null,
-        );
+        tag = 'importantDate' in task
+          ? await createReminderTag(`important-date:${task.importantDate.id}`, task.dueAt, task.importantDate.occurrenceDate)
+          : await createReminderTag(
+            task.recurrence?.logicalSeriesId ?? task.eventId,
+            task.dueAt,
+            task.recurrence?.occurrenceDate ?? null,
+          );
       } catch {
         diagnostics.unexpected_task_errors += 1;
         continue;

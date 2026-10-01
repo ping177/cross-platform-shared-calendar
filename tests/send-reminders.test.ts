@@ -272,7 +272,10 @@ test('resolves current personal/shared recipients and only their active installa
   assert.equal(result.recipients, 3);
   assert.equal(result.activeSubscriptions, 3);
   assert.deepEqual(
-    result.tasks.map((task) => [task.eventId, task.recipientUserId, task.subscription.id]),
+    result.tasks.map((task) => {
+      assert.ok('eventId' in task);
+      return [task.eventId, task.recipientUserId, task.subscription.id];
+    }),
     [
       ['personal-current', 'user-1', 'sub-1a'],
       ['personal-current', 'user-1', 'sub-1b'],
@@ -333,11 +336,10 @@ test('selects at most 50 tasks after deterministic due/event/recipient/subscript
   assert.equal(result.selected.length, 50);
   assert.equal(result.overflow, 4);
   assert.deepEqual(
-    result.selected.slice(0, 3).map((entry) => [
-      entry.eventId,
-      entry.recipientUserId,
-      entry.subscription.id,
-    ]),
+    result.selected.slice(0, 3).map((entry) => {
+      assert.ok('eventId' in entry);
+      return [entry.eventId, entry.recipientUserId, entry.subscription.id];
+    }),
     [
       ['event-aa', 'user-a', 'subscription-a'],
       ['event-aa', 'user-a', 'subscription-b'],
@@ -380,6 +382,9 @@ function orchestrationDependencies(
   return {
     fetchCandidatePage: pageFetcher([candidate('event-0001')]),
     fetchRecurringCandidatePage: async () => [],
+    fetchImportantDateCandidatePage: async () => [],
+    claimImportantDate: async () => { throw new Error('Unexpected Important Date claim'); },
+    checkImportantDate: async () => { throw new Error('Unexpected Important Date check'); },
     fetchRecurringExceptions: async () => ({
       exceptions: [],
       exceptionsScanned: 0,

@@ -242,7 +242,10 @@ test('keeps colliding effective instants independently deliverable by occurrence
   );
 
   assert.deepEqual(
-    delivery.tasks.map((task) => task.recurrence?.occurrenceDate).sort(),
+    delivery.tasks.map((task) => {
+      assert.ok('recurrence' in task);
+      return task.recurrence?.occurrenceDate;
+    }).sort(),
     ['2026-09-22', '2026-09-23'],
   );
 });
@@ -268,6 +271,9 @@ test('orchestrates recurring projection through the recurring claim snapshot and
     { runNow, startedAt: 0, monotonicNow: () => 1 },
     {
       fetchCandidatePage: async () => [],
+      fetchImportantDateCandidatePage: async () => [],
+      claimImportantDate: async () => { throw new Error('Unexpected Important Date claim'); },
+      checkImportantDate: async () => { throw new Error('Unexpected Important Date check'); },
       fetchRecurringCandidatePage: async ({ afterId }) => afterId === null ? [source()] : [],
       fetchRecurringExceptions: async () => ({
         exceptions: [titleOverride],
@@ -324,6 +330,9 @@ test('aborts a truncated recurring exception scan before membership, claim, or s
     { runNow, startedAt: 0, monotonicNow: () => 1 },
     {
       fetchCandidatePage: async () => [],
+      fetchImportantDateCandidatePage: async () => [],
+      claimImportantDate: async () => { throw new Error('Unexpected Important Date claim'); },
+      checkImportantDate: async () => { throw new Error('Unexpected Important Date check'); },
       fetchRecurringCandidatePage: async ({ afterId }) => afterId === null ? [source()] : [],
       fetchRecurringExceptions: async () => ({
         exceptions: [],

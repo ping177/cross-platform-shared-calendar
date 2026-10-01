@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { loadVapidConfig, sendWebPush } from '../_shared/web-push.ts';
 import {
   CANDIDATE_PAGE_SIZE,
+  assertStableCandidatePage,
   handleSendRemindersRequest,
   MAX_RECURRING_EXCEPTIONS,
   runSendReminders,
@@ -11,6 +12,8 @@ import {
 } from './logic.ts';
 import type { RecurringReminderSource } from './recurring.ts';
 import type { EventOccurrenceException } from '../../../src/types.ts';
+import { fetchImportantDateReminderCandidatePage, claimImportantDateReminder, assertImportantDateReminderSendable,
+  type ImportantDateRpc } from './important-date-claim.ts';
 
 const LOOKUP_BATCH_SIZE = 100;
 const jsonHeaders = { 'Content-Type': 'application/json; charset=utf-8' };
@@ -47,8 +50,10 @@ Deno.serve(async (request) => {
       const adminClient = createClient(supabaseUrl, serviceRoleKey, {
         auth: { persistSession: false, autoRefreshToken: false },
       });
+      const importantDateRpc: ImportantDateRpc = async (name, parameters) => await adminClient.rpc(name, parameters);
 
       return runSendReminders(context, {
+        fetchImportantDateCandidatePage: (request) => fetchImportantDateReminderCandidatePage(importantDateRpc, request),
         fetchCandidatePage: async ({ afterId, limit }) => {
           let query = adminClient
             .from('events')
@@ -63,10 +68,10 @@ Deno.serve(async (request) => {
           }
 
           const { data, error } = await query;
-          if (error) {
+          if (error || !Array.isArray(data)) {
             throw new Error('Reminder candidate scan failed.');
           }
-          return (data ?? []) as ReminderCandidate[];
+          return data as ReminderCandidate[];
         },
         fetchRecurringCandidatePage: async ({ afterId, limit }) => {
           let query = adminClient
@@ -82,10 +87,10 @@ Deno.serve(async (request) => {
           }
 
           const { data, error } = await query;
-          if (error) {
+          if (error || !Array.isArray(data)) {
             throw new Error('Recurring Reminder source scan failed.');
           }
-          return (data ?? []) as RecurringReminderSource[];
+          return data as RecurringReminderSource[];
         },
         fetchRecurringExceptions: async (eventIds) => {
           const exceptions: EventOccurrenceException[] = [];
@@ -110,11 +115,12 @@ Deno.serve(async (request) => {
               }
 
               const { data, error } = await query;
-              if (error) {
+              if (error || !Array.isArray(data)) {
                 throw new Error('Recurring Reminder exception scan failed.');
               }
 
-              const page = (data ?? []) as EventOccurrenceException[];
+              const page = data as EventOccurrenceException[];
+              assertStableCandidatePage(page, afterExceptionId, limit);
               exceptionsScanned += page.length;
               if (remaining === 0 && page.length > 0) {
                 return {
@@ -201,6 +207,8 @@ Deno.serve(async (request) => {
           }
           return data as string | null;
         },
+        claimImportantDate: (input) => claimImportantDateReminder(importantDateRpc, input),
+        checkImportantDate: (deliveryId, kind, rawMarker) => assertImportantDateReminderSendable(importantDateRpc, deliveryId, kind, rawMarker),
         send: (subscription, payload) => sendWebPush({
           subscription,
           payload,

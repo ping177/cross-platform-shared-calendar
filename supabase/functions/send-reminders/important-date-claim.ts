@@ -1,7 +1,24 @@
 import type { AllDayReminderKind } from '../_shared/reminder-due.ts';
+import type { ImportantDateReminderSource } from './important-dates.ts';
+import { validateImportantDateFields } from '../_shared/important-date.ts';
 
-type ImportantDateRpc = (name: 'claim_important_date_reminder_delivery' | 'check_important_date_reminder_delivery',
-  parameters: Record<string, string>) => Promise<{ data: unknown; error: unknown }>;
+export type ImportantDateRpc = (name: 'list_important_date_reminder_candidates' | 'claim_important_date_reminder_delivery' | 'check_important_date_reminder_delivery',
+  parameters: Record<string, string | number | null>) => Promise<{ data: unknown; error: unknown }>;
+
+export async function fetchImportantDateReminderCandidatePage(rpc: ImportantDateRpc,
+  request: { afterId: string | null; limit: number }): Promise<ImportantDateReminderSource[]> {
+  try {
+    const result = await rpc('list_important_date_reminder_candidates', { p_after_id: request.afterId, p_limit: request.limit });
+    if (result.error !== null || !Array.isArray(result.data) || !result.data.every((row): row is ImportantDateReminderSource =>
+      row !== null && typeof row === 'object' && validateImportantDateFields(row).ok
+      && typeof row.id === 'string' && row.id.length > 0 && typeof row.space_id === 'string' && typeof row.name === 'string'
+      && typeof row.time_zone === 'string' && (row.reminder_kind === 'all_day_same_day_08' || row.reminder_kind === 'all_day_previous_day_20')
+      && typeof row.reminder_schedule_changed_at === 'string')) throw new Error();
+    return result.data;
+  } catch {
+    throw new Error('Important Date candidate scan failed.');
+  }
+}
 
 export type ImportantDateClaimInput = {
   importantDateId: string;
@@ -13,7 +30,7 @@ export type ImportantDateClaimInput = {
   expectedReminderScheduleChangedAt: string;
 };
 
-// Unwired source-specific RPC boundary. Markers round-trip as raw PG strings.
+// Source-specific RPC boundary. Markers round-trip as raw PG strings.
 export async function claimImportantDateReminder(rpc: ImportantDateRpc, input: ImportantDateClaimInput): Promise<string | null> {
   try {
     const result = await rpc('claim_important_date_reminder_delivery', {
