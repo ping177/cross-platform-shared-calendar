@@ -1,5 +1,14 @@
 # Development Log
 
+## 2026-10-01 - v0.1.18 Slice 1 authenticated and Production acceptance — CLOSED / PASS
+
+- User reports authenticated Important Dates CRUD, permissions, date rules and module toggle acceptance **PASS**; public Production alias confirmation and real-device annual layout acceptance **PASS**.
+- Device layout: 375px **PASS**; at 320px only buttons wrap, with no overlap, clipping or horizontal overflow. No additional 320px scope.
+- Shared edits from another member appear after re-entry canonical reread, not immediately in the continuously open view. This matches frozen Slice 1 no-Realtime behavior; active-view Realtime refresh stays deferred and is not a blocker.
+- Slice 1 is **CLOSED / PASS**; v0.1.18 remains **IN PROGRESS**. Next Action: v0.1.18 Slice 2 — Date-level Push Reminder. Governance closeout only; no business code/SQL, Production write, deployment operation or authenticated UI operation by Codex.
+
+
+
 ## 2026-10-01 - v0.1.18 annual mobile layout follow-up accepted
 
 - Recorded user layout results: **375px PASS**; at **320px**, only action buttons wrap, without overlap, clipping, or horizontal overflow. No added 320px button layout scope. Existing weighted annual row fix commit `73291a18c9683807b8d8009e1f963d509618b7a5` remains unchanged.

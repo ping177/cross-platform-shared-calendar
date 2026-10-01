@@ -1,5 +1,13 @@
 # Testing
 
+## v0.1.18 Slice 1 — final user acceptance / CLOSED PASS
+
+- User confirms authenticated Slice 1 Important Dates CRUD, permissions, date behavior, and module toggle acceptance: **PASS**. User also confirms the public Production alias and real-device annual layout: **PASS**.
+- Annual layout user results: 375px **PASS**; at 320px only action buttons wrap, with no overlap, clipping, or horizontal overflow. The 320px button wrap remains out of scope.
+- Another Shared member’s edit does not refresh an already open Important Dates page immediately; leaving and re-entering performs a canonical reread. This is expected under Slice 1’s frozen no-Realtime contract. Active-view Realtime refresh remains a deferred enhancement and is not a blocker.
+- Slice 1 is **CLOSED / PASS**; v0.1.18 remains **IN PROGRESS**. Next Action: **v0.1.18 Slice 2 — Date-level Push Reminder**. This is user-reported Production/device acceptance; Codex did not operate authenticated UI or make a Production write in this closeout.
+
+
 ## 2026-10-01 - v0.1.18 annual mobile layout acceptance
 
 - User acceptance: **375px PASS**. At **320px**, only the action buttons wrap; there is no overlap, clipping, or horizontal overflow. The user explicitly keeps 320px button wrapping out of scope for this bounded follow-up.
