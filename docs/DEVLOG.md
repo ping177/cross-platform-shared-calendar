@@ -1,5 +1,11 @@
 # Development Log
 
+## 2026-10-01 - v0.1.18 annual mobile layout follow-up accepted
+
+- Recorded user layout results: **375px PASS**; at **320px**, only action buttons wrap, without overlap, clipping, or horizontal overflow. No added 320px button layout scope. Existing weighted annual row fix commit `73291a18c9683807b8d8009e1f963d509618b7a5` remains unchanged.
+- User authorized normal push after Project State Push Gate. Next Action is user Production layout recheck after this commit reaches a successful Vercel Production deployment; exact public alias-to-deployment mapping remains a manual confirmation gate. No code, SQL, Production write, or authenticated UI operation in this release follow-up.
+
+
 ## 2026-10-01 - v0.1.18 Slice 1 acceptance bounded fix — annual mobile form
 
 - User reported narrow-phone misalignment of “开始年份（可选） / 月 / 日”. The annual date-field grid now places the year across both mobile columns with month/day beneath, restores three equal columns from `sm`, and gives numeric inputs block layout plus `min-w-0`; non-repeat retains its three-column grid. Existing two-column/width-constrained form patterns are reused; only layout classes changed.

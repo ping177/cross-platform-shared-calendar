@@ -1,5 +1,11 @@
 # Testing
 
+## 2026-10-01 - v0.1.18 annual mobile layout acceptance
+
+- User acceptance: **375px PASS**. At **320px**, only the action buttons wrap; there is no overlap, clipping, or horizontal overflow. The user explicitly keeps 320px button wrapping out of scope for this bounded follow-up.
+- The weighted annual one-row layout fix is ready for release. No business logic or non-repeat layout change. Next Action: user Production layout recheck after the commit's Vercel Production deployment is confirmed. The public alias still requires manual mapping confirmation to the exact deployment before that recheck.
+
+
 ## v0.1.18 Slice 1 acceptance bounded fix — annual mobile form
 
 - User reported narrow-phone misalignment of “开始年份（可选） / 月 / 日”. The annual date-field grid now places the year across both mobile columns with month/day beneath, restores three equal columns from `sm`, and gives numeric inputs block layout plus `min-w-0`; non-repeat retains its three-column grid. Existing two-column/width-constrained form patterns are reused; only layout classes changed.
