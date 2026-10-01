@@ -1,5 +1,20 @@
 # Development Log
 
+## 2026-10-01 - v0.1.18 Slice 1 frontend release gate — docs review
+
+- Reviewed the three backend rollout records against the verified exact-patch/postflight evidence. Backend remains `V018_SLICE1_BACKEND_READY`; Tasks 1–4 PASS, Slice 1 IN PROGRESS, Slices 2–3 NOT STARTED.
+- Replaced temporary push/deployment assertions in active PROJECT_STATE with durable evidence gates: exact-main Production deployment and READY backend target must be proven before user-run authenticated Slice 1 acceptance. Historical backend checkpoint records remain unchanged.
+- User authorized a separate docs-only commit and normal push of local commits; Task 4 feature commit remains intact. Docs verification uses `git diff --check` and Project State Push Gate; deployment proof is read-only, without extra SQL or authenticated UI.
+
+
+## 2026-10-01 - v0.1.18 Slice 1 Production backend rollout — BACKEND READY
+
+- User explicitly authorized one Production write: exact Task 2 Important Dates foundation patch, SHA-256 `f9f61bb50b6cb7222a6ec781fc4c6e687397e0e99a47888de6c0105f17a19de2`. Fresh gate confirmed clean `main` at `6a5ec3dbad247a697d456450936d7b8748ae20b4`, ahead 1/behind 0, immutable patch bytes, actual linked/public/local target alignment and exact Production predecessor with zero module rows/no partial objects.
+- Applied once through the linked Management database-query endpoint, retaining the patch's original transactional bytes; HTTP 201. Existing CLI credential stayed in process memory. No retry, schema replay, additional mutation SQL, cleanup, historical patch edit, module auto-enable or fixture creation. Immediate independent READ-ONLY postflight confirmed persistent new objects.
+- Postflight PASS: table/14 columns/10 validated constraints/2 indexes/3 triggers, member SELECT-only RLS/ACL, three authenticated-only CRUD RPCs, private lock/trigger helper ACL, exact hardened function bodies, owner-only Important Dates toggle allowlist/lock extension. Date rows and Important Dates module rows remain 0; no Reminder enablement/publication or Realtime addition.
+- Structural regression PASS: pre-existing 14 tables, 61 function signatures, 27 policies and their columns/defaults/ACL/constraints/indexes/triggers/publication match the pre-write catalog exactly. Existing module constraints, default ACL and role flags unchanged. Prior Task 2 disposable SQL/concurrency evidence remains applicable; no write-based Production test or authenticated acceptance was run. Full evidence in TESTING.
+- `V018_SLICE1_BACKEND_READY`; Tasks 1–4 automatic verification remains PASS, Slice 1 IN PROGRESS. Next Action = Task 4 frontend push/deployment gate. Updated TESTING/DEVLOG/PROJECT_STATE and ran docs-only diff check. No frontend/code/schema-file, dependency, external-project or .env change, secret output/persistence, Git commit/push, deploy or logged-in UI operation belongs to this rollout checkpoint. Git/deployment and user-run acceptance remain separately authorized work.
+
 
 ## 2026-10-01 - v0.1.18 Slice 1 Task 4 — bounded entry/navigation integration — PASS
 
