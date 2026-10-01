@@ -1,5 +1,13 @@
 # Development Log
 
+## 2026-10-01 - v0.1.18 Slice 2 T1 — civil-date due / bounded occurrence adapter — CLOSED / PASS
+
+- Started from the approved clean `main = origin/main = 3c003ca3a68458ee50565c17a131069100e924c7`, ahead/behind 0/0. Implemented T1 only: extracted `calculateAllDayReminderDue` in the existing shared due module; the ordinary/recurring Event calculator delegates its all-day branch to it. Added the small pure `send-reminders/important-dates.ts` adapter, reusing `resolveImportantDateOccurrence` and the existing timezone conversion.
+- Discovery considers the local dates at both ends of the ten-minute grace window plus adjacent civil dates, resolves at most two target years per source, and filters by the exact inclusive UTC due window. This retains skipped-day/midnight and New Year occurrences, keeps independent colliding identities, respects annual start/fallback and non-repeat rules, and excludes large future years before timestamp conversion. Null presets emit nothing. No fabricated Event, database read, persistent projection or generic framework.
+- TDD: froze old all-day Event outputs before extraction (10/10), then confirmed new adapter suite RED with the module absent; final adapter/helper tests 12/12 PASS. Focused date/timezone/ordinary/recurring/orchestration/schema regressions 120/120; full Node 437/437; T1 Deno check, build and diff-check PASS. Temporary differential check against the exact baseline calculator passed 1,280/1,280 inputs. Details and commands are in TESTING.
+- Complexity/diff review using `code-review-and-quality` found no unresolved T1 correctness or scope issue. Raw source marker is retained unchanged; projection is not membership/module/subscription or newly-past eligibility. Those gates remain T2/T3 work. Existing Event preset/due/error outputs in the supported contract remain unchanged; no timezone engine change or new dependency.
+- T1 is `CLOSED / PASS`; Slice 2 and v0.1.18 remain IN PROGRESS. T2 backend/ledger/claim is next, not started. No SQL/schema/ledger/claim/orchestration/UI, Production, external-project, authenticated-session, deploy or push operation. User authorized a local commit only; PROJECT_STATE reviewed/updated and commit carries `Project-State-Review: updated`.
+
 ## 2026-10-01 - v0.1.18 Slice 1 authenticated and Production acceptance — CLOSED / PASS
 
 - User reports authenticated Important Dates CRUD, permissions, date rules and module toggle acceptance **PASS**; public Production alias confirmation and real-device annual layout acceptance **PASS**.

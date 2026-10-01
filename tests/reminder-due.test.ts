@@ -123,3 +123,19 @@ test('does not accept or use an event end when calculating a reminder', () => {
 
   assert.equal(dueAt(inputWithUnrelatedEnd), '2026-07-18T00:50:00.000Z');
 });
+
+test('preserves all-day Event outputs across local year boundaries and DST transitions', () => {
+  const cases = [
+    ['2026-07-17T16:30:00Z', 'Asia/Shanghai', '2026-07-18T00:00:00.000Z', '2026-07-17T12:00:00.000Z'],
+    ['2025-12-31T11:45:00Z', 'Pacific/Auckland', '2025-12-31T19:00:00.000Z', '2025-12-31T07:00:00.000Z'],
+    ['2026-03-08T05:45:00Z', 'America/New_York', '2026-03-08T12:00:00.000Z', '2026-03-08T01:00:00.000Z'],
+    ['2026-03-09T04:45:00Z', 'America/New_York', '2026-03-09T12:00:00.000Z', '2026-03-09T00:00:00.000Z'],
+    ['2026-11-01T04:45:00Z', 'America/New_York', '2026-11-01T13:00:00.000Z', '2026-11-01T00:00:00.000Z'],
+    ['2026-11-02T05:45:00Z', 'America/New_York', '2026-11-02T13:00:00.000Z', '2026-11-02T01:00:00.000Z'],
+    ['2026-10-03T13:45:00Z', 'Australia/Lord_Howe', '2026-10-03T21:00:00.000Z', '2026-10-03T09:30:00.000Z'],
+  ];
+  for (const [startsAt, timeZone, sameDay, previousDay] of cases) {
+    assert.equal(dueAt({ startsAt, timeZone, allDay: true, reminderKind: 'all_day_same_day_08' }), sameDay);
+    assert.equal(dueAt({ startsAt, timeZone, allDay: true, reminderKind: 'all_day_previous_day_20' }), previousDay);
+  }
+});

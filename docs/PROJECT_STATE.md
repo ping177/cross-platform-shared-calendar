@@ -12,9 +12,11 @@ v0.1.18
 
 ## Current status
 
-v0.1.18 重要日整体 `IN PROGRESS`；Slice 1 `CLOSED / PASS`。Tasks 1–4 实现/自动验证 PASS；Task 4 为 `V018_SLICE1_TASK4_PASS`；backend 为 `V018_SLICE1_BACKEND_READY`。用户报告 authenticated CRUD、权限、日期规则、module toggle、public alias 和 Production 真机 annual layout 验收 PASS。375px PASS；320px 仅按钮换行且无重叠/截断/横向溢出，不扩展该范围。Slice 1 no-Realtime 行为符合冻结设计；active-view Realtime refresh 为 deferred enhancement，不是 blocker。Slices 2–3 尚未开始；暂无明确阻塞。
+v0.1.18 重要日整体 `IN PROGRESS`；Slice 1 `CLOSED / PASS`。Tasks 1–4 实现/自动验证 PASS；Task 4 为 `V018_SLICE1_TASK4_PASS`；backend 为 `V018_SLICE1_BACKEND_READY`。用户报告 authenticated CRUD、权限、日期规则、module toggle、public alias 和 Production 真机 annual layout 验收 PASS。375px PASS；320px 仅按钮换行且无重叠/截断/横向溢出，不扩展该范围。Slice 1 no-Realtime 行为符合冻结设计；active-view Realtime refresh 为 deferred enhancement，不是 blocker。Slice 2 T1 civil-date due / bounded occurrence adapter 已 CLOSED / PASS（本地自动验证）；T2–T4 与 Slice 3 尚未开始，Reminder publication gate 仍关闭；暂无明确阻塞。
 
 ## Latest completed
+
+v0.1.18 Slice 2 T1 `CLOSED / PASS`（本地）：抽出 shared all-day civil-date due helper，Event 路径继续委托；新增复用 canonical Important Date resolver 的 bounded occurrence adapter。Focused 120/120、full Node 437/437、baseline Event differential 1,280/1,280、T1 Deno check、build、diff-check PASS；complexity/diff review PASS。无 SQL/ledger/claim/orchestration/UI 或 Production 变化；Slice 2 尚未具备发送能力，publication gate 保持关闭。详情见 [Testing](./TESTING.md)。
 
 v0.1.18 Slice 1 `CLOSED / PASS`：用户确认 authenticated Important Dates CRUD、权限、日期规则、module toggle、public Production alias 和真机 annual layout 验收 PASS。375px PASS；320px 仅按钮换行且无重叠、截断或横向溢出，不再扩展该范围。Shared 成员编辑后停留页面不会立即刷新，重进 canonical reread 正常；符合冻结 no-Realtime 设计，active-view Realtime refresh 保留为 deferred enhancement，不是 blocker。自动验证及 backend readiness 证据见 [Testing](./TESTING.md)。v0.1.18 整体仍 IN PROGRESS。
 
@@ -179,7 +181,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 - v0.1.15 — Shared Lists（CLOSED / PASS；Slices 1–4 CLOSED / PASS；desktop、dual-account Realtime、mobile/PWA PASS；Section drag DEFERRED / NON-BLOCKING）
 - v0.1.16 — Module Entry Responsiveness / Data Flow Simplification（CLOSED / PASS；implementation/automated、local authenticated desktop、Production installed-PWA acceptance PASS）
 - v0.1.17 — Space-aware List create default（CLOSED / PASS；implementation/automated verification、local authenticated、Production/PWA acceptance PASS；Android-specific acceptance 未报告）
-- v0.1.18 — 重要日（整体 IN PROGRESS；Slice 1 CLOSED / PASS；Tasks 1–4 自动验证 PASS；Production backend READY；authenticated CRUD/权限/日期/module toggle 与 Production 真机验收 PASS；Slices 2–3 NOT STARTED；唯一 foundation rollout APPLIED）
+- v0.1.18 — 重要日（整体 IN PROGRESS；Slice 1 CLOSED / PASS；Tasks 1–4 自动验证 PASS；Production backend READY；authenticated CRUD/权限/日期/module toggle 与 Production 真机验收 PASS；Slice 2 T1 CLOSED / PASS（local）；T2–T4 与 Slice 3 NOT STARTED；Reminder publication 关闭；唯一 foundation rollout APPLIED）
 
 ## Last verified
 
@@ -187,7 +189,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-Next Action: v0.1.18 Slice 2 — Date-level Push Reminder。Slice 1 为 CLOSED / PASS；v0.1.18 整体 IN PROGRESS。Active-view Realtime refresh 保持 deferred enhancement，不是 blocker。
+Next Action: 在单独授权后实施 v0.1.18 Slice 2 T2 — backend candidate/ledger/source-specific claim/pre-send check 与 backward-compatible reminder CRUD。T1 CLOSED / PASS；T2–T4 尚未开始；Reminder UI 保持未暴露。Slice 1 CLOSED / PASS，整体 IN PROGRESS。Active-view Realtime refresh 保持 deferred enhancement，不是 blocker。
 
 ## Blockers
 
@@ -197,8 +199,8 @@ Next Action: v0.1.18 Slice 2 — Date-level Push Reminder。Slice 1 为 CLOSED /
 
 - Slice 1 user acceptance: authenticated CRUD/permissions/date behavior/module toggle, public Production alias and real-device annual layout are PASS. Annual 375px PASS; 320px only buttons wrap without overlap, clipping or horizontal overflow; no further 320px scope. Shared edits by another member appear after re-entry canonical reread rather than immediately in an open view, matching the frozen no-Realtime design. Active-view Realtime refresh is deferred and is not a blocker.
 
-- v0.1.18 重要日的唯一 canonical contract 是 [规格](./v0.1.18_IMPORTANT_DATES_SPEC.md)；Slice 1 CLOSED / PASS，Tasks 1–4、Production foundation/postflight 与 authenticated/device acceptance 均通过；v0.1.18 整体 IN PROGRESS，Next Action 为 Slice 2 Date-level Push Reminder。日期核心为 `supabase/functions/_shared/important-date.ts`，前端与未来 Edge consumers 共用；today/target year 显式输入，Annual 起始日前无 occurrence。Slice 2 完整能力 gate 前不暴露 Reminder UI；Slice 1 不改 lifecycle 语义。Active-view Realtime refresh 遵循冻结 no-Realtime 合约并 deferred，不是 blocker。Task due-date Push 独立 backlog，Shared 无 assignee recipient 未决。
-- v0.1.17 `CLOSED / PASS`；冻结约定为 `CURRENT FILTER AS DEFAULT PRESELECTION, NOT OWNERSHIP AUTHORITY`。Tasks 已符合，Review 通过单 Space 流程符合，Lists 在 v0.1.17 修正并验收，Calendar 行为有意保持不变；v0.1.18 重要日遵循此约定。旧的 Shared Space 必须手动选择规则已被取代；重要日 pure-date/database foundation 与 Production backend postflight 已 PASS；Slice 1 为 CLOSED / PASS；下一步为 Slice 2 Date-level Push Reminder，无新依赖。
+- v0.1.18 重要日的唯一 canonical contract 是 [规格](./v0.1.18_IMPORTANT_DATES_SPEC.md)；Slice 1 CLOSED / PASS，Tasks 1–4、Production foundation/postflight 与 authenticated/device acceptance 均通过；v0.1.18 整体 IN PROGRESS，Slice 2 T1 本地 CLOSED / PASS；Next Action 为单独授权后的 T2 backend/ledger/claim。日期核心为 `supabase/functions/_shared/important-date.ts`，前端与未来 Edge consumers 共用；today/target year 显式输入，Annual 起始日前无 occurrence。Slice 2 完整能力 gate 前不暴露 Reminder UI；Slice 1 不改 lifecycle 语义。Active-view Realtime refresh 遵循冻结 no-Realtime 合约并 deferred，不是 blocker。Task due-date Push 独立 backlog，Shared 无 assignee recipient 未决。
+- v0.1.17 `CLOSED / PASS`；冻结约定为 `CURRENT FILTER AS DEFAULT PRESELECTION, NOT OWNERSHIP AUTHORITY`。Tasks 已符合，Review 通过单 Space 流程符合，Lists 在 v0.1.17 修正并验收，Calendar 行为有意保持不变；v0.1.18 重要日遵循此约定。旧的 Shared Space 必须手动选择规则已被取代；重要日 pure-date/database foundation 与 Production backend postflight 已 PASS；Slice 1 为 CLOSED / PASS；Slice 2 T1 本地 CLOSED / PASS；下一步为 T2 backend/ledger/claim，无新依赖。
 - v0.1.15 Shared Lists 的唯一 canonical contract 是 [v0.1.15_SHARED_LISTS_SPEC.md](./v0.1.15_SHARED_LISTS_SPEC.md)。Slices 1–4 与整个版本 `CLOSED / PASS`；Item drag 设备验收及长列表自动滚动通过。Section drag 按冻结设计延后且不阻塞；stale reorder `AUTOMATED PASS / MANUAL NOT REQUIRED`，既有 bundle warning 非阻塞。
 - v0.1.14 `CLOSED / PASS`：`review_date` 是业务时间轴且同 Space 同日唯一；上一份计划严格按日期上一篇、不 fallback；`round_no` 仅为内部技术序列。Backend、frontend deployment、public smoke、用户 Production authenticated acceptance 与最终 exact-ID fixture cleanup 均通过；Production 当前 0 rounds / 0 entries、Shared 与 Personal Review module enabled。v0.1.14.1 已解决刷新回首页问题并 `CLOSED / PASS`；既有 >500 kB bundle warning 仍为非阻塞项。完整 Review contract 和验收条件只以 v0.1.14 规格为准。
 - Git branch、latest commit、working tree 由 project-command-center 实时 Git 扫描读取；PROJECT_STATE.md 不作为这些字段的权威来源。
@@ -263,4 +265,4 @@ Next Action: v0.1.18 Slice 2 — Date-level Push Reminder。Slice 1 为 CLOSED /
 - `v0.1.9 Shared Tasks` Slice 1/2/3 are CLOSED / PASS: backend applied/postflight verified, frontend deployed through Vercel, Desktop A/B Production acceptance and iPhone smoke passed. At the v0.1.13 closeout, Structured Review / Check-in and Shared Lists were future candidates; v0.1.14/14.1 subsequently closed, and Shared Lists was selected for v0.1.15. Its design is frozen and Slice 1 DB foundation is `CLOSED / PASS` after Production postflight.
 
 ## Handoff Prompt
-v0.1.18 重要日整体 IN PROGRESS；Slice 1 CLOSED / PASS，唯一 contract 为 docs/v0.1.18_IMPORTANT_DATES_SPEC.md。Tasks 1–4 自动验证 PASS，backend V018_SLICE1_BACKEND_READY。用户报告 authenticated CRUD/permissions/date behavior/module toggle、public Production alias 和 real-device annual layout PASS；375px PASS，320px 仅按钮换行且无重叠/截断/横向溢出。Shared cross-member edits appear after re-entry canonical reread; this matches frozen no-Realtime design. Active-view Realtime refresh remains deferred, not a blocker. Next Action: v0.1.18 Slice 2 — Date-level Push Reminder. Slices 2–3 implementation has not started; Push publication, Home/Calendar projection and Task Reminder are outside Slice 1 closeout.
+v0.1.18 重要日整体 IN PROGRESS；Slice 1 CLOSED / PASS，唯一 contract 为 docs/v0.1.18_IMPORTANT_DATES_SPEC.md。Tasks 1–4 自动验证 PASS，backend V018_SLICE1_BACKEND_READY。用户报告 authenticated CRUD/permissions/date behavior/module toggle、public Production alias 和 real-device annual layout PASS；375px PASS，320px 仅按钮换行且无重叠/截断/横向溢出。Shared cross-member edits appear after re-entry canonical reread; this matches frozen no-Realtime design. Active-view Realtime refresh remains deferred, not a blocker. Slice 2 T1 civil-date due helper / bounded occurrence adapter is CLOSED / PASS locally: focused 120/120, full Node 437/437, baseline Event differential 1280/1280, scoped Deno/build/diff-check PASS. Next Action: separately authorized Slice 2 T2 backend candidate/ledger/claim/pre-send check and backward-compatible reminder CRUD. T2–T4 and Slice 3 are NOT STARTED. Reminder UI/publication stays closed; no T1 SQL/orchestration/UI/Production change. Home/Calendar projection and Task Reminder remain outside T1.
