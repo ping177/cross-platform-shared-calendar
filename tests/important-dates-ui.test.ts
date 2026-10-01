@@ -54,16 +54,21 @@ test('Important Dates content shows sorted date derivation, source context and c
   assert.doesNotMatch(markup, /旅行|提醒|08:00|20:00|reminder/i);
 }));
 
-test('Important Date year/month/day layout stacks long annual label on mobile and keeps desktop columns', () => ui((_p, m) => {
+test('Important Date year/month/day layout keeps weighted annual columns in one row with aligned labels and preserves non-repeat', () => ui((_p, m) => {
   for (const repeat_kind of ['annual', 'none'] as const) {
     const markup = renderToStaticMarkup(React.createElement(m.ImportantDateSheet, { date: { ...row, repeat_kind }, memberSpaces: [personal, shared], eligibleSpaces: [shared], canAct: true,
       onSubmit: async () => undefined, onCancel: noop, onDelete: noop }));
     if (repeat_kind === 'annual') {
-      assert.match(markup, /class="mt-4 grid gap-2 grid-cols-2 sm:grid-cols-3"/);
-      assert.match(markup, /<label class="min-w-0 text-sm font-semibold col-span-2 sm:col-span-1">/);
+      assert.ok(markup.includes('grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)] sm:grid-cols-3'));
+      assert.equal((markup.match(/class="block min-h-10 sm:min-h-5"/g) ?? []).length, 3);
+      assert.doesNotMatch(markup, /col-span-2/);
+      assert.match(markup, /aria-label="开始年份（可选）"[^>]*value="2026"/);
+      for (const name of ['月', '日']) {
+        assert.ok(markup.includes(`aria-label="${name}" class="mt-2 block min-h-11 w-full min-w-0 rounded-lg border border-ink/20 px-2 sm:px-3"`));
+      }
     } else {
       assert.match(markup, /class="mt-4 grid gap-2 grid-cols-3"/);
-      assert.doesNotMatch(markup, /col-span-2/);
+      assert.doesNotMatch(markup, /col-span-2|min-h-10|px-2 sm:px-3/);
     }
     for (const name of [repeat_kind === 'annual' ? '开始年份（可选）' : '年份', '月', '日']) {
       assert.ok(markup.includes(`aria-label="${name}" class="mt-2 block min-h-11 w-full min-w-0`));
