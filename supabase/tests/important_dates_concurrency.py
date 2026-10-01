@@ -9,7 +9,7 @@ def actor(actor_id, statement):
     return f"begin; set local role authenticated; select set_config('request.jwt.claim.sub','{actor_id}',true); {statement}"
 
 
-def ordered_pair(db, first, second, *, error=None, wait_event="advisory"):
+def ordered_pair(db, first, second, *, error=None, wait_event="advisory", after_wait=None):
     app = "v018_task2_waiter_" + uuid.uuid4().hex[:10]
     holder = subprocess.Popen(db.command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     waiter = None
@@ -37,6 +37,8 @@ def ordered_pair(db, first, second, *, error=None, wait_event="advisory"):
             time.sleep(0.03)
         else:
             raise AssertionError("No observed database lock wait")
+        if after_wait is not None:
+            after_wait()
         holder.stdin.write("commit;\n")
         holder.stdin.close()
         holder.stdin = None
