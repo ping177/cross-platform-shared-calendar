@@ -53,3 +53,20 @@ test('Important Dates content shows sorted date derivation, source context and c
   assert.match(markup, /aria-expanded="false"/);
   assert.doesNotMatch(markup, /旅行|提醒|08:00|20:00|reminder/i);
 }));
+
+test('Important Date year/month/day layout stacks long annual label on mobile and keeps desktop columns', () => ui((_p, m) => {
+  for (const repeat_kind of ['annual', 'none'] as const) {
+    const markup = renderToStaticMarkup(React.createElement(m.ImportantDateSheet, { date: { ...row, repeat_kind }, memberSpaces: [personal, shared], eligibleSpaces: [shared], canAct: true,
+      onSubmit: async () => undefined, onCancel: noop, onDelete: noop }));
+    if (repeat_kind === 'annual') {
+      assert.match(markup, /class="mt-4 grid gap-2 grid-cols-2 sm:grid-cols-3"/);
+      assert.match(markup, /<label class="min-w-0 text-sm font-semibold col-span-2 sm:col-span-1">/);
+    } else {
+      assert.match(markup, /class="mt-4 grid gap-2 grid-cols-3"/);
+      assert.doesNotMatch(markup, /col-span-2/);
+    }
+    for (const name of [repeat_kind === 'annual' ? '开始年份（可选）' : '年份', '月', '日']) {
+      assert.ok(markup.includes(`aria-label="${name}" class="mt-2 block min-h-11 w-full min-w-0`));
+    }
+  }
+}));

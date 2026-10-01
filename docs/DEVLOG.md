@@ -1,5 +1,13 @@
 # Development Log
 
+## 2026-10-01 - v0.1.18 Slice 1 acceptance bounded fix — annual mobile form
+
+- User reported narrow-phone misalignment of “开始年份（可选） / 月 / 日”. The annual date-field grid now places the year across both mobile columns with month/day beneath, restores three equal columns from `sm`, and gives numeric inputs block layout plus `min-w-0`; non-repeat retains its three-column grid. Existing two-column/width-constrained form patterns are reused; only layout classes changed.
+- Added an SSR responsive-layout regression for annual and non-repeat rendering: RED before the fix, GREEN after. Focused Important Date suites **50/50**, complete Node suite **424/424**, `npm run build`, and `git diff --check` PASS. Existing >500 kB chunk warning remains; SSR checks layout contracts, not real-device geometry. User mobile/desktop visual recheck of the correction is pending.
+- Actual user feedback: another Shared member's edit does not immediately refresh the continuously open Important Dates view; re-entry canonical reread works. This matches frozen Slice 1 no-Realtime semantics (spec §12). Active-view Realtime refresh is a **deferred future enhancement**, with no subscription/polling implementation in this fix.
+- Slice 1 acceptance remains **IN PROGRESS / partial feedback**; no claim of full authenticated/device acceptance or exact Production alias mapping. Backend READY evidence remains unchanged. Date rules, CRUD/RLS, Reminder and Home/Calendar are unchanged; no dependencies, Production writes or authenticated UI driven by Codex. User authorized a local commit only; frontend release needs separate authorization.
+
+
 ## 2026-10-01 - v0.1.18 Slice 1 frontend release gate — docs review
 
 - Reviewed the three backend rollout records against the verified exact-patch/postflight evidence. Backend remains `V018_SLICE1_BACKEND_READY`; Tasks 1–4 PASS, Slice 1 IN PROGRESS, Slices 2–3 NOT STARTED.
