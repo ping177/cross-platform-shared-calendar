@@ -55,7 +55,7 @@ test('split child inherits the source event canonical timezone', () => {
 
 test('Slice 3 extends ledger identity and adds a separate hardened recurring claim', () => {
   assert.match(schema, /occurrence_date date/);
-  assert.match(schema, /unique nulls not distinct \(event_id, occurrence_date, subscription_id, due_at\)/i);
+  assert.match(schema, /unique nulls not distinct \(event_id, important_date_id, occurrence_date, subscription_id, due_at\)/i);
   assert.match(schema, /create or replace function public[.]claim_recurring_reminder_delivery\(/i);
   assert.match(schema, /set search_path = pg_catalog, pg_temp/i);
   assert.match(schema, /event_occurrence_exceptions/i);
