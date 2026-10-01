@@ -46,9 +46,11 @@ async function runtime(run: (env: any) => Promise<void>) {
   const calls: any[] = [];
   class AuthError extends Error {}
   let loader: any = async () => snapshot;
-  const mock = { ...hook, AuthError, create: async (...args: any[]) => { calls.push(['create', ...args]); return row; }, update: async (...args: any[]) => { calls.push(['update', ...args]); return row; }, remove: async (...args: any[]) => { calls.push(['delete', ...args]); return undefined; }, load: (...args: any[]) => loader(...args),
+  const mock: any = { ...hook, AuthError, create: async (...args: any[]) => { calls.push(['create', ...args]); return row; }, update: async (...args: any[]) => { calls.push(['update', ...args]); return row; }, remove: async (...args: any[]) => { calls.push(['delete', ...args]); return undefined; }, load: (...args: any[]) => loader(...args),
     auth: (_event: any, _session: any) => undefined,
-    supabase: { auth: { onAuthStateChange(fn: any) { mock.auth = fn; return { data: { subscription: { unsubscribe() {} } } }; } } } };
+    supabase: { from: () => mock.moduleQuery, rpc: (...args: any[]) => mock.moduleRpc(...args), auth: { onAuthStateChange(fn: any) { mock.auth = fn; return { data: { subscription: { unsubscribe() {} } } }; } } } };
+  mock.moduleQuery = { select() { return this; }, eq() { return this; }, maybeSingle: async () => ({ data: { enabled: false }, error: null }) };
+  mock.moduleRpc = async (...args: any[]) => { calls.push(['toggle', ...args]); return { error: null }; };
   (globalThis as any).__importantDatesTest = mock;
   const vite = await createServer({ configFile: false, logLevel: 'silent', ssr: { noExternal: [/^react$/], external: ['react/jsx-dev-runtime', 'react/jsx-runtime'] }, server: { middlewareMode: true, hmr: false }, appType: 'custom', plugins: [{
     name: 'important-date-injected-runtime', enforce: 'pre',
@@ -67,12 +69,14 @@ async function runtime(run: (env: any) => Promise<void>) {
     const use = (await vite.ssrLoadModule('/src/components/useImportantDates.ts')).useImportantDates;
     const sheets = await vite.ssrLoadModule('/src/components/ImportantDateSheet.tsx');
     const Sheet = sheets.ImportantDateSheet;
+    const useToggle = (await vite.ssrLoadModule('/src/components/useSpaceImportantDatesModule.ts')).useSpaceImportantDatesModule;
+    const renderToggle = (target = space) => { hook.reset(); return useToggle(target); };
     const Page = (await vite.ssrLoadModule('/src/components/ImportantDatesPage.tsx')).ImportantDatesPage;
-    const renderHook = () => { hook.reset(); return use('me', () => calls.push('no-eligible')); };
+    const renderHook = (options?: any) => { hook.reset(); return use('me', () => calls.push('no-eligible'), 0, options); };
     const renderSheet = (props: any) => { hook.reset(); return Sheet(props); };
     const renderPage = () => { hook.reset(); const child = Page({ userId: 'me', onHubBack() {}, onNoEligible() {} }); return child.type(child.props); };
     const renderDelete = (props: any) => { hook.reset(); return sheets.ImportantDateDeleteDialog(props); };
-    await run({ hook, calls, mock, renderHook, renderSheet, renderPage, renderDelete, setLoader: (fn: any) => { loader = fn; } });
+    await run({ hook, calls, mock, renderHook, renderSheet, renderPage, renderDelete, renderToggle, setLoader: (fn: any) => { loader = fn; } });
   } finally { await vite.close(); delete (globalThis as any).__importantDatesTest; }
 }
 
@@ -220,4 +224,110 @@ test('Important Dates focus/reconnect/visibility and local midnight refresh; aut
     (globalThis as any).window = oldWindow; (globalThis as any).document = oldDocument;
     globalThis.setTimeout = oldTimeout; globalThis.clearTimeout = oldClear;
   }
+}));
+
+
+test('Important Dates entry hints only seed same-scope display; canonical reread grants actions and scope/error loss blocks', () => runtime(async (env) => {
+  let invalidations = 0;
+  const entry = { memberSpaces: [space], eligibleSpaces: [space] };
+  const options = { entry, initialData: snapshot, initialFilter: { spaceId: space.id }, onInvalidateEligibility: () => invalidations++ };
+  let view = env.renderHook(options);
+  assert.equal(view.state.data.dates[0].id, row.id);
+  assert.equal(view.filter.spaceId, space.id);
+  assert.equal(view.canAct, false); // Hint is display only, not mutation authority.
+  await view.refresh();
+  assert.equal(env.renderHook(options).canAct, true);
+  assert.equal(env.renderHook({ ...options, entry: null, entryPending: true }).canAct, false);
+  assert.equal(env.renderHook({ ...options, entry: { ...entry, eligibleSpaces: [] } }).state.data, null);
+  env.setLoader(async () => { throw new Error('offline'); });
+  await env.renderHook(options).refresh();
+  assert.equal(env.renderHook(options).canAct, false);
+  assert.equal(env.renderHook(options).state.data.dates[0].id, row.id);
+  env.setLoader(async () => snapshot);
+  await env.renderHook({ ...options, entry: null }).refresh();
+  assert.equal(invalidations, 1); // A successful module read asks Hub to resolve unknown hints.
+  env.renderHook(options).invalidate();
+  assert.equal(invalidations, 2);
+  assert.equal(env.renderHook(options).state.data, null);
+}));
+
+test('Important Dates ordinary entry uses session scope for canonical read; foreground/retry refresh rediscovers eligibility', () => runtime(async (env) => {
+  const entry = { memberSpaces: [space], eligibleSpaces: [space] };
+  const reads: any[] = [];
+  env.setLoader(async (...args: any[]) => { reads.push(args); return snapshot; });
+  env.renderHook({ entry, initialData: snapshot });
+  const cleanup = env.hook.effects[0]();
+  await Promise.resolve();
+  assert.deepEqual(reads[0][4], entry);
+  await env.renderHook({ entry }).refresh();
+  assert.equal(reads[1][4], undefined);
+  cleanup();
+}));
+
+test('Important Dates source-confirmed disable/removal invalidates stale Hub scope and clears affected rows on read failure', () => runtime(async (env) => {
+  let invalidations = 0;
+  const options = { entry: { memberSpaces: [space], eligibleSpaces: [space] }, initialData: snapshot, onInvalidateEligibility: () => invalidations++ };
+  env.setLoader(async (_user: any, _client: any, _spaces: any, publish: any) => {
+    publish({ memberSpaces: [], eligibleSpaces: [] });
+    throw new Error('source offline after revocation');
+  });
+  await env.renderHook(options).refresh();
+  assert.equal(env.renderHook(options).state.data, null);
+  assert.equal(env.renderHook(options).canAct, false);
+  assert.equal(env.calls.length, 0);
+  env.setLoader(async () => ({ ...snapshot, memberSpaces: [{ ...space, membershipRole: 'owner' }] }));
+  await env.renderHook(options).refresh();
+  assert.equal(invalidations, 1);
+  assert.equal(env.renderHook(options).canAct, false);
+}));
+
+
+test('Important Dates owner toggle calls only frozen RPC, locks double submit and reads canonical state; member cannot toggle', () => runtime(async (env) => {
+  let module = env.renderToggle();
+  await module.retry();
+  assert.equal(env.renderToggle().state, 'disabled');
+  await env.renderToggle().toggle();
+  assert.equal(env.calls.length, 0);
+  const owner = { ...space, membershipRole: 'owner' };
+  const pending = deferred();
+  env.mock.moduleRpc = async (...args: any[]) => { env.calls.push(args); await pending.promise; return { error: null }; };
+  module = env.renderToggle(owner);
+  const first = module.toggle(); const duplicate = module.toggle();
+  assert.equal(env.calls.length, 1);
+  assert.deepEqual(env.calls[0], ['set_space_module_enabled', { p_space_id: space.id, p_module_key: 'important_dates', p_enabled: true }]);
+  env.mock.moduleQuery.maybeSingle = async () => ({ data: { enabled: true }, error: null });
+  pending.resolve(undefined);
+  assert.equal(await first, 'enabled'); await duplicate;
+  assert.equal(env.renderToggle(owner).state, 'enabled');
+  assert.equal(env.renderToggle(owner).busy, false);
+}));
+
+test('Important Dates toggle denial retains known state; canonical read failure stays unknown and retryable', () => runtime(async (env) => {
+  const owner = { ...space, membershipRole: 'owner' };
+  await env.renderToggle(owner).retry();
+  env.mock.moduleRpc = async () => ({ error: new Error('denied') });
+  assert.equal(await env.renderToggle(owner).toggle(), undefined);
+  assert.equal(env.renderToggle(owner).state, 'disabled');
+  assert.match(env.renderToggle(owner).error, /切换失败/);
+  env.mock.moduleRpc = async () => ({ error: null });
+  env.mock.moduleQuery.maybeSingle = async () => ({ data: null, error: new Error('offline') });
+  assert.equal(await env.renderToggle(owner).toggle(), undefined);
+  assert.equal(env.renderToggle(owner).state, 'error');
+  env.mock.moduleQuery.maybeSingle = async () => ({ data: null, error: null });
+  await env.renderToggle(owner).retry();
+  assert.equal(env.renderToggle(owner).state, 'disabled');
+}));
+
+test('Important Dates toggle unmount or Space change cannot publish an old canonical reply', () => runtime(async (env) => {
+  const owner = { ...space, membershipRole: 'owner' };
+  await env.renderToggle(owner).retry();
+  const pending = deferred();
+  env.mock.moduleRpc = async () => { await pending.promise; return { error: null }; };
+  const old = env.renderToggle(owner).toggle();
+  const cleanup = env.hook.effects[0](); cleanup();
+  await env.renderToggle({ ...owner, id: 'different' }).retry();
+  pending.resolve(undefined);
+  assert.equal(await old, undefined);
+  assert.equal(env.renderToggle({ ...owner, id: 'different' }).state, 'disabled');
+  assert.equal(env.renderToggle({ ...owner, id: 'different' }).busy, false);
 }));

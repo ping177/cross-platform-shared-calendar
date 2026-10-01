@@ -15,6 +15,9 @@ import { CreateTargetSelector, type CreateTargetControl } from './components/Glo
 import { MyPage } from './components/MyPage';
 import { SpaceManagementPage } from './components/SpaceManagementPage';
 import { ModuleHub, useModuleAvailability } from './components/ModuleHub';
+import { ImportantDatesPage } from './components/ImportantDatesPage';
+import { loadImportantDatesEligibility, type ImportantDatesData } from './lib/important-dates-data';
+import type { ImportantDateFilter } from './lib/important-dates';
 import { ListsOverviewPage } from './components/ListsOverviewPage';
 import { ListDetailPage } from './components/ListDetailPage';
 import { ReviewHistoryPage, type ReviewHistorySnapshot } from './components/ReviewHistoryPage';
@@ -60,7 +63,7 @@ import { settleSpaceLifecycle, type SpaceLifecycleAction } from './lib/space-lif
 import { createRequestGuard } from './lib/request-guard';
 import { moduleEntry, sameModuleScope } from './lib/module-availability';
 import type { ListFilter } from './lib/lists';
-import { calendarContentSpaceId, canChangeTabFromReviewDetail, clearNavigationTarget, initialNavigation, navigationTargetForState, openCompletedTasks, openListDetail, openListsModule, openReviewDetail, openReviewModule, openTaskList, openTaskModule, readNavigationTarget, resolveNavigationTarget, selectTab, writeNavigationTarget, type NavigationTarget, type TopLevelTab } from './lib/navigation';
+import { calendarContentSpaceId, canChangeTabFromReviewDetail, clearNavigationTarget, initialNavigation, navigationTargetForState, openCompletedTasks, openListDetail, openListsModule, openImportantDatesModule, openReviewDetail, openReviewModule, openTaskList, openTaskModule, readNavigationTarget, resolveNavigationTarget, selectTab, writeNavigationTarget, type NavigationTarget, type TopLevelTab } from './lib/navigation';
 import { loadListsEligibility } from './lib/lists-data';
 import type { ListDetailTarget } from './lib/lists-detail-data';
 import { readReviewDetail } from './lib/review-detail-data';
@@ -417,11 +420,14 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
   const tasksEntry = useMemo(() => moduleEntry(spaces, moduleAvailability.availability, 'tasks', moduleAvailability.refreshing), [spaces, moduleAvailability.availability, moduleAvailability.refreshing]);
   const reviewEntry = useMemo(() => moduleEntry(spaces, moduleAvailability.availability, 'review', moduleAvailability.refreshing), [spaces, moduleAvailability.availability, moduleAvailability.refreshing]);
   const listsEntry = useMemo(() => moduleEntry(spaces, moduleAvailability.availability, 'lists', moduleAvailability.refreshing), [spaces, moduleAvailability.availability, moduleAvailability.refreshing]);
+  const importantDatesEntry = useMemo(() => moduleEntry(spaces, moduleAvailability.availability, 'important_dates', moduleAvailability.refreshing), [spaces, moduleAvailability.availability, moduleAvailability.refreshing]);
   const tasksSnapshot = useRef<{ userId: string; data: TaskData } | null>(null);
   const listsSnapshot = useRef<{ userId: string; data: OverviewData; filter: ListFilter } | null>(null);
+  const importantDatesSnapshot = useRef<{ userId: string; data: ImportantDatesData; filter: ImportantDateFilter; pastExpanded: boolean } | null>(null);
   const reviewSnapshot = useRef<{ userId: string; memberSpaces: CurrentSpace[]; eligibleSpaces: CurrentSpace[]; history: ReviewHistorySnapshot } | null>(null);
   const retainedTasks = tasksSnapshot.current?.userId === userId && sameModuleScope(tasksEntry, tasksSnapshot.current.data.memberSpaces, tasksSnapshot.current.data.eligibleSpaces) ? tasksSnapshot.current.data : undefined;
   const retainedLists = listsSnapshot.current?.userId === userId && sameModuleScope(listsEntry, listsSnapshot.current.data.memberSpaces, listsSnapshot.current.data.eligibleSpaces) ? listsSnapshot.current : null;
+  const retainedImportantDates = importantDatesSnapshot.current?.userId === userId && sameModuleScope(importantDatesEntry, importantDatesSnapshot.current.data.memberSpaces, importantDatesSnapshot.current.data.eligibleSpaces) ? importantDatesSnapshot.current : null;
   const [selectedSpaceId, setSelectedSpaceId] = useState<string | null>(null);
   const [myScreen, setMyScreen] = useState<'profile' | 'management' | 'detail'>('profile');
   const [calendarFilter, setCalendarFilter] = useState<CalendarFilter>('all');
@@ -431,7 +437,8 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
     if (tasksEntry && tasksSnapshot.current && !sameModuleScope(tasksEntry, tasksSnapshot.current.data.memberSpaces, tasksSnapshot.current.data.eligibleSpaces)) tasksSnapshot.current = null;
     if (listsEntry && listsSnapshot.current && !sameModuleScope(listsEntry, listsSnapshot.current.data.memberSpaces, listsSnapshot.current.data.eligibleSpaces)) listsSnapshot.current = null;
     if (reviewEntry && reviewSnapshot.current && !sameModuleScope(reviewEntry, reviewSnapshot.current.memberSpaces, reviewSnapshot.current.eligibleSpaces)) reviewSnapshot.current = null;
-  }, [tasksEntry, listsEntry, reviewEntry]);
+    if (importantDatesEntry && importantDatesSnapshot.current && !sameModuleScope(importantDatesEntry, importantDatesSnapshot.current.data.memberSpaces, importantDatesSnapshot.current.data.eligibleSpaces)) importantDatesSnapshot.current = null;
+  }, [tasksEntry, listsEntry, reviewEntry, importantDatesEntry]);
   const [reviewDetail, setReviewDetail] = useState<ReviewDetailTarget | null>(null);
   const [listDetail, setListDetail] = useState<ListDetailTarget | null>(null);
   const [listNotice, setListNotice] = useState('');
@@ -461,6 +468,7 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
       case 'tasks': setNavigation(openTaskModule(initialNavigation)); break;
       case 'tasks-completed': setNavigation(openCompletedTasks(initialNavigation)); break;
       case 'lists-overview': setNavigation(openListsModule(initialNavigation)); break;
+      case 'important-dates': setNavigation(openImportantDatesModule(initialNavigation)); break;
       case 'lists-detail':
         setListDetail({ spaceId: target.spaceId, listId: target.listId });
         setNavigation(openListDetail(initialNavigation));
@@ -511,6 +519,8 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
             if (error) throw error;
             return Boolean(data && data.id === listId && data.space_id === space.id);
           },
+        }, {
+          loadImportantDatesSpaces: async () => (await loadImportantDatesEligibility(userId)).eligibleSpaces,
         });
         if (!requestGuard.current.isCurrent(currentRequest)) return false;
         applyRestoredTarget(restoredTarget);
@@ -689,7 +699,14 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
       {navigation.tab === 'modules' && spaceListStatus !== 'ready' && navigation.moduleScreen !== 'hub' && <SpaceListPending status={spaceListStatus} onRetry={() => void refreshSpaces(false)} />}
       {navigation.tab === 'home' && spaceListStatus === 'ready' && <HomePage spaces={spaces} userId={userId} EventSheetComponent={EventSheet} onMembershipRefresh={async () => { await refreshSpaces(); void moduleAvailability.refresh(); }} />}
       {navigation.tab === 'modules' && (spaceListStatus === 'ready' || navigation.moduleScreen === 'hub') && (navigation.moduleScreen === 'hub'
-        ? <ModuleHub availability={moduleAvailability.availability} onRefresh={() => { void moduleAvailability.refresh(); }} onOpenTasks={() => setNavigation((current) => openTaskModule(current))} onOpenReview={() => setNavigation((current) => openReviewModule(current))} onOpenLists={() => { setListNotice(''); setNavigation((current) => openListsModule(current)); }} />
+        ? <ModuleHub onOpenImportantDates={() => setNavigation((current) => openImportantDatesModule(current))} availability={moduleAvailability.availability} onRefresh={() => { void moduleAvailability.refresh(); }} onOpenTasks={() => setNavigation((current) => openTaskModule(current))} onOpenReview={() => setNavigation((current) => openReviewModule(current))} onOpenLists={() => { setListNotice(''); setNavigation((current) => openListsModule(current)); }} />
+        : navigation.moduleScreen === 'important-dates'
+          ? <ImportantDatesPage key={userId} userId={userId} entry={importantDatesEntry} entryPending={moduleAvailability.refreshing}
+              initialData={retainedImportantDates?.data} initialFilter={retainedImportantDates?.filter} initialPastExpanded={retainedImportantDates?.pastExpanded}
+              onHubBack={() => setNavigation((current) => selectTab(current, 'modules'))}
+              onValidated={(data, filter, pastExpanded) => { if (sameModuleScope(importantDatesEntry, data.memberSpaces, data.eligibleSpaces)) importantDatesSnapshot.current = { userId, data, filter, pastExpanded }; }}
+              onInvalidateEligibility={() => { importantDatesSnapshot.current = null; moduleAvailability.invalidate(); void refreshSpaces(false); void moduleAvailability.refresh(true); }}
+              onNoEligible={() => { importantDatesSnapshot.current = null; void moduleAvailability.refresh(true); setNavigation((current) => selectTab(current, 'modules')); }} />
         : navigation.moduleScreen === 'lists'
           ? <ListsOverviewPage key={userId} userId={userId} entry={listsEntry} entryPending={moduleAvailability.refreshing} initialData={retainedLists?.data} initialFilter={retainedLists?.filter} onValidated={(data, filter) => { if (sameModuleScope(listsEntry, data.memberSpaces, data.eligibleSpaces)) listsSnapshot.current = { userId, data, filter }; }} onInvalidateEligibility={() => { listsSnapshot.current = null; moduleAvailability.invalidate(); void moduleAvailability.refresh(true); }} initialNotice={listNotice} onOpenDetail={(list) => { setListNotice(''); setListDetail({ spaceId: list.space_id, listId: list.id }); setNavigation((current) => openListDetail(current)); }} onHubBack={() => setNavigation((current) => selectTab(current, 'modules'))} onNoEligible={() => { listsSnapshot.current = null; void moduleAvailability.refresh(); setNavigation((current) => selectTab(current, 'modules')); }} />
         : navigation.moduleScreen === 'lists-detail'
@@ -739,7 +756,7 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
               onReady={managedSpaceReady}
               onSpaceChange={updateSpace}
               onLifecycleSettled={lifecycleSettled}
-              onModuleChanged={(key, spaceId, state) => { if (state === 'disabled') { if (key === 'tasks') tasksSnapshot.current = null; if (key === 'review') reviewSnapshot.current = null; if (key === 'lists') listsSnapshot.current = null; } moduleAvailability.moduleChanged(key, spaceId, state); }}
+              onModuleChanged={(key, spaceId, state) => { if (state === 'disabled') { if (key === 'tasks') tasksSnapshot.current = null; if (key === 'review') reviewSnapshot.current = null; if (key === 'lists') listsSnapshot.current = null; if (key === 'important_dates') importantDatesSnapshot.current = null; } moduleAvailability.moduleChanged(key, spaceId, state); }}
               busy={spaceActionBusy}
               onBusyChange={setSpaceActionBusy}
             />

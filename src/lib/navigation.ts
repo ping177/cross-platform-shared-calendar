@@ -4,13 +4,13 @@ import { selectReviewSpace } from './review-history';
 import type { CurrentSpace } from '../types';
 
 export type TopLevelTab = 'home' | 'calendar' | 'modules' | 'me';
-export type ModuleScreen = 'hub' | 'tasks' | 'completed' | 'review' | 'review-detail' | 'lists' | 'lists-detail';
+export type ModuleScreen = 'hub' | 'tasks' | 'completed' | 'review' | 'review-detail' | 'lists' | 'lists-detail' | 'important-dates';
 export type NavigationState = { tab: TopLevelTab; moduleScreen: ModuleScreen };
 
 export const initialNavigation: NavigationState = { tab: 'home', moduleScreen: 'hub' };
 
 export type NavigationTarget =
-  | { page: 'home' | 'calendar' | 'modules' | 'profile' | 'tasks' | 'tasks-completed' | 'lists-overview' | 'space-management' }
+  | { page: 'home' | 'calendar' | 'modules' | 'profile' | 'tasks' | 'tasks-completed' | 'lists-overview' | 'important-dates' | 'space-management' }
   | { page: 'review-history'; spaceId?: string }
   | { page: 'review-detail'; spaceId: string; reviewId: string }
   | { page: 'lists-detail'; spaceId: string; listId: string }
@@ -31,7 +31,7 @@ export function parseNavigationTarget(value: string | null): NavigationTarget | 
     const target = parsed as Record<string, unknown>;
     switch (target.page) {
       case 'home': case 'calendar': case 'modules': case 'profile':
-      case 'tasks': case 'tasks-completed': case 'lists-overview': case 'space-management':
+      case 'tasks': case 'tasks-completed': case 'lists-overview': case 'important-dates': case 'space-management':
         return { page: target.page };
       case 'review-history':
         return target.spaceId === undefined ? { page: 'review-history' }
@@ -89,6 +89,7 @@ export function navigationTargetForState(
         case 'tasks': return { page: 'tasks' };
         case 'completed': return { page: 'tasks-completed' };
         case 'lists': return { page: 'lists-overview' };
+        case 'important-dates': return { page: 'important-dates' };
         case 'lists-detail': return listDetail ? { page: 'lists-detail', ...listDetail } : null;
         case 'review': return reviewSpaceId ? { page: 'review-history', spaceId: reviewSpaceId } : { page: 'review-history' };
         case 'review-detail': return reviewDetail ? { page: 'review-detail', spaceId: reviewDetail.spaceId, reviewId: reviewDetail.reviewId } : null;
@@ -104,10 +105,16 @@ export async function resolveNavigationTarget(
     canReadReview: (space: CurrentSpace, reviewId: string) => Promise<boolean>;
   },
   lists?: { loadListsSpaces: () => Promise<CurrentSpace[]>; canReadList?: (space: CurrentSpace, listId: string) => Promise<boolean> },
+  importantDates?: { loadImportantDatesSpaces: () => Promise<CurrentSpace[]> },
 ): Promise<NavigationTarget> {
   if (!target) return { page: 'home' };
   if (target.page === 'space-detail') {
     return spaces.some((space) => space.id === target.spaceId) ? target : { page: 'space-management' };
+  }
+  if (target.page === 'important-dates') {
+    if (!importantDates) return target;
+    try { return (await importantDates.loadImportantDatesSpaces()).length ? target : { page: 'modules' }; }
+    catch { return target; }
   }
   if (target.page === 'lists-overview') {
     if (!lists) return target;
@@ -160,6 +167,10 @@ export function openReviewModule(_current: NavigationState): NavigationState {
 
 export function openListsModule(_current: NavigationState): NavigationState {
   return { tab: 'modules', moduleScreen: 'lists' };
+}
+
+export function openImportantDatesModule(_current: NavigationState): NavigationState {
+  return { tab: 'modules', moduleScreen: 'important-dates' };
 }
 
 export function openListDetail(_current: NavigationState): NavigationState {

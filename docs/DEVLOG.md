@@ -1,5 +1,15 @@
 # Development Log
 
+
+## 2026-10-01 - v0.1.18 Slice 1 Task 4 — bounded entry/navigation integration — PASS
+
+- Started from clean `main`, HEAD/origin/main `f4f9c04c312d9018cea5a383b0219e048740ae69`, 0/0; user authorized Task 4 implementation and local commit only.
+- Added fourth independent session module availability/Hub card, owner-only Space toggle with canonical reread/request guard, one strict user-scoped navigation page/restore path, bounded App mounting and safe same-session Important Dates display retention. Unknown/pending/changed scope blocks actions; confirmed no eligible Space returns Hub. Module-owned foreground/retry/mutation rejection reads revalidate eligibility; ordinary entry uses a valid scope read hint to avoid duplicate Space/module discovery while rereading complete canonical Dates. No persistent business cache or router.
+- Reused Task 3 page/Sheet, RPC-only CRUD and Task 1 pure-date contract; only page/hook entry boundaries and an optional read hint were extended. No CRUD/date rule/RLS change. Shared Space delete text now includes 日程、任务、回顾、清单和重要日 in both confirmations; lifecycle behavior/RPCs are unchanged.
+- Focused **84/84**, full Node **423/423** (13 additional tests), build and diff-check **PASS**; focused entry tests started RED. Existing bundle warning remains. Owner/member toggle, canonical read failure/stale reply, strict session identity, re-entry view/filter/Past, unknown/lost scope, no eligible fallback and old module regressions are covered. Quality/security/scope self-review found no unresolved blocker; details and manual acceptance limits are in TESTING.
+- Updated TESTING/DEVLOG/PROJECT_STATE. No SQL/backend/Edge Function, projections, Reminder UI/sender/claim/ledger, Task Reminder, Realtime, dependencies or external project file changes; no real secrets/.env were directly read or printed. No push, deployment, Production write or authenticated/device session occurred in this checkpoint.
+- `V018_SLICE1_TASK4_PASS`; Tasks 1–4 PASS, Slice 1 remains IN PROGRESS. Next Action is Slice 1 integrated acceptance / rollout gate with actual backend alignment before user-run authenticated acceptance. Current version/status/Next Action/Blockers/Version Index/Deployment freshness reviewed for the local commit, `Project-State-Review: updated`; no new Version Index entry. No push means post-push review is not applicable.
+
 ## 2026-10-01 - v0.1.18 Slice 1 Task 3 — Important Dates module core — LOCAL PASS
 
 - Baseline clean `main`, HEAD/origin/main `205175d8aed0a722ba68b1afcb8b63c21f5b744d`, 0/0. User authorized this bounded implementation and local commit, without push/deployment/Production writes.

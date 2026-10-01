@@ -38,6 +38,24 @@ async function adapter(run: (m: Record<string, any>) => Promise<void>) {
   const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
   try { await run(await vite.ssrLoadModule('/src/lib/important-dates-data.ts')); } finally { await vite.close(); }
 }
+test('validated session entry rereads complete canonical Dates without rediscovering Spaces/modules; wrong user fails closed', () => adapter(async (m) => {
+  const { state, client } = fake();
+  const entry = { memberSpaces: [space], eligibleSpaces: [space] };
+  let discoveries = 0;
+  const discover = async () => { discoveries++; return [space]; };
+  const data = await m.loadImportantDates('me', client, discover, undefined, entry);
+  assert.deepEqual(data.dates, [row]);
+  assert.equal(discoveries, 0);
+  assert.equal(state.calls.some((call: any) => call[1] === 'space_modules'), false);
+  state.user = 'other';
+  await assert.rejects(m.loadImportantDates('me', client, discover, undefined, entry), /登录状态/);
+  state.user = 'me';
+  state.modules = [];
+  const revalidated = await m.loadImportantDates('me', client, discover);
+  assert.equal(discoveries, 1);
+  assert.deepEqual(revalidated.eligibleSpaces, []);
+  assert.deepEqual(revalidated.dates, []);
+}));
 test('Important Date RPC payloads are frozen; Shared non-creator can update and hard delete', () => adapter(async (m) => {
   const { state, client, readSpaces } = fake();
   const created = await m.createImportantDate(client, 'me', space.id, row, 'Asia/Shanghai', readSpaces);

@@ -26,7 +26,7 @@ test('navigation targets round-trip through a strict parser and user-scoped sess
     const { parseNavigationTarget, readNavigationTarget, writeNavigationTarget, clearNavigationTarget } = await vite.ssrLoadModule('/src/lib/navigation.ts');
     const targets = [
       { page: 'home' }, { page: 'calendar' }, { page: 'modules' }, { page: 'profile' },
-      { page: 'tasks' }, { page: 'tasks-completed' }, { page: 'lists-overview' }, { page: 'review-history' },
+      { page: 'tasks' }, { page: 'tasks-completed' }, { page: 'lists-overview' }, { page: 'important-dates' }, { page: 'review-history' },
       { page: 'review-history', spaceId: spaceA }, { page: 'review-detail', spaceId: spaceA, reviewId },
       { page: 'lists-detail', spaceId: spaceA, listId },
       { page: 'space-management' }, { page: 'space-detail', spaceId: spaceA },

@@ -4,11 +4,12 @@ import { createImportantDate, deleteImportantDate, updateImportantDate, type Imp
 import { defaultImportantDateTarget, groupImportantDates, type ImportantDateDraft, type ImportantDateFilter } from '../lib/important-dates';
 import type { CivilDate } from '../../supabase/functions/_shared/important-date.ts';
 import { detectBrowserTimeZone } from '../lib/reminder';
+import { sameModuleScope } from '../lib/module-availability';
 import { createRequestGuard } from '../lib/request-guard';
 import { supabase } from '../lib/supabase';
 import type { ImportantDate } from '../types';
 import { ImportantDateDeleteDialog, ImportantDateSheet } from './ImportantDateSheet';
-import { useImportantDates } from './useImportantDates';
+import { useImportantDates, type ImportantDatesEntryOptions } from './useImportantDates';
 
 export function ImportantDateIcon({ emoji }: { emoji: string | null }) {
   return emoji ? <span className="text-xl" aria-hidden="true">{emoji}</span> : <CalendarHeart size={22} className="text-teal" aria-hidden="true" />;
@@ -44,13 +45,13 @@ export function ImportantDatesContent({ data, filter, today, pastExpanded, canAc
   </>;
 }
 
-type Props = { userId: string; onHubBack: () => void; onNoEligible: () => void; eligibilityRevision?: number };
+type Props = ImportantDatesEntryOptions & { userId: string; onHubBack: () => void; onNoEligible: () => void; eligibilityRevision?: number; initialPastExpanded?: boolean; onValidated?: (data: ImportantDatesData, filter: ImportantDateFilter, pastExpanded: boolean) => void };
 // Keep data, drafts and in-flight callbacks scoped to one account even without a parent key.
 export function ImportantDatesPage(props: Props) { return <ImportantDatesModule key={props.userId} {...props} />; }
 
-function ImportantDatesModule({ userId, onHubBack, onNoEligible, eligibilityRevision }: Props) {
-  const { state, filter, today, setFilter, refresh, invalidate, canAct } = useImportantDates(userId, onNoEligible, eligibilityRevision);
-  const [pastExpanded, setPastExpanded] = useState(false);
+function ImportantDatesModule({ userId, onHubBack, onNoEligible, eligibilityRevision, initialPastExpanded = false, onValidated, ...entryOptions }: Props) {
+  const { state, filter, today, setFilter, refresh, invalidate, canAct } = useImportantDates(userId, onNoEligible, eligibilityRevision, entryOptions);
+  const [pastExpanded, setPastExpanded] = useState(Boolean(entryOptions.initialData && sameModuleScope(entryOptions.entry ?? null, entryOptions.initialData.memberSpaces, entryOptions.initialData.eligibleSpaces) && initialPastExpanded));
   const [editor, setEditor] = useState<{ date?: ImportantDate; initialTargetId: string | null } | null>(null);
   const [deleting, setDeleting] = useState<ImportantDate | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
@@ -62,6 +63,9 @@ function ImportantDatesModule({ userId, onHubBack, onNoEligible, eligibilityRevi
   const data = state.data;
   const deleteSpace = data?.eligibleSpaces.find((space) => space.id === deleting?.space_id);
 
+  useEffect(() => {
+    if (data && canAct) onValidated?.(data, filter, pastExpanded);
+  }, [data, canAct, filter, pastExpanded, onValidated]);
   useEffect(() => () => { mutation.current.invalidate(); }, []);
   useEffect(() => {
     if (state.authLost) {

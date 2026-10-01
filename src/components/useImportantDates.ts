@@ -1,14 +1,28 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ImportantDatesAuthError, loadImportantDates, type ImportantDatesData } from '../lib/important-dates-data';
 import { importantDateLocalToday, normalizeImportantDateFilter, type ImportantDateFilter } from '../lib/important-dates';
+import { sameModuleScope, type ModuleEntry } from '../lib/module-availability';
 import { createRequestGuard } from '../lib/request-guard';
 import { supabase } from '../lib/supabase';
 
 export type ImportantDatesState = { userId: string; data: ImportantDatesData | null; error: string; refreshing: boolean; authLost: boolean };
 
-export function useImportantDates(userId: string, onNoEligible: () => void, eligibilityRevision = 0) {
-  const [state, setState] = useState<ImportantDatesState>({ userId, data: null, error: '', refreshing: true, authLost: false });
-  const [filter, setFilter] = useState<ImportantDateFilter>('all');
+export type ImportantDatesEntryOptions = {
+  entry?: ModuleEntry | null;
+  entryPending?: boolean;
+  initialData?: ImportantDatesData;
+  initialFilter?: ImportantDateFilter;
+  onInvalidateEligibility?: () => void;
+};
+
+export function useImportantDates(userId: string, onNoEligible: () => void, eligibilityRevision = 0, options: ImportantDatesEntryOptions = {}) {
+  const { entry, entryPending = false, initialData, initialFilter = 'all' } = options;
+  const safeInitial = initialData && sameModuleScope(entry ?? null, initialData.memberSpaces, initialData.eligibleSpaces) ? initialData : null;
+  const scopeKey = entry === undefined ? 'standalone' : entry ? JSON.stringify([entry.memberSpaces.map((space) => `${space.id}:${space.membershipRole}`).sort(), entry.eligibleSpaces.map((space) => `${space.id}:${space.membershipRole}`).sort()]) : 'unknown';
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
+  const [state, setState] = useState<ImportantDatesState>({ userId, data: safeInitial, error: '', refreshing: true, authLost: false });
+  const [filter, setFilter] = useState<ImportantDateFilter>(safeInitial ? normalizeImportantDateFilter(initialFilter, safeInitial.eligibleSpaces) : 'all');
   const [today, setToday] = useState(importantDateLocalToday);
   const guard = useRef(createRequestGuard());
   const noEligibleRef = useRef(onNoEligible);
@@ -16,10 +30,11 @@ export function useImportantDates(userId: string, onNoEligible: () => void, elig
 
   const invalidate = useCallback(() => {
     guard.current.invalidate();
+    optionsRef.current.onInvalidateEligibility?.();
     setState({ userId, data: null, error: '', refreshing: true, authLost: false });
   }, [userId]);
 
-  const refresh = useCallback(async (): Promise<ImportantDatesData | null> => {
+  const refresh = useCallback(async (revalidateEligibility = true): Promise<ImportantDatesData | null> => {
     const request = guard.current.begin();
     setState((current) => ({ ...current, refreshing: true }));
     try {
@@ -29,10 +44,12 @@ export function useImportantDates(userId: string, onNoEligible: () => void, elig
         // Confirmed loss clears affected rows even if the subsequent source read fails.
         setState((current) => current.data ? { ...current, data: { ...eligibility, dates: current.data.dates.filter((date) => eligibleIds.has(date.space_id)) } } : current);
         setFilter((current) => normalizeImportantDateFilter(current, eligibility.eligibleSpaces));
-      });
+      }, revalidateEligibility ? undefined : optionsRef.current.entry ?? undefined);
       if (!guard.current.isCurrent(request)) return null;
       setState({ userId, data, error: '', refreshing: false, authLost: false });
       setToday(importantDateLocalToday());
+      const currentEntry = optionsRef.current.entry;
+      if (data.eligibleSpaces.length && currentEntry !== undefined && !sameModuleScope(currentEntry, data.memberSpaces, data.eligibleSpaces)) optionsRef.current.onInvalidateEligibility?.();
       if (!data.eligibleSpaces.length) noEligibleRef.current();
       return data;
     } catch (error) {
@@ -46,9 +63,9 @@ export function useImportantDates(userId: string, onNoEligible: () => void, elig
   }, [userId]);
 
   useEffect(() => {
-    void refresh();
+    if (!entryPending) void refresh(false);
     return () => { guard.current.invalidate(); };
-  }, [refresh, eligibilityRevision]);
+  }, [refresh, eligibilityRevision, scopeKey, entryPending]);
 
   useEffect(() => {
     const onFocus = () => { setToday(importantDateLocalToday()); void refresh(); };
@@ -78,5 +95,10 @@ export function useImportantDates(userId: string, onNoEligible: () => void, elig
     };
   }, [refresh, invalidate, userId]);
 
-  return { state, filter, today, setFilter, refresh, invalidate, canAct: Boolean(state.data) && !state.refreshing && !state.error };
+  // A confirmed scope loss hides affected rows immediately; an unknown hint only
+  // blocks actions while the module's canonical reader resolves it.
+  const lostScope = entry && state.data && !sameModuleScope(entry, state.data.memberSpaces, state.data.eligibleSpaces);
+  const visibleState = lostScope ? { ...state, data: null } : state;
+  const validEntry = entry === undefined || Boolean(entry && !entryPending && state.data && sameModuleScope(entry, state.data.memberSpaces, state.data.eligibleSpaces));
+  return { state: visibleState, filter, today, setFilter, refresh, invalidate, canAct: validEntry && Boolean(visibleState.data) && !state.refreshing && !state.error };
 }

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { BookOpen, ChevronRight, ListChecks, ListTodo } from 'lucide-react';
+import { BookOpen, CalendarHeart, ChevronRight, ListChecks, ListTodo } from 'lucide-react';
 import { loadReviewEligibility } from '../lib/review-history-data';
+import { loadImportantDatesEligibility } from '../lib/important-dates-data';
 import { loadListsEligibility } from '../lib/lists-data';
 import { loadTaskEligibility } from '../lib/aggregate-tasks-data';
 import { createRequestGuard } from '../lib/request-guard';
@@ -11,12 +12,14 @@ export async function resolveHubEligibility(
   readTasks: () => Promise<{ eligibleSpaces: CurrentSpace[] }>,
   readReview: () => Promise<CurrentSpace[]>,
   readLists: () => Promise<{ eligibleSpaces: CurrentSpace[] }>,
+  readImportantDates: () => Promise<{ eligibleSpaces: CurrentSpace[] }>,
 ): Promise<ModuleRead> {
-  const [tasks, review, lists] = await Promise.allSettled([readTasks(), readReview(), readLists()]);
+  const [tasks, review, lists, importantDates] = await Promise.allSettled([readTasks(), readReview(), readLists(), readImportantDates()]);
   return {
     tasksIds: tasks.status === 'fulfilled' ? tasks.value.eligibleSpaces.map((space) => space.id) : null,
     reviewIds: review.status === 'fulfilled' ? review.value.map((space) => space.id) : null,
     listsIds: lists.status === 'fulfilled' ? lists.value.eligibleSpaces.map((space) => space.id) : null,
+    importantDatesIds: importantDates.status === 'fulfilled' ? importantDates.value.eligibleSpaces.map((space) => space.id) : null,
   };
 }
 
@@ -39,7 +42,7 @@ export function useModuleAvailability(userId: string, spaces: CurrentSpace[]) {
     if (!force && pending.current?.key === spacesKey) return pending.current.promise;
     const request = guard.current.begin();
     setRefreshing(true);
-    const operation = resolveHubEligibility(() => loadTaskEligibility(userId), () => loadReviewEligibility(userId), () => loadListsEligibility(userId)).then((read) => {
+    const operation = resolveHubEligibility(() => loadTaskEligibility(userId), () => loadReviewEligibility(userId), () => loadListsEligibility(userId), () => loadImportantDatesEligibility(userId)).then((read) => {
       if (!guard.current.isCurrent(request) || latestSpacesKey.current !== spacesKey) return;
       setAvailability((previous) => mergeModuleAvailability(previous, read));
       setValidatedSpacesKey(spacesKey);
@@ -73,21 +76,25 @@ export function useModuleAvailability(userId: string, spaces: CurrentSpace[]) {
   return { availability, refreshing: refreshing || validatedSpacesKey !== spacesKey, refresh, invalidate, moduleChanged };
 }
 
-export function ModuleHub({ availability, onRefresh, onOpenTasks, onOpenReview, onOpenLists }: {
+export function ModuleHub({ availability, onRefresh, onOpenTasks, onOpenReview, onOpenLists, onOpenImportantDates }: {
   availability: ModuleAvailability | null; onRefresh: () => void;
-  onOpenTasks: () => void; onOpenReview: () => void; onOpenLists: () => void;
+  onOpenTasks: () => void; onOpenReview: () => void; onOpenLists: () => void; onOpenImportantDates: () => void;
 }) {
   return <ModuleHubContent loading={availability === null}
     tasksAvailable={(availability?.tasksIds?.length ?? 0) > 0} tasksError={availability?.tasksError ?? false}
     reviewAvailable={(availability?.reviewIds?.length ?? 0) > 0} reviewError={availability?.reviewError ?? false}
     listsAvailable={(availability?.listsIds?.length ?? 0) > 0} listsError={availability?.listsError ?? false}
+    importantDatesAvailable={(availability?.importantDatesIds?.length ?? 0) > 0} importantDatesError={availability?.importantDatesError ?? false}
+    onOpenImportantDates={onOpenImportantDates} onRetryImportantDates={onRefresh}
     onOpenTasks={onOpenTasks} onOpenReview={onOpenReview} onOpenLists={onOpenLists}
     onRetryTasks={onRefresh} onRetryReview={onRefresh} onRetryLists={onRefresh} />;
 }
 
-export function ModuleHubContent({ loading, tasksAvailable, tasksError, reviewAvailable, reviewError, listsAvailable, listsError, onOpenTasks, onOpenReview, onOpenLists, onRetryTasks, onRetryReview, onRetryLists }: {
+export function ModuleHubContent({ loading, tasksAvailable, tasksError, reviewAvailable, reviewError, listsAvailable, listsError, onOpenTasks, onOpenReview, onOpenLists, onRetryTasks, onRetryReview, onRetryLists, importantDatesAvailable = false, importantDatesError = false, onOpenImportantDates, onRetryImportantDates }: {
   loading: boolean; tasksAvailable: boolean; tasksError: boolean; reviewAvailable: boolean; reviewError: boolean;
   listsAvailable: boolean; listsError: boolean;
+  importantDatesAvailable?: boolean; importantDatesError?: boolean;
+  onOpenImportantDates?: () => void; onRetryImportantDates?: () => void;
   onOpenTasks: () => void; onOpenReview: () => void; onOpenLists: () => void;
   onRetryTasks: () => void; onRetryReview: () => void; onRetryLists: () => void;
 }) {
@@ -112,10 +119,15 @@ export function ModuleHubContent({ loading, tasksAvailable, tasksError, reviewAv
       <span className="flex min-w-0 items-center gap-3"><ListChecks size={20} className="shrink-0 text-teal" aria-hidden="true" /><span className="min-w-0"><span className="block font-semibold">清单</span><span className="block text-sm text-ink/60">查看各空间的清单</span></span></span>
       <ChevronRight size={18} className="shrink-0 text-ink/45" aria-hidden="true" />
     </button>}
-    {!tasksAvailable && !reviewAvailable && !listsAvailable && !tasksError && !reviewError && !listsError && <p className="mt-4 rounded-lg bg-white px-4 py-5 text-sm text-ink/60 shadow-sm">暂无已开启的功能模块。</p>}
+    {importantDatesAvailable && <button className={`${tasksAvailable || reviewAvailable || listsAvailable ? 'mt-3' : 'mt-4'} flex min-h-16 w-full min-w-0 items-center justify-between gap-3 rounded-lg bg-white px-4 py-3 text-left shadow-sm`} type="button" onClick={onOpenImportantDates} aria-label="进入重要日">
+      <span className="flex min-w-0 items-center gap-3"><CalendarHeart size={20} className="shrink-0 text-teal" aria-hidden="true" /><span className="min-w-0"><span className="block font-semibold">重要日</span><span className="block text-sm text-ink/60">查看各空间的重要日</span></span></span>
+      <ChevronRight size={18} className="shrink-0 text-ink/45" aria-hidden="true" />
+    </button>}
+    {!tasksAvailable && !reviewAvailable && !listsAvailable && !importantDatesAvailable && !importantDatesError && !tasksError && !reviewError && !listsError && <p className="mt-4 rounded-lg bg-white px-4 py-5 text-sm text-ink/60 shadow-sm">暂无已开启的功能模块。</p>}
     {tasksError && <p className="mt-3 text-sm text-coral" role="alert">任务模块状态读取失败。<button className="ml-2 min-h-11 font-semibold text-teal" type="button" onClick={onRetryTasks}>重试</button></p>}
     {reviewError && <p className="mt-3 text-sm text-coral" role="alert">回顾模块状态读取失败。<button className="ml-2 min-h-11 font-semibold text-teal" type="button" onClick={onRetryReview}>重试</button></p>}
     {listsError && <p className="mt-3 text-sm text-coral" role="alert">清单模块状态读取失败。<button className="ml-2 min-h-11 font-semibold text-teal" type="button" onClick={onRetryLists}>重试</button></p>}
+    {importantDatesError && <p className="mt-3 text-sm text-coral" role="alert">重要日模块状态读取失败。<button className="ml-2 min-h-11 font-semibold text-teal" type="button" onClick={onRetryImportantDates}>重试</button></p>}
     </>}
   </main>;
 }

@@ -34,8 +34,10 @@ export async function loadImportantDatesEligibility(userId: string, client: Supa
 export type ImportantDatesEligibility = Awaited<ReturnType<typeof loadImportantDatesEligibility>>;
 export type ImportantDatesData = ImportantDatesEligibility & { dates: ImportantDate[] };
 
-export async function loadImportantDates(userId: string, client: SupabaseClient = supabase, readSpaces: ReadSpaces = listCurrentSpaces, onEligibility?: (eligibility: ImportantDatesEligibility) => void): Promise<ImportantDatesData> {
-  const eligibility = await loadImportantDatesEligibility(userId, client, readSpaces);
+export async function loadImportantDates(userId: string, client: SupabaseClient = supabase, readSpaces: ReadSpaces = listCurrentSpaces, onEligibility?: (eligibility: ImportantDatesEligibility) => void, entry?: ImportantDatesEligibility): Promise<ImportantDatesData> {
+  // Session entry is a read hint only. Mutations always revalidate independently.
+  if (entry) await assertUser(client, userId);
+  const eligibility = entry ?? await loadImportantDatesEligibility(userId, client, readSpaces);
   onEligibility?.(eligibility);
   const groups = await Promise.all(eligibility.eligibleSpaces.map((space) => completeRows(async (start, end) => {
     const page = await client.from('important_dates').select(columns, { count: 'exact' }).eq('space_id', space.id).order('id').range(start, end);

@@ -159,7 +159,7 @@ test('Hub focus refresh resolves Review and Lists as one snapshot', async () => 
     const review = new Promise<CurrentSpace[]>((resolve) => { finishReview = resolve; });
     const lists = new Promise<{ eligibleSpaces: CurrentSpace[] }>((resolve) => { finishLists = resolve; });
     let published = false;
-    const refresh = resolveHubEligibility(() => tasks, () => review, () => lists).then((result: unknown) => { published = true; return result; });
+    const refresh = resolveHubEligibility(() => tasks, () => review, () => lists, async () => ({ eligibleSpaces: [] })).then((result: unknown) => { published = true; return result; });
     finishReview([personal]);
     await Promise.resolve();
     assert.equal(published, false);
@@ -167,13 +167,14 @@ test('Hub focus refresh resolves Review and Lists as one snapshot', async () => 
     await Promise.resolve();
     assert.equal(published, false);
     finishTasks({ eligibleSpaces: [personal] });
-    assert.deepEqual(await refresh, { tasksIds: ['personal'], reviewIds: ['personal'], listsIds: ['shared'] });
+    assert.deepEqual(await refresh, { tasksIds: ['personal'], reviewIds: ['personal'], listsIds: ['shared'], importantDatesIds: [] });
     assert.equal(published, true);
     assert.deepEqual(await resolveHubEligibility(
       async () => { throw new Error('offline'); },
       async () => { throw new Error('offline'); },
       async () => ({ eligibleSpaces: [shared] }),
-    ), { tasksIds: null, reviewIds: null, listsIds: ['shared'] });
+      async () => ({ eligibleSpaces: [] }),
+    ), { tasksIds: null, reviewIds: null, listsIds: ['shared'], importantDatesIds: [] });
   } finally { await vite.close(); }
 });
 
