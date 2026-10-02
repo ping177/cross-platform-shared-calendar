@@ -1,5 +1,9 @@
 # Development Log
 
+## 2026-10-02 - v0.1.18 Slice 2 T4 — bounded mobile polish / frontend rollout
+
+- User reports authenticated local acceptance 1–4 PASS; real Push E2E remains pending Production/PWA. Only repeat/reminder native select presentation changes: reuse installed lucide ChevronDown and existing Tasks/Lists pattern (appearance-none, right-3 = 12px inset, pr-10 = 40px text padding); options, values, handlers, RPC and backend unchanged. UI/flow 22/22, full Node 475/475, build and diff-check PASS; isolated actual Sheet/built CSS 375/320px create/edit geometry PASS. No new dependency, framework, global style or unrelated module change. Frontend commit/push explicitly authorized; Project-State-Review: updated. Next business checkpoint is exact Vercel rollout evidence then user-run Production/PWA natural Push E2E, not Slice 2 closeout.
+
 ## 2026-10-02 - v0.1.18 Slice 2 T4 — Reminder UI — LOCAL READY FOR AUTH ACCEPTANCE
 
 - Repo-first verified clean main = live origin/main = `ea4f16372f47c93478af25c1ed4dd8586329a2fa`, 0/0; reviewed AGENTS/current rollout facts/spec and existing Sheet → Page → confirmed RPC/canonical reread. Applied the approved narrow T4 scope with TDD/frontend/security/complexity/Git review.

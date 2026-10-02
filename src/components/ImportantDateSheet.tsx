@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { canSaveImportantDateTarget, normalizeImportantDateDraft, type ImportantDateDraft } from '../lib/important-dates';
 import { allDayReminderOptions, defaultReminderKind } from '../lib/reminder';
 import type { CurrentSpace, ImportantDate } from '../types';
@@ -75,16 +76,16 @@ export function ImportantDateSheet({ date, memberSpaces, eligibleSpaces, initial
       </select>}
       {!targetEnabled && <p className="mt-2 text-sm text-coral" role="alert">空间已不可用或未启用重要日，不能保存。请主动选择有效空间。</p>}
       <label className="mt-4 block text-sm font-semibold" htmlFor="important-date-repeat">重复</label>
-      <select id="important-date-repeat" className="mt-2 min-h-11 w-full rounded-lg border border-ink/20 bg-white px-3" value={repeat} disabled={busy} onChange={(event) => setRepeat(event.target.value as 'annual' | 'none')}><option value="annual">每年</option><option value="none">不重复</option></select>
+      <span className="relative mt-2 block"><select id="important-date-repeat" className="min-h-11 w-full rounded-lg border border-ink/20 bg-white appearance-none pl-3 pr-10" value={repeat} disabled={busy} onChange={(event) => setRepeat(event.target.value as 'annual' | 'none')}><option value="annual">每年</option><option value="none">不重复</option></select><ChevronDown size={16} className="pointer-events-none absolute right-3 top-3.5 text-ink/60" aria-hidden="true" /></span>
       <div className={`mt-4 grid gap-2 ${repeat === 'annual' ? 'grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)] sm:grid-cols-3' : 'grid-cols-3'}`}>
         <label className="min-w-0 text-sm font-semibold">{repeat === 'annual' ? <span className="block min-h-10 sm:min-h-5">开始年份（可选）</span> : '年份'}<input aria-label={repeat === 'annual' ? '开始年份（可选）' : '年份'} className="mt-2 block min-h-11 w-full min-w-0 rounded-lg border border-ink/20 px-3" type="number" min="1" step="1" value={year} required={repeat === 'none'} disabled={busy} onChange={(event) => setYear(event.target.value)} /></label>
         <label className="min-w-0 text-sm font-semibold">{repeat === 'annual' ? <span className="block min-h-10 sm:min-h-5">月</span> : '月'}<input aria-label="月" className={`mt-2 block min-h-11 w-full min-w-0 rounded-lg border border-ink/20 ${repeat === 'annual' ? 'px-2 sm:px-3' : 'px-3'}`} type="number" min="1" max="12" step="1" value={month} required disabled={busy} onChange={(event) => setMonth(event.target.value)} /></label>
         <label className="min-w-0 text-sm font-semibold">{repeat === 'annual' ? <span className="block min-h-10 sm:min-h-5">日</span> : '日'}<input aria-label="日" className={`mt-2 block min-h-11 w-full min-w-0 rounded-lg border border-ink/20 ${repeat === 'annual' ? 'px-2 sm:px-3' : 'px-3'}`} type="number" min="1" max="31" step="1" value={day} required disabled={busy} onChange={(event) => setDay(event.target.value)} /></label>
       </div>
       <label className="mt-4 block text-sm font-semibold" htmlFor="important-date-reminder">提醒</label>
-      <select id="important-date-reminder" className="mt-2 min-h-11 w-full min-w-0 rounded-lg border border-ink/20 bg-white px-3" value={reminder ?? ''} disabled={busy} onChange={(event) => setReminder((event.target.value || null) as ImportantDate['reminder_kind'])}>
+      <span className="relative mt-2 block"><select id="important-date-reminder" className="min-h-11 w-full min-w-0 rounded-lg border border-ink/20 bg-white appearance-none pl-3 pr-10" value={reminder ?? ''} disabled={busy} onChange={(event) => setReminder((event.target.value || null) as ImportantDate['reminder_kind'])}>
         {allDayReminderOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-      </select>
+      </select><ChevronDown size={16} className="pointer-events-none absolute right-3 top-3.5 text-ink/60" aria-hidden="true" /></span>
       {target?.kind === 'shared' && <p className="mt-2 text-sm text-ink/60">空间成员共用此提醒设置。</p>}
       {error && <p className="mt-3 text-sm text-coral" role="alert">{error}</p>}
       <div className="mt-5 flex flex-wrap justify-end gap-2">

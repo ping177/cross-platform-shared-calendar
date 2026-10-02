@@ -1,5 +1,9 @@
 # Testing
 
+## v0.1.18 Slice 2 T4 — mobile select polish / authenticated acceptance
+
+- Authenticated local acceptance checklist 1–4: USER PASS. Sole reported visual issue: repeat/reminder arrows too close to right border; reuse existing ChevronDown at 12px inset with 40px right text padding. Related UI/flow 22/22, full Node 475/475, npm run build and diff-check PASS (existing large-chunk warning). Actual Sheet SSR + built CSS in isolated no-login Chrome: create/edit at explicit 375/320px, no overlapping controls, clipping or horizontal overflow; both select computed arrow inset 12px, padding-right 40px, appearance none, height 44px. No reminder/RPC/backend behavior change. Prior T4 local-only status below is historical. Next: verify exact frontend Production deployment, refresh old tabs/restart PWA, then user-run checklist 5 natural future-due Push E2E using existing permissions/active subscriptions; no synthetic claims or scheduler changes.
+
 ## v0.1.18 Slice 2 T4 — Reminder UI — LOCAL READY FOR AUTH ACCEPTANCE / 2026-10-02
 
 - `V018_SLICE2_T4_LOCAL_READY_FOR_AUTH_ACCEPTANCE`; implementation/automated verification PASS. Overall IN PROGRESS; Slice 2 is not CLOSED / PASS. Production backend remains READY FOR UI (T2A/T2B applied, integrated send-reminders ACTIVE v3); local Reminder UI is not pushed/deployed/publicly released. User-run authenticated/device/real Push acceptance remains pending.
