@@ -1,5 +1,13 @@
 # Development Log
 
+## 2026-10-02 - v0.1.18 Slice 2 Production backend rollout — READY FOR UI
+
+- Completed separately authorized rollout in the reviewed order: exact T2A capability patch → exact T2B claim/check patch → integrated `send-reminders`. Each SQL patch was applied verbatim once and independently verified read-only; neither patch was replayed. Patch hashes and exact catalog/ACL evidence are recorded in TESTING.
+- Edge source/import graph matches implementation commit `92786b200671d4eabe082f92e70071ea121f42ba`; full cached production Deno check PASS. Existing Keychain authentication was consumed in process without printing or persisting credentials. One Management API source deployment returned HTTP 201 / version 3; immediate independent read and final artifact check confirmed ACTIVE v3, `verify_jwt=false`, correct entry/import map and unchanged other Functions. No CLI repair/install, source edit, retry or rollback.
+- READ-ONLY postflight PASS: T2A/T2B catalog/RPC/ACL, old Event claim contracts, historical 12 ledger rows and business fingerprints preserved; no FK/policy/Realtime additions, stuck claims, duplicate identities, failed rows or subscription retirement. Existing single active once-per-minute scheduler and command/config/120000ms timeout remained unchanged. Two post-deployment natural Cron/HTTP runs succeeded / 200 / completed with no scan/runtime/finalize errors.
+- `V018_SLICE2_BACKEND_READY_FOR_UI`; overall v0.1.18 remains IN PROGRESS. T4 UI and Slice 3 are not started; Reminder UI/publication remain closed. Observation had no due delivery tasks, so actual Important Date Push remains user acceptance after the Reminder UI gate, not a claimed live send test.
+- Governance closeout synchronizes PROJECT_STATE, DEVLOG and TESTING only, using the confirmed rollout evidence. No business code, SQL, Edge, scheduler, dependency, Production operation, credential access or external project edit in this docs-only task. Next Action is T4 Reminder UI gate / implementation; no clear blocker. Earlier local implementation entries below describe their own checkpoints.
+
 ## 2026-10-02 - v0.1.18 Slice 2 T3 — Important Date sender integration — CLOSED / PASS
 
 - Repo-first verified `main = live origin/main = 5210dc6d94f45dc5f5bae96ed6133a9346c46d7e`, 0/0, clean with live `git ls-remote`; reviewed AGENTS/current facts/canonical spec and existing scheduler, pagination, due, claim, sender/finalize and T1–T2B contracts. Followed the approved explicit source branch with TDD/incremental implementation, security, complexity and Git review.
