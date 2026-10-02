@@ -26,7 +26,8 @@ function fake() {
       state.calls.push([name, args]);
       if (state.result) return state.result;
       if (name === 'delete_important_date') { state.rows = []; return { data: null, error: null }; }
-      const changed = { ...row, name: args.p_name, emoji: args.p_emoji, repeat_kind: args.p_repeat_kind, month: args.p_month, day: args.p_day, year: args.p_year,
+      const changed = { ...(name === 'create_important_date' ? row : state.rows[0] ?? row), name: args.p_name, emoji: args.p_emoji, repeat_kind: args.p_repeat_kind, month: args.p_month, day: args.p_day, year: args.p_year,
+        ...('p_reminder_kind' in args ? { reminder_kind: args.p_reminder_kind } : {}),
         ...(name === 'create_important_date' ? { created_by: state.user, time_zone: args.p_time_zone, space_id: args.p_space_id } : {}) };
       state.rows = [changed as ImportantDate];
       return { data: changed, error: null };
@@ -65,8 +66,8 @@ test('Important Date RPC payloads are frozen; Shared non-creator can update and 
   await m.deleteImportantDate(client, 'me', state.rows[0], readSpaces);
   const rpc = state.calls.filter((call: any) => /^(create|update|delete)_important_date$/.test(call[0]));
   assert.deepEqual(rpc, [
-    ['create_important_date', { p_space_id: space.id, p_name: '生日', p_emoji: null, p_repeat_kind: 'annual', p_month: 2, p_day: 29, p_year: null, p_time_zone: 'Asia/Shanghai' }],
-    ['update_important_date', { p_important_date_id: row.id, p_name: '新名', p_emoji: null, p_repeat_kind: 'annual', p_month: 2, p_day: 29, p_year: null }],
+    ['create_important_date', { p_space_id: space.id, p_name: '生日', p_emoji: null, p_repeat_kind: 'annual', p_month: 2, p_day: 29, p_year: null, p_time_zone: 'Asia/Shanghai', p_reminder_kind: null }],
+    ['update_important_date', { p_important_date_id: row.id, p_name: '新名', p_emoji: null, p_repeat_kind: 'annual', p_month: 2, p_day: 29, p_year: null, p_reminder_kind: null }],
     ['delete_important_date', { p_important_date_id: row.id }],
   ]);
 }));
@@ -142,3 +143,73 @@ test('Important Date mutation validation blocks invalid timezone and propagates 
   await assert.rejects(m.updateImportantDate(client, 'me', row, row, readSpaces), /rpc denied/);
   assert.equal(state.calls.filter((call: any) => call[0] === 'update_important_date').length, 1);
 }));
+
+test('reminder-aware Important Date create/update sends each exact preset and preserves the saved timezone', () => adapter(async (m) => {
+  for (const preset of [null, 'all_day_same_day_08', 'all_day_previous_day_20']) {
+    const { state, client, readSpaces } = fake();
+    const draft = { ...row, reminder_kind: preset };
+    const created = await m.createImportantDate(client, 'me', space.id, draft, 'America/New_York', readSpaces);
+    assert.equal(created.reminder_kind, preset);
+    assert.equal(created.time_zone, 'America/New_York');
+    const create = state.calls.find((call: any) => call[0] === 'create_important_date') as any;
+    assert.equal(create[1].p_reminder_kind, preset);
+    assert.equal(create[1].p_time_zone, 'America/New_York');
+    assert.equal('p_reminder_schedule_changed_at' in create[1], false);
+    state.rows = [row];
+    const edited = await m.updateImportantDate(client, 'me', row, draft, readSpaces);
+    assert.equal(edited.reminder_kind, preset);
+    const update = state.calls.find((call: any) => call[0] === 'update_important_date') as any;
+    assert.equal(update[1].p_reminder_kind, preset);
+    assert.equal('p_time_zone' in update[1], false);
+    assert.equal('p_space_id' in update[1], false);
+    assert.equal('p_reminder_schedule_changed_at' in update[1], false);
+  }
+}));
+
+test('legacy Important Date callers still create off and preserve update preset without invoking new overload', () => adapter(async (m) => {
+  const { reminder_kind: _preset, ...draft } = row;
+  const { state, client, readSpaces } = fake();
+  assert.equal((await m.createImportantDate(client, 'me', space.id, draft, 'Asia/Shanghai', readSpaces)).reminder_kind, null);
+  for (const preset of [null, 'all_day_same_day_08', 'all_day_previous_day_20']) {
+    const original = { ...row, reminder_kind: preset }; state.rows = [original];
+    assert.equal((await m.updateImportantDate(client, 'me', original, draft, readSpaces)).reminder_kind, preset);
+  }
+  for (const call of state.calls.filter((call: any) => /^(create|update)_important_date$/.test(call[0])) as any[]) assert.equal('p_reminder_kind' in call[1], false);
+}));
+
+test('cosmetic Important Date edits preserve preset and raw six-digit marker; changed returned marker fails confirmation', () => adapter(async (m) => {
+  for (const preset of [null, 'all_day_same_day_08', 'all_day_previous_day_20']) {
+    const { state, client, readSpaces } = fake();
+    const original = { ...row, reminder_kind: preset, reminder_schedule_changed_at: '2026-09-30T00:00:00.123456+00:00' };
+    state.rows = [original];
+    const changed = { ...original, name: '成员修改', emoji: '❤️' };
+    state.result = { data: changed, error: null };
+    const confirmed = await m.updateImportantDate(client, 'me', original, changed, readSpaces);
+    assert.equal(confirmed.reminder_kind, preset);
+    assert.equal(confirmed.reminder_schedule_changed_at, original.reminder_schedule_changed_at);
+    state.result = { data: { ...changed, reminder_schedule_changed_at: '2026-09-30T00:00:00.123457+00:00' }, error: null };
+    await assert.rejects(m.updateImportantDate(client, 'me', original, changed, readSpaces));
+  }
+}));
+
+test('reminder-aware RPC absence/error never falls back or produces save success; invalid reminder is blocked before RPC', () => adapter(async (m) => {
+  for (const result of [{ data: null, error: { code: 'PGRST202', message: 'capability unavailable' } }, { data: null, error: new Error('unexpected RPC failure') }, { data: { ...row, reminder_kind: null, created_by: 'me' }, error: null }]) {
+    const { state, client, readSpaces } = fake(); state.result = result;
+    const draft = { ...row, reminder_kind: 'all_day_same_day_08' };
+    await assert.rejects(m.createImportantDate(client, 'me', space.id, draft, 'Asia/Shanghai', readSpaces));
+    await assert.rejects(m.updateImportantDate(client, 'me', row, draft, readSpaces));
+    assert.equal(state.calls.filter((call: any) => /^(create|update)_important_date$/.test(call[0])).length, 2);
+  }
+  for (const preset of ['timed_at_start', '', undefined]) {
+    const { state, client, readSpaces } = fake();
+    await assert.rejects(m.createImportantDate(client, 'me', space.id, { ...row, reminder_kind: preset }, 'Asia/Shanghai', readSpaces));
+    assert.equal(state.calls.some((call: any) => call[0] === 'create_important_date'), false);
+  }
+}));
+
+test('Important Date pre-mutation canonical read rejects a changed raw schedule snapshot', () => adapter(async (m) => {
+   const { state, client, readSpaces } = fake();
+   state.rows = [{ ...row, reminder_schedule_changed_at: '2026-09-30T00:00:00.000001Z' }];
+   await assert.rejects(m.updateImportantDate(client, 'me', row, { ...row, name: '旧快照' }, readSpaces));
+   assert.equal(state.calls.some((call: any) => call[0] === 'update_important_date'), false);
+ }));

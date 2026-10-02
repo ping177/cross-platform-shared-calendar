@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { canSaveImportantDateTarget, normalizeImportantDateDraft, type ImportantDateDraft } from '../lib/important-dates';
+import { allDayReminderOptions, defaultReminderKind } from '../lib/reminder';
 import type { CurrentSpace, ImportantDate } from '../types';
 
 function useImportantDateDialog(onCancel: () => void, busy: boolean) {
@@ -37,6 +38,7 @@ export function ImportantDateSheet({ date, memberSpaces, eligibleSpaces, initial
   const [year, setYear] = useState(date?.year?.toString() ?? '');
   const [month, setMonth] = useState(date?.month.toString() ?? '');
   const [day, setDay] = useState(date?.day.toString() ?? '');
+  const [reminder, setReminder] = useState<ImportantDate['reminder_kind']>(date ? date.reminder_kind : defaultReminderKind(true) as ImportantDate['reminder_kind']);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const lock = useRef(false);
@@ -49,7 +51,7 @@ export function ImportantDateSheet({ date, memberSpaces, eligibleSpaces, initial
     if (lock.current || !canAct || !targetEnabled || (date && targetId !== date.space_id)) return;
     setError('');
     let draft: ImportantDateDraft;
-    try { draft = normalizeImportantDateDraft({ name, emoji, repeat_kind: repeat, year: year.trim() ? Number(year) : null, month: Number(month), day: Number(day) }); }
+    try { draft = normalizeImportantDateDraft({ name, emoji, reminder_kind: reminder, repeat_kind: repeat, year: year.trim() ? Number(year) : null, month: Number(month), day: Number(day) }); }
     catch (validationError) { setError(validationError instanceof Error ? validationError.message : '日期无效。'); return; }
     lock.current = true;
     setBusy(true);
@@ -79,6 +81,11 @@ export function ImportantDateSheet({ date, memberSpaces, eligibleSpaces, initial
         <label className="min-w-0 text-sm font-semibold">{repeat === 'annual' ? <span className="block min-h-10 sm:min-h-5">月</span> : '月'}<input aria-label="月" className={`mt-2 block min-h-11 w-full min-w-0 rounded-lg border border-ink/20 ${repeat === 'annual' ? 'px-2 sm:px-3' : 'px-3'}`} type="number" min="1" max="12" step="1" value={month} required disabled={busy} onChange={(event) => setMonth(event.target.value)} /></label>
         <label className="min-w-0 text-sm font-semibold">{repeat === 'annual' ? <span className="block min-h-10 sm:min-h-5">日</span> : '日'}<input aria-label="日" className={`mt-2 block min-h-11 w-full min-w-0 rounded-lg border border-ink/20 ${repeat === 'annual' ? 'px-2 sm:px-3' : 'px-3'}`} type="number" min="1" max="31" step="1" value={day} required disabled={busy} onChange={(event) => setDay(event.target.value)} /></label>
       </div>
+      <label className="mt-4 block text-sm font-semibold" htmlFor="important-date-reminder">提醒</label>
+      <select id="important-date-reminder" className="mt-2 min-h-11 w-full min-w-0 rounded-lg border border-ink/20 bg-white px-3" value={reminder ?? ''} disabled={busy} onChange={(event) => setReminder((event.target.value || null) as ImportantDate['reminder_kind'])}>
+        {allDayReminderOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+      </select>
+      {target?.kind === 'shared' && <p className="mt-2 text-sm text-ink/60">空间成员共用此提醒设置。</p>}
       {error && <p className="mt-3 text-sm text-coral" role="alert">{error}</p>}
       <div className="mt-5 flex flex-wrap justify-end gap-2">
         {date && <button className="mr-auto min-h-11 rounded-lg px-2 font-semibold text-coral disabled:opacity-50" type="button" disabled={busy || !canAct || !targetEnabled} onClick={onDelete}>删除重要日</button>}

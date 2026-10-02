@@ -25,7 +25,7 @@ test('Important Date create target is explicit and disabled or missing target ca
   assert.match(render(null, [shared]), /请主动选择空间/);
   assert.match(render('removed', [shared]), /当前空间已不可用/);
   assert.match(render(shared.id, [shared], 'error'), /type="submit" disabled=""/);
-  assert.doesNotMatch(disabled, /提醒|08:00|20:00|reminder/i);
+  assert.match(disabled, /value="all_day_same_day_08"[^>]*selected=""/);
 }));
 test('Important Date edit keeps Space immutable and allows Shared non-creator actions', () => ui((_p, m) => {
   const markup = renderToStaticMarkup(React.createElement(m.ImportantDateSheet, { date: row, userId: 'me', memberSpaces: [personal, shared], eligibleSpaces: [shared], canAct: true,
@@ -33,7 +33,7 @@ test('Important Date edit keeps Space immutable and allows Shared non-creator ac
   assert.doesNotMatch(markup, /<select[^>]*id="important-date-space"/);
   assert.match(markup, /删除重要日/);
   assert.match(markup, /保存修改/);
-  assert.doesNotMatch(markup, /提醒|08:00|20:00|reminder/i);
+  assert.match(markup, /<option value="" selected="">不提醒<\/option>/);
 }));
 test('Important Date delete dialog names exact object/Space and requires explicit confirmation', () => ui((_p, m) => {
   const markup = renderToStaticMarkup(React.createElement(m.ImportantDateDeleteDialog, { date: row, space: shared, busy: false, canAct: true, error: '', onCancel: noop, onConfirm: noop }));
@@ -73,5 +73,22 @@ test('Important Date year/month/day layout keeps weighted annual columns in one 
     for (const name of [repeat_kind === 'annual' ? '开始年份（可选）' : '年份', '月', '日']) {
       assert.ok(markup.includes(`aria-label="${name}" class="mt-2 block min-h-11 w-full min-w-0`));
     }
+  }
+}));
+
+test('Important Date reminder selector reuses all-day presets, preserves edits and fits the existing narrow Sheet', () => ui((_p, m) => {
+  for (const preset of [undefined, null, 'all_day_same_day_08', 'all_day_previous_day_20']) {
+    const markup = renderToStaticMarkup(React.createElement(m.ImportantDateSheet, { date: preset === undefined ? undefined : { ...row, reminder_kind: preset },
+      memberSpaces: [shared], eligibleSpaces: [shared], initialTargetId: shared.id, canAct: true, onSubmit: async () => undefined, onCancel: noop, onDelete: noop }));
+    assert.match(markup, /<label[^>]*for="important-date-reminder"[^>]*>提醒<\/label>/);
+    const selector = markup.match(/<select[^>]*id="important-date-reminder"[^>]*>[\s\S]*?<\/select>/)![0];
+    const selected = preset === undefined ? 'all_day_same_day_08' : preset ?? '';
+    assert.ok(selector.includes(`value="${selected}" selected=""`));
+    for (const label of ['不提醒', '当天08:00', '前一天20:00']) assert.ok(selector.includes(label));
+    assert.equal((selector.match(/<option /g) ?? []).length, 3);
+    assert.match(selector, /min-h-11 w-full min-w-0/);
+    assert.match(markup, /max-h-\[90dvh\].*overflow-y-auto/);
+    assert.match(markup, /flex flex-wrap justify-end/);
+    assert.doesNotMatch(markup, /个人提醒|设备时区|全局时区/);
   }
 }));

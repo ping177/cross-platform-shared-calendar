@@ -52,17 +52,19 @@ export async function loadImportantDates(userId: string, client: SupabaseClient 
 
 function contentArgs(draft: ImportantDateDraft) {
   const value = normalizeImportantDateDraft(draft);
-  return { p_name: value.name, p_emoji: value.emoji, p_repeat_kind: value.repeat_kind, p_month: value.month, p_day: value.day, p_year: value.year };
+  return { p_name: value.name, p_emoji: value.emoji, p_repeat_kind: value.repeat_kind, p_month: value.month, p_day: value.day, p_year: value.year,
+    ...(value.reminder_kind === undefined ? {} : { p_reminder_kind: value.reminder_kind }) };
 }
 
 function assertContent(date: ImportantDate, args: ReturnType<typeof contentArgs>) {
   if (date.name !== args.p_name || date.emoji !== args.p_emoji || date.repeat_kind !== args.p_repeat_kind
-    || date.month !== args.p_month || date.day !== args.p_day || date.year !== args.p_year) throw new Error('重要日服务端内容校验失败，请刷新后重试。');
+    || date.month !== args.p_month || date.day !== args.p_day || date.year !== args.p_year
+    || (args.p_reminder_kind !== undefined && date.reminder_kind !== args.p_reminder_kind)) throw new Error('重要日服务端内容校验失败，请刷新后重试。');
 }
 
-function assertImmutable(date: ImportantDate, original: ImportantDate) {
+function assertImmutable(date: ImportantDate, original: ImportantDate, reminderKind = original.reminder_kind) {
   if (date.id !== original.id || date.space_id !== original.space_id || date.created_by !== original.created_by
-    || date.created_at !== original.created_at || date.time_zone !== original.time_zone || date.reminder_kind !== original.reminder_kind) {
+    || date.created_at !== original.created_at || date.time_zone !== original.time_zone || date.reminder_kind !== reminderKind) {
     throw new Error('重要日服务端身份已变化，请刷新后重试。');
   }
 }
@@ -79,6 +81,7 @@ async function readObject(client: SupabaseClient, userId: string, original: Impo
   if (!data) return null;
   const date = assertImportantDate(data, original.space_id, original.id);
   assertImmutable(date, original);
+  if (date.reminder_schedule_changed_at !== original.reminder_schedule_changed_at) throw new Error('重要日提醒信息已变化，请刷新后重试。');
   return date;
 }
 
@@ -91,7 +94,7 @@ export async function createImportantDate(client: SupabaseClient, userId: string
   await assertUser(client, userId);
   const date = assertImportantDate(data, spaceId);
   assertContent(date, args);
-  if (date.created_by !== userId || date.time_zone !== timeZone || date.reminder_kind !== null) throw new Error('新建重要日服务端身份校验失败，请刷新后重试。');
+  if (date.created_by !== userId || date.time_zone !== timeZone || date.reminder_kind !== (args.p_reminder_kind ?? null)) throw new Error('新建重要日服务端身份校验失败，请刷新后重试。');
   return date;
 }
 
@@ -99,13 +102,21 @@ export async function updateImportantDate(client: SupabaseClient, userId: string
   const args = contentArgs(draft);
   assertImportantDate(original, original.space_id, original.id);
   await assertTarget(client, userId, original.space_id, readSpaces);
-  if (!await readObject(client, userId, original)) throw new Error('此重要日已删除或当前不可访问，请刷新后重试。');
+  const current = await readObject(client, userId, original);
+  if (!current) throw new Error('此重要日已删除或当前不可访问，请刷新后重试。');
   const { data, error } = await client.rpc('update_important_date', { p_important_date_id: original.id, ...args });
   if (error) throw error;
   await assertUser(client, userId);
   const date = assertImportantDate(data, original.space_id, original.id);
   assertContent(date, args);
-  assertImmutable(date, original);
+  const reminderKind = args.p_reminder_kind === undefined ? original.reminder_kind : args.p_reminder_kind;
+  assertImmutable(date, original, reminderKind);
+  // Cosmetic edits must preserve the server's raw PostgreSQL schedule marker.
+  if (date.repeat_kind === current.repeat_kind && date.month === current.month && date.day === current.day
+    && date.year === current.year && date.reminder_kind === current.reminder_kind
+    && date.reminder_schedule_changed_at !== current.reminder_schedule_changed_at) {
+    throw new Error('重要日提醒信息校验失败，请刷新后重试。');
+  }
   return date;
 }
 

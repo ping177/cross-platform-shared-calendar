@@ -38,7 +38,7 @@ function deferred() {
   return { promise, resolve, reject };
 }
 const space = { id: 'shared', name: '共同', kind: 'shared', membershipRole: 'member', created_by: 'other' };
-const row = { id: 'date-a', space_id: space.id, name: '生日', emoji: null, repeat_kind: 'annual', year: null, month: 2, day: 29 };
+const row = { id: 'date-a', space_id: space.id, name: '生日', emoji: null, repeat_kind: 'annual', year: null, month: 2, day: 29, reminder_kind: null, time_zone: 'Asia/Shanghai' };
 const snapshot = { memberSpaces: [space], eligibleSpaces: [space], dates: [row] };
 
 async function runtime(run: (env: any) => Promise<void>) {
@@ -46,7 +46,7 @@ async function runtime(run: (env: any) => Promise<void>) {
   const calls: any[] = [];
   class AuthError extends Error {}
   let loader: any = async () => snapshot;
-  const mock: any = { ...hook, AuthError, create: async (...args: any[]) => { calls.push(['create', ...args]); return row; }, update: async (...args: any[]) => { calls.push(['update', ...args]); return row; }, remove: async (...args: any[]) => { calls.push(['delete', ...args]); return undefined; }, load: (...args: any[]) => loader(...args),
+  const mock: any = { ...hook, AuthError, create: async (...args: any[]) => { calls.push(['create', ...args]); return row; }, update: async (...args: any[]) => { calls.push(['update', ...args]); return mock.updateResult ? mock.updateResult(...args) : row; }, remove: async (...args: any[]) => { calls.push(['delete', ...args]); return undefined; }, load: (...args: any[]) => loader(...args),
     auth: (_event: any, _session: any) => undefined,
     supabase: { from: () => mock.moduleQuery, rpc: (...args: any[]) => mock.moduleRpc(...args), auth: { onAuthStateChange(fn: any) { mock.auth = fn; return { data: { subscription: { unsubscribe() {} } } }; } } } };
   mock.moduleQuery = { select() { return this; }, eq() { return this; }, maybeSingle: async () => ({ data: { enabled: false }, error: null }) };
@@ -331,3 +331,74 @@ test('Important Dates toggle unmount or Space change cannot publish an old canon
   assert.equal(env.renderToggle({ ...owner, id: 'different' }).state, 'disabled');
   assert.equal(env.renderToggle({ ...owner, id: 'different' }).busy, false);
 }));
+
+test('new Sheet defaults to 08:00 and submits explicit no/previous-day choices', () => runtime(async (env) => {
+  const submitted: any[] = [];
+  const props = { memberSpaces: [space], eligibleSpaces: [space], initialTargetId: space.id, canAct: true,
+    onSubmit: async (draft: any) => { submitted.push(draft); }, onCancel() {}, onDelete() {} };
+  let tree = env.renderSheet(props);
+  const find = (id: string) => elements(tree).find((item) => item.props.id === id || item.props['aria-label'] === id);
+  assert.equal(find('important-date-reminder').props.value, 'all_day_same_day_08');
+  for (const [id, value] of [['important-date-name', '生日'], ['月', '2'], ['日', '29']]) find(id).props.onChange({ target: { value } });
+  for (const choice of ['all_day_same_day_08', '', 'all_day_previous_day_20']) {
+    tree = env.renderSheet(props); find('important-date-reminder').props.onChange({ target: { value: choice } });
+    tree = env.renderSheet(props);
+    await elements(tree).find((item) => item.type === 'form').props.onSubmit({ preventDefault() {} });
+    assert.equal(submitted.at(-1).reminder_kind, choice || null);
+  }
+}));
+
+test('historical Sheet null is not defaulted on cosmetic save; RPC failure stays an error instead of success', () => runtime(async (env) => {
+  const submitted: any[] = [];
+  const props = { date: row, memberSpaces: [space], eligibleSpaces: [space], canAct: true,
+    onSubmit: async (draft: any) => { submitted.push(draft); throw new Error('capability unavailable'); }, onCancel() {}, onDelete() {} };
+  let tree = env.renderSheet(props);
+  assert.equal(elements(tree).find((item) => item.props.id === 'important-date-reminder').props.value, '');
+  elements(tree).find((item) => item.props.id === 'important-date-name').props.onChange({ target: { value: '新名称' } });
+  tree = env.renderSheet(props);
+  await elements(tree).find((item) => item.type === 'form').props.onSubmit({ preventDefault() {} });
+  assert.equal(submitted[0].reminder_kind, null);
+  tree = env.renderSheet(props);
+  assert.match(elements(tree).find((item) => item.props.role === 'alert').props.children, /保存失败/);
+  assert.equal(elements(tree).find((item) => item.props.id === 'important-date-reminder').props.value, '');
+}));
+
+test('Shared reminder edit publishes canonical reread rather than draft or RPC row; denied save has no success notice', () => runtime(async (env) => {
+  let reads = 0; let saved = false;
+  const canonical = { ...row, name: '服务端重读', reminder_kind: 'all_day_previous_day_20' };
+  env.setLoader(async () => { reads++; return saved ? { ...snapshot, dates: [canonical] } : snapshot; });
+  let tree = env.renderPage(); env.hook.effects[0](); await new Promise((resolve) => setTimeout(resolve, 0));
+  tree = env.renderPage();
+  elements(tree).find((item) => item.type?.name === 'ImportantDatesContent').props.onOpen(row);
+  tree = env.renderPage();
+  env.mock.updateResult = async () => { saved = true; return { ...canonical, name: 'RPC返回' }; };
+  await elements(tree).find((item) => item.type?.name === 'ImportantDateSheet').props.onSubmit({ ...row, name: '草稿', reminder_kind: 'all_day_previous_day_20' }, space.id);
+  tree = env.renderPage();
+  assert.equal(reads, 2);
+  const content = elements(tree).find((item) => item.type?.name === 'ImportantDatesContent');
+  assert.equal(content.props.data.dates[0].name, '服务端重读');
+  assert.equal(content.props.data.dates[0].reminder_kind, 'all_day_previous_day_20');
+  content.props.onOpen(canonical); tree = env.renderPage();
+  env.mock.updateResult = async () => { throw new Error('capability unavailable'); };
+  await assert.rejects(elements(tree).find((item) => item.type?.name === 'ImportantDateSheet').props.onSubmit({ ...canonical, reminder_kind: null }, space.id));
+  tree = env.renderPage();
+  assert.equal(reads, 3);
+  assert.equal(elements(tree).some((item) => item.props.role === 'status' && item.props.children === '重要日已保存。'), false);
+  assert.equal(elements(tree).find((item) => item.type?.name === 'ImportantDatesContent').props.data.dates[0].reminder_kind, 'all_day_previous_day_20');
+}));
+
+test('Sheet cosmetic save keeps every existing reminder preset and never changes edit Space', async () => {
+  for (const preset of [null, 'all_day_same_day_08', 'all_day_previous_day_20']) await runtime(async (env) => {
+    let submitted: any;
+    const props = { date: { ...row, reminder_kind: preset }, memberSpaces: [space], eligibleSpaces: [space], canAct: true,
+      onSubmit: async (draft: any, id: string) => { submitted = [draft, id]; }, onCancel() {}, onDelete() {} };
+    let tree = env.renderSheet(props);
+    assert.equal(elements(tree).find((item) => item.props.id === 'important-date-reminder').props.value, preset ?? '');
+    elements(tree).find((item) => item.props.id === 'important-date-name').props.onChange({ target: { value: '只改名称' } });
+    tree = env.renderSheet(props);
+    await elements(tree).find((item) => item.type === 'form').props.onSubmit({ preventDefault() {} });
+    assert.equal(submitted[0].reminder_kind, preset);
+    assert.equal(submitted[1], space.id);
+    assert.equal(elements(tree).some((item) => item.type === 'select' && item.props.id === 'important-date-space'), false);
+  });
+});

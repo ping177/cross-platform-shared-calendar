@@ -1,10 +1,11 @@
 import { deriveImportantDateDisplay, validateImportantDateFields, type CivilDate, type ImportantDateFields } from '../../supabase/functions/_shared/important-date.ts';
 import { canonicalTimeZone } from '../../supabase/functions/_shared/time-zone.ts';
+import { allDayReminderOptions } from './reminder';
 import { homeCreateTarget } from './global-create';
 import type { CurrentSpace, ImportantDate } from '../types';
 
 export type ImportantDateFilter = 'all' | { spaceId: string };
-export type ImportantDateDraft = ImportantDateFields & { name: string; emoji: string | null };
+export type ImportantDateDraft = ImportantDateFields & { name: string; emoji: string | null; reminder_kind?: ImportantDate['reminder_kind'] };
 
 export function normalizeImportantDateFilter(filter: ImportantDateFilter, eligible: CurrentSpace[]): ImportantDateFilter {
   return filter === 'all' || eligible.some((space) => space.id === filter.spaceId) ? filter : 'all';
@@ -28,7 +29,11 @@ function singleLine(value: string, limit: number, label: string): string {
 export function normalizeImportantDateDraft(draft: ImportantDateDraft): ImportantDateDraft {
   const validation = validateImportantDateFields(draft);
   if (!validation.ok) throw new Error('请输入有效日期；不重复须填写年份，开始年份须对应真实日期。');
-  return { ...validation.value, name: singleLine(draft.name, 200, '名称'),
+  const hasReminder = 'reminder_kind' in draft;
+  if (hasReminder && !allDayReminderOptions.some((option) => (option.value || null) === draft.reminder_kind)) {
+    throw new Error('请选择有效的提醒选项。');
+  }
+  return { ...validation.value, ...(hasReminder ? { reminder_kind: draft.reminder_kind } : {}), name: singleLine(draft.name, 200, '名称'),
     emoji: draft.emoji?.trim() ? singleLine(draft.emoji, 32, 'Emoji') : null };
 }
 

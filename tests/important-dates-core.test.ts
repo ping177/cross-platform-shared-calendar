@@ -24,7 +24,7 @@ test('Important Date filter preselects Personal or exact eligible Space, never a
 }));
 
 test('Important Date draft normalizes name/Emoji and delegates invalid dates to Task 1', () => core((m) => {
-  assert.deepEqual(m.normalizeImportantDateDraft({ ...row, name: ' 相识 ', emoji: ' ❤️ ' }), { name: '相识', emoji: '❤️', repeat_kind: 'annual', year: 2020, month: 9, day: 30 });
+  assert.deepEqual(m.normalizeImportantDateDraft({ ...row, name: ' 相识 ', emoji: ' ❤️ ' }), { name: '相识', emoji: '❤️', reminder_kind: null, repeat_kind: 'annual', year: 2020, month: 9, day: 30 });
   for (const bad of [{ name: '' }, { name: 'a\nb' }, { name: 'x'.repeat(201) }, { emoji: 'x'.repeat(33) }, { day: 31 }, { repeat_kind: 'none', year: null }, { year: 2027, month: 2, day: 29 }]) {
     assert.throws(() => m.normalizeImportantDateDraft({ ...row, ...bad }));
   }
