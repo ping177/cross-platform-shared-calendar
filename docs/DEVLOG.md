@@ -1,5 +1,11 @@
 # Development Log
 
+## 2026-10-02 - v0.1.18 Slice 2 — Date-level Push Reminder — CLOSED / PASS
+
+- T1 due/occurrence adapter, T2A ledger/candidate/reminder-aware CRUD, T2B claim/pre-send revalidation, T3 integrated send-reminders and T4 Reminder UI: CLOSED / PASS. T2A/T2B exact Production patches were each applied once and independently passed read-only postflight; integrated sender remains ACTIVE v3 / verify_jwt=false with the original single once-per-minute scheduler unchanged.
+- T4 local implementation/authenticated acceptance PASS. Exact frontend `5222b432528bfc60e6fd0a311382b0def94dcef0` reached Vercel Production deployment success; public root/current JS/CSS returned HTTP 200 and contained the T4 reminder-aware UI/mobile polish. User now confirms real Production / installed PWA Push E2E PASS: current Shared members received once, no duplicates, no-reminder objects did not send. This acceptance is user-reported, not inferred from catalog, automated tests or Git state.
+- Slice 2 formally CLOSED / PASS; overall v0.1.18 remains IN PROGRESS. Important Date active-view Realtime remains deferred/non-blocking. Next business action is Slice 3 Home / Calendar projection READ-ONLY implementation gate, not implementation. Governance closeout only updates PROJECT_STATE/DEVLOG/TESTING; no business code, SQL, Edge, scheduler, dependencies or Production operation.
+
 ## 2026-10-02 - v0.1.18 Slice 2 T4 — bounded mobile polish / frontend rollout
 
 - User reports authenticated local acceptance 1–4 PASS; real Push E2E remains pending Production/PWA. Only repeat/reminder native select presentation changes: reuse installed lucide ChevronDown and existing Tasks/Lists pattern (appearance-none, right-3 = 12px inset, pr-10 = 40px text padding); options, values, handlers, RPC and backend unchanged. UI/flow 22/22, full Node 475/475, build and diff-check PASS; isolated actual Sheet/built CSS 375/320px create/edit geometry PASS. No new dependency, framework, global style or unrelated module change. Frontend commit/push explicitly authorized; Project-State-Review: updated. Next business checkpoint is exact Vercel rollout evidence then user-run Production/PWA natural Push E2E, not Slice 2 closeout.
