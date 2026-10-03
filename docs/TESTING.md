@@ -1,5 +1,33 @@
 # Testing
 
+## v0.1.18 Slice 3 T3 Home top-3 final review — CLOSED / LOCAL AUTOMATED PASS / AWAITING AUTHENTICATED ACCEPTANCE
+
+- New `tests/home-important-dates.test.ts` **10/10 PASS** exercises actual App/Home/section/T1/T2/Page handlers with injected I/O and hook runtime. Covers 0/1/3/>3, global stable IDs across Spaces, canonical annual/non-repeat/future anchor/Feb29/past rules; loading vs qualified hide/confirmed empty/error/retry; mixed/all disabled, re-enable/membership loss; exact fresh object vs colliding/stale Home snapshot; view-all/title without Sheet; close/save/delete and return reread/top-three replacement; confirmed missing; auth loss/switch, rapid A1→B→A2, foreground/online/visible/midnight and cleanup. T1's existing pure/query tests remain the detailed date/completeness proof; no second algorithm is added.
+- Independent real Home section checks explicitly prove Important Date error with successful Event + Task content, successful Important Dates with Event failure, and successful Important Dates with Task failure. Existing Event/Task channel setup remains; no Important Date database channel. Canonical module CRUD/Reminder handlers and navigation are real in the flow test; actual browser/backend authentication is not claimed.
+- Relevant **294/294**, full Node **533/533** PASS, no skips; build/typecheck and diff-check PASS. Build 1708 modules; JS 728.24 kB / gzip 209.95 kB. Existing >500 kB warning persists with the expected projection code newly mounted (baseline 718.93 / 207.01); no code splitting/dependency change.
+- Actual Home SSR markup with built CSS checked in isolated, unauthenticated headless Chrome. Normal and long names/Space source at **375/320px, 4/4 geometry PASS**: three rows, >=44px buttons, no control overlap/outside bounds or horizontal overflow; primary status remains one line. Normal screenshots inspected. Fixtures/profiles/screenshots stay under temporary paths outside the repo, not product/debug UI or Production data.
+- Home read bounds are unchanged from T1: each eligible Space loads all annual pages plus at most three today/future non-repeat rows; combine then derive global top three. Pre/post qualification and stale guard remain canonical. App hints trigger membership/role/module invalidation only; they are not reading/ownership authority. Initial/return mount, focus/visible/online/retry, explicit civil-day rollover and user/scope generations refresh; unmount clears requests/listeners/timer. No active-view Important Date Realtime or polling.
+
+```sh
+node --test tests/home-important-dates.test.ts
+node --test tests/home-important-dates.test.ts tests/important-date*.test.ts tests/important-dates*.test.ts tests/navigation*.test.ts tests/task-navigation-regression.test.ts tests/home-aggregation.test.ts tests/global-create*.test.ts tests/aggregate-tasks*.test.ts tests/aggregate-calendar*.test.ts tests/calendar-refresh.test.ts tests/recurrence.test.ts tests/event-reminder.test.ts tests/recurring-reminders.test.ts tests/mixed-source-reminders.test.ts tests/send-reminders*.test.ts
+node --test tests/*.test.ts tests/*.test.js
+npm run build
+git diff --check
+```
+
+**Authenticated/manual and fresh frontend/backend alignment: NOT RUN.** Local final review and automated verification are PASS; do not begin real-account acceptance until the existing AGENTS environment alignment gate verifies the actual local target/schema/RPC/Edge compatibility. T3 changes no backend capability, but earlier Slice 2 evidence does not substitute for that later fresh gate. User performs login/browser/device/PWA checks; no debug UI, Production fixtures or credential inspection.
+
+Future minimal checklist, after fresh alignment:
+
+1. Home top-three/order/date text matches the full module; Personal is 我的空间, Shared uses its name.
+2. Title/view-all opens the full module; colliding rows open the exact canonical object and its Reminder setting.
+3. Close/save/delete then return Home: no reopen, fresh presentation, deletion removal and replacement.
+4. Disable/re-enable the module preserves data and hides/restores projections. Error isolation is automated PASS; use safe local request interception only if a later manual check is needed, no Production changes.
+5. 375px / installed PWA readability and return flows; 320px only overlap/clipping/overflow safety.
+
+Final seven-file diff review PASS, including actual App return lifecycle, qualification/error distinction, independent Home readers, listener/timer cleanup and IDs-only canonical handoff. T1/T2 REMOTE SYNCED; T3 CLOSED / LOCAL AUTOMATED PASS / AWAITING AUTHENTICATED ACCEPTANCE; T4 NOT STARTED; overall/Slice 3 IN PROGRESS. Single local T3 commit authorized; no push/deployment/Production operation or authenticated acceptance in this task. Next: T3 frontend/backend alignment gate, then authenticated/manual Home acceptance. Earlier entries below describe their historical checkpoints.
+
 ## 2026-10-03 — v0.1.18 Slice 3 T2 final review — CLOSED / LOCAL AUTOMATED PASS
 
 - Full eight-file diff review PASS: confirmed loss consumes only the current request; true read failure retains exact identity for retry; A1→B→A2 guards reject stale loss/read/mutation replies. Recovery is one straight-line additional canonical read per current request, with fresh qualification; stable completed token and callback dependencies prevent a consumption/reload loop. Ordinary Hub entry/session restore, exact Space + object canonical Sheet authority and existing CRUD/Reminder remain intact.

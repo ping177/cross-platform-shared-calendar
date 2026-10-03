@@ -13,6 +13,9 @@ import { supabase } from '../lib/supabase';
 import { canChangeTaskStatus, formatTaskDueDate, taskAssignmentLabel, taskErrorMessage, taskRealtimeConfig } from '../lib/task';
 import type { CalendarEvent, CalendarOccurrence, CalendarOccurrenceRange, CurrentSpace, EventOccurrenceException, SpaceMember, Task } from '../types';
 import { TaskSheet } from './TaskSheet';
+import { HomeImportantDatesSection } from './HomeImportantDatesSection';
+import type { ImportantDateIdentityHandoff } from './useImportantDateHandoff';
+import type { ModuleEntry } from '../lib/module-availability';
 
 type SectionState<T> = { status: 'loading' | 'success' | 'error'; items: T[]; membersBySpaceId: Record<string, SpaceMember[]>; error: string };
 const loadingState = <T,>(): SectionState<T> => ({ status: 'loading', items: [], membersBySpaceId: {}, error: '' });
@@ -90,8 +93,9 @@ export function HomeSection({ title, status, error, items, expanded, empty, onTo
   </section>;
 }
 
-export function HomePage({ spaces, userId, EventSheetComponent, onMembershipRefresh }: {
+export function HomePage({ spaces, userId, EventSheetComponent, onMembershipRefresh, importantDatesEntry, onOpenImportantDates, onOpenImportantDate }: {
   spaces: CurrentSpace[]; userId: string; EventSheetComponent: ComponentType<EventSheetProps>; onMembershipRefresh: () => Promise<void>;
+  importantDatesEntry?: ModuleEntry | null; onOpenImportantDates: () => void; onOpenImportantDate: (target: ImportantDateIdentityHandoff) => void;
 }) {
   const [eventState, setEventState] = useState<SectionState<CalendarOccurrence>>(loadingState);
   const [taskState, setTaskState] = useState<SectionState<Task>>(loadingState);
@@ -457,6 +461,7 @@ export function HomePage({ spaces, userId, EventSheetComponent, onMembershipRefr
       createAction={<button ref={taskCreateButton} className="grid h-11 w-11 shrink-0 place-items-center rounded-lg text-teal hover:bg-white disabled:opacity-50" type="button" aria-label="新建任务" disabled={openingCreateKind !== null} onClick={() => void beginCreate('task')}><Plus size={21} aria-hidden="true" /></button>}
       createFeedback={sectionCreateFeedback('task')}
     />
+    <HomeImportantDatesSection key={userId} userId={userId} spaces={spaces} entry={importantDatesEntry} onViewAll={onOpenImportantDates} onOpen={onOpenImportantDate} />
     {editingEvent && eventSpace && eventMembers.length > 0 && <EventSheetComponent
       target={editingEvent.source_event.recurrence_rule === null ? eventEditTargetForEvent(editingEvent.source_event) : eventEditTargetForOccurrence(editingEvent)}
       space={eventSpace} userId={userId} members={eventMembers} partnerId={eventMembers.find((member) => member.user_id !== userId)?.user_id ?? null}
