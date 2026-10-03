@@ -16,6 +16,7 @@ import { MyPage } from './components/MyPage';
 import { SpaceManagementPage } from './components/SpaceManagementPage';
 import { ModuleHub, useModuleAvailability } from './components/ModuleHub';
 import { ImportantDatesPage } from './components/ImportantDatesPage';
+import { useImportantDateHandoff } from './components/useImportantDateHandoff';
 import { loadImportantDatesEligibility, type ImportantDatesData } from './lib/important-dates-data';
 import type { ImportantDateFilter } from './lib/important-dates';
 import { ListsOverviewPage } from './components/ListsOverviewPage';
@@ -444,6 +445,7 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
   const [listNotice, setListNotice] = useState('');
   const reviewDetailDirty = useRef(false);
   const [navigation, setNavigation] = useState(initialNavigation);
+  const importantDateHandoff = useImportantDateHandoff(userId, () => setNavigation((current) => openImportantDatesModule(current)));
   const [spaceListStatus, setSpaceListStatus] = useState<'loading' | 'ready' | 'error'>('ready');
   const [spaceActionBusy, setSpaceActionBusy] = useState(false);
   const [spaceDetailRevision, setSpaceDetailRevision] = useState(0);
@@ -630,6 +632,7 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
     if (!canChangeTabFromReviewDetail(navigation, reviewDetailDirty.current, () => window.confirm('有未保存的回顾内容，确定离开吗？'))) return;
     reviewDetailDirty.current = false;
     requestGuard.current.invalidate();
+    importantDateHandoff.reset();
     setNavigation((current) => selectTab(current, tab));
     if (tab === 'me') setMyScreen('profile');
     if (tab === 'calendar' || tab === 'home') void refreshSpaces(false);
@@ -699,14 +702,14 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
       {navigation.tab === 'modules' && spaceListStatus !== 'ready' && navigation.moduleScreen !== 'hub' && <SpaceListPending status={spaceListStatus} onRetry={() => void refreshSpaces(false)} />}
       {navigation.tab === 'home' && spaceListStatus === 'ready' && <HomePage spaces={spaces} userId={userId} EventSheetComponent={EventSheet} onMembershipRefresh={async () => { await refreshSpaces(); void moduleAvailability.refresh(); }} />}
       {navigation.tab === 'modules' && (spaceListStatus === 'ready' || navigation.moduleScreen === 'hub') && (navigation.moduleScreen === 'hub'
-        ? <ModuleHub onOpenImportantDates={() => setNavigation((current) => openImportantDatesModule(current))} availability={moduleAvailability.availability} onRefresh={() => { void moduleAvailability.refresh(); }} onOpenTasks={() => setNavigation((current) => openTaskModule(current))} onOpenReview={() => setNavigation((current) => openReviewModule(current))} onOpenLists={() => { setListNotice(''); setNavigation((current) => openListsModule(current)); }} />
+        ? <ModuleHub onOpenImportantDates={() => { importantDateHandoff.reset(); setNavigation((current) => openImportantDatesModule(current)); }} availability={moduleAvailability.availability} onRefresh={() => { void moduleAvailability.refresh(); }} onOpenTasks={() => setNavigation((current) => openTaskModule(current))} onOpenReview={() => setNavigation((current) => openReviewModule(current))} onOpenLists={() => { setListNotice(''); setNavigation((current) => openListsModule(current)); }} />
         : navigation.moduleScreen === 'important-dates'
-          ? <ImportantDatesPage key={userId} userId={userId} entry={importantDatesEntry} entryPending={moduleAvailability.refreshing}
+          ? <ImportantDatesPage key={userId} userId={userId} handoff={importantDateHandoff.pending} returnTo={importantDateHandoff.returnTo} onHandoffHandled={importantDateHandoff.consume} entry={importantDatesEntry} entryPending={moduleAvailability.refreshing}
               initialData={retainedImportantDates?.data} initialFilter={retainedImportantDates?.filter} initialPastExpanded={retainedImportantDates?.pastExpanded}
-              onHubBack={() => setNavigation((current) => selectTab(current, 'modules'))}
+              onHubBack={() => { const source = importantDateHandoff.returnTo; importantDateHandoff.reset(); if (source) changeTab(source); else setNavigation((current) => selectTab(current, 'modules')); }}
               onValidated={(data, filter, pastExpanded) => { if (sameModuleScope(importantDatesEntry, data.memberSpaces, data.eligibleSpaces)) importantDatesSnapshot.current = { userId, data, filter, pastExpanded }; }}
               onInvalidateEligibility={() => { importantDatesSnapshot.current = null; moduleAvailability.invalidate(); void refreshSpaces(false); void moduleAvailability.refresh(true); }}
-              onNoEligible={() => { importantDatesSnapshot.current = null; void moduleAvailability.refresh(true); setNavigation((current) => selectTab(current, 'modules')); }} />
+              onNoEligible={() => { importantDateHandoff.reset(); importantDatesSnapshot.current = null; void moduleAvailability.refresh(true); setNavigation((current) => selectTab(current, 'modules')); }} />
         : navigation.moduleScreen === 'lists'
           ? <ListsOverviewPage key={userId} userId={userId} entry={listsEntry} entryPending={moduleAvailability.refreshing} initialData={retainedLists?.data} initialFilter={retainedLists?.filter} onValidated={(data, filter) => { if (sameModuleScope(listsEntry, data.memberSpaces, data.eligibleSpaces)) listsSnapshot.current = { userId, data, filter }; }} onInvalidateEligibility={() => { listsSnapshot.current = null; moduleAvailability.invalidate(); void moduleAvailability.refresh(true); }} initialNotice={listNotice} onOpenDetail={(list) => { setListNotice(''); setListDetail({ spaceId: list.space_id, listId: list.id }); setNavigation((current) => openListDetail(current)); }} onHubBack={() => setNavigation((current) => selectTab(current, 'modules'))} onNoEligible={() => { listsSnapshot.current = null; void moduleAvailability.refresh(); setNavigation((current) => selectTab(current, 'modules')); }} />
         : navigation.moduleScreen === 'lists-detail'

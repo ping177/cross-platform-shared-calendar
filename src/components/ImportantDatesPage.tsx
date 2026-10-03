@@ -10,6 +10,7 @@ import { supabase } from '../lib/supabase';
 import type { ImportantDate } from '../types';
 import { ImportantDateDeleteDialog, ImportantDateSheet } from './ImportantDateSheet';
 import { useImportantDates, type ImportantDatesEntryOptions } from './useImportantDates';
+import type { PendingImportantDateHandoff, ImportantDateIdentityHandoff } from './useImportantDateHandoff';
 
 export function ImportantDateIcon({ emoji }: { emoji: string | null }) {
   return emoji ? <span className="text-xl" aria-hidden="true">{emoji}</span> : <CalendarHeart size={22} className="text-teal" aria-hidden="true" />;
@@ -45,23 +46,61 @@ export function ImportantDatesContent({ data, filter, today, pastExpanded, canAc
   </>;
 }
 
-type Props = ImportantDatesEntryOptions & { userId: string; onHubBack: () => void; onNoEligible: () => void; eligibilityRevision?: number; initialPastExpanded?: boolean; onValidated?: (data: ImportantDatesData, filter: ImportantDateFilter, pastExpanded: boolean) => void };
+type Props = ImportantDatesEntryOptions & { userId: string; onHubBack: () => void; onNoEligible: () => void; handoff?: PendingImportantDateHandoff | null; returnTo?: ImportantDateIdentityHandoff['returnTo'] | null; onHandoffHandled?: (requestId: number) => void; eligibilityRevision?: number; initialPastExpanded?: boolean; onValidated?: (data: ImportantDatesData, filter: ImportantDateFilter, pastExpanded: boolean) => void };
 // Keep data, drafts and in-flight callbacks scoped to one account even without a parent key.
 export function ImportantDatesPage(props: Props) { return <ImportantDatesModule key={props.userId} {...props} />; }
 
-function ImportantDatesModule({ userId, onHubBack, onNoEligible, eligibilityRevision, initialPastExpanded = false, onValidated, ...entryOptions }: Props) {
-  const { state, filter, today, setFilter, refresh, invalidate, canAct } = useImportantDates(userId, onNoEligible, eligibilityRevision, entryOptions);
+function ImportantDatesModule({ userId, onHubBack, onNoEligible, handoff, returnTo, onHandoffHandled, eligibilityRevision, initialPastExpanded = false, onValidated, ...entryOptions }: Props) {
+  // Keep the completed read token after consumption, without retaining a target
+  // or causing another read/reopen when App clears the one-time identity.
+  const handoffReadId = useRef<number | undefined>(undefined);
+  if (handoff) handoffReadId.current = handoff.requestId;
+  const handledHandoff = useRef<number | undefined>(undefined);
+  const { state, filter, today, setFilter, refresh, invalidate, canAct } = useImportantDates(userId, onNoEligible, eligibilityRevision, {
+    ...entryOptions, handoffRequestId: handoffReadId.current, handoffSpaceId: handoff?.spaceId,
+    onHandoffSpaceLost: (requestId) => {
+      if (handoff?.requestId !== requestId || handoffReadId.current !== requestId || handledHandoff.current === requestId) return;
+      handledHandoff.current = requestId;
+      mutation.current.invalidate();
+      setEditor(null); setDeleting(null); setDeleteBusy(false); setDeleteError('');
+      setNotice('此重要日的空间当前不可访问。');
+      onHandoffHandled?.(requestId);
+    },
+  });
   const [pastExpanded, setPastExpanded] = useState(Boolean(entryOptions.initialData && sameModuleScope(entryOptions.entry ?? null, entryOptions.initialData.memberSpaces, entryOptions.initialData.eligibleSpaces) && initialPastExpanded));
-  const [editor, setEditor] = useState<{ date?: ImportantDate; initialTargetId: string | null } | null>(null);
+  const [editor, setEditor] = useState<{ date?: ImportantDate; initialTargetId: string | null; handoffRequestId?: number } | null>(null);
   const [deleting, setDeleting] = useState<ImportantDate | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const [notice, setNotice] = useState('');
   const mutation = useRef(createRequestGuard());
+  const mutationContext = useRef(handoffReadId.current);
+  if (mutationContext.current !== handoffReadId.current) {
+    mutation.current.invalidate();
+    mutationContext.current = handoffReadId.current;
+  }
   const mutationLock = useRef(false);
   const createButton = useRef<HTMLButtonElement>(null);
   const data = state.data;
   const deleteSpace = data?.eligibleSpaces.find((space) => space.id === deleting?.space_id);
+  const visibleEditor = editor && (!handoff || editor.handoffRequestId === handoff.requestId) ? editor : null;
+
+  useEffect(() => {
+    if (!handoff || handledHandoff.current === handoff.requestId) return;
+    setEditor(null); setDeleting(null); setNotice('');
+    setDeleteBusy(false); setDeleteError('');
+  }, [handoff?.requestId]);
+
+  useEffect(() => {
+    if (!handoff || handledHandoff.current === handoff.requestId || !data || !canAct || state.handoffRequestId !== handoff.requestId) return;
+    const eligible = data.eligibleSpaces.some((space) => space.id === handoff.spaceId);
+    const date = eligible ? data.dates.find((row) => row.space_id === handoff.spaceId && row.id === handoff.importantDateId) : undefined;
+    handledHandoff.current = handoff.requestId;
+    setDeleting(null);
+    if (date) { setNotice(''); setEditor({ date, initialTargetId: date.space_id, handoffRequestId: handoff.requestId }); }
+    else { setEditor(null); setNotice(eligible ? '此重要日已删除，列表已刷新。' : '此重要日的空间当前不可访问，列表已刷新。'); }
+    onHandoffHandled?.(handoff.requestId);
+  }, [handoff, data, canAct, state.handoffRequestId, onHandoffHandled]);
 
   useEffect(() => {
     if (data && canAct) onValidated?.(data, filter, pastExpanded);
@@ -136,7 +175,7 @@ function ImportantDatesModule({ userId, onHubBack, onNoEligible, eligibilityRevi
     <div className="mx-auto flex min-h-[100dvh] w-full max-w-3xl flex-col">
       <header className="sticky top-0 z-10 border-b border-ink/10 bg-mist/95 px-4 pb-3 pt-4 backdrop-blur">
         <div className="flex min-h-12 items-center justify-between gap-3">
-          <button className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-teal" type="button" onClick={onHubBack}><ChevronLeft size={18} aria-hidden="true" />功能中心</button>
+          <button className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-teal" type="button" onClick={onHubBack}><ChevronLeft size={18} aria-hidden="true" />{returnTo === 'home' ? '返回首页' : returnTo === 'calendar' ? '返回日历' : '功能中心'}</button>
           <h1 className="min-w-0 truncate text-xl font-bold">重要日</h1>
           <button ref={createButton} className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-teal text-white disabled:opacity-50" type="button" aria-label="新建重要日" disabled={!canAct || !data?.eligibleSpaces.length} onClick={openCreate}><Plus size={20} aria-hidden="true" /></button>
         </div>
@@ -153,7 +192,7 @@ function ImportantDatesModule({ userId, onHubBack, onNoEligible, eligibilityRevi
         {data && <ImportantDatesContent data={data} filter={filter} today={today} canAct={canAct} pastExpanded={pastExpanded} onPastToggle={() => setPastExpanded((value) => !value)} onOpen={(date) => { setNotice(''); setEditor({ date, initialTargetId: date.space_id }); }} />}
       </div>
     </div>
-    {editor && <ImportantDateSheet key={editor.date?.id ?? 'create'} date={editor.date} initialTargetId={editor.initialTargetId} memberSpaces={data?.memberSpaces ?? []} eligibleSpaces={data?.eligibleSpaces ?? []} canAct={canAct} onSubmit={save} onCancel={closeEditor} onDelete={() => { if (editor.date) { setDeleting(editor.date); setDeleteError(''); setEditor(null); } }} />}
+    {visibleEditor && <ImportantDateSheet key={visibleEditor.date?.id ?? 'create'} date={visibleEditor.date} initialTargetId={visibleEditor.initialTargetId} memberSpaces={data?.memberSpaces ?? []} eligibleSpaces={data?.eligibleSpaces ?? []} canAct={canAct} onSubmit={save} onCancel={closeEditor} onDelete={() => { if (visibleEditor.date) { setDeleting(visibleEditor.date); setDeleteError(''); setEditor(null); } }} />}
     {deleting && deleteSpace && <ImportantDateDeleteDialog date={deleting} space={deleteSpace} busy={deleteBusy} canAct={canAct} error={deleteError} onCancel={() => setDeleting(null)} onConfirm={() => void confirmDelete()} />}
   </main>;
 }
