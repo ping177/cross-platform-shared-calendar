@@ -18,7 +18,9 @@ import { ModuleHub, useModuleAvailability } from './components/ModuleHub';
 import { ImportantDatesPage } from './components/ImportantDatesPage';
 import { useImportantDateHandoff } from './components/useImportantDateHandoff';
 import { loadImportantDatesEligibility, type ImportantDatesData } from './lib/important-dates-data';
-import type { ImportantDateFilter } from './lib/important-dates';
+import { importantDateLocalToday, type ImportantDateFilter } from './lib/important-dates';
+import { compareImportantDateCivilDates } from './lib/important-date-projection';
+import type { HomeImportantDatesSnapshot } from './components/useImportantDateProjection';
 import { ListsOverviewPage } from './components/ListsOverviewPage';
 import { ListDetailPage } from './components/ListDetailPage';
 import { ReviewHistoryPage, type ReviewHistorySnapshot } from './components/ReviewHistoryPage';
@@ -27,6 +29,7 @@ import { RecurrenceControls } from './components/RecurrenceControls';
 import { TasksArea } from './components/TasksArea';
 import type { TaskData } from './components/useAggregateTasks';
 import type { OverviewData } from './components/useListsOverview';
+import { validHomeEventSnapshot, validHomeTaskSnapshot, type HomeEventSnapshot, type HomeTaskSnapshot } from './lib/home-aggregation';
 import { HomePage } from './components/HomePage';
 import { calendarVisibleRange } from './lib/calendar-display';
 import { calendarSpaces, readAggregateCalendar, spaceLabel, validCalendarFilter, type CalendarFilter } from './lib/aggregate-calendar';
@@ -425,6 +428,21 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
   const tasksSnapshot = useRef<{ userId: string; data: TaskData } | null>(null);
   const listsSnapshot = useRef<{ userId: string; data: OverviewData; filter: ListFilter } | null>(null);
   const importantDatesSnapshot = useRef<{ userId: string; data: ImportantDatesData; filter: ImportantDateFilter; pastExpanded: boolean } | null>(null);
+  const homeEventsSnapshot = useRef<HomeEventSnapshot | null>(null);
+  const homeTasksSnapshot = useRef<HomeTaskSnapshot | null>(null);
+  const homeTasksEntry = moduleEntry(spaces, moduleAvailability.availability, 'tasks', false);
+  const retainedHomeEvents = validHomeEventSnapshot(homeEventsSnapshot.current, userId, spaces, new Date());
+  const retainedHomeTasks = validHomeTaskSnapshot(homeTasksSnapshot.current, userId, spaces, new Date(), homeTasksEntry);
+  const homeImportantDatesSnapshot = useRef<HomeImportantDatesSnapshot | null>(null);
+  // Pending availability is unknown, not a confirmed loss. Existing known
+  // module state and current memberships only qualify display continuity.
+  const homeImportantDatesEntry = moduleEntry(spaces, moduleAvailability.availability, 'important_dates', false);
+  const homeSnapshot = homeImportantDatesSnapshot.current;
+  const retainedHomeImportantDates = homeSnapshot?.userId === userId
+    && compareImportantDateCivilDates(homeSnapshot.today, importantDateLocalToday()) === 0
+    && sameModuleScope(homeImportantDatesEntry ?? { memberSpaces: spaces, eligibleSpaces: homeSnapshot.scope.eligibleSpaces }, homeSnapshot.scope.memberSpaces, homeSnapshot.scope.eligibleSpaces)
+    ? homeSnapshot : undefined;
+  const retainedHome = Boolean(retainedHomeEvents || retainedHomeTasks || retainedHomeImportantDates);
   const reviewSnapshot = useRef<{ userId: string; memberSpaces: CurrentSpace[]; eligibleSpaces: CurrentSpace[]; history: ReviewHistorySnapshot } | null>(null);
   const retainedTasks = tasksSnapshot.current?.userId === userId && sameModuleScope(tasksEntry, tasksSnapshot.current.data.memberSpaces, tasksSnapshot.current.data.eligibleSpaces) ? tasksSnapshot.current.data : undefined;
   const retainedLists = listsSnapshot.current?.userId === userId && sameModuleScope(listsEntry, listsSnapshot.current.data.memberSpaces, listsSnapshot.current.data.eligibleSpaces) ? listsSnapshot.current : null;
@@ -439,7 +457,10 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
     if (listsEntry && listsSnapshot.current && !sameModuleScope(listsEntry, listsSnapshot.current.data.memberSpaces, listsSnapshot.current.data.eligibleSpaces)) listsSnapshot.current = null;
     if (reviewEntry && reviewSnapshot.current && !sameModuleScope(reviewEntry, reviewSnapshot.current.memberSpaces, reviewSnapshot.current.eligibleSpaces)) reviewSnapshot.current = null;
     if (importantDatesEntry && importantDatesSnapshot.current && !sameModuleScope(importantDatesEntry, importantDatesSnapshot.current.data.memberSpaces, importantDatesSnapshot.current.data.eligibleSpaces)) importantDatesSnapshot.current = null;
-  }, [tasksEntry, listsEntry, reviewEntry, importantDatesEntry]);
+    if (homeEventsSnapshot.current && !retainedHomeEvents) homeEventsSnapshot.current = null;
+    if (homeTasksSnapshot.current && !retainedHomeTasks) homeTasksSnapshot.current = null;
+    if (homeImportantDatesSnapshot.current && !retainedHomeImportantDates) homeImportantDatesSnapshot.current = null;
+  }, [tasksEntry, listsEntry, reviewEntry, importantDatesEntry, retainedHomeImportantDates, retainedHomeEvents, retainedHomeTasks]);
   const [reviewDetail, setReviewDetail] = useState<ReviewDetailTarget | null>(null);
   const [listDetail, setListDetail] = useState<ListDetailTarget | null>(null);
   const [listNotice, setListNotice] = useState('');
@@ -591,9 +612,9 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
     }
   }
 
-  async function refreshSpaces(preserveHome = true, expectedSpaceId?: string, selectionId = selectedSpaceId): Promise<boolean> {
+  async function refreshSpaces(preserveHome = navigation.tab === 'home', expectedSpaceId?: string, selectionId = selectedSpaceId): Promise<boolean> {
     const currentRequest = requestGuard.current.begin();
-    const keepHomeVisible = preserveHome && navigation.tab === 'home' && spaceListStatus === 'ready';
+    const keepHomeVisible = preserveHome && spaceListStatus === 'ready' && (navigation.tab === 'home' || retainedHome);
     if (!keepHomeVisible) setSpaceListStatus('loading');
     setError('');
     try {
@@ -635,7 +656,7 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
     importantDateHandoff.reset();
     setNavigation((current) => selectTab(current, tab));
     if (tab === 'me') setMyScreen('profile');
-    if (tab === 'calendar' || tab === 'home') void refreshSpaces(false);
+    if (tab === 'calendar' || tab === 'home') void refreshSpaces(tab === 'home' && retainedHome);
   }
 
   async function managedSpaceReady(spaceId: string) {
@@ -650,6 +671,7 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
   }
 
   async function lifecycleSettled(action: SpaceLifecycleAction, failure?: string) {
+    if (!failure) { homeImportantDatesSnapshot.current = null; homeEventsSnapshot.current = null; homeTasksSnapshot.current = null; }
     await settleSpaceLifecycle(action, failure, {
       clearSelection: () => {
         setSelectedSpaceId(null);
@@ -700,8 +722,16 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
       {navigation.tab === 'calendar' && spaceListStatus !== 'ready' && <SpaceListPending status={spaceListStatus} onRetry={() => void refreshSpaces()} />}
       {navigation.tab === 'home' && spaceListStatus !== 'ready' && <SpaceListPending status={spaceListStatus} onRetry={() => void refreshSpaces()} />}
       {navigation.tab === 'modules' && spaceListStatus !== 'ready' && navigation.moduleScreen !== 'hub' && <SpaceListPending status={spaceListStatus} onRetry={() => void refreshSpaces(false)} />}
-      {navigation.tab === 'home' && spaceListStatus === 'ready' && <HomePage spaces={spaces} userId={userId} EventSheetComponent={EventSheet} onMembershipRefresh={async () => { await refreshSpaces(); void moduleAvailability.refresh(); }} importantDatesEntry={importantDatesEntry}
-        onOpenImportantDates={() => { importantDateHandoff.reset(); setNavigation((current) => openImportantDatesModule(current)); }} onOpenImportantDate={importantDateHandoff.open} />}
+      {navigation.tab === 'home' && spaceListStatus === 'ready' && <HomePage spaces={spaces} userId={userId} EventSheetComponent={EventSheet} onMembershipRefresh={async () => { await refreshSpaces(); void moduleAvailability.refresh(); }} importantDatesEntry={homeImportantDatesEntry}
+        tasksEntry={homeTasksEntry} initialEvents={retainedHomeEvents} initialTasks={retainedHomeTasks}
+        onEventsValidated={(data) => { if (validHomeEventSnapshot(data, userId, spaces, new Date())) homeEventsSnapshot.current = data; }}
+        onEventsInvalidate={() => { homeEventsSnapshot.current = null; }}
+        onTasksValidated={(data) => { if (validHomeTaskSnapshot(data, userId, spaces, new Date(), null)) { homeTasksSnapshot.current = data; if (homeTasksEntry && !sameModuleScope(homeTasksEntry, data.scope.memberSpaces, data.scope.eligibleSpaces)) void moduleAvailability.refresh(); } }}
+        onTasksInvalidate={() => { homeTasksSnapshot.current = null; }}
+        initialImportantDates={retainedHomeImportantDates}
+        onImportantDatesValidated={(data) => { if (data.userId === userId && sameModuleScope(homeImportantDatesEntry ?? { memberSpaces: spaces, eligibleSpaces: data.scope.eligibleSpaces }, data.scope.memberSpaces, data.scope.eligibleSpaces)) homeImportantDatesSnapshot.current = data; }}
+        onImportantDatesInvalidate={() => { homeImportantDatesSnapshot.current = null; }}
+        onOpenImportantDates={() => { importantDateHandoff.reset(); setNavigation((current) => openImportantDatesModule(current)); }} />}
       {navigation.tab === 'modules' && (spaceListStatus === 'ready' || navigation.moduleScreen === 'hub') && (navigation.moduleScreen === 'hub'
         ? <ModuleHub onOpenImportantDates={() => { importantDateHandoff.reset(); setNavigation((current) => openImportantDatesModule(current)); }} availability={moduleAvailability.availability} onRefresh={() => { void moduleAvailability.refresh(); }} onOpenTasks={() => setNavigation((current) => openTaskModule(current))} onOpenReview={() => setNavigation((current) => openReviewModule(current))} onOpenLists={() => { setListNotice(''); setNavigation((current) => openListsModule(current)); }} />
         : navigation.moduleScreen === 'important-dates'
@@ -709,8 +739,8 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
               initialData={retainedImportantDates?.data} initialFilter={retainedImportantDates?.filter} initialPastExpanded={retainedImportantDates?.pastExpanded}
               onHubBack={() => { const source = importantDateHandoff.returnTo; importantDateHandoff.reset(); if (source) changeTab(source); else setNavigation((current) => selectTab(current, 'modules')); }}
               onValidated={(data, filter, pastExpanded) => { if (sameModuleScope(importantDatesEntry, data.memberSpaces, data.eligibleSpaces)) importantDatesSnapshot.current = { userId, data, filter, pastExpanded }; }}
-              onInvalidateEligibility={() => { importantDatesSnapshot.current = null; moduleAvailability.invalidate(); void refreshSpaces(false); void moduleAvailability.refresh(true); }}
-              onNoEligible={() => { importantDateHandoff.reset(); importantDatesSnapshot.current = null; void moduleAvailability.refresh(true); setNavigation((current) => selectTab(current, 'modules')); }} />
+              onInvalidateEligibility={() => { importantDatesSnapshot.current = null; homeImportantDatesSnapshot.current = null; moduleAvailability.invalidate(); void refreshSpaces(false); void moduleAvailability.refresh(true); }}
+              onNoEligible={() => { importantDateHandoff.reset(); importantDatesSnapshot.current = null; homeImportantDatesSnapshot.current = null; void moduleAvailability.refresh(true); setNavigation((current) => selectTab(current, 'modules')); }} />
         : navigation.moduleScreen === 'lists'
           ? <ListsOverviewPage key={userId} userId={userId} entry={listsEntry} entryPending={moduleAvailability.refreshing} initialData={retainedLists?.data} initialFilter={retainedLists?.filter} onValidated={(data, filter) => { if (sameModuleScope(listsEntry, data.memberSpaces, data.eligibleSpaces)) listsSnapshot.current = { userId, data, filter }; }} onInvalidateEligibility={() => { listsSnapshot.current = null; moduleAvailability.invalidate(); void moduleAvailability.refresh(true); }} initialNotice={listNotice} onOpenDetail={(list) => { setListNotice(''); setListDetail({ spaceId: list.space_id, listId: list.id }); setNavigation((current) => openListDetail(current)); }} onHubBack={() => setNavigation((current) => selectTab(current, 'modules'))} onNoEligible={() => { listsSnapshot.current = null; void moduleAvailability.refresh(); setNavigation((current) => selectTab(current, 'modules')); }} />
         : navigation.moduleScreen === 'lists-detail'
@@ -760,7 +790,7 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
               onReady={managedSpaceReady}
               onSpaceChange={updateSpace}
               onLifecycleSettled={lifecycleSettled}
-              onModuleChanged={(key, spaceId, state) => { if (state === 'disabled') { if (key === 'tasks') tasksSnapshot.current = null; if (key === 'review') reviewSnapshot.current = null; if (key === 'lists') listsSnapshot.current = null; if (key === 'important_dates') importantDatesSnapshot.current = null; } moduleAvailability.moduleChanged(key, spaceId, state); }}
+              onModuleChanged={(key, spaceId, state) => { if (state === 'disabled') { if (key === 'tasks') { tasksSnapshot.current = null; homeTasksSnapshot.current = null; } if (key === 'review') reviewSnapshot.current = null; if (key === 'lists') listsSnapshot.current = null; if (key === 'important_dates') { importantDatesSnapshot.current = null; homeImportantDatesSnapshot.current = null; } } moduleAvailability.moduleChanged(key, spaceId, state); }}
               busy={spaceActionBusy}
               onBusyChange={setSpaceActionBusy}
             />

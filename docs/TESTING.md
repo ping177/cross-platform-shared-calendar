@@ -1,5 +1,143 @@
 # Testing
 
+## 2026-10-04 — v0.1.18 Slice 3 T3 final acceptance / closeout — CLOSED / PASS
+
+`T3_AUTHENTICATED_LOCAL_ACCEPTANCE = PASS` (user-reported). Home Event / Task / Important Date all PASS; return to all three preserves content without Loading flash; single rows open their own Sheet directly on Home. Important Date top3, next-occurrence order, source Space, fourth-row refill after delete, disable/re-enable inclusion/order, edit/save, Reminder edit/save, delete, close/cancel staying Home, view-all entering full module, and basic mobile layout PASS. This supersedes the historical manual-pending checkpoints below. It does not establish current T3 installed Production/PWA acceptance.
+
+Final full accumulated diff review PASS: canonical authority remains Supabase/RLS; retained rows cannot initialize stale editors or authorize mutations; exact readers and current canonical reconciliation qualify actions. Auth/scope/date/range/confirmed module invalidation, A1→B→A2, late target/list/write results, refresh-error retention, original Realtime cleanup and cross-Sheet opening tickets are covered. No new backend/dependency/Realtime/cache/store/router/framework or T4 code. T2 and full-module contracts are preserved.
+
+- Focused **205/205 PASS**: Home Event/Task/Important Date retention/actions/direct Sheet, Home aggregation, T1 pure projection/reader/lifecycle, T2 handoff, Important Dates adapter/entry/full-module flow/UI.
+- Relevant regression **501/501 PASS**: additionally Calendar/Event recurrence/edit, Event/Task Realtime, Reminder/CRUD, v0.1.16 Tasks/Review/Lists snapshots and navigation/session restore.
+- Full Node **632/632 PASS**, no failures/cancellations/skips; `npm run build` / TypeScript PASS; `git diff --check` PASS. Vite 1712 modules, JS **750.17 kB / gzip 216.46 kB**; existing >500 kB warning only, no code splitting.
+
+```sh
+node --experimental-strip-types --test tests/home-important-dates.test.ts tests/home-aggregation.test.ts tests/important-date-projection*.test.ts tests/important-date-handoff.test.ts tests/important-dates-data.test.ts tests/important-dates-entry.test.ts tests/important-dates-flow.test.ts tests/important-dates-ui.test.ts
+node --experimental-strip-types --test tests/home-important-dates.test.ts tests/important-date*.test.ts tests/important-dates*.test.ts tests/navigation*.test.ts tests/task-navigation-regression.test.ts tests/home-aggregation.test.ts tests/global-create*.test.ts tests/aggregate-tasks*.test.ts tests/aggregate-calendar*.test.ts tests/calendar-refresh.test.ts tests/recurrence.test.ts tests/event-*.test.ts tests/recurring-reminders.test.ts tests/mixed-source-reminders.test.ts tests/send-reminders*.test.ts tests/task*.test.ts tests/review*.test.ts tests/lists*.test.ts tests/module-availability.test.ts tests/module-reentry-ui.test.ts
+node --experimental-strip-types --test tests/*.test.ts tests/*.test.js
+npm run build
+git diff --check
+```
+
+T3 CLOSED / PASS (local automated + authenticated local acceptance); overall/Slice 3 IN PROGRESS, T4 NOT STARTED. Next is a separately authorized T4 Calendar projection prompt. After T4/functional completion and before Slice 3 final closeout, perform the deferred Interaction Consistency & Cleanup Audit recorded in BACKLOG, then arrange final Slice 3 Production/PWA acceptance. Normal Git remote publication may trigger existing Vercel automation; it is not manual deployment or Production acceptance. No Production write or Codex logged-in session operation in this closeout.
+
+## v0.1.18 Slice 3 T3 Home Important Date direct Sheet — LOCAL AUTOMATED PASS / READY FOR MANUAL RE-TEST
+
+User-confirmed Home three-section retained-return UX is PASS. New frozen interaction: Home single Event / Task / Important Date opens its own Sheet; title/view-all alone navigate to the full module. Important Date direct-open authenticated/mobile acceptance and full T3 acceptance are pending. Slice 3 IN PROGRESS; T4 NOT STARTED.
+
+- TDD first reproduced Home unmount on row click. New Home tests execute real App/Home/target/editor handlers with injected network: navigation spy and page mount counter prove zero navigation/full-module mount, one exact target read, Home visible throughout and no full-list prerequisite even with unresolved list or global availability (shared target/T2 regression additionally holds real `resolveHubEligibility` Review qualification pending).
+- Canonical14 authority including Reminder preset, timezone and raw `reminder_schedule_changed_at` comes from fresh exact target, never a retained row. Existing adapter verifies initial/final Auth, both identity filters, current membership/role, enabled module, Space identity and loss-vs-error semantics. Home target controller rejects mismatched returned identities too.
+- Save/delete/close remain Home. Mutation tests cover canonical update/delete helpers, Reminder payload/marker ownership, retained presentation while refresh is unresolved, canonical ordering and A/B/C→B/C/D refill; no source-payload patch/full-module snapshot write. Failure keeps Home and explicit retry/confirmation, never false success. Missing/ineligible requests trigger Home reread; independent projection scope loss hides invalid rows.
+- Pending cancel/unmount/sign-out/user switch/member loss/module disable/role change reject late results. Rapid A1→B→A2 publishes only A2; stale errors are masked before effects. Old save callbacks lose authority after close/scope/Auth loss; late save/delete results cannot close or refresh a newer target. Pending Event/Task↔Important Date clicks cancel existing Home opening tickets to avoid stacked Sheets.
+- Full module ordinary entry/filter/Past/retained snapshot/create/edit/delete/Reminder/toggle and all 39 T2 tests PASS. Existing Home Event/Task/Important Date retention, Realtime read loops, T1 projection, Tasks/Review/Lists snapshots, Event/Calendar/recurrence, navigation/session restore and Reminder regression PASS. No snapshot shape or subscription contract changes in this task.
+- Focused **135/135** (Home **80**, handoff **39**, adapter **16**); relevant regression **501/501**; full Node **632/632**, no skips. TypeScript/Vite build and `git diff --check` PASS; JS **750.17 kB**, gzip **216.46 kB**, existing >500 kB warning, no code splitting.
+- Temporary outside-repo deterministic comparison uses real App/reader/Sheet, saved pre-task source and fake read-only transport: navigation **1→0**, ImportantDatesPage mount **1→0**, target reads **6→6** (Auth **2**, exact source **1**, qualification **3**). Both retain four read stages: initial Auth → canonical14 source → parallel membership/module/Space → final Auth → Sheet. After: Home remains visible, Sheet actionable before deferred Review finishes; no extra target request when global pending ends. No physical latency claim or time threshold.
+- Actual shared Sheet HTML plus built CSS in isolated unsigned headless Chrome: short/long name × 375/320px **4/4 PASS**; Home stays behind overlay, z-index 40, form within viewport, no control overlap/clipping/horizontal overflow, controls ≥44px. Existing Sheet focus entry/Tab trap/Escape/focus restoration and backdrop semantics are reused; no module DOM dependency, scroll-lock or shared dialog framework added. Real device/keyboard/touch acceptance remains manual.
+
+```sh
+node --experimental-strip-types --test tests/home-important-dates.test.ts tests/important-date-handoff.test.ts tests/important-dates-data.test.ts
+node --experimental-strip-types --test tests/home-important-dates.test.ts tests/important-date*.test.ts tests/important-dates*.test.ts tests/navigation*.test.ts tests/task-navigation-regression.test.ts tests/home-aggregation.test.ts tests/global-create*.test.ts tests/aggregate-tasks*.test.ts tests/aggregate-calendar*.test.ts tests/calendar-refresh.test.ts tests/recurrence.test.ts tests/event-*.test.ts tests/recurring-reminders.test.ts tests/mixed-source-reminders.test.ts tests/send-reminders*.test.ts tests/task*.test.ts tests/review*.test.ts tests/lists*.test.ts tests/module-availability.test.ts tests/module-reentry-ui.test.ts
+node --experimental-strip-types --test tests/*.test.ts tests/*.test.js
+npm run build
+git diff --check
+```
+
+Next user acceptance after the existing readiness gate at **127.0.0.1:5175**: all three single rows open their own Sheet on Home; title/view-all enter full Important Dates module; exact object/Space/Reminder match canonical state; close/save/delete remain Home without Loading flash; date edits/deletes reorder/refill only after reread; missing/loss/error retry and rapid clicks do not open stale/wrong objects; 375px primary, 320px no overlap/clipping/overflow, focus/keyboard/backdrop/touch behavior. Full module filter/Past/CRUD/toggle and the earlier return UX PASS must remain. Codex does not operate logged-in sessions. Built frontend target matches linked backend; required existing table/RLS/CRUD/Reminder capabilities unchanged. Previous read-only alignment evidence remains historical, not a new live postflight. No commit/amend/push/deploy/Production write.
+
+## v0.1.18 Slice 3 T3 Important Date global-pending decoupling — LOCAL AUTOMATED PASS / READY FOR MANUAL RE-TEST
+
+User Home three-section return UX remains PASS; Important Date real click speed still failed the previous re-test. This implementation removes the confirmed frontend waiting relation, but does not claim real-speed PASS or full authenticated T3 acceptance. T4 NOT STARTED, Slice 3 IN PROGRESS.
+
+- Handoff **39/39**: initial unknown/pending exact opening; real resolveHubEligibility with unresolved Review while other three qualifications finish; stable→refreshing→stable one-read publication; first confirmed valid hint without restart versus first confirmed loss; Space/member/module loss and late reply rejection; target role change invalidation versus unrelated role change; zero-eligible one-time consume/safe exit; StrictMode one actual start and pre-microtask cleanup zero starts; queued and in-flight A1→B→A2; actionable save/delete during refresh; canonical Reminder/CRUD, source identity, error/retry, background list pending/error and later confirmed loss from a pre-opening callback (also before React commits target publication), close/save/delete no reopen, sign-out/unmount, existing session navigation.
+- Exact-target adapter/security tests remain unchanged: initial/final Auth, both identity filters, 14 canonical fields, post-source membership/role/module/Space qualification, confirmed loss versus transport errors and unchanged mutation helpers. Ordinary full module and retained snapshot entry regressions pass; global availability allSettled contract is untouched.
+- Focused **83/83**, related regression **472/472**, full Node **603/603**, no skips; TypeScript/Vite build and diff-check PASS. Bundle JS 744.19 kB / gzip 214.77 kB; existing warning recorded, no code splitting.
+- Temporary deterministic diagnostic outside the repo: actual App navigation, exact reader, module hook and Sheet; injected transport 40ms/request and Review qualification 400ms, comparing saved pre-fix Page to current source. Page mount 0.5→0.4ms; target read start 404.0→1.4ms; source end 487.3→83.3ms; qualification end 568.3→165.5ms; Sheet render/action-ready 571.2→167.6ms; publication-to-render 2.9→2.1ms. Both use six target reads. After: actionable Sheet before Review resolves (~400.4ms), no extra target read when it finishes. Assertions use pending barriers/counts/identities, not wall-clock thresholds. These figures do not measure real-account network or physical browser paint.
+
+```sh
+node --test --experimental-strip-types tests/important-date-handoff.test.ts tests/important-dates-data.test.ts tests/important-dates-entry.test.ts tests/important-dates-flow.test.ts tests/important-dates-ui.test.ts
+node --test --experimental-strip-types tests/home-important-dates.test.ts tests/important-date*.test.ts tests/important-dates*.test.ts tests/navigation*.test.ts tests/task-navigation-regression.test.ts tests/home-aggregation.test.ts tests/global-create*.test.ts tests/aggregate-tasks*.test.ts tests/aggregate-calendar*.test.ts tests/calendar-refresh.test.ts tests/recurrence.test.ts tests/event-*.test.ts tests/recurring-reminders.test.ts tests/mixed-source-reminders.test.ts tests/send-reminders*.test.ts tests/task*.test.ts tests/review*.test.ts tests/lists*.test.ts tests/module-availability.test.ts tests/module-reentry-ui.test.ts
+node --test --experimental-strip-types tests/*.test.ts tests/*.test.js
+npm run build
+git diff --check
+```
+
+Next manual re-test, after the existing readiness gate: user opens Home Important Date, checks correct canonical object/Reminder/Space, click speed, close/save/delete, independent list loading/error, scope loss and 375px (320px only no overlap/clipping/overflow). Home retained-return PASS must remain. Codex does not drive authenticated sessions. Backend capability requirements remain unchanged; current built target matches linked backend, previous read-only alignment evidence remains historical, no new live catalog postflight is claimed. No commit/amend/push/deploy/Production write.
+
+## 2026-10-04 — Home object-open latency optimization — LOCAL AUTOMATED PASS / READY FOR MANUAL RE-TEST
+
+User confirms Home Event/Task/Important Dates return UX (no Loading flash) PASS and correct Event/Task objects. This is not full T3 authenticated acceptance. T3 remains LOCAL AUTOMATED PASS / READY FOR MANUAL RE-TEST; T4 NOT STARTED; Slice 3 IN PROGRESS.
+
+- Focused **95/95**: Home flow/retention/action safety **51**, T2 handoff **28**, Important Date adapter **16**. Task test holds all three DB reads pending after first Auth, verifies no editor until all plus final Auth, and rejects each query failure/disable/missing/closed/auth switch/late A click; quick-complete qualification remains covered.
+- Important Date tests hold the full list pending while exact-target Sheet is already actionable; the inverse ordering cannot open from a list object. List success cannot replace draft/reopen; list failure (including Auth transport failure) cannot block an independently qualified target retry. Actual sign-out closes it. Target pending supports canonical save/delete and one-time consumption. Missing, disabled/member/Space loss, query failure, identity mismatch, full 14 fields, same-label cross-Space identity, A→B→A, stale list/loss/save/delete, entry pending/confirmed loss and unmount are covered.
+- Reader transport assertions: one exact important_dates SELECT by Space/id, no range/pagination or other object query; source completes before three current target qualification queries start together; first/final Auth bracket publication. Six reads, four stages. RLS SELECT alone is insufficient for module enablement. Confirmed loss supersedes a failed source read; unknown failures retain exact identity for retry. Full-list snapshots remain complete datasets only.
+- Relevant regression **451/451**, full Node **592/592**, no skips. Existing Home retained content, Event/Task Realtime, T1/T2, full Tasks/Review/Lists/Important Dates snapshots, ordinary module/filter/Past/CRUD/Reminder, Event/Calendar and navigation/session restore PASS. `npm run build` / typecheck and `git diff --check` PASS. JS 743.24 kB / gzip 214.55 kB; existing bundle warning only.
+- Local 40ms-per-read diagnostics use real App/handlers/Sheets and fake transport/hooks, with no Production calls or wall-clock assertions in tests. Event **3.3ms** (0 prerequisite reads), Task **124.5ms** (5 reads/3 stages, previously 206.6ms/5 stages), Important Date **164.7ms** (6 prerequisite reads/4 stages, previously 501.8ms/13 reads/12 stages), warm **162.5ms**. Independent full-list background uses 8 more reads: **14 total**, not a total-query reduction. Pagination increases background work without becoming a Sheet prerequisite.
+- Readiness: built backend target matches linked project; existing read-only alignment evidence confirms required columns/RLS and prior Reminder capability. No backend/schema/RPC change, deployment or new live catalog postflight. Authenticated/browser/device acceptance remains user-owned.
+
+```bash
+node --test tests/home-important-dates.test.ts tests/important-date-handoff.test.ts tests/important-dates-data.test.ts
+node --test tests/*.test.ts tests/*.test.js
+npm run build
+git diff --check
+```
+
+Manual re-test: keep all three Home return UX PASS; compare Task/Important Date opening, verify fresh name/reminder/source Space, list loading/failure independent of target editing, no reopen after close/save/delete, exact retry versus deleted/disabled/removed target, scope/auth changes and 375px mobile (320px no overflow). Existing environment alignment gate applies; no T3 authenticated PASS or remote sync is claimed.
+
+
+## Home Event / Task retention — LOCAL AUTOMATED PASS / READY FOR MANUAL RE-TEST
+
+User-confirmed Important Dates return UX re-test is PASS. Home overall authenticated/manual acceptance is not complete; T3 remains LOCAL AUTOMATED PASS / READY FOR MANUAL RE-TEST, T4 NOT STARTED, overall/Slice 3 IN PROGRESS.
+
+- Actual App/Home handler fixture now 40/40: cold publication; immediate Event/Task restoration before effects/Space reads/canonical Promises; canonical replacement; full qualified Task expand beyond five; completed/deleted/assignee/horizon exclusion and replacement; retained error/retry vs cold error; ordinary/recurring Event own source authority; exact Task open; qualified/open-only completion; Event click racing Realtime; freshly disabled Task before setup; member/role/user/day/range and scope loss; warm A1→B→A2 old result/action suppression; unmount/auth-await cancellation; sign-out; notification/reconnect/cleanup; Event-only/Task-only warm gate; module/lifecycle signals. Existing 18 Important Dates Home tests remain PASS.
+- Home aggregation 11/11: three-day canonical recurrence/exception semantics, complete member/source qualification, Task Home sorting/horizon, fail-closed independent sections; barriers prove parallel independent chains; 501-row Event/Task/exception pagination stays sequential and complete; fresh Task eligibility callback precedes source failure without publishing partial rows.
+- Final focused 106/106; relevant regression 394/394 includes T1/T2, Home/Calendar/Event edit/recurrence, Event/Task Realtime, v0.1.16 Tasks/Review/Lists/full Important Dates snapshots, navigation/session restore and Reminder. Full Node 574/574, no skips. Build and diff-check PASS. Final JS 739.52 kB / gzip 213.59 kB; existing >500 kB bundle warning only; no code splitting.
+- Isolated temporary Chrome static fixtures, no login/network business data: normal and long retained/error views at 375/320px, 4/4 geometry PASS (no overlap/clipping/horizontal overflow, controls ≥44px). This does not replace user real-browser/device/PWA acceptance. Fixed date injected into handler tests; barriers/counts are not real-network latency benchmarks.
+
+```sh
+node --experimental-strip-types --test tests/home-important-dates.test.ts tests/home-aggregation.test.ts tests/important-date-projection*.test.ts tests/important-date-handoff.test.ts
+node --experimental-strip-types --test tests/home-important-dates.test.ts tests/important-date*.test.ts tests/important-dates*.test.ts tests/navigation*.test.ts tests/task-navigation-regression.test.ts tests/home-aggregation.test.ts tests/global-create*.test.ts tests/aggregate-tasks*.test.ts tests/aggregate-calendar*.test.ts tests/calendar-refresh.test.ts tests/recurrence.test.ts tests/event-edit*.test.ts tests/event-reminder.test.ts tests/recurring-reminders.test.ts tests/mixed-source-reminders.test.ts tests/send-reminders*.test.ts tests/module-reentry-ui.test.ts tests/module-availability.test.ts tests/task-realtime.test.ts tests/review-history*.test.ts tests/lists-overview*.test.ts
+node --experimental-strip-types --test tests/*.test.ts tests/*.test.js
+npm run build
+git diff --check
+```
+
+Manual re-test after the existing environment readiness gate: return from module/own-object to Home with all three sections; Event/Task rows remain immediately, then reconcile. Immediately click retained Event (ordinary/recurring) and open/complete retained Task while refresh is pending; editors/actions must use fresh canonical qualification. Verify Event delete/reschedule/recurrence edit, Task complete/edit/delete/assignee/due changes and next-item fill, independent error/retry, module disable/membership loss, date rollover, and 375px (320px only no overlap/clipping/overflow). Important Dates previously confirmed return behavior must stay PASS.
+
+Target verification: current built frontend matches the linked Supabase backend, local Vite stays 5175/strictPort, and this fix adds no backend capability/API requirement. Prior alignment READ-ONLY result remains historical evidence. No fresh live catalog postflight was completed in this task (installed CLI help terminated SIGKILL); do not relabel that evidence as a new live gate. No Production writes, authenticated session driving, Git publication or deployment occurred.
+
+## v0.1.18 Slice 3 T3 validated-view retention — LOCAL AUTOMATED PASS / READY FOR MANUAL RE-TEST
+
+- Previous user Home warm-return acceptance FAILED due to loading flash. This fix reuses v0.1.16 App-owned validated-view retention, independent of the full Important Dates module snapshot. Manual/authenticated PASS is not claimed; T4 NOT STARTED, Slice 3 IN PROGRESS.
+- Home tests now **18/18**: first cold entry; App snapshot publication and real module/Home unmount/re-entry; immediate retained render before effects, pending Space refresh and unresolved canonical Promise; fresh name replacement; save/delete old presentation followed by canonical B/C/D replacement; update failure retains rows/error/retry; unknown availability is not disable; fresh scope loss clears before source failure; zero eligibility hides; wrong user/day/membership/role/known-disabled initial rejection; midnight/sign-out; local disable/leave/remove/delete signals. Existing T2 exact-object/Reminder/date semantics and Event/Task isolation remain covered.
+- Projection flow tests **14/14** additionally verify refreshing vs fresh success/error, successful callback contains only bounded presentation, auth-read failure clears and permits fresh retry, A1→B→A2 cannot overwrite App retention, explicit invalidation suppresses late callbacks. Existing latency parallelism, strict complete pagination/auth/eligibility bounds and StrictMode/same-turn suppression remain unchanged.
+- Focused **49/49**, related regression **299/299**, full Node **548/548**, no skips. `npm run build` and `git diff --check` PASS. JS 730.40 kB / gzip 210.63 kB; existing >500 kB bundle warning only. Tests inject transport/account boundaries; they do not establish logged-in network timing or physical-device acceptance.
+
+```sh
+node --experimental-strip-types --test tests/home-important-dates.test.ts tests/important-date-projection.test.ts tests/important-date-projection-data.test.ts tests/important-date-projection-flow.test.ts
+node --experimental-strip-types --test tests/*.test.ts tests/*.test.js
+npm run build
+git diff --check
+```
+
+Manual re-test target after the existing frontend/backend readiness gate: Home has rows → module/own-object → return Home; rows remain immediately, background reconciliation does not flash. Then verify save/delete replacement, module eligibility and 375px (320px only no overlap/clipping/overflow). The local implementation has no backend capability changes; previous alignment remains recorded, not a new live postflight. Existing Production/PWA does not contain this local worktree. No commit/push/deploy/Production write is authorized here.
+
+## v0.1.18 Slice 3 T3 return latency — historical B/C checkpoint (retention fix above supersedes its UX boundary)
+
+- Authenticated user feedback confirms three rows/order/Space source, but return-to-Home latency prevents manual PASS. Earlier local closure below is historical; frontend/backend alignment subsequently PASS, no backend contract changed by this fix. Resume only local user re-test; no authenticated session is driven by Codex.
+- Added deterministic transport barriers/counts proving two independent candidate reads start per eligible Space before annual pagination finishes, complete 501 annual pages + non-repeat bounds equal the full canonical global top 3, and either Space's incomplete non-repeat response rejects without partial results. Pre/post module passes, 4 auth checks and 2 membership reads remain explicit assertions. Existing disabled/membership/source failures and A1→B→A2 suppression remain green.
+- Real hook effect replay test proves StrictMode setup/cleanup/setup starts one canonical read and cleanup before its microtask starts none. Same-turn foreground read supersedes queued mount work. Actual App handlers prove entry from Calendar and return from own-object Sheet each reconcile once; stable renders add none. Existing close/save/delete fresh Home/top-three replacement, date semantics, foreground lifecycle and Event/Task isolation remain covered.
+- Focused **32/32**, relevant **299/299**, full Node **538/538**, no skips; build/typecheck/diff-check PASS. JS 728.33 kB / gzip 209.99 kB, existing bundle warning only. No tests use real network timing thresholds.
+- Controlled temporary local diagnostic uses real Vite-loaded reader/current-spaces, installed PostgREST transport and actual App/Home/Page handler runtime; replaces I/O with fixed 40ms request latency. Reader initial ~539→466ms, return ~502→454ms; return candidate phase ~85→42ms; pre/post ~200ms each, 14 projection requests unchanged. Actual navigation adds App Space refresh and existing Task module setup; no claim these totals are all Home/Event/Task traffic. StrictMode effect protocol proves duplicate complete reads 2→1. Evidence is local injected timing, not Production/user browser performance. At this historical B/C checkpoint Home still went through loading; the separately authorized existing-pattern retention fix above now supersedes that presentation boundary. Canonical reconciliation remains mandatory.
+
+```sh
+node --test tests/important-date-projection-data.test.ts tests/important-date-projection-flow.test.ts tests/home-important-dates.test.ts
+node --test tests/home-important-dates.test.ts tests/important-date*.test.ts tests/important-dates*.test.ts tests/navigation*.test.ts tests/task-navigation-regression.test.ts tests/home-aggregation.test.ts tests/global-create*.test.ts tests/aggregate-tasks*.test.ts tests/aggregate-calendar*.test.ts tests/calendar-refresh.test.ts tests/recurrence.test.ts tests/event-reminder.test.ts tests/recurring-reminders.test.ts tests/mixed-source-reminders.test.ts tests/send-reminders*.test.ts
+node --test tests/*.test.ts tests/*.test.js
+npm run build
+git diff --check
+```
+
+User re-test: repeatedly return from another tab/module/own-object Sheet and assess waiting; then continue original exact-object/Reminder/close/save/delete/replacement/module-toggle/mobile checklist. Do not manufacture backend failure. Actual PWA needs an accessible secure T3 frontend; existing Production PWA does not contain the unpushed local commit/fix. T3 manual acceptance NOT PASS, READY FOR MANUAL RE-TEST; T4 NOT STARTED, Slice 3 IN PROGRESS. No commit/push/deployment/Production operation in this fix task.
+
 ## v0.1.18 Slice 3 T3 Home top-3 final review — CLOSED / LOCAL AUTOMATED PASS / AWAITING AUTHENTICATED ACCEPTANCE
 
 - New `tests/home-important-dates.test.ts` **10/10 PASS** exercises actual App/Home/section/T1/T2/Page handlers with injected I/O and hook runtime. Covers 0/1/3/>3, global stable IDs across Spaces, canonical annual/non-repeat/future anchor/Feb29/past rules; loading vs qualified hide/confirmed empty/error/retry; mixed/all disabled, re-enable/membership loss; exact fresh object vs colliding/stale Home snapshot; view-all/title without Sheet; close/save/delete and return reread/top-three replacement; confirmed missing; auth loss/switch, rapid A1→B→A2, foreground/online/visible/midnight and cleanup. T1's existing pure/query tests remain the detailed date/completeness proof; no second algorithm is added.

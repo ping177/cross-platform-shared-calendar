@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ImportantDatesAuthError, loadImportantDates, loadImportantDatesEligibility, type ImportantDatesData } from '../lib/important-dates-data';
+import { ImportantDatesAuthError, loadImportantDates, type ImportantDatesData } from '../lib/important-dates-data';
 import { importantDateLocalToday, normalizeImportantDateFilter, type ImportantDateFilter } from '../lib/important-dates';
 import { sameModuleScope, type ModuleEntry } from '../lib/module-availability';
 import { createRequestGuard } from '../lib/request-guard';
@@ -28,6 +28,7 @@ export function useImportantDates(userId: string, onNoEligible: () => void, elig
   const [filter, setFilter] = useState<ImportantDateFilter>(safeInitial ? normalizeImportantDateFilter(initialFilter, safeInitial.eligibleSpaces) : 'all');
   const [today, setToday] = useState(importantDateLocalToday);
   const guard = useRef(createRequestGuard());
+  const sessionLost = useRef(false);
   const readContext = useRef({ userId, handoffRequestId });
   if (readContext.current.userId !== userId || readContext.current.handoffRequestId !== handoffRequestId) {
     guard.current.invalidate();
@@ -45,7 +46,6 @@ export function useImportantDates(userId: string, onNoEligible: () => void, elig
   const refresh = useCallback(async (revalidateEligibility = true): Promise<ImportantDatesData | null> => {
     const { handoffRequestId: readHandoffId, handoffSpaceId, onHandoffSpaceLost } = optionsRef.current;
     const request = guard.current.begin();
-    let targetSpaceLost = false;
     let exitedNoEligible = false;
     setState((current) => ({ ...current, refreshing: true, ...(readHandoffId !== undefined ? { data: null, error: '', handoffRequestId: readHandoffId } : {}) }));
     try {
@@ -56,32 +56,13 @@ export function useImportantDates(userId: string, onNoEligible: () => void, elig
         setState((current) => current.data ? { ...current, data: { ...eligibility, dates: current.data.dates.filter((date) => eligibleIds.has(date.space_id)) } } : current);
         setFilter((current) => normalizeImportantDateFilter(current, eligibility.eligibleSpaces));
         if (readHandoffId !== undefined && handoffSpaceId && !eligibleIds.has(handoffSpaceId)) {
-          targetSpaceLost = true;
           onHandoffSpaceLost?.(readHandoffId);
           if (!eligibleIds.size && !exitedNoEligible) { exitedNoEligible = true; noEligibleRef.current(); }
         }
       };
-      let data = await loadImportantDates(userId, supabase, undefined, publishEligibility,
+      const data = await loadImportantDates(userId, supabase, undefined, publishEligibility,
         revalidateEligibility || readHandoffId !== undefined ? undefined : optionsRef.current.entry ?? undefined);
       if (!guard.current.isCurrent(request)) return null;
-      if (readHandoffId !== undefined) {
-        let confirmed = await loadImportantDatesEligibility(userId);
-        if (!guard.current.isCurrent(request)) return null;
-        publishEligibility(confirmed);
-        if (targetSpaceLost && confirmed.eligibleSpaces.length && !sameModuleScope(confirmed, data.memberSpaces, data.eligibleSpaces)) {
-          // The interaction is already consumed. Recover the module's current
-          // canonical list once; never publish rows from the rejected scope.
-          data = await loadImportantDates(userId, supabase, undefined, publishEligibility, confirmed);
-          if (!guard.current.isCurrent(request)) return null;
-          confirmed = await loadImportantDatesEligibility(userId);
-          if (!guard.current.isCurrent(request)) return null;
-          publishEligibility(confirmed);
-        }
-        if (!confirmed.eligibleSpaces.length) data = { ...confirmed, dates: [] };
-        else if (!sameModuleScope(confirmed, data.memberSpaces, data.eligibleSpaces)) {
-          throw new Error('重要日空间资格在读取期间发生变化，请重试。');
-        }
-      }
       setState({ userId, data, error: '', refreshing: false, authLost: false, handoffRequestId: readHandoffId });
       setToday(importantDateLocalToday());
       const currentEntry = optionsRef.current.entry;
@@ -111,6 +92,7 @@ export function useImportantDates(userId: string, onNoEligible: () => void, elig
     document.addEventListener('visibilitychange', onVisible);
     const { data: auth } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user.id !== userId) {
+        sessionLost.current = true;
         guard.current.invalidate();
         setState({ userId, data: null, error: '登录状态已变化。', refreshing: false, authLost: true, handoffRequestId: optionsRef.current.handoffRequestId });
       }
@@ -137,5 +119,5 @@ export function useImportantDates(userId: string, onNoEligible: () => void, elig
   const obsoleteHandoff = state.handoffRequestId !== handoffRequestId;
   const visibleState = obsoleteHandoff ? { ...state, data: null, error: '', refreshing: true } : lostScope ? { ...state, data: null } : state;
   const validEntry = entry === undefined || Boolean(entry && !entryPending && state.data && sameModuleScope(entry, state.data.memberSpaces, state.data.eligibleSpaces));
-  return { state: visibleState, filter, today, setFilter, refresh, invalidate, canAct: validEntry && Boolean(visibleState.data) && !state.refreshing && !state.error };
+  return { state: visibleState, sessionLost: sessionLost.current, filter, today, setFilter, refresh, invalidate, canAct: !sessionLost.current && validEntry && Boolean(visibleState.data) && !state.refreshing && !state.error };
 }

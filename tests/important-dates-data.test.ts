@@ -213,3 +213,63 @@ test('Important Date pre-mutation canonical read rejects a changed raw schedule 
    await assert.rejects(m.updateImportantDate(client, 'me', row, { ...row, name: '旧快照' }, readSpaces));
    assert.equal(state.calls.some((call: any) => call[0] === 'update_important_date'), false);
  }));
+
+function targetFake() {
+  const env = fake(); const requests: any[] = []; const failures: Record<string, boolean> = {};
+  let membership: any = { space_id: space.id, user_id: 'me', role: 'member' };
+  let target: any = row; let targetSpace: any = { ...space, name: '共同' }; let module: any = { space_id: space.id, enabled: true };
+  let authReads = 0;
+  env.client.auth.getUser = async () => { requests.push(['auth']); authReads++; return { data: { user: { id: env.state.user } }, error: null }; };
+  env.client.from = ((table: string) => {
+    const filters: any = {}; let columns = '';
+    const q: any = { select: (c: string) => { columns = c; return q; }, eq: (k: string, v: any) => { filters[k] = v; return q; },
+      maybeSingle: async () => { requests.push([table, { ...filters }, columns]);
+        return { data: table === 'important_dates' ? target : table === 'space_members' ? membership : table === 'spaces' ? targetSpace : module,
+          error: failures[table] ? new Error('offline '+table) : null }; } };
+    return q;
+  }) as any;
+  return { ...env, requests, failures, setTarget: (v: any) => { target = v; }, setMembership: (v: any) => { membership = v; }, setSpace: (v: any) => { targetSpace = v; }, setModule: (v: any) => { module = v; }, get authReads() { return authReads; } };
+}
+
+test('exact Important Date target reads complete canonical fields and only target identity, with post-source qualification', () => adapter(async (m) => {
+  const e = targetFake(); const result = await m.readImportantDateTarget('me', { spaceId: space.id, importantDateId: row.id }, e.client);
+  assert.equal(result.status, 'ready'); assert.equal(result.date, row); assert.equal(result.space.membershipRole, 'member');
+  assert.equal(e.authReads, 2); assert.equal(e.requests.length, 6);
+  assert.equal(e.requests[1][0], 'important_dates'); assert.deepEqual(e.requests[1][1], { space_id: space.id, id: row.id });
+  assert.equal(e.requests[1][2].split(',').length, 14);
+  assert.ok(e.requests.slice(2,5).every((r: any) => (r[1].space_id ?? r[1].id) === space.id));
+}));
+
+test('exact Important Date target distinguishes missing, confirmed loss and query failure without fallback', () => adapter(async (m) => {
+  const identity = { spaceId: space.id, importantDateId: row.id };
+  let e = targetFake(); e.setTarget(null); assert.equal((await m.readImportantDateTarget('me', identity, e.client)).status, 'missing');
+  for (const scenario of ['disabled','membership','removed']) {
+    e = targetFake(); if (scenario === 'disabled') e.setModule({ space_id: space.id, enabled: false });
+    if (scenario === 'membership') e.setMembership(null); if (scenario === 'removed') e.setSpace(null);
+    // Confirmed loss must survive an unrelated failed object read.
+    e.failures.important_dates = true;
+    assert.equal((await m.readImportantDateTarget('me', identity, e.client)).status, 'ineligible');
+  }
+  for (const table of ['important_dates','space_members','spaces','space_modules']) {
+    e = targetFake(); e.failures[table] = true; await assert.rejects(m.readImportantDateTarget('me', identity, e.client), /offline/);
+  }
+  for (const bad of [{ id: 'other' },{ space_id: 'other' },{ time_zone: 'bad' },[]]) {
+    e = targetFake(); e.setTarget(Array.isArray(bad) ? bad : { ...row, ...bad }); await assert.rejects(m.readImportantDateTarget('me', identity, e.client));
+  }
+  e = targetFake(); let calls = 0; e.client.auth.getUser = async () => ({ data: { user: { id: ++calls === 1 ? 'me' : 'other' } }, error: null });
+  await assert.rejects(m.readImportantDateTarget('me', identity, e.client), /登录/);
+}));
+
+test('target qualification begins after source settles and its three exact scope reads are parallel', () => adapter(async (m) => {
+  const pending = () => { let resolve: any; const promise = new Promise((yes) => { resolve = yes; }); return { promise, resolve }; };
+  const object = pending(), member = pending(), module = pending(), currentSpace = pending(); const started: string[] = []; let auth = 0;
+  const client: any = { auth: { getUser: async () => { auth++; return { data: { user: { id: 'me' } }, error: null }; } },
+    from(table: string) { const q: any = { select: () => q, eq: () => q, maybeSingle: () => { started.push(table); return ({ important_dates: object, space_members: member, space_modules: module, spaces: currentSpace } as any)[table].promise; } }; return q; } };
+  const read = m.readImportantDateTarget('me', { spaceId: space.id, importantDateId: row.id },client);
+  await new Promise((resolve) => setImmediate(resolve)); assert.deepEqual(started,['important_dates']);
+  object.resolve({ data: row,error:null }); await new Promise((resolve) => setImmediate(resolve));
+  assert.deepEqual(started,['important_dates','space_members','space_modules','spaces']); assert.equal(auth,1);
+  member.resolve({ data:{ space_id:space.id,user_id:'me',role:'member'},error:null }); module.resolve({ data:{ space_id:space.id,enabled:true},error:null });
+  await new Promise((resolve) => setImmediate(resolve)); assert.equal(auth,1);
+  currentSpace.resolve({ data:{ ...space,name:'共同'},error:null }); assert.equal((await read).status,'ready'); assert.equal(auth,2);
+}));

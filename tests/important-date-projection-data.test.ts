@@ -44,11 +44,12 @@ function matches(record: any, expression: string): boolean {
 function fixture() {
   const state = { user: 'me', rows: [] as ImportantDate[], spaces: [personal, shared],
     modules: [{ space_id: personal.id, enabled: true, module_key: 'important_dates' }, { space_id: shared.id, enabled: true, module_key: 'important_dates' }],
-    calls: [] as URL[], alter: null as null | ((table: string, url: URL, response: { data: any[] | null; count: number | null }) => void), failure: '' };
+    calls: [] as URL[], beforeFetch: null as null | ((table: string, url: URL) => Promise<void>), alter: null as null | ((table: string, url: URL, response: { data: any[] | null; count: number | null }) => void), failure: '' };
   const client = createClient('https://example.supabase.co', 'test-anon', { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }, global: { fetch: async (input, init) => {
     assert.equal(init?.method, 'GET'); // Projection must never write or call RPCs.
     const url = new URL(String(input)); state.calls.push(url);
     const table = url.pathname.split('/').at(-1)!;
+    await state.beforeFetch?.(table, url);
     assert.ok(['space_modules', 'important_dates'].includes(table));
     if (state.failure === table) return new Response(JSON.stringify({ message: 'offline', code: 'test_failure' }), { status: 500 });
     let data: any[] = table === 'space_modules' ? state.modules.filter((module) => state.spaces.some((space) => space.id === module.space_id)) : state.rows;
@@ -216,5 +217,40 @@ test('source-time module/membership loss or auth change fails closed and publish
     } };
     await assert.rejects(adapter.loadHomeImportantDates('me', civil(2027, 2, 28), client, readSpaces, (scope: any) => scopes.push(scope)));
     if (mode !== 'auth') assert.equal(scopes.at(-1).eligibleSpaces.length, 0);
+  }
+});
+
+
+test('Home starts independent annual and non-repeat reads together with bounded count and identical global top three', async () => {
+  const { state, client, readSpaces } = fixture();
+  state.rows = [...Array.from({ length: 501 }, (_, i) => row(`a${String(i).padStart(4, '0')}`)),
+    row('once', { repeat_kind: 'none', year: 2027, month: 2, day: 27 }), row('personal', { space_id: personal.id })];
+  let release!: () => void;
+  const barrier = new Promise<void>((resolve) => { release = resolve; });
+  state.beforeFetch = async (table) => { if (table === 'important_dates') await barrier; };
+  let authReads = 0; client.auth.getUser = async () => { authReads++; return { data: { user: { id: 'me' } }, error: null } as any; };
+  let membershipReads = 0;
+  const pending = adapter.loadHomeImportantDates('me', civil(2027, 2, 27), client, async () => { membershipReads++; return state.spaces; });
+  try {
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.equal(objectCalls(state).filter((url) => url.searchParams.get('repeat_kind') === 'eq.none').length, 2,
+      'non-repeat requests must not wait for annual pages in either Space');
+    assert.equal(objectCalls(state).length, 4); // Only the first annual page + one non-repeat query per Space can be in flight.
+  } finally { release(); }
+  const result = await pending;
+  assert.equal(objectCalls(state).length, 5); // Shared 501 annual rows require one extra page; no duplicate candidate reads.
+  assert.equal(state.calls.filter((url) => url.pathname.endsWith('/space_modules')).length, 2);
+  assert.equal(authReads, 4); assert.equal(membershipReads, 2); // Preserve pre/post eligibility and both auth checks.
+  assert.deepEqual(projection.homeImportantDates(result.dates, civil(2027, 2, 27)), projection.homeImportantDates(state.rows, civil(2027, 2, 27)));
+});
+
+test('parallel Home candidates fail closed when either Space non-repeat branch is incomplete', async () => {
+  for (const space of [personal, shared]) {
+    const { state, client, readSpaces } = fixture();
+    state.rows = [row('annual'), row('once', { space_id: space.id, repeat_kind: 'none', year: 2027, month: 2, day: 27 })];
+    state.alter = (table, url, response) => {
+      if (table === 'important_dates' && url.searchParams.get('space_id') === `eq.${space.id}` && url.searchParams.get('repeat_kind') === 'eq.none') response.count = null;
+    };
+    await assert.rejects(adapter.loadHomeImportantDates('me', civil(2027, 2, 27), client, readSpaces), /不完整/);
   }
 });

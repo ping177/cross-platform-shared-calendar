@@ -7,7 +7,7 @@ import { resolveImportantDateOccurrence, type CivilDate } from '../../supabase/f
 import { assertImportantDateRange, compareImportantDateCivilDates, type ImportantDateRange } from './important-date-projection';
 import { sameModuleScope } from './module-availability';
 import { supabase } from './supabase';
-import type { ImportantDate } from '../types';
+import type { CurrentSpace, ImportantDate } from '../types';
 
 const columns = 'id,space_id,name,emoji,repeat_kind,month,day,year,reminder_kind,time_zone,reminder_schedule_changed_at,created_by,created_at,updated_at';
 type ReadSpaces = typeof listCurrentSpaces;
@@ -36,6 +36,36 @@ export async function loadImportantDatesEligibility(userId: string, client: Supa
 
 export type ImportantDatesEligibility = Awaited<ReturnType<typeof loadImportantDatesEligibility>>;
 export type ImportantDatesData = ImportantDatesEligibility & { dates: ImportantDate[] };
+
+export type ImportantDateTargetRead = { status: 'ready'; date: ImportantDate; space: CurrentSpace } | { status: 'missing' | 'ineligible' };
+
+// An identity handoff reads one canonical object. Qualification follows the
+// source read, so loss during that read wins over a retryable source failure.
+export async function readImportantDateTarget(userId: string, target: { spaceId: string; importantDateId: string }, client: SupabaseClient = supabase): Promise<ImportantDateTargetRead> {
+  const { spaceId, importantDateId } = target;
+  if (!spaceId?.trim() || !importantDateId?.trim()) throw new Error('重要日目标无效。');
+  await assertUser(client, userId);
+  const object = await client.from('important_dates').select(columns).eq('space_id', spaceId).eq('id', importantDateId).maybeSingle()
+    .then((result) => result, (error: unknown) => ({ data: null, error }));
+  const [membership, module, space] = await Promise.all([
+    client.from('space_members').select('space_id,user_id,role').eq('space_id', spaceId).eq('user_id', userId).maybeSingle(),
+    client.from('space_modules').select('space_id,enabled').eq('space_id', spaceId).eq('module_key', 'important_dates').maybeSingle(),
+    client.from('spaces').select('*').eq('id', spaceId).maybeSingle(),
+  ]);
+  await assertUser(client, userId);
+  if ((!membership.error && membership.data === null) || (!space.error && space.data === null)
+    || (!module.error && (module.data === null || module.data?.enabled === false))) return { status: 'ineligible' };
+  for (const result of [membership, module, space]) if (result.error) throw result.error;
+  if (!membership.data || !module.data || !space.data) throw new Error('无法确认重要日目标空间，请重试。');
+  if (membership.data.space_id !== spaceId || membership.data.user_id !== userId || !['owner', 'member'].includes(membership.data.role)
+    || module.data.space_id !== spaceId || module.data.enabled !== true
+    || space.data.id !== spaceId || !['personal', 'shared'].includes(space.data.kind) || typeof space.data.name !== 'string') {
+    throw new Error('重要日目标空间资格无效，请重试。');
+  }
+  if (object.error) throw object.error;
+  if (object.data === null) return { status: 'missing' };
+  return { status: 'ready', date: assertImportantDate(object.data, spaceId, importantDateId), space: { ...space.data, membershipRole: membership.data.role } as CurrentSpace };
+}
 
 export async function loadImportantDates(userId: string, client: SupabaseClient = supabase, readSpaces: ReadSpaces = listCurrentSpaces, onEligibility?: (eligibility: ImportantDatesEligibility) => void, entry?: ImportantDatesEligibility): Promise<ImportantDatesData> {
   // Session entry is a read hint only. Mutations always revalidate independently.
@@ -100,15 +130,17 @@ export async function loadHomeImportantDates(userId: string, today: CivilDate, c
   const eligibility = await loadImportantDatesEligibility(userId, client, readSpaces);
   onEligibility?.(eligibility);
   const groups = await Promise.all(eligibility.eligibleSpaces.map(async (space) => {
-    const annual = await completeRows(async (start, end) => {
+    // Independent candidate reads share one fail-closed result; annual pages
+    // stay sequential, with at most one annual + one non-repeat read per Space.
+    const [annual, page] = await Promise.all([completeRows(async (start, end) => {
       const page = await client.from('important_dates').select(columns, { count: 'exact' }).eq('space_id', space.id)
         .eq('repeat_kind', 'annual').order('id').range(start, end);
       if (!page.error && page.data === null) throw new Error('重要日读取不完整，请重试。');
       return { data: page.data as ImportantDate[] | null, count: page.count, error: page.error };
-    }, (row) => assertImportantDate(row, space.id).id, (row) => row.repeat_kind === 'annual', '重要日');
-    const page = await client.from('important_dates').select(columns, { count: 'exact' }).eq('space_id', space.id)
+    }, (row) => assertImportantDate(row, space.id).id, (row) => row.repeat_kind === 'annual', '重要日'),
+    client.from('important_dates').select(columns, { count: 'exact' }).eq('space_id', space.id)
       .eq('repeat_kind', 'none').or(civilBound(today, true))
-      .order('year').order('month').order('day').order('id').limit(3);
+      .order('year').order('month').order('day').order('id').limit(3)]);
     if (page.error) throw page.error;
     if (!Array.isArray(page.data) || page.count === null || !Number.isSafeInteger(page.count) || page.count < 0 || page.data.length !== Math.min(3, page.count)) {
       throw new Error('重要日未来候选读取不完整，请重试。');

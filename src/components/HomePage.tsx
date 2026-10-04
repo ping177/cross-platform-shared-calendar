@@ -2,23 +2,24 @@ import { useEffect, useRef, useState, type ComponentType, type ReactNode } from 
 import { Circle, Plus } from 'lucide-react';
 import type { EventSheetProps } from '../App';
 import { type CreateKind, type CreateTargetControl, type CreateTargetState } from './GlobalCreateControls';
-import { createCalendarReadLoop } from '../lib/calendar-refresh';
 import { listCurrentSpaces } from '../lib/current-spaces';
 import { formatDay, formatTime } from '../lib/date';
 import { eventEditTargetForEvent, eventEditTargetForOccurrence } from '../lib/event-edit-target';
-import { homeEventRange, readHomeEvents, readHomeModules, readHomeTasks, type HomeEventQuery, type HomeModuleRow } from '../lib/home-aggregation';
-import { memberDisplayNameForUser } from '../lib/member';
+import { readHomeEvents, readHomeModules, readHomeTasks, visibleHomeTasks, homeCivilToday, homeEventRangeKey, homeMemberKey, type HomeEventRow, type HomeEventSnapshot, type HomeTaskSnapshot, type HomeEventQuery, type HomeModuleRow } from '../lib/home-aggregation';
 import { availableTaskTargets, homeCreateEntry, targetMembersValid } from '../lib/global-create';
 import { supabase } from '../lib/supabase';
-import { canChangeTaskStatus, formatTaskDueDate, taskAssignmentLabel, taskErrorMessage, taskRealtimeConfig } from '../lib/task';
+import { canChangeTaskStatus, formatTaskDueDate, taskAssignmentLabel, taskErrorMessage } from '../lib/task';
 import type { CalendarEvent, CalendarOccurrence, CalendarOccurrenceRange, CurrentSpace, EventOccurrenceException, SpaceMember, Task } from '../types';
 import { TaskSheet } from './TaskSheet';
 import { HomeImportantDatesSection } from './HomeImportantDatesSection';
-import type { ImportantDateIdentityHandoff } from './useImportantDateHandoff';
+import type { PendingImportantDateHandoff, ImportantDateIdentityHandoff } from './useImportantDateHandoff';
+import { useImportantDateEditor } from './useImportantDateEditor';
+import { ImportantDateSheet, ImportantDateDeleteDialog } from './ImportantDateSheet';
 import type { ModuleEntry } from '../lib/module-availability';
+import { useHomeEventView } from './useHomeEventView';
+import { useHomeTaskView } from './useHomeTaskView';
+import type { HomeImportantDatesSnapshot } from './useImportantDateProjection';
 
-type SectionState<T> = { status: 'loading' | 'success' | 'error'; items: T[]; membersBySpaceId: Record<string, SpaceMember[]>; error: string };
-const loadingState = <T,>(): SectionState<T> => ({ status: 'loading', items: [], membersBySpaceId: {}, error: '' });
 const errorText = (error: unknown, fallback: string) => error instanceof Error ? error.message : fallback;
 
 async function moduleSpaces(spaces: CurrentSpace[]) {
@@ -58,8 +59,9 @@ async function eventData(spaces: CurrentSpace[], range: CalendarOccurrenceRange)
   });
 }
 
-async function taskData(spaces: CurrentSpace[], userId: string, today: Date) {
+async function taskData(spaces: CurrentSpace[], userId: string, today: Date, onEligible: (spaces: CurrentSpace[]) => void) {
   return readHomeTasks(spaces, userId, today, {
+    onEligible,
     modulePage: async (start, end) => {
       const result = await supabase.from('space_modules').select('space_id,enabled', { count: 'exact' })
         .in('space_id', spaces.map((space) => space.id)).eq('module_key', 'tasks').order('space_id').range(start, end);
@@ -74,9 +76,9 @@ async function taskData(spaces: CurrentSpace[], userId: string, today: Date) {
   });
 }
 
-export function HomeSection({ title, status, error, items, expanded, empty, onToggle, onRetry, createAction, createFeedback }: {
-  title: string; status: SectionState<unknown>['status']; error: string; items: ReactNode[]; expanded: boolean; empty: string;
-  onToggle: () => void; onRetry: () => void; createAction?: ReactNode; createFeedback?: ReactNode;
+export function HomeSection({ title, status, error, items, expanded, empty, onToggle, onRetry, createAction, createFeedback, refreshError }: {
+  title: string; status: 'loading' | 'success' | 'error'; error: string; items: ReactNode[]; expanded: boolean; empty: string;
+  onToggle: () => void; onRetry: () => void; createAction?: ReactNode; createFeedback?: ReactNode; refreshError?: string;
 }) {
   return <section className="space-y-3" aria-label={title}>
     <div className="flex items-center justify-between gap-3">
@@ -84,6 +86,7 @@ export function HomeSection({ title, status, error, items, expanded, empty, onTo
       {createAction}
     </div>
     {createFeedback}
+    {status === 'success' && refreshError && <p className="break-words text-sm text-coral" role="alert">更新失败 · 正在显示上次已读取的内容<button className="ml-3 min-h-11 font-semibold underline" type="button" onClick={onRetry}>重试</button></p>}
     {status === 'loading' && <p className="rounded-lg bg-white px-4 py-5 text-sm text-ink/60 shadow-sm" role="status">正在读取…</p>}
     {status === 'error' && <div className="rounded-lg bg-white px-4 py-5 shadow-sm" role="alert"><p className="text-sm text-coral">{error || `${title}加载失败，请重试。`}</p><button className="mt-2 min-h-11 font-semibold text-teal" type="button" onClick={onRetry}>重试</button></div>}
     {status === 'success' && (items.length ? <>
@@ -93,12 +96,26 @@ export function HomeSection({ title, status, error, items, expanded, empty, onTo
   </section>;
 }
 
-export function HomePage({ spaces, userId, EventSheetComponent, onMembershipRefresh, importantDatesEntry, onOpenImportantDates, onOpenImportantDate }: {
+export function HomePage({ spaces, userId, EventSheetComponent, onMembershipRefresh, importantDatesEntry, initialImportantDates, onImportantDatesValidated, onImportantDatesInvalidate, onOpenImportantDates, tasksEntry = null, initialEvents, initialTasks, onEventsValidated, onEventsInvalidate, onTasksValidated, onTasksInvalidate }: {
   spaces: CurrentSpace[]; userId: string; EventSheetComponent: ComponentType<EventSheetProps>; onMembershipRefresh: () => Promise<void>;
-  importantDatesEntry?: ModuleEntry | null; onOpenImportantDates: () => void; onOpenImportantDate: (target: ImportantDateIdentityHandoff) => void;
+  importantDatesEntry?: ModuleEntry | null; onOpenImportantDates: () => void;
+  tasksEntry?: ModuleEntry | null; initialEvents?: HomeEventSnapshot; initialTasks?: HomeTaskSnapshot;
+  onEventsValidated?: (data: HomeEventSnapshot) => void; onEventsInvalidate?: () => void;
+  onTasksValidated?: (data: HomeTaskSnapshot) => void; onTasksInvalidate?: () => void;
+  initialImportantDates?: HomeImportantDatesSnapshot; onImportantDatesValidated?: (data: HomeImportantDatesSnapshot) => void; onImportantDatesInvalidate?: () => void;
 }) {
-  const [eventState, setEventState] = useState<SectionState<CalendarOccurrence>>(loadingState);
-  const [taskState, setTaskState] = useState<SectionState<Task>>(loadingState);
+  const [importantDateIdentity, setImportantDateIdentity] = useState<PendingImportantDateHandoff | null>(null);
+  const importantDateRequest = useRef(0);
+  const reconcileImportantDates = useRef<() => void>(() => {});
+  const importantDateEditor = useImportantDateEditor(userId, importantDateIdentity, {
+    spaces, entry: importantDatesEntry, onClose: () => setImportantDateIdentity(null),
+    onReconcile: () => reconcileImportantDates.current(),
+  });
+  const eventView = useHomeEventView({ userId, spaces, initialData: initialEvents, read: eventData, onValidated: onEventsValidated, onInvalidate: onEventsInvalidate, onRefresh: () => setEditingEvent(null) });
+  const taskView = useHomeTaskView({ userId, spaces, entry: tasksEntry, initialData: initialTasks, readModules: moduleSpaces, read: taskData, onValidated: onTasksValidated, onInvalidate: onTasksInvalidate, onRefresh: () => { openingGeneration.current += 1; setEditingTask(null); setOpeningTask(false); } });
+  const [eventNotice, setEventNotice] = useState('');
+  const [taskNotice, setTaskNotice] = useState('');
+  const [editingEventMembers, setEditingEventMembers] = useState<SpaceMember[]>([]);
   const [eventExpanded, setEventExpanded] = useState(false);
   const [taskExpanded, setTaskExpanded] = useState(false);
   const [editingEvent, setEditingEvent] = useState<CalendarOccurrence | null>(null);
@@ -106,8 +123,7 @@ export function HomePage({ spaces, userId, EventSheetComponent, onMembershipRefr
   const [editingTaskMembers, setEditingTaskMembers] = useState<SpaceMember[]>([]);
   const [openingTask, setOpeningTask] = useState(false);
   const [busyTaskId, setBusyTaskId] = useState<string | null>(null);
-  const [eventRevision, setEventRevision] = useState(0);
-  const [taskRevision, setTaskRevision] = useState(0);
+
   const [dayRevision, setDayRevision] = useState(0);
   const [openingCreateKind, setOpeningCreateKind] = useState<CreateKind | null>(null);
   const [createEntryError, setCreateEntryError] = useState<{ kind: CreateKind; message: string } | null>(null);
@@ -129,10 +145,25 @@ export function HomePage({ spaces, userId, EventSheetComponent, onMembershipRefr
   const eventCreateButton = useRef<HTMLButtonElement>(null);
   const taskCreateButton = useRef<HTMLButtonElement>(null);
   membershipRefresh.current = onMembershipRefresh;
-  const spaceIds = spaces.map((space) => space.id).join(',');
+  const actionKey = `${userId}:${homeMemberKey(spaces)}:${homeCivilToday(new Date())}:${homeEventRangeKey(new Date())}:${tasksEntry ? homeMemberKey(tasksEntry.eligibleSpaces) : 'unknown'}`;
+  const actionScope = useRef({ key: actionKey, generation: 0 });
+  if (actionScope.current.key !== actionKey) { actionScope.current = { key: actionKey, generation: actionScope.current.generation + 1 }; openingGeneration.current += 1; }
+  const actionTicket = actionScope.current;
+  const actionMounted = useRef(true);
+  const actionCurrent = () => actionMounted.current && actionScope.current === actionTicket && actionTicket.key === `${userId}:${homeMemberKey(spaces)}:${homeCivilToday(new Date())}:${homeEventRangeKey(new Date())}:${tasksEntry ? homeMemberKey(tasksEntry.eligibleSpaces) : 'unknown'}`;
+  const busyTask = useRef<object | null>(null);
+  const eventOpening = useRef(0);
+  eventRefresh.current = () => { eventOpening.current += 1; setEditingEvent(null); eventView.refresh(); };
+  taskRefresh.current = () => { openingGeneration.current += 1; setOpeningTask(false); setEditingTask(null); taskView.refresh(); };
+  useEffect(() => {
+    actionMounted.current = true; busyTask.current = null;
+    setEditingEvent(null); setEditingTask(null); setOpeningTask(false); setBusyTaskId(null); setEventNotice(''); setTaskNotice('');
+    return () => { actionMounted.current = false; eventOpening.current += 1; openingGeneration.current += 1; };
+  }, [actionKey]);
+  useEffect(() => { setEditingTask((current) => current && !taskView.snapshot?.items.some((item) => item.id === current.id && item.space_id === current.space_id) ? null : current); }, [taskView.snapshot]);
 
   useEffect(() => {
-    const focus = () => { void membershipRefresh.current(); };
+    const focus = () => { setDayRevision((value) => value + 1); void membershipRefresh.current(); };
     window.addEventListener('focus', focus);
     return () => { window.removeEventListener('focus', focus); openingGeneration.current += 1; createGeneration.current += 1; };
   }, []);
@@ -143,6 +174,7 @@ export function HomePage({ spaces, userId, EventSheetComponent, onMembershipRefr
   }
 
   async function beginCreate(kind: CreateKind) {
+    importantDateEditor.close();
     const generation = ++createGeneration.current;
     setOpeningCreateKind(kind);
     setCreateEntryError(null);
@@ -270,142 +302,74 @@ export function HomePage({ spaces, userId, EventSheetComponent, onMembershipRefr
     return () => clearTimeout(timer);
   }, [dayRevision]);
 
-  useEffect(() => {
-    let active = true;
-    const connected = new Set<string>();
-    let ready = false;
-    const channels: ReturnType<typeof supabase.channel>[] = [];
-    setEventState(loadingState());
-    const loop = createCalendarReadLoop(async (isCurrent) => {
-      setEventState(loadingState());
-      const loaded = await eventData(spaces, homeEventRange(new Date()));
-      if (isCurrent()) setEventState({ status: 'success', items: loaded.occurrences, membersBySpaceId: loaded.membersBySpaceId, error: '' });
-    }, (error) => { setEditingEvent(null); setEventState({ ...loadingState(), status: 'error', error: errorText(error, '近期日程加载失败，请重试。') }); });
-    function refresh() {
-      if (!active) return;
-      setEditingEvent(null);
-      setEventState(loadingState());
-      loop.change();
-    }
-    eventRefresh.current = refresh;
-    for (const space of spaces) {
-      const channel = supabase.channel(`home-events:${space.id}`)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'events', filter: `space_id=eq.${space.id}` }, refresh)
-        .subscribe((status) => {
-          if (!active) return;
-          if (status === 'SUBSCRIBED') {
-            const wasConnected = connected.has(space.id);
-            connected.add(space.id);
-            if (connected.size === spaces.length && !ready) { ready = true; loop.start(); }
-            else if (!wasConnected && ready) refresh();
-          } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
-            connected.delete(space.id);
-            ready = false;
-            loop.pause();
-            setEditingEvent(null);
-            setEventState({ ...loadingState(), status: 'error', error: '日程实时同步暂不可用，请重试。' });
-          }
-        });
-      channels.push(channel);
-    }
-    if (!spaces.length) loop.start();
-    return () => { active = false; loop.stop(); eventRefresh.current = () => undefined; for (const channel of channels) void supabase.removeChannel(channel); };
-  }, [spaceIds, eventRevision, dayRevision]);
+  function openImportantDate(identity: ImportantDateIdentityHandoff) {
+    // Cancel the existing Home opening tickets before choosing another Sheet.
+    eventOpening.current += 1; openingGeneration.current += 1; createGeneration.current += 1;
+    setEditingEvent(null); setEditingTask(null); setOpeningTask(false);
+    setCreateKind(null); setChoosingSpaceKind(null); setOpeningCreateKind(null);
+    setImportantDateIdentity({ ...identity, requestId: ++importantDateRequest.current });
+  }
 
-  useEffect(() => {
-    let active = true;
-    let loop: ReturnType<typeof createCalendarReadLoop> | null = null;
-    const channels: ReturnType<typeof supabase.channel>[] = [];
-    const connected = new Set<string>();
-    setTaskState(loadingState());
-    async function setup() {
-      try {
-        const enabled = await moduleSpaces(spaces);
-        if (!active) return;
-        const enabledIds = enabled.map((space) => space.id).join(',');
-        loop = createCalendarReadLoop(async (isCurrent) => {
-          setTaskState(loadingState());
-          const loaded = await taskData(spaces, userId, new Date());
-          if (!isCurrent()) return;
-          if (loaded.enabledSpaceIds.join(',') !== enabledIds) { setEditingTask(null); setTaskRevision((value) => value + 1); return; }
-          setTaskState({ status: 'success', items: loaded.tasks, membersBySpaceId: loaded.membersBySpaceId, error: '' });
-          setEditingTask((current) => current && !loaded.tasks.some((task) => task.id === current.id && task.space_id === current.space_id) ? null : current);
-        }, (error) => { openingGeneration.current += 1; setOpeningTask(false); setEditingTask(null); setTaskState({ ...loadingState(), status: 'error', error: errorText(error, '任务加载失败，请重试。') }); });
-        function refresh() {
-          if (!active) return;
-          openingGeneration.current += 1;
-          setOpeningTask(false);
-          setEditingTask(null);
-          setTaskState(loadingState());
-          loop?.change();
-        }
-        taskRefresh.current = refresh;
-        if (!enabled.length) { loop.start(); return; }
-        let ready = false;
-        for (const space of enabled) {
-          const channel = supabase.channel(`home-tasks:${space.id}`)
-            .on('postgres_changes', taskRealtimeConfig(space.id), refresh)
-            .subscribe((status) => {
-              if (!active) return;
-              if (status === 'SUBSCRIBED') {
-                const wasConnected = connected.has(space.id);
-                connected.add(space.id);
-                if (connected.size === enabled.length && !ready) { ready = true; loop?.start(); }
-                else if (!wasConnected && ready) refresh();
-              } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
-                connected.delete(space.id);
-                ready = false;
-                loop?.pause();
-                openingGeneration.current += 1;
-                setOpeningTask(false);
-                setEditingTask(null);
-                setTaskState({ ...loadingState(), status: 'error', error: '任务实时同步暂不可用，请重试。' });
-              }
-            });
-          channels.push(channel);
-        }
-      } catch (error) {
-        if (active) setTaskState({ ...loadingState(), status: 'error', error: errorText(error, '任务模块状态读取失败，请重试。') });
-      }
-    }
-    void setup();
-    return () => { active = false; loop?.stop(); taskRefresh.current = () => undefined; for (const channel of channels) void supabase.removeChannel(channel); };
-  }, [spaceIds, userId, taskRevision, dayRevision]);
+  async function openEvent(row: HomeEventRow) {
+    importantDateEditor.close();
+    const generation = ++eventOpening.current;
+    setEventNotice(eventView.refreshing ? '正在确认日程…' : '');
+    let fresh = await eventView.qualify(row);
+    if (actionCurrent() && fresh && !eventView.isFresh(fresh.occurrence)) fresh = await eventView.qualify(row);
+    if (!actionCurrent() || generation !== eventOpening.current) return;
+    if (!fresh || !eventView.isFresh(fresh.occurrence)) { setEventNotice('日程已变化或暂时无法确认，请刷新后重试。'); return; }
+    setEventNotice(''); setEditingEventMembers(fresh.members); setEditingEvent(fresh.occurrence);
+  }
 
   async function openTask(task: Task) {
+    importantDateEditor.close();
     const generation = ++openingGeneration.current;
+    const current = () => generation === openingGeneration.current && actionCurrent();
     const space = spaces.find((item) => item.id === task.space_id);
     if (!space) return;
     setOpeningTask(true);
     try {
-      const enabled = await moduleSpaces([space]);
-      if (!enabled.length) { setEditingTask(null); setTaskRevision((value) => value + 1); return; }
-      const { data, error } = await supabase.from('tasks').select('*').eq('space_id', space.id).eq('id', task.id).maybeSingle();
+      await currentUser();
+      const [enabled, { data, error }, members] = await Promise.all([
+        moduleSpaces([space]),
+        supabase.from('tasks').select('*').eq('space_id', space.id).eq('id', task.id).maybeSingle(),
+        spaceMembers(space.id),
+      ]);
+      if (!current()) return;
+      if (!enabled.length) { setEditingTask(null); taskView.retry(); return; }
       if (error) throw error;
-      const members = await spaceMembers(space.id);
-      if (generation !== openingGeneration.current) return;
+      await currentUser();
+      if (!current()) return;
       const fresh = data as Task | null;
       if (!members.some((member) => member.user_id === userId && member.space_id === space.id)) throw new Error('此空间已不在你的成员列表中，请重试。');
-      if (!fresh || fresh.status !== 'open' || (fresh.assigned_to_user_id !== null && fresh.assigned_to_user_id !== userId)) { taskRefresh.current(); return; }
+      if (!fresh || fresh.status !== 'open' || (fresh.assigned_to_user_id !== null && fresh.assigned_to_user_id !== userId) || (fresh.due_on !== null && !visibleTaskInHome(fresh))) { setTaskNotice('任务已变化，请刷新后重试。'); taskRefresh.current(); return; }
       setEditingTaskMembers(members);
       setEditingTask(fresh);
     } catch (error) {
-      if (generation === openingGeneration.current) setTaskState({ ...loadingState(), status: 'error', error: taskErrorMessage(error) });
-    } finally { if (generation === openingGeneration.current) setOpeningTask(false); }
+      if (current()) setTaskNotice(taskErrorMessage(error));
+    } finally { if (current()) setOpeningTask(false); }
   }
 
+  function visibleTaskInHome(task: Task) { return visibleHomeTasks([task], userId, new Date()).length > 0; }
   async function completeTask(task: Task) {
-    if (!canChangeTaskStatus(task, userId) || busyTaskId !== null) return;
-    setBusyTaskId(task.id);
+    if (busyTask.current) return;
+    const attempt = {}; busyTask.current = attempt; setBusyTaskId(task.id); setTaskNotice(taskView.refreshing ? '正在确认任务…' : '');
     try {
-      const { data, error } = await supabase.from('tasks').update({ status: 'completed' }).eq('space_id', task.space_id).eq('id', task.id).select('id');
+      let fresh = await taskView.qualify(task);
+      if (!actionCurrent()) return;
+      if (!fresh || !canChangeTaskStatus(fresh, userId) || !visibleTaskInHome(fresh)) { setTaskNotice('任务已变化或暂时无法确认，请刷新后重试。'); return; }
+      await currentUser();
+      if (!actionCurrent()) return;
+      if (!taskView.isFresh(fresh)) fresh = await taskView.qualify(task);
+      if (!actionCurrent() || !fresh || !canChangeTaskStatus(fresh, userId) || !visibleTaskInHome(fresh)) return;
+      const { data, error } = await supabase.from('tasks').update({ status: 'completed' }).eq('space_id', fresh.space_id).eq('id', fresh.id).eq('status', 'open').select('id');
+      if (!actionCurrent()) return;
       if (error) throw error;
       if (!data?.length) throw new Error('任务已变化，请重试。');
-      taskRefresh.current();
+      setTaskNotice(''); taskRefresh.current();
     } catch (error) {
-      setTaskState({ ...loadingState(), status: 'error', error: taskErrorMessage(error) });
-      setTaskRevision((value) => value + 1);
-    } finally { setBusyTaskId(null); }
+      if (actionCurrent()) { setTaskNotice(taskErrorMessage(error)); taskRefresh.current(); }
+    } finally { if (busyTask.current === attempt) { busyTask.current = null; if (actionCurrent()) setBusyTaskId(null); } }
   }
 
   async function taskMutationError(task: Task) {
@@ -414,54 +378,68 @@ export function HomePage({ spaces, userId, EventSheetComponent, onMembershipRefr
     try {
       if (!(await moduleSpaces([space])).length) {
         setEditingTask(null);
-        setTaskRevision((value) => value + 1);
+        taskView.retry();
         return true;
       }
     } catch (error) {
       setEditingTask(null);
-      setTaskState({ ...loadingState(), status: 'error', error: errorText(error, '任务模块状态读取失败，请重试。') });
+      setTaskNotice(errorText(error, '任务模块状态读取失败，请重试。'));
       return true;
     }
     return false;
   }
 
-  const eventItems = eventState.items.map((occurrence) => {
-    const event = occurrence.source_event;
-    const space = spaces.find((item) => item.id === event.space_id);
-    const members = eventState.membersBySpaceId[event.space_id] ?? [];
-    return <button key={`${event.space_id}:${occurrence.occurrence_id}`} className="w-full rounded-lg bg-white p-4 text-left shadow-sm" type="button" onClick={() => setEditingEvent(occurrence)}>
-      <span className="block break-words font-semibold">{occurrence.title}</span>
-      <span className="mt-1 block text-sm text-ink/60">{formatDay(new Date(occurrence.occurrence_starts_at))} · {formatTime(occurrence.occurrence_starts_at, occurrence.all_day)}</span>
-      <span className="mt-1 block text-sm text-teal">{space?.name} · {event.scope === 'shared' ? '共同' : memberDisplayNameForUser(members, event.owner_user_id)}</span>
+  const eventItems = (eventView.snapshot?.items ?? []).map((row) => {
+    const space = spaces.find((item) => item.id === row.spaceId);
+    return <button key={`${row.spaceId}:${row.occurrence_id}`} className="w-full rounded-lg bg-white p-4 text-left shadow-sm" type="button" onClick={() => void openEvent(row)}>
+      <span className="block break-words font-semibold">{row.title}</span>
+      <span className="mt-1 block text-sm text-ink/60">{formatDay(new Date(row.occurrence_starts_at))} · {formatTime(row.occurrence_starts_at, row.all_day)}</span>
+      <span className="mt-1 block break-words text-sm text-teal">{space?.name} · {row.sourceLabel}</span>
     </button>;
   });
-  const taskItems = taskState.items.map((task) => {
+  const taskItems = (taskView.snapshot?.items ?? []).map((task) => {
     const space = spaces.find((item) => item.id === task.space_id);
-    const members = taskState.membersBySpaceId[task.space_id] ?? [];
+    const members = taskView.snapshot?.membersBySpaceId[task.space_id] ?? [];
     return <div key={`${task.space_id}:${task.id}`} className="flex items-start gap-2 rounded-lg bg-white px-3 py-2 shadow-sm">
       <button className="grid h-11 w-11 shrink-0 place-items-center text-teal disabled:opacity-50" type="button" disabled={busyTaskId !== null} onClick={() => void completeTask(task)} aria-label={`完成 ${task.title}`}><Circle size={23} /></button>
       <button className="min-h-11 min-w-0 flex-1 py-1 text-left disabled:opacity-50" type="button" disabled={openingTask} onClick={() => void openTask(task)}>
         <span className="block break-words font-semibold">{task.title}</span>
-        <span className="mt-1 block text-sm text-ink/60">{space?.name}{space?.kind === 'shared' ? ` · ${taskAssignmentLabel(task.assigned_to_user_id, members, userId)}` : ''}{task.due_on ? ` · ${formatTaskDueDate(task.due_on)}` : ' · 无截止日期'}</span>
+        <span className="mt-1 block break-words text-sm text-ink/60">{space?.name}{space?.kind === 'shared' ? ` · ${taskAssignmentLabel(task.assigned_to_user_id, members, userId)}` : ''}{task.due_on ? ` · ${formatTaskDueDate(task.due_on)}` : ' · 无截止日期'}</span>
       </button>
     </div>;
   });
   const eventSpace = editingEvent ? spaces.find((space) => space.id === editingEvent.source_event.space_id) : null;
-  const eventMembers = eventSpace ? eventState.membersBySpaceId[eventSpace.id] ?? [] : [];
+  const eventMembers = eventSpace ? editingEventMembers : [];
   const taskSpace = editingTask ? spaces.find((space) => space.id === editingTask.space_id) : null;
   const taskMembers = taskSpace ? editingTaskMembers : [];
 
   return <main className="mx-auto min-h-screen max-w-3xl space-y-7 px-4 py-6 safe-bottom">
     <h1 className="text-2xl font-bold">首页</h1>
-    <HomeSection title="近期日程" status={eventState.status} error={eventState.error} items={eventItems} expanded={eventExpanded} empty="未来三天暂无日程" onToggle={() => setEventExpanded((value) => !value)} onRetry={() => setEventRevision((value) => value + 1)}
+    <HomeSection title="近期日程" status={eventView.status} error={eventView.error} refreshError={eventView.error} items={eventItems} expanded={eventExpanded} empty="未来三天暂无日程" onToggle={() => setEventExpanded((value) => !value)} onRetry={eventView.retry}
       createAction={<button ref={eventCreateButton} className="grid h-11 w-11 shrink-0 place-items-center rounded-lg text-teal hover:bg-white disabled:opacity-50" type="button" aria-label="新建日程" disabled={openingCreateKind !== null} onClick={() => void beginCreate('event')}><Plus size={21} aria-hidden="true" /></button>}
-      createFeedback={sectionCreateFeedback('event')}
+      createFeedback={<>{sectionCreateFeedback('event')}{eventNotice && <p className="break-words text-sm text-ink/60" role="status">{eventNotice}</p>}</>}
     />
-    <HomeSection title="需要处理的任务" status={taskState.status} error={taskState.error} items={taskItems} expanded={taskExpanded} empty="暂无需要处理的任务" onToggle={() => setTaskExpanded((value) => !value)} onRetry={() => setTaskRevision((value) => value + 1)}
+    <HomeSection title="需要处理的任务" status={taskView.status} error={taskView.error} refreshError={taskView.error} items={taskItems} expanded={taskExpanded} empty="暂无需要处理的任务" onToggle={() => setTaskExpanded((value) => !value)} onRetry={taskView.retry}
       createAction={<button ref={taskCreateButton} className="grid h-11 w-11 shrink-0 place-items-center rounded-lg text-teal hover:bg-white disabled:opacity-50" type="button" aria-label="新建任务" disabled={openingCreateKind !== null} onClick={() => void beginCreate('task')}><Plus size={21} aria-hidden="true" /></button>}
-      createFeedback={sectionCreateFeedback('task')}
+      createFeedback={<>{sectionCreateFeedback('task')}{taskNotice && <p className="break-words text-sm text-ink/60" role="status">{taskNotice}</p>}</>}
     />
-    <HomeImportantDatesSection key={userId} userId={userId} spaces={spaces} entry={importantDatesEntry} onViewAll={onOpenImportantDates} onOpen={onOpenImportantDate} />
+    <HomeImportantDatesSection key={userId} userId={userId} spaces={spaces} entry={importantDatesEntry} initialData={initialImportantDates} onValidated={onImportantDatesValidated} onInvalidate={onImportantDatesInvalidate} onViewAll={onOpenImportantDates} onRefreshReady={(refresh) => { reconcileImportantDates.current = refresh; }} onOpen={openImportantDate} />
+    {importantDateEditor.notice && <p role="status" className="text-sm text-ink/60">{importantDateEditor.notice}</p>}
+    {importantDateIdentity && !importantDateEditor.editor && <div className="text-sm text-ink/60">
+      {importantDateEditor.targetRead.loading && <p role="status">正在确认重要日…</p>}
+      {importantDateEditor.targetRead.error && <p role="alert">{importantDateEditor.targetRead.error}<button type="button" className="ml-2 min-h-11 font-semibold text-teal" onClick={importantDateEditor.retry}>重试</button></p>}
+      {(importantDateEditor.targetRead.loading || importantDateEditor.targetRead.error) && <button type="button" className="min-h-11 font-semibold text-teal" onClick={importantDateEditor.close}>取消打开重要日</button>}
+    </div>}
+    {importantDateEditor.editor && !importantDateEditor.deleting && <ImportantDateSheet
+      key={`${importantDateEditor.editor.requestId}:${importantDateEditor.editor.date.id}`}
+      date={importantDateEditor.editor.date} initialTargetId={importantDateEditor.editor.space.id}
+      memberSpaces={[importantDateEditor.editor.space]} eligibleSpaces={[importantDateEditor.editor.space]}
+      canAct onSubmit={importantDateEditor.save} onCancel={importantDateEditor.close} onDelete={importantDateEditor.beginDelete}
+    />}
+    {importantDateEditor.editor && importantDateEditor.deleting && <ImportantDateDeleteDialog
+      date={importantDateEditor.editor.date} space={importantDateEditor.editor.space} busy={importantDateEditor.busy}
+      error={importantDateEditor.error} canAct onCancel={importantDateEditor.cancelDelete} onConfirm={() => void importantDateEditor.confirmDelete()}
+    />}
     {editingEvent && eventSpace && eventMembers.length > 0 && <EventSheetComponent
       target={editingEvent.source_event.recurrence_rule === null ? eventEditTargetForEvent(editingEvent.source_event) : eventEditTargetForOccurrence(editingEvent)}
       space={eventSpace} userId={userId} members={eventMembers} partnerId={eventMembers.find((member) => member.user_id !== userId)?.user_id ?? null}

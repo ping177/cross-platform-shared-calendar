@@ -125,3 +125,59 @@ test('Home sections distinguish loading, empty and errors and expand only curren
     assert.match(independent, /对象0/);
   } finally { await vite.close(); }
 });
+
+test('Home independent Space/member/source reads start together while required failure remains all-or-nothing', async () => {
+  let release!: () => void; const barrier = new Promise<void>((yes) => { release = yes; }); const calls: string[] = [];
+  const read = readHomeEvents([personal, shared], homeEventRange(new Date(2026, 8, 24)), {
+    members: async (spaceId) => { calls.push(`members:${spaceId}`); await barrier; return [member(spaceId)]; },
+    eventPage: async (spaceId, kind) => { calls.push(`${kind}:${spaceId}`); await barrier; return { data: [], count: 0, error: null }; },
+    exceptionPage: async () => { throw new Error('No recurring sources'); },
+  });
+  try { assert.equal(calls.length, 8); } finally { release(); }
+  assert.deepEqual((await read).occurrences, []);
+});
+
+test('Home Task setup qualification precedes parallel eligible Space/member/task reads', async () => {
+  let release!: () => void; const barrier = new Promise<void>((yes) => { release = yes; }); const calls: string[] = [];
+  const read = readHomeTasks([personal, shared], 'me', new Date(2026, 8, 24), {
+    modulePage: async () => { calls.push('modules'); return { data: [personal, shared].map((space) => ({ space_id: space.id, enabled: true })), count: 2, error: null }; },
+    members: async (id) => { calls.push(`members:${id}`); await barrier; return [member(id)]; },
+    taskPage: async (id) => { calls.push(`tasks:${id}`); await barrier; return { data: [task(id, id, null)], count: 1, error: null }; },
+  });
+  for (let n = 0; n < 6; n++) await Promise.resolve();
+  try { assert.equal(calls[0], 'modules'); assert.equal(calls.length, 5); } finally { release(); }
+  assert.equal((await read).tasks.length, 2);
+});
+
+test('parallel Home readers retain sequential complete pagination and all recurring exception pages', async () => {
+  const today = new Date(2026, 8, 24); const starts = today.toISOString(); const calls: any[] = [];
+  const recurring = event('series', shared.id, starts, false, true);
+  const once = Array.from({ length: 501 }, (_, n) => event(`once-${n}`, shared.id, starts));
+  const exceptions = Array.from({ length: 501 }, (_, n) => ({ id: `ex-${n}`, event_id: recurring.id, occurrence_date: new Date(2020, 0, n + 1).toISOString().slice(0, 10), exception_type: 'deleted', override_data: null } as EventOccurrenceException));
+  const result = await readHomeEvents([shared], homeEventRange(today), {
+    members: async (id) => [member(id)],
+    eventPage: async (_id, kind, start, end) => { calls.push([kind, start]); const rows = kind === 'starting' ? once : kind === 'recurring' ? [recurring] : []; return { data: rows.slice(start, end + 1), count: rows.length, error: null }; },
+    exceptionPage: async (_ids, start, end) => { calls.push(['exceptions', start]); return { data: exceptions.slice(start, end + 1), count: exceptions.length, error: null }; },
+  });
+  assert.deepEqual(calls.filter(([kind]) => kind === 'starting'), [['starting', 0], ['starting', 500]]);
+  assert.deepEqual(calls.filter(([kind]) => kind === 'exceptions'), [['exceptions', 0], ['exceptions', 500]]);
+  assert.equal(result.occurrences.filter((item) => item.source_event_id.startsWith('once-')).length, 501);
+  assert.ok(calls.findIndex(([kind]) => kind === 'exceptions') > calls.findIndex(([kind, start]) => kind === 'starting' && start === 500));
+  const tasks = Array.from({ length: 501 }, (_, n) => task(`task-${n}`, shared.id, null)); const taskPages: number[] = [];
+  const loaded = await readHomeTasks([shared], 'me', today, {
+    modulePage: async () => ({ data: [{ space_id: shared.id, enabled: true }], count: 1, error: null }),
+    members: async (id) => [member(id)],
+    taskPage: async (_id, start, end) => { taskPages.push(start); return { data: tasks.slice(start, end + 1), count: tasks.length, error: null }; },
+  });
+  assert.deepEqual(taskPages, [0, 500]); assert.equal(loaded.tasks.length, 501);
+});
+
+test('confirmed Task eligibility is published before source failure without partial presentation result', async () => {
+  let confirmed: CurrentSpace[] | undefined;
+  await assert.rejects(readHomeTasks([personal, shared], 'me', new Date(2026, 8, 24), {
+    modulePage: async () => ({ data: [{ space_id: personal.id, enabled: true }, { space_id: shared.id, enabled: false }], count: 2, error: null }),
+    onEligible: (spaces) => { confirmed = spaces; }, members: async (id) => [member(id)],
+    taskPage: async () => ({ data: [], count: null, error: new Error('source offline') }),
+  }), /source offline/);
+  assert.deepEqual(confirmed, [personal]);
+});

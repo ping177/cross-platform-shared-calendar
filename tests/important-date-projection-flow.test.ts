@@ -46,7 +46,7 @@ async function runtime(run: (env: any) => Promise<void>) {
   }] } as any);
   try {
     const use = (await vite.ssrLoadModule('/src/components/useImportantDateProjection.ts')).useImportantDateProjection;
-    const render = (request: any = home, scope: any = entry, userId = 'me') => { cursor = 0; return use(userId, request, scope); };
+    const render = (request: any = home, scope: any = entry, userId = 'me', retention?: any) => { cursor = 0; return use(userId, request, scope, retention); };
     await run({ render, mock, effects, setLoader: (fn: any) => { mock.load = fn; } });
   } finally { await vite.close(); delete (globalThis as any).__importantDateProjectionTest; }
 }
@@ -181,3 +181,71 @@ test('T1 production additions have no Event writes/RPC, occurrence persistence, 
   const added = source.slice(source.indexOf('// Numeric civil fields only;'), source.indexOf('function contentArgs('));
   assert.doesNotMatch(added, /\.rpc\(|\.channel\(|\.insert\(|\.update\(|\.delete\(|from\('events'\)/);
 });
+
+
+test('StrictMode mount effect replay starts only one canonical read and cleaned-up mounts start none', () => runtime(async (env) => {
+  let reads = 0; env.setLoader(async () => { reads++; return snapshot; });
+  env.render();
+  const mount = env.effects[0];
+  mount()(); // StrictMode setup -> cleanup before its replayed setup.
+  const cleanup = mount();
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(reads, 1);
+  assert.equal(env.render().state.status, 'success');
+  cleanup();
+  mount()(); // A mount that is cleaned up before starting cannot spend network work.
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(reads, 1);
+}));
+
+
+test('a foreground reconciliation in the mount turn supersedes the queued initial read without a duplicate', () => runtime(async (env) => {
+  let reads = 0; env.setLoader(async () => { reads++; return snapshot; });
+  env.render(); const cleanup = env.effects[0]();
+  await env.render().refresh(); // Same path used by foreground/retry before the mount microtask.
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(reads, 1); assert.equal(env.render().state.status, 'success');
+  cleanup();
+}));
+
+test('Home retained state explicitly distinguishes background refreshing/error from fresh canonical success', () => runtime(async (env) => {
+  const validated: any[] = [];
+  const retained = { userId: 'me', today: home.today, scope: entry, items: [{ importantDateId: 'old', spaceId: space.id, name: 'old', emoji: null }] };
+  const retention = { memberSpaces: [space], initialData: retained, onValidated: (data: any) => validated.push(data) };
+  const render = () => env.render(home, entry, 'me', retention);
+  assert.equal(render().state.refreshing, true); assert.equal(render().state.view.items[0].importantDateId, 'old');
+  const pending = deferred(); env.setLoader(() => pending.promise); const read = render().refresh();
+  assert.equal(render().state.refreshing, true); assert.equal(validated.length, 0);
+  pending.resolve(snapshot); await read;
+  assert.equal(render().state.refreshing, false); assert.equal(validated.length, 1);
+  assert.equal(validated[0].items[0].importantDateId, date.id); assert.equal('dates' in validated[0], false);
+  env.setLoader(async () => { throw new Error('offline'); }); await render().refresh();
+  assert.equal(render().state.status, 'error'); assert.equal(render().state.refreshing, false);
+  assert.equal(render().state.view.items[0].importantDateId, date.id); assert.equal(validated.length, 1);
+}));
+
+test('auth read failure clears Home retained presentation and permits a fresh explicit retry', () => runtime(async (env) => {
+  let invalidations = 0;
+  const retention = { memberSpaces: [space], initialData: { userId: 'me', today: home.today, scope: entry, items: [] }, onInvalidate: () => { invalidations++; } };
+  const render = () => env.render(home, entry, 'me', retention);
+  env.setLoader(async () => { throw new env.mock.AuthError(); }); await render().refresh();
+  assert.equal(render().state.view, null); assert.equal(invalidations, 1);
+  env.setLoader(async () => snapshot); await render().refresh();
+  assert.equal(render().state.status, 'success'); assert.equal(render().state.view.items[0].importantDateId, date.id);
+}));
+
+test('retention callback cannot publish A1 over A2 after scope A→B→A or after invalidation', () => runtime(async (env) => {
+  const validated: any[] = []; const retention = { memberSpaces: [space], onValidated: (data: any) => validated.push(data) };
+  const render = (scope: any = entry) => env.render(home, scope, 'me', retention);
+  await render().refresh(); validated.length = 0;
+  const a1 = deferred(); const a2 = deferred();
+  env.setLoader(() => a1.promise); const old = render().refresh();
+  render({ memberSpaces: [space], eligibleSpaces: [] });
+  env.setLoader(() => a2.promise); const fresh = render().refresh();
+  a2.resolve({ ...snapshot, dates: [{ ...date, id: 'a2' }] }); await fresh;
+  a1.resolve({ ...snapshot, dates: [{ ...date, id: 'a1' }] }); await old;
+  assert.deepEqual(validated.map((data) => data.items[0].importantDateId), ['a2']);
+  const late = deferred(); env.setLoader(() => late.promise); const cancelled = render().refresh();
+  render().invalidate(); late.resolve(snapshot); await cancelled;
+  assert.equal(validated.length, 1); assert.equal(render().state.view, null);
+}));
