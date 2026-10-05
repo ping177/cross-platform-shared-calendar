@@ -8,25 +8,27 @@
 
 - Complete two-session Email OTP recurrence Realtime and supported-browser DST-zone coverage; this is not a v0.1.8 product-line blocker.
 
-## v0.1.18 — 重要日 — IN PROGRESS
+## v0.1.18 — 重要日 — CLOSED / PASS
 
-Canonical contract: [v0.1.18 重要日 Specification](./v0.1.18_IMPORTANT_DATES_SPEC.md). Slice 1 core object flow and Slice 2 Date-level Push are CLOSED / PASS, including their previously recorded backend/frontend/Production acceptance. Slice 3 Home / Calendar projection remains IN PROGRESS. Detailed verification and rollout evidence stays in TESTING/PROJECT_STATE.
+Canonical contract: [v0.1.18 重要日 Specification](./v0.1.18_IMPORTANT_DATES_SPEC.md). Slice 1 core object flow and Slice 2 Date-level Push are CLOSED / PASS, including their previously recorded backend/frontend/Production acceptance. Slice 3 Home / Calendar projection is CLOSED / PASS; T1/T2/T3/T4 CLOSED / PASS, with user FINAL_MANUAL_REGRESSION = PASS. Detailed verification and rollout evidence stays in TESTING/PROJECT_STATE.
 
-- Slice 3 T1 query/pure derivation and T2 own-object handoff: CLOSED / LOCAL AUTOMATED PASS / REMOTE SYNCED.
+- Slice 3 T1 query/pure derivation and T2 own-object handoff: CLOSED / PASS (foundation automated acceptance and remote sync preserved).
 - Slice 3 T3 Home projection: CLOSED / PASS (local automated + user authenticated local acceptance). Event/Task/Important Date return without Loading flash; single rows open their own Sheet directly on Home. Important Date top3/order/Space/refill/toggle/CRUD/Reminder/close/view-all/basic mobile PASS.
-- Slice 3 T4 Calendar Important Date projection: NOT STARTED; next separately authorized implementation prompt. No hidden Event, materialized occurrence or second authority; existing T2 remains.
+- Slice 3 T4 Calendar Important Date projection: FUNCTIONAL MANUAL PASS / RETENTION UX PASS. Calendar Event P0a retention: USER MANUAL PASS. Task P0b: AUTOMATED PASS; normal behavior included in the user-passed final manual regression. Independent feature-specific Event presentation slot; fresh canonical action authority. No hidden Event, materialized occurrence or second authority; shared exact target reader/editor and generation guards remain; obsolete T2 navigation is removed.
 
-### Deferred Slice 3 final Interaction Consistency & Cleanup Audit
+### Slice 3 Current implemented modules — stage interaction cleanup / PASS
 
-After T4 / Slice 3 functional implementation is complete, before final Slice 3 closeout, perform a product-wide audit. Scope: 首页 / 日历 / 功能中心 / 我的 navigation; Event / Task / 回顾 / 清单 / 重要日; single-item versus 查看全部; Sheet save/delete/close/back; loading/refreshing/error; module disable/re-enable; same-class consistency; duplicated readers/qualification; obsolete handoff/gates/helpers; dead acceptance-era code. **Audit first, delete later** under a bounded follow-up authorization. Do not perform cleanup or introduce a new architecture during T3 closeout; do not pre-delete T2 based on Home direct Sheet.
+The READ-ONLY interaction audit identified P0a/P0b and unreachable T2 navigation. P0a has user manual PASS; P0b local automated PASS, with normal filter/complete/reopen included in user FINAL_MANUAL_REGRESSION = PASS (no separate manual failure-simulation blocker). Stage P1 cleanup is implemented and locally verified: delete only zero-production-entry navigation controller/wiring/full-module pending/returnTo branches, migrate active target authority tests, keep shared exact reader/editor/guards and direct Sheets. Full Important Dates retained refresh wording, Event/Task basic keyboard/focus and ordinary Event delete confirmation are covered. Recurring Event scope confirmation, Task/Important Date delete confirmations and save→close lifecycle are intentionally preserved. No generic modal/cache/query/store/backend/Realtime framework.
 
-Final Slice 3 Production/PWA acceptance follows T4 and this audit. T3 local authenticated PASS and normal Git remote sync do not establish it. Important Date active-view Realtime remains deferred; no new Production write is authorized by this backlog item.
+This is **current implemented modules stage cleanup**, not permanent product-wide audit completion. After future major features, another whole-product interaction audit remains allowed. User FINAL_MANUAL_REGRESSION = PASS closes the current stage cleanup and Slice 3. Next product work is to be separately scoped; no further speculative cleanup or refactor is selected.
+
+No additional Slice 3 Production/PWA-specific acceptance was performed for this closeout. Local final acceptance and normal Git remote sync do not establish deployment or those extra test results. Important Date active-view Realtime remains deferred; no new Production write is authorized by this backlog item.
 
 ## Latest Completed Product Slice
 
 ### v0.1.17 — Space-aware List Create Default — CLOSED / PASS
 
-Implementation/automated verification, local authenticated acceptance, and user-reported Production/PWA acceptance on the deployed Vercel build all passed. Local acceptance confirmed explicit form-target ownership; Production/PWA checks confirmed the Personal default in 全部空间 and the current Space default under Personal and Shared filters. Android-specific acceptance was not reported. The frozen create-default convention is recorded in [Decisions](./DECISIONS.md). Important Dates v0.1.18 is IN PROGRESS; current slice status is recorded above.
+Implementation/automated verification, local authenticated acceptance, and user-reported Production/PWA acceptance on the deployed Vercel build all passed. Local acceptance confirmed explicit form-target ownership; Production/PWA checks confirmed the Personal default in 全部空间 and the current Space default under Personal and Shared filters. Android-specific acceptance was not reported. The frozen create-default convention is recorded in [Decisions](./DECISIONS.md). Important Dates v0.1.18 is CLOSED / PASS; current acceptance is recorded above.
 
 ### v0.1.9 — Shared Tasks MVP
 
@@ -172,7 +174,7 @@ Canonical contract: [v0.1.15 Shared Lists Specification](./v0.1.15_SHARED_LISTS_
 
 Slices 1–4 and v0.1.15 are `CLOSED / PASS`. Final user acceptance covers desktop authenticated flows, dual-account Realtime, mobile/PWA Item drag and long-list auto-scroll. Full Node 356/356 and build passed. Stale reorder is `AUTOMATED PASS / MANUAL NOT REQUIRED`; Section drag is `DEFERRED / NON-BLOCKING`, and the existing bundle warning is non-blocking. No current blocker is recorded.
 
-v0.1.16 and v0.1.17 are closed below. v0.1.18 重要日 is IN PROGRESS: Slice 1/2 CLOSED / PASS, Slice 3 T1/T2 closed, T3 CLOSED / PASS, T4 NOT STARTED; the deferred final interaction audit is recorded above.
+v0.1.16 and v0.1.17 are closed below. v0.1.18 重要日 is CLOSED / PASS: Slices 1–3 and Slice 3 T1–T4 closed; T4 functional/retention, P0a manual, P0b automated/final normal regression and current-modules stage cleanup PASS; user FINAL_MANUAL_REGRESSION = PASS.
 
 ## v0.1.16 — Module Entry Responsiveness / Data Flow Simplification — CLOSED / PASS
 
@@ -192,7 +194,7 @@ The long-term relationships and v0.1.10 scope are frozen in [Shared Life Archite
 - v0.1.15 — Shared Lists (CLOSED / PASS; Slices 1–4 CLOSED / PASS; desktop, dual-account Realtime and mobile/PWA PASS; Section drag DEFERRED / NON-BLOCKING).
 - v0.1.16 — Module Entry Responsiveness / Data Flow Simplification (CLOSED / PASS; automated, local authenticated desktop, and Production installed-PWA acceptance PASS; Android-specific acceptance not reported).
 - v0.1.17 — Space-aware List create default (CLOSED / PASS; implementation/automated, local authenticated, and Production/PWA acceptance PASS; Android-specific acceptance not reported).
-- v0.1.18 — 重要日 (IN PROGRESS; Slice 1/2 CLOSED / PASS; Slice 3 IN PROGRESS, T1/T2 closed, T3 CLOSED / PASS for local automated/authenticated acceptance, T4 NOT STARTED; final interaction audit and Slice 3 Production/PWA acceptance pending).
+- v0.1.18 — 重要日 (CLOSED / PASS; Slices 1–3 and Slice 3 T1–T4 CLOSED / PASS; T4 functional + retention UX PASS; P0a manual PASS; P0b automated PASS and final normal regression PASS; current-modules stage cleanup PASS; FINAL_MANUAL_REGRESSION = PASS; no extra Production/PWA-specific PASS inferred).
 - Later candidates without fixed versions/order: Task due-date Push Reminder, Calendar Sources v1, Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules. These remain unselected and their priority may change based on real product use.
 - Future direction only: consider projecting/sharing a Personal Event into another Space while keeping one canonical Event owner Space, avoiding duplicate canonical objects, and ensuring that leaving the target Shared Space does not affect the source Event. This is outside v0.1.13; do not implement or reserve schema for it in this version.
 - Native: decision gate only; no committed implementation version.

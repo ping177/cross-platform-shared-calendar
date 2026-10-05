@@ -5,12 +5,11 @@ import type { ModuleEntry } from '../lib/module-availability';
 import { createRequestGuard } from '../lib/request-guard';
 import { supabase } from '../lib/supabase';
 import type { CurrentSpace, ImportantDate } from '../types';
-import type { PendingImportantDateHandoff } from './useImportantDateHandoff';
-import { useImportantDateTarget } from './useImportantDateTarget';
+import { type ImportantDateTargetRequest, useImportantDateTarget } from './useImportantDateTarget';
 
 // A single canonical interaction, owned by its mounting page. Presentation
 // snapshots never enter this controller and successful writes only request reread.
-export function useImportantDateEditor(userId: string, identity: PendingImportantDateHandoff | null, options: {
+export function useImportantDateEditor(userId: string, identity: ImportantDateTargetRequest | null, options: {
   spaces: CurrentSpace[]; entry?: ModuleEntry | null; onClose: () => void; onReconcile: () => void;
 }) {
   const [editor, setEditor] = useState<{ date: ImportantDate; space: CurrentSpace; requestId: number; userId: string } | null>(null);

@@ -33,6 +33,8 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
   const submitLock = useRef(createSubmitLock());
   const previousSpaceId = useRef(spaceId);
   const createHeading = useRef<HTMLHeadingElement>(null);
+  const dialog = useRef<HTMLElement>(null);
+  const keyboard = useRef({ busy, cancel: () => {} });
   const createReady = !createTarget || canUseCreateTarget(createTarget.state, createTarget.selectedId, spaceId, members, userId);
 
   useEffect(() => {
@@ -42,7 +44,40 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
   }, [createTarget, spaceId]);
 
   useEffect(() => { setConfirmingCreateTargetId(null); }, [createTarget?.selectedId, createTarget?.state, userId]);
-  useEffect(() => { if (createTarget) createHeading.current?.focus(); }, []);
+  keyboard.current = { busy, cancel: () => {
+    if (confirmingDelete) setConfirmingDelete(false);
+    else if (confirmingCreateTargetId) setConfirmingCreateTargetId(null);
+    else onClose();
+  } };
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null;
+    const root = dialog.current;
+    createHeading.current?.focus();
+    const keydown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault(); event.stopPropagation();
+        if (!keyboard.current.busy) keyboard.current.cancel();
+      }
+      if (event.key !== 'Tab') return;
+      const controls = Array.from(root?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled)') ?? []);
+      const first = controls[0], last = controls[controls.length - 1];
+      if (!controls.includes(document.activeElement as HTMLElement) || (event.shiftKey ? document.activeElement === first : document.activeElement === last)) {
+        event.preventDefault(); (event.shiftKey ? last : first)?.focus();
+        if (!first) createHeading.current?.focus();
+      }
+    };
+    root?.addEventListener('keydown', keydown);
+    return () => { root?.removeEventListener('keydown', keydown); if (previous?.isConnected) previous.focus(); };
+  }, []);
+  useEffect(() => {
+    if (!confirmingDelete && !confirmingCreateTargetId) return;
+    const previous = document.activeElement as HTMLElement | null;
+    if (confirmingDelete || confirmingCreateTargetId) dialog.current?.querySelector<HTMLElement>('[data-confirm-cancel]')?.focus();
+    return () => {
+      if (previous?.isConnected && dialog.current?.contains(previous)) previous.focus();
+      else if (dialog.current?.isConnected) createHeading.current?.focus();
+    };
+  }, [confirmingDelete, confirmingCreateTargetId]);
 
   async function save(event?: FormEvent, confirmed = false) {
     event?.preventDefault();
@@ -127,9 +162,9 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
 
   return (
     <div className="fixed inset-0 z-20 flex items-end bg-ink/35 md:items-center md:px-4 md:py-6">
-      <section className="mx-auto max-h-[92dvh] w-full max-w-md overflow-y-auto overscroll-contain rounded-t-2xl bg-white p-5 shadow-soft safe-bottom md:rounded-lg" role="dialog" aria-modal="true" aria-labelledby="task-sheet-title">
+      <section ref={dialog} className="mx-auto max-h-[92dvh] w-full max-w-md overflow-y-auto overscroll-contain rounded-t-2xl bg-white p-5 shadow-soft safe-bottom md:rounded-lg" role="dialog" aria-modal="true" aria-labelledby="task-sheet-title">
         <div className="flex items-center justify-between gap-3">
-          <h2 id="task-sheet-title" ref={createHeading} tabIndex={createTarget ? -1 : undefined} className="text-xl font-bold">{task ? '编辑任务' : '新建任务'}</h2>
+          <h2 id="task-sheet-title" ref={createHeading} tabIndex={-1} className="text-xl font-bold">{task ? '编辑任务' : '新建任务'}</h2>
           <button className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-mist disabled:opacity-60" type="button" onClick={onClose} disabled={busy} aria-label="关闭任务表单">
             <X size={20} />
           </button>
@@ -144,7 +179,7 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
             <h3 className="text-lg font-bold">确认保存？</h3>
             <p className="text-sm text-ink/70">将保存到：<strong className="block break-words text-base text-ink">{createTarget?.spaces.find((item) => item.id === spaceId)?.name ?? ''}</strong></p>
             <div className="flex gap-3">
-              <button className="h-12 flex-1 rounded-lg bg-mist font-semibold" type="button" disabled={busy} onClick={() => setConfirmingCreateTargetId(null)}>取消</button>
+              <button data-confirm-cancel className="h-12 flex-1 rounded-lg bg-mist font-semibold" type="button" disabled={busy} onClick={() => setConfirmingCreateTargetId(null)}>取消</button>
               <button className="h-12 flex-1 rounded-lg bg-teal font-semibold text-white disabled:opacity-50" type="button" disabled={busy || !actionsAllowed || !createReady} onClick={() => void save(undefined, true)}>{busy ? '保存中' : '确认保存'}</button>
             </div>
           </div>
@@ -152,7 +187,7 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
           <div className="mt-5 space-y-4">
             <p className="text-sm text-ink/70">确定删除「{task.title}」吗？删除后无法恢复。</p>
             <div className="flex gap-3">
-              <button className="h-12 flex-1 rounded-lg bg-mist font-semibold disabled:opacity-60" type="button" disabled={busy} onClick={() => setConfirmingDelete(false)}>取消</button>
+              <button data-confirm-cancel className="h-12 flex-1 rounded-lg bg-mist font-semibold disabled:opacity-60" type="button" disabled={busy} onClick={() => setConfirmingDelete(false)}>取消</button>
               <button className="h-12 flex-1 rounded-lg bg-coral font-semibold text-white disabled:opacity-60" type="button" disabled={busy || !actionsAllowed} onClick={() => void deleteTask()}>{busy ? '删除中' : '确认删除'}</button>
             </div>
           </div>

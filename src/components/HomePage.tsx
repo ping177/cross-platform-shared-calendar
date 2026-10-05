@@ -12,7 +12,7 @@ import { canChangeTaskStatus, formatTaskDueDate, taskAssignmentLabel, taskErrorM
 import type { CalendarEvent, CalendarOccurrence, CalendarOccurrenceRange, CurrentSpace, EventOccurrenceException, SpaceMember, Task } from '../types';
 import { TaskSheet } from './TaskSheet';
 import { HomeImportantDatesSection } from './HomeImportantDatesSection';
-import type { PendingImportantDateHandoff, ImportantDateIdentityHandoff } from './useImportantDateHandoff';
+import type { ImportantDateTargetRequest, ImportantDateIdentity } from './useImportantDateTarget';
 import { useImportantDateEditor } from './useImportantDateEditor';
 import { ImportantDateSheet, ImportantDateDeleteDialog } from './ImportantDateSheet';
 import type { ModuleEntry } from '../lib/module-availability';
@@ -104,7 +104,7 @@ export function HomePage({ spaces, userId, EventSheetComponent, onMembershipRefr
   onTasksValidated?: (data: HomeTaskSnapshot) => void; onTasksInvalidate?: () => void;
   initialImportantDates?: HomeImportantDatesSnapshot; onImportantDatesValidated?: (data: HomeImportantDatesSnapshot) => void; onImportantDatesInvalidate?: () => void;
 }) {
-  const [importantDateIdentity, setImportantDateIdentity] = useState<PendingImportantDateHandoff | null>(null);
+  const [importantDateIdentity, setImportantDateIdentity] = useState<ImportantDateTargetRequest | null>(null);
   const importantDateRequest = useRef(0);
   const reconcileImportantDates = useRef<() => void>(() => {});
   const importantDateEditor = useImportantDateEditor(userId, importantDateIdentity, {
@@ -302,7 +302,7 @@ export function HomePage({ spaces, userId, EventSheetComponent, onMembershipRefr
     return () => clearTimeout(timer);
   }, [dayRevision]);
 
-  function openImportantDate(identity: ImportantDateIdentityHandoff) {
+  function openImportantDate(identity: ImportantDateIdentity) {
     // Cancel the existing Home opening tickets before choosing another Sheet.
     eventOpening.current += 1; openingGeneration.current += 1; createGeneration.current += 1;
     setEditingEvent(null); setEditingTask(null); setOpeningTask(false);

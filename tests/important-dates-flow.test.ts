@@ -74,7 +74,7 @@ async function runtime(run: (env: any) => Promise<void>) {
     const Page = (await vite.ssrLoadModule('/src/components/ImportantDatesPage.tsx')).ImportantDatesPage;
     const renderHook = (options?: any) => { hook.reset(); return use('me', () => calls.push('no-eligible'), 0, options); };
     const renderSheet = (props: any) => { hook.reset(); return Sheet(props); };
-    const renderPage = () => { hook.reset(); const child = Page({ userId: 'me', onHubBack() {}, onNoEligible() {} }); return child.type(child.props); };
+    const renderPage = (options: any = {}) => { hook.reset(); const child = Page({ ...options, userId: 'me', onHubBack() {}, onNoEligible() {} }); return child.type(child.props); };
     const renderDelete = (props: any) => { hook.reset(); return sheets.ImportantDateDeleteDialog(props); };
     await run({ hook, calls, mock, renderHook, renderSheet, renderPage, renderDelete, renderToggle, setLoader: (fn: any) => { loader = fn; } });
   } finally { await vite.close(); delete (globalThis as any).__importantDatesTest; }
@@ -402,3 +402,16 @@ test('Sheet cosmetic save keeps every existing reminder preset and never changes
     assert.equal(elements(tree).some((item) => item.type === 'select' && item.props.id === 'important-date-space'), false);
   });
 });
+
+
+test('full Important Dates distinguishes retained background update from cold read wording', () => runtime(async (env) => {
+  let tree = env.renderPage();
+  assert.ok(elements(tree).some((item) => item.props.role === 'status' && item.props.children === '正在读取重要日…'));
+}));
+
+test('retained full Important Dates content stays visible with lightweight update wording', () => runtime(async (env) => {
+  const pending = deferred(); env.setLoader(() => pending.promise);
+  const tree = env.renderPage({ initialData: snapshot, entry: snapshot });
+  assert.ok(elements(tree).some((item) => item.type?.name === 'ImportantDatesContent'));
+  assert.ok(elements(tree).some((item) => item.props.role === 'status' && item.props.children === '重要日更新中…'));
+}));

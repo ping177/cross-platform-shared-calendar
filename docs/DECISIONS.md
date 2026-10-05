@@ -1,11 +1,18 @@
 # Decisions
 
-## v0.1.18 Slice 3 T3 — Home interaction frozen / final audit deferred — 2026-10-04
+## Current implemented modules stage interaction cleanup — 2026-10-05
+
+- Home/Calendar single Important Date rows use their local direct Sheet with the shared exact canonical target/editor and requestId/generation qualification. Full-module entry/view-all/session restore stays in the existing navigation parser. The unreachable old runtime row-to-module controller, pending/returnTo wiring and module target branch are removed; no generic routing/resolver layer replaces them.
+- Calendar Important Date functional + retention UX and Calendar Event P0a user manual acceptance PASS. P0b local automated PASS; its normal behavior is included in user FINAL_MANUAL_REGRESSION = PASS. Session-local feature-specific validated presentation remains separate from fresh action authority.
+- Full Important Dates with retained rows says 更新中 while canonical refresh runs; cold entry says 正在读取. Event/Task use local Escape/Tab/focus handling modeled on the existing Important Date Sheet, without a generic modal framework. Ordinary Event destructive icon now asks for explicit named confirmation; recurring scope choice and Task/Important Date confirmation retain their own semantics. Existing save/close mutation ordering remains unchanged.
+- This is a stage cleanup for current implemented modules, not a permanently completed product-wide audit. Future major features may trigger another consistency audit. User FINAL_MANUAL_REGRESSION = PASS closes this stage cleanup, Slice 3 (T1–T4) and v0.1.18 as CLOSED / PASS. Next product work is separately scoped; no additional Production/PWA-specific acceptance or deployment is established by this closeout.
+
+## Historical checkpoint — v0.1.18 Slice 3 T3 Home interaction frozen — 2026-10-04
 
 - User authenticated local acceptance closes T3 as CLOSED / PASS. Overall v0.1.18 / Slice 3 remain IN PROGRESS, T4 NOT STARTED. This local acceptance is not current T3 Production/installed-PWA acceptance; normal Git remote publication does not prove deployment or acceptance.
-- Home single Event / Task / Important Date rows open their own existing Sheet directly on Home. Important Date close/cancel/save/delete stays Home; title / 查看全部 enters the full module. This supersedes the acceptance-era Home row-to-module navigation, while preserving T2 module handoff and ordinary full-module behavior for current use and future T4.
+- Home single Event / Task / Important Date rows open their own existing Sheet directly on Home. Important Date close/cancel/save/delete stays Home; title / 查看全部 enters the full module. This supersedes the acceptance-era Home row-to-module navigation, with ordinary full-module behavior preserved. The historical T2 navigation layer was later proven unreachable and removed at the stage cleanup above; its exact target reader/editor and request guards stay active.
 - CalendarApp owns three independent feature-specific Home validated presentation slots, extending v0.1.16. A safe warm return restores content while canonical reread runs; refresh errors retain safe content with retry. Snapshots never authorize editing/mutation. Event uses current canonical reconciliation; Task exact-open/qualified completion and Important Date exact canonical14/Auth/member/role/module/Space checks remain authoritative. Existing Event/Task Realtime stays notification→canonical reread; Important Date active-view Realtime remains deferred. No generic cache/store/target/router/projection framework or persistent frontend business data.
-- After T4 / Slice 3 functional completion, before final Slice 3 closeout, perform product-wide Interaction Consistency & Cleanup Audit (scope in BACKLOG). Audit first, delete later under bounded authorization. Do not run it now or pre-delete T2 infrastructure. Final Slice 3 Production/PWA acceptance follows that work.
+- After T4 / Slice 3 functional completion, before final Slice 3 closeout, perform product-wide Interaction Consistency & Cleanup Audit (scope in BACKLOG). Audit first, delete later under bounded authorization. At that historical checkpoint, audit/cleanup had not run; the authorized stage cleanup above supersedes that timing constraint. Final Slice 3 Production/PWA acceptance follows that work.
 
 ## v0.1.18 — 重要日 Design Freeze — 2026-09-30
 

@@ -3,13 +3,13 @@ import { importantDateLocalToday } from '../lib/important-dates';
 import type { ModuleEntry } from '../lib/module-availability';
 import type { CurrentSpace } from '../types';
 import { ImportantDateIcon } from './ImportantDatesPage';
-import type { ImportantDateIdentityHandoff } from './useImportantDateHandoff';
+import type { ImportantDateIdentity } from './useImportantDateTarget';
 import { useImportantDateProjection, type HomeImportantDatesSnapshot } from './useImportantDateProjection';
 
 export function HomeImportantDatesSection({ userId, spaces, entry = null, initialData, onValidated, onInvalidate, onViewAll, onOpen, onRefreshReady }: {
   userId: string; spaces: CurrentSpace[]; entry?: ModuleEntry | null; onViewAll: () => void;
   onRefreshReady?: (refresh: () => void) => void;
-  onOpen: (target: ImportantDateIdentityHandoff) => void;
+  onOpen: (target: ImportantDateIdentity) => void;
   initialData?: HomeImportantDatesSnapshot; onValidated?: (data: HomeImportantDatesSnapshot) => void; onInvalidate?: () => void;
 }) {
   const [today, setToday] = useState(importantDateLocalToday);
@@ -52,7 +52,7 @@ export function HomeImportantDatesSection({ userId, spaces, entry = null, initia
       const space = eligible.find((space) => space.id === item.spaceId);
       return <li key={JSON.stringify([item.spaceId, item.importantDateId])} data-important-date-id={item.importantDateId} data-space-id={item.spaceId}>
         <button className="flex min-h-14 w-full min-w-0 items-start gap-3 rounded-lg bg-white px-4 py-3 text-left shadow-sm" type="button" aria-label={`打开重要日 ${item.name}`}
-          onClick={() => onOpen({ spaceId: item.spaceId, importantDateId: item.importantDateId, returnTo: 'home' })}>
+          onClick={() => onOpen({ spaceId: item.spaceId, importantDateId: item.importantDateId })}>
           <span className="mt-1 shrink-0"><ImportantDateIcon emoji={item.emoji} /></span>
           <span className="min-w-0 flex-1"><span className="block break-words font-semibold">{item.name}</span>
             <span className="mt-1 block font-semibold text-teal">{item.primary}</span>

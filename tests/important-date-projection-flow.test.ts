@@ -46,7 +46,7 @@ async function runtime(run: (env: any) => Promise<void>) {
   }] } as any);
   try {
     const use = (await vite.ssrLoadModule('/src/components/useImportantDateProjection.ts')).useImportantDateProjection;
-    const render = (request: any = home, scope: any = entry, userId = 'me', retention?: any) => { cursor = 0; return use(userId, request, scope, retention); };
+    const render = (request: any = home, scope: any = entry, userId = 'me', retention?: any, calendarRetention?: any) => { cursor = 0; return use(userId, request, scope, retention, calendarRetention); };
     await run({ render, mock, effects, setLoader: (fn: any) => { mock.load = fn; } });
   } finally { await vite.close(); delete (globalThis as any).__importantDateProjectionTest; }
 }
@@ -248,4 +248,22 @@ test('retention callback cannot publish A1 over A2 after scope A→B→A or afte
   const late = deferred(); env.setLoader(() => late.promise); const cancelled = render().refresh();
   render().invalidate(); late.resolve(snapshot); await cancelled;
   assert.equal(validated.length, 1); assert.equal(render().state.view, null);
+}));
+
+
+test('Calendar retention preserves StrictMode single start and only current complete reads replace the slot', () => runtime(async (env) => {
+  const validated: any[] = [];
+  const calendarRetention = { memberSpaces: [space], filterKey: 'all', view: 'today', timeZone: 'Asia/Shanghai', onValidated: (data: any) => validated.push(data) };
+  const render = (request: any = calendar) => env.render(request, entry, 'me', undefined, calendarRetention);
+  let reads = 0; env.setLoader(async () => { reads++; return snapshot; }); render();
+  const effect = env.effects[0]; effect()(); const cleanup = effect();
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(reads, 1); assert.equal(validated.length, 1); assert.equal(render().state.calendarComplete, true); cleanup();
+  const a1 = deferred(); env.setLoader(() => a1.promise); const old = render().refresh();
+  const changed = { ...calendar, range: { start: civil(2028, 2, 29), end: civil(2028, 2, 29) } };
+  assert.equal(render(changed).state.calendarComplete, false); assert.equal(validated.length, 1);
+  render(calendar); env.setLoader(async () => ({ ...snapshot, dates: [{ ...date, id: 'a2' }] })); await render().refresh();
+  a1.resolve({ ...snapshot, dates: [{ ...date, id: 'a1' }] }); await old;
+  assert.deepEqual(validated.map((data) => data.items[0].importantDateId), ['date', 'a2']);
+  assert.equal(render().state.view.items[0].importantDateId, 'a2');
 }));

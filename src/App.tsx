@@ -16,11 +16,16 @@ import { MyPage } from './components/MyPage';
 import { SpaceManagementPage } from './components/SpaceManagementPage';
 import { ModuleHub, useModuleAvailability } from './components/ModuleHub';
 import { ImportantDatesPage } from './components/ImportantDatesPage';
-import { useImportantDateHandoff } from './components/useImportantDateHandoff';
 import { loadImportantDatesEligibility, type ImportantDatesData } from './lib/important-dates-data';
 import { importantDateLocalToday, type ImportantDateFilter } from './lib/important-dates';
+import { CalendarImportantDateCard, CalendarImportantDateSheets, CalendarImportantDateStatus, importantDateFallsOnDay, importantDateOccurrenceKey } from './components/CalendarImportantDates';
+import { useCalendarImportantDates } from './components/useCalendarImportantDates';
+import { useCalendarEvents } from './components/useCalendarEvents';
+import { calendarEventScopeKey, calendarEventViewKey, validCalendarEventsSnapshot, type CalendarEventPresentation, type CalendarEventsSnapshot } from './lib/calendar-event-view';
+import type { ModuleEntry } from './lib/module-availability';
+import type { ImportantDateOccurrence } from './lib/important-date-projection';
 import { compareImportantDateCivilDates } from './lib/important-date-projection';
-import type { HomeImportantDatesSnapshot } from './components/useImportantDateProjection';
+import { calendarImportantDateTimeZone, validCalendarImportantDatesSnapshot, type CalendarImportantDatesSnapshot, type HomeImportantDatesSnapshot } from './components/useImportantDateProjection';
 import { ListsOverviewPage } from './components/ListsOverviewPage';
 import { ListDetailPage } from './components/ListDetailPage';
 import { ReviewHistoryPage, type ReviewHistorySnapshot } from './components/ReviewHistoryPage';
@@ -31,9 +36,7 @@ import type { TaskData } from './components/useAggregateTasks';
 import type { OverviewData } from './components/useListsOverview';
 import { validHomeEventSnapshot, validHomeTaskSnapshot, type HomeEventSnapshot, type HomeTaskSnapshot } from './lib/home-aggregation';
 import { HomePage } from './components/HomePage';
-import { calendarVisibleRange } from './lib/calendar-display';
-import { calendarSpaces, readAggregateCalendar, spaceLabel, validCalendarFilter, type CalendarFilter } from './lib/aggregate-calendar';
-import { createCalendarReadLoop } from './lib/calendar-refresh';
+import { calendarSpaces, spaceLabel, validCalendarFilter, type CalendarFilter } from './lib/aggregate-calendar';
 import { listCurrentSpaces } from './lib/current-spaces';
 import { draftFromEditTarget, type EventDraft } from './lib/event-edit-draft';
 import {
@@ -50,7 +53,7 @@ import { eventEditTargetForEvent, eventEditTargetForOccurrence } from './lib/eve
 import { canConfirmCreate, canUseCreateTarget, createSubmitLock, resetEventAudienceForTarget } from './lib/global-create';
 import { eventEditUiState, occurrenceActionCopy, type OccurrenceAction } from './lib/event-edit-ui';
 import { memberDisplayNameForUser } from './lib/member';
-import { defaultRecurrenceDraft, expandRecurringEvents, recurrenceDraftFromRule, recurrenceRuleFromDraft, recurrenceSummary, type RecurrenceDraft } from './lib/recurrence';
+import { defaultRecurrenceDraft, recurrenceDraftFromRule, recurrenceRuleFromDraft, recurrenceSummary, type RecurrenceDraft } from './lib/recurrence';
 import {
   allDayReminderOptions,
   defaultReminderKind,
@@ -87,12 +90,11 @@ import {
   isSameDay,
   occurrenceFallsOnDay,
   sortOccurrences,
-  startOfDay,
   startOfMonth,
   startOfWeek,
   toDateInputValue,
 } from './lib/date';
-import type { CalendarEvent, CalendarOccurrence, CurrentSpace, EventAudience, EventEditTarget, EventOccurrenceException, Space, SpaceMember } from './types';
+import type { CalendarEvent, CurrentSpace, EventAudience, EventEditTarget, Space, SpaceMember } from './types';
 import type { ReminderKind } from '../supabase/functions/_shared/reminder-due.ts';
 
 type ViewMode = 'today' | 'week' | 'month';
@@ -146,7 +148,7 @@ function getErrorMessage(error: unknown) {
   return '操作失败，请稍后再试。';
 }
 
-function audienceFromEvent(event: CalendarEvent, userId: string): EventAudience {
+function audienceFromEvent(event: Pick<CalendarEvent, 'scope' | 'owner_user_id'>, userId: string): EventAudience {
   if (event.scope === 'shared') {
     return 'shared';
   }
@@ -167,7 +169,7 @@ function audienceLabel(audience: EventAudience, userId: string, members: SpaceMe
   return memberDisplayNameForUser(members, ownerUserId);
 }
 
-function eventAudienceLabel(event: CalendarEvent, members: SpaceMember[]) {
+function eventAudienceLabel(event: Pick<CalendarEvent, 'scope' | 'owner_user_id'>, members: SpaceMember[]) {
   return event.scope === 'shared' ? '共同' : memberDisplayNameForUser(members, event.owner_user_id);
 }
 
@@ -434,6 +436,8 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
   const retainedHomeEvents = validHomeEventSnapshot(homeEventsSnapshot.current, userId, spaces, new Date());
   const retainedHomeTasks = validHomeTaskSnapshot(homeTasksSnapshot.current, userId, spaces, new Date(), homeTasksEntry);
   const homeImportantDatesSnapshot = useRef<HomeImportantDatesSnapshot | null>(null);
+  const calendarImportantDatesSnapshot = useRef<CalendarImportantDatesSnapshot | null>(null);
+  const calendarEventsSnapshot = useRef<CalendarEventsSnapshot | null>(null);
   // Pending availability is unknown, not a confirmed loss. Existing known
   // module state and current memberships only qualify display continuity.
   const homeImportantDatesEntry = moduleEntry(spaces, moduleAvailability.availability, 'important_dates', false);
@@ -466,12 +470,21 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
   const [listNotice, setListNotice] = useState('');
   const reviewDetailDirty = useRef(false);
   const [navigation, setNavigation] = useState(initialNavigation);
-  const importantDateHandoff = useImportantDateHandoff(userId, () => setNavigation((current) => openImportantDatesModule(current)));
   const [spaceListStatus, setSpaceListStatus] = useState<'loading' | 'ready' | 'error'>('ready');
   const [spaceActionBusy, setSpaceActionBusy] = useState(false);
   const [spaceDetailRevision, setSpaceDetailRevision] = useState(0);
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [viewMode, setViewMode] = useState<ViewMode>('today');
+  const calendarEventScope = calendarEventScopeKey(userId, spaces, calendarSpaces(spaces, calendarFilter), calendarFilter);
+  const retainedCalendarEvents = validCalendarEventsSnapshot(calendarEventsSnapshot.current, calendarEventScope, calendarEventViewKey(calendarEventScope, viewMode, selectedDate));
+  useEffect(() => {
+    if (calendarEventsSnapshot.current && !retainedCalendarEvents) calendarEventsSnapshot.current = null;
+  }, [retainedCalendarEvents]);
+  const retainedCalendarImportantDates = validCalendarImportantDatesSnapshot(calendarImportantDatesSnapshot.current, userId, spaces,
+    homeImportantDatesEntry, calendarFilter === 'all' ? 'all' : calendarFilter.spaceId, calendarImportantDateTimeZone());
+  useEffect(() => {
+    if (calendarImportantDatesSnapshot.current && !retainedCalendarImportantDates) calendarImportantDatesSnapshot.current = null;
+  }, [retainedCalendarImportantDates]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [personalInitializationError, setPersonalInitializationError] = useState<Error | null>(null);
@@ -612,10 +625,10 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
     }
   }
 
-  async function refreshSpaces(preserveHome = navigation.tab === 'home', expectedSpaceId?: string, selectionId = selectedSpaceId): Promise<boolean> {
+  async function refreshSpaces(preserveValidatedView = navigation.tab === 'home', expectedSpaceId?: string, selectionId = selectedSpaceId): Promise<boolean> {
     const currentRequest = requestGuard.current.begin();
-    const keepHomeVisible = preserveHome && spaceListStatus === 'ready' && (navigation.tab === 'home' || retainedHome);
-    if (!keepHomeVisible) setSpaceListStatus('loading');
+    const keepPresentationVisible = preserveValidatedView && spaceListStatus === 'ready' && (navigation.tab === 'home' || retainedHome || retainedCalendarImportantDates || retainedCalendarEvents);
+    if (!keepPresentationVisible) setSpaceListStatus('loading');
     setError('');
     try {
       const listed = await listCurrentSpaces(userId);
@@ -642,7 +655,7 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
     } catch (refreshError) {
       if (requestGuard.current.isCurrent(currentRequest)) {
         if (!expectedSpaceId) setError(getErrorMessage(refreshError));
-        if (!keepHomeVisible) setSpaceListStatus(expectedSpaceId ? 'ready' : 'error');
+        if (!keepPresentationVisible) setSpaceListStatus(expectedSpaceId ? 'ready' : 'error');
       }
       return false;
     }
@@ -653,10 +666,9 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
     if (!canChangeTabFromReviewDetail(navigation, reviewDetailDirty.current, () => window.confirm('有未保存的回顾内容，确定离开吗？'))) return;
     reviewDetailDirty.current = false;
     requestGuard.current.invalidate();
-    importantDateHandoff.reset();
     setNavigation((current) => selectTab(current, tab));
     if (tab === 'me') setMyScreen('profile');
-    if (tab === 'calendar' || tab === 'home') void refreshSpaces(tab === 'home' && retainedHome);
+    if (tab === 'calendar' || tab === 'home') void refreshSpaces((tab === 'home' && retainedHome) || (tab === 'calendar' && Boolean(retainedCalendarImportantDates || retainedCalendarEvents)));
   }
 
   async function managedSpaceReady(spaceId: string) {
@@ -671,7 +683,7 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
   }
 
   async function lifecycleSettled(action: SpaceLifecycleAction, failure?: string) {
-    if (!failure) { homeImportantDatesSnapshot.current = null; homeEventsSnapshot.current = null; homeTasksSnapshot.current = null; }
+    if (!failure) { calendarEventsSnapshot.current = null; calendarImportantDatesSnapshot.current = null; homeImportantDatesSnapshot.current = null; homeEventsSnapshot.current = null; homeTasksSnapshot.current = null; }
     await settleSpaceLifecycle(action, failure, {
       clearSelection: () => {
         setSelectedSpaceId(null);
@@ -731,16 +743,16 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
         initialImportantDates={retainedHomeImportantDates}
         onImportantDatesValidated={(data) => { if (data.userId === userId && sameModuleScope(homeImportantDatesEntry ?? { memberSpaces: spaces, eligibleSpaces: data.scope.eligibleSpaces }, data.scope.memberSpaces, data.scope.eligibleSpaces)) homeImportantDatesSnapshot.current = data; }}
         onImportantDatesInvalidate={() => { homeImportantDatesSnapshot.current = null; }}
-        onOpenImportantDates={() => { importantDateHandoff.reset(); setNavigation((current) => openImportantDatesModule(current)); }} />}
+        onOpenImportantDates={() => { setNavigation((current) => openImportantDatesModule(current)); }} />}
       {navigation.tab === 'modules' && (spaceListStatus === 'ready' || navigation.moduleScreen === 'hub') && (navigation.moduleScreen === 'hub'
-        ? <ModuleHub onOpenImportantDates={() => { importantDateHandoff.reset(); setNavigation((current) => openImportantDatesModule(current)); }} availability={moduleAvailability.availability} onRefresh={() => { void moduleAvailability.refresh(); }} onOpenTasks={() => setNavigation((current) => openTaskModule(current))} onOpenReview={() => setNavigation((current) => openReviewModule(current))} onOpenLists={() => { setListNotice(''); setNavigation((current) => openListsModule(current)); }} />
+        ? <ModuleHub onOpenImportantDates={() => { setNavigation((current) => openImportantDatesModule(current)); }} availability={moduleAvailability.availability} onRefresh={() => { void moduleAvailability.refresh(); }} onOpenTasks={() => setNavigation((current) => openTaskModule(current))} onOpenReview={() => setNavigation((current) => openReviewModule(current))} onOpenLists={() => { setListNotice(''); setNavigation((current) => openListsModule(current)); }} />
         : navigation.moduleScreen === 'important-dates'
-          ? <ImportantDatesPage key={userId} userId={userId} handoff={importantDateHandoff.pending} returnTo={importantDateHandoff.returnTo} onHandoffHandled={importantDateHandoff.consume} entry={importantDatesEntry} entryPending={moduleAvailability.refreshing}
+          ? <ImportantDatesPage key={userId} userId={userId} entry={importantDatesEntry} entryPending={moduleAvailability.refreshing}
               initialData={retainedImportantDates?.data} initialFilter={retainedImportantDates?.filter} initialPastExpanded={retainedImportantDates?.pastExpanded}
-              onHubBack={() => { const source = importantDateHandoff.returnTo; importantDateHandoff.reset(); if (source) changeTab(source); else setNavigation((current) => selectTab(current, 'modules')); }}
+              onHubBack={() => setNavigation((current) => selectTab(current, 'modules'))}
               onValidated={(data, filter, pastExpanded) => { if (sameModuleScope(importantDatesEntry, data.memberSpaces, data.eligibleSpaces)) importantDatesSnapshot.current = { userId, data, filter, pastExpanded }; }}
               onInvalidateEligibility={() => { importantDatesSnapshot.current = null; homeImportantDatesSnapshot.current = null; moduleAvailability.invalidate(); void refreshSpaces(false); void moduleAvailability.refresh(true); }}
-              onNoEligible={() => { importantDateHandoff.reset(); importantDatesSnapshot.current = null; homeImportantDatesSnapshot.current = null; void moduleAvailability.refresh(true); setNavigation((current) => selectTab(current, 'modules')); }} />
+              onNoEligible={() => { importantDatesSnapshot.current = null; homeImportantDatesSnapshot.current = null; void moduleAvailability.refresh(true); setNavigation((current) => selectTab(current, 'modules')); }} />
         : navigation.moduleScreen === 'lists'
           ? <ListsOverviewPage key={userId} userId={userId} entry={listsEntry} entryPending={moduleAvailability.refreshing} initialData={retainedLists?.data} initialFilter={retainedLists?.filter} onValidated={(data, filter) => { if (sameModuleScope(listsEntry, data.memberSpaces, data.eligibleSpaces)) listsSnapshot.current = { userId, data, filter }; }} onInvalidateEligibility={() => { listsSnapshot.current = null; moduleAvailability.invalidate(); void moduleAvailability.refresh(true); }} initialNotice={listNotice} onOpenDetail={(list) => { setListNotice(''); setListDetail({ spaceId: list.space_id, listId: list.id }); setNavigation((current) => openListDetail(current)); }} onHubBack={() => setNavigation((current) => selectTab(current, 'modules'))} onNoEligible={() => { listsSnapshot.current = null; void moduleAvailability.refresh(); setNavigation((current) => selectTab(current, 'modules')); }} />
         : navigation.moduleScreen === 'lists-detail'
@@ -765,10 +777,17 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
           />)}
       {navigation.tab === 'calendar' && spaceListStatus === 'ready' && contentSpace && (
         <CurrentSpaceApp
-          key={`calendar:${validFilter === 'all' ? 'all' : validFilter.spaceId}:${visibleCalendarSpaces.map((item) => item.id).join(',')}`}
+          key={`calendar:${validFilter === 'all' ? 'all' : validFilter.spaceId}:${spaces.map((item) => `${item.id}:${item.membershipRole}`).sort().join(',')}`}
           session={session}
           spaces={visibleCalendarSpaces}
           allSpaces={spaces}
+          importantDatesEntry={homeImportantDatesEntry}
+          initialCalendarEvents={retainedCalendarEvents}
+          onCalendarEventsValidated={(data) => { calendarEventsSnapshot.current = data; }}
+          onCalendarEventsInvalidate={() => { calendarEventsSnapshot.current = null; }}
+          initialCalendarImportantDates={retainedCalendarImportantDates}
+          onCalendarImportantDatesValidated={(data) => { calendarImportantDatesSnapshot.current = data; }}
+          onCalendarImportantDatesInvalidate={() => { calendarImportantDatesSnapshot.current = null; }}
           calendarFilter={validFilter}
           onCalendarFilterChange={setCalendarFilter}
           selectedDate={selectedDate}
@@ -790,7 +809,7 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
               onReady={managedSpaceReady}
               onSpaceChange={updateSpace}
               onLifecycleSettled={lifecycleSettled}
-              onModuleChanged={(key, spaceId, state) => { if (state === 'disabled') { if (key === 'tasks') { tasksSnapshot.current = null; homeTasksSnapshot.current = null; } if (key === 'review') reviewSnapshot.current = null; if (key === 'lists') listsSnapshot.current = null; if (key === 'important_dates') { importantDatesSnapshot.current = null; homeImportantDatesSnapshot.current = null; } } moduleAvailability.moduleChanged(key, spaceId, state); }}
+              onModuleChanged={(key, spaceId, state) => { if (state === 'disabled') { if (key === 'tasks') { tasksSnapshot.current = null; homeTasksSnapshot.current = null; } if (key === 'review') reviewSnapshot.current = null; if (key === 'lists') listsSnapshot.current = null; if (key === 'important_dates') { calendarImportantDatesSnapshot.current = null; importantDatesSnapshot.current = null; homeImportantDatesSnapshot.current = null; } } moduleAvailability.moduleChanged(key, spaceId, state); }}
               busy={spaceActionBusy}
               onBusyChange={setSpaceActionBusy}
             />
@@ -919,10 +938,17 @@ export function CalendarDateNavigation({ selectedDate, viewMode, onSelectedDateC
   );
 }
 
-export function CurrentSpaceApp({ session, spaces, allSpaces, calendarFilter, onCalendarFilterChange, selectedDate, onSelectedDateChange, viewMode, onViewModeChange }: {
+export function CurrentSpaceApp({ session, spaces, allSpaces, importantDatesEntry = null, initialCalendarEvents, onCalendarEventsValidated, onCalendarEventsInvalidate, initialCalendarImportantDates, onCalendarImportantDatesValidated, onCalendarImportantDatesInvalidate, calendarFilter, onCalendarFilterChange, selectedDate, onSelectedDateChange, viewMode, onViewModeChange }: {
   session: Session;
   spaces: CurrentSpace[];
   allSpaces: CurrentSpace[];
+  importantDatesEntry?: ModuleEntry | null;
+  initialCalendarEvents?: CalendarEventsSnapshot;
+  onCalendarEventsValidated?: (data: CalendarEventsSnapshot) => void;
+  onCalendarEventsInvalidate?: () => void;
+  initialCalendarImportantDates?: CalendarImportantDatesSnapshot;
+  onCalendarImportantDatesValidated?: (data: CalendarImportantDatesSnapshot) => void;
+  onCalendarImportantDatesInvalidate?: () => void;
   calendarFilter: CalendarFilter;
   onCalendarFilterChange: (filter: CalendarFilter) => void;
   selectedDate: Date;
@@ -931,30 +957,30 @@ export function CurrentSpaceApp({ session, spaces, allSpaces, calendarFilter, on
   onViewModeChange: (mode: ViewMode) => void;
 }) {
   const userId = session.user.id;
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [occurrenceExceptions, setOccurrenceExceptions] = useState<EventOccurrenceException[]>([]);
-  const [membersBySpaceId, setMembersBySpaceId] = useState<Record<string, SpaceMember[]>>({});
-  const [calendarStatus, setCalendarStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const eventView = useCalendarEvents(userId, allSpaces, spaces, calendarFilter, viewMode, selectedDate,
+    { initialData: initialCalendarEvents, onValidated: onCalendarEventsValidated, onInvalidate: onCalendarEventsInvalidate });
+  const calendarStatus = eventView.status;
   const [calendarError, setCalendarError] = useState('');
-  const [syncError, setSyncError] = useState('');
-  const [calendarRetry, setCalendarRetry] = useState(0);
+  const [eventNotice, setEventNotice] = useState('');
+  const eventOpening = useRef(createRequestGuard());
+  const createGuard = useRef(createRequestGuard());
+  const eventContext = useRef('');
+  const contextKey = calendarEventViewKey(calendarEventScopeKey(userId, allSpaces, spaces, calendarFilter), viewMode, selectedDate);
+  if (eventContext.current !== contextKey) { eventOpening.current.invalidate(); createGuard.current.invalidate(); eventContext.current = contextKey; }
   const [editingTarget, setEditingTarget] = useState<EventEditTarget | null>(null);
   const [showNewEvent, setShowNewEvent] = useState(false);
   const [openCalendarSelector, setOpenCalendarSelector] = useState<'space' | 'view' | null>(null);
-  const eventRequestGuard = useRef(createRequestGuard());
-  const createGuard = useRef(createRequestGuard());
-  const reloadCalendar = useRef<() => void>(() => undefined);
+  const importantDates = useCalendarImportantDates(userId, allSpaces, spaces, viewMode, selectedDate, importantDatesEntry, calendarFilter === 'all' ? 'all' : calendarFilter.spaceId,
+    { initialData: initialCalendarImportantDates, onValidated: onCalendarImportantDatesValidated, onInvalidate: onCalendarImportantDatesInvalidate });
 
   const sheetSpace = editingTarget
     ? allSpaces.find((item) => item.id === editingTarget.event.space_id) ?? null
     : calendarFilter === 'all' ? null : allSpaces.find((item) => item.id === calendarFilter.spaceId) ?? null;
-  const sheetMembers = sheetSpace ? membersBySpaceId[sheetSpace.id] ?? [] : [];
+  const sheetMembers = sheetSpace ? eventView.membersBySpaceId[sheetSpace.id] ?? [] : [];
   const sheetPartner = sheetMembers.find((member) => member.user_id !== userId) ?? null;
-  const visibleExpansion = useMemo(
-    () => expandRecurringEvents(events, calendarVisibleRange(viewMode, selectedDate), occurrenceExceptions),
-    [events, occurrenceExceptions, selectedDate, viewMode],
-  );
-  const projectionError = calendarStatus === 'success' && visibleExpansion.errors.length > 0;
+  const visibleExpansion = { occurrences: eventView.presentation?.items ?? [], errors: [] };
+  useEffect(() => () => { eventOpening.current.invalidate(); createGuard.current.invalidate(); }, []);
+  useEffect(() => { setShowNewEvent(false); setEditingTarget(null); setEventNotice(''); setCalendarError(''); }, [contextKey]);
 
   useEffect(() => {
     if (!openCalendarSelector) return;
@@ -963,87 +989,17 @@ export function CurrentSpaceApp({ session, spaces, allSpaces, calendarFilter, on
     return () => window.removeEventListener('keydown', closeOnEscape);
   }, [openCalendarSelector]);
 
-  const visibleSpaceIds = spaces.map((item) => item.id).join(',');
-  useEffect(() => {
-    let active = true;
-    let subscribed = false;
-    const connected = new Set<string>();
-    const channels: ReturnType<typeof supabase.channel>[] = [];
-
-    const readLoop = createCalendarReadLoop(async (isCurrent) => {
-      const request = eventRequestGuard.current.begin();
-      setCalendarStatus('loading');
-      setCalendarError('');
-      const loaded = await readAggregateCalendar(spaces, {
-          eventPage: async (spaceId, start, end) => {
-            const result = await supabase.from('events').select('*', { count: 'exact' })
-              .eq('space_id', spaceId).order('id').range(start, end);
-            return { data: result.data as CalendarEvent[] | null, count: result.count, error: result.error };
-          },
-          exceptionPage: async (eventIds, start, end) => {
-            const result = await supabase.from('event_occurrence_exceptions').select('*', { count: 'exact' })
-              .in('event_id', eventIds).order('event_id').order('occurrence_date').order('id').range(start, end);
-            return { data: result.data as EventOccurrenceException[] | null, count: result.count, error: result.error };
-          },
-          members: readSpaceMembers,
-      });
-      if (!isCurrent() || !eventRequestGuard.current.isCurrent(request)) return;
-      setEvents(loaded.events);
-      setOccurrenceExceptions(loaded.exceptions);
-      setMembersBySpaceId(loaded.membersBySpaceId);
-      setCalendarStatus('success');
-    }, (readError) => {
-      setCalendarError(getErrorMessage(readError));
-      setCalendarStatus('error');
-    });
-
-    function changed() {
-      if (!active) return;
-      eventRequestGuard.current.invalidate();
-      setCalendarStatus('loading');
-      readLoop.change();
-    }
-
-    reloadCalendar.current = changed;
-    setCalendarStatus('loading');
-    setSyncError('');
-    for (const visibleSpace of spaces) {
-      const channel = supabase.channel(`calendar-events:${visibleSpace.id}`)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'events', filter: `space_id=eq.${visibleSpace.id}` }, changed)
-        .subscribe((status) => {
-          if (!active) return;
-          if (status === 'SUBSCRIBED') {
-            const wasConnected = connected.has(visibleSpace.id);
-            connected.add(visibleSpace.id);
-            if (connected.size === spaces.length && !subscribed) {
-              subscribed = true;
-              readLoop.start();
-            } else if (!wasConnected && subscribed) changed();
-            if (connected.size === spaces.length) setSyncError('');
-          } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
-            connected.delete(visibleSpace.id);
-            subscribed = false;
-            readLoop.pause();
-            eventRequestGuard.current.invalidate();
-            setSyncError('日程实时同步暂不可用，请重试。');
-            setCalendarStatus('error');
-          }
-        });
-      channels.push(channel);
-    }
-    if (spaces.length === 0) {
-      setCalendarError('未找到可用空间，请重试。');
-      setCalendarStatus('error');
-    }
-    return () => {
-      active = false;
-      reloadCalendar.current = () => undefined;
-      readLoop.stop();
-      eventRequestGuard.current.invalidate();
-      createGuard.current.invalidate();
-      for (const channel of channels) void supabase.removeChannel(channel);
-    };
-  }, [visibleSpaceIds, calendarRetry]);
+  async function openEvent(row: CalendarEventPresentation) {
+    importantDates.editor.close(); createGuard.current.invalidate(); setShowNewEvent(false);
+    const request = eventOpening.current.begin();
+    setEventNotice(calendarStatus === 'loading' ? '正在确认日程…' : '');
+    const fresh = await eventView.qualify(row);
+    if (!eventOpening.current.isCurrent(request) || eventContext.current !== contextKey || eventView.authLost) return;
+    if (!fresh?.isCurrent()) { setEventNotice('日程已变化或暂时无法确认，请刷新后重试。'); return; }
+    setEventNotice('');
+    setEditingTarget(fresh.occurrence.source_event.recurrence_rule === null
+      ? eventEditTargetForEvent(fresh.occurrence.source_event) : eventEditTargetForOccurrence(fresh.occurrence));
+  }
 
   async function verifyCreateTarget(spaceId: string) {
     const listed = await listCurrentSpaces(userId);
@@ -1051,16 +1007,17 @@ export function CurrentSpaceApp({ session, spaces, allSpaces, calendarFilter, on
   }
 
   async function openNewEvent() {
-    if (calendarFilter === 'all' || calendarStatus !== 'success' || projectionError) return;
+    if (calendarFilter === 'all' || calendarStatus !== 'success' || !eventView.isFresh()) return;
+    eventOpening.current.invalidate();
+    importantDates.editor.close();
     const targetId = calendarFilter.spaceId;
     const request = createGuard.current.begin();
     try {
       if (!await verifyCreateTarget(targetId)) throw new Error('此空间已不在你的成员列表中，请重新选择。');
-      if (createGuard.current.isCurrent(request)) setShowNewEvent(true);
+      if (createGuard.current.isCurrent(request) && eventContext.current === contextKey && eventView.isFresh()) setShowNewEvent(true);
     } catch (createError) {
       if (createGuard.current.isCurrent(request)) {
         setCalendarError(getErrorMessage(createError));
-        setCalendarStatus('error');
       }
     }
   }
@@ -1075,7 +1032,7 @@ export function CurrentSpaceApp({ session, spaces, allSpaces, calendarFilter, on
               <h1 className="text-2xl font-bold">{formatMonth(selectedDate)}</h1>
             </div>
             <div className="flex items-center gap-2">
-              {calendarFilter !== 'all' && !projectionError && <button className="grid h-10 w-10 place-items-center rounded-lg bg-teal text-white shadow-sm disabled:opacity-50" type="button" disabled={calendarStatus !== 'success'} onClick={() => void openNewEvent()} aria-label="新建日程">
+              {calendarFilter !== 'all' && <button className="grid h-10 w-10 place-items-center rounded-lg bg-teal text-white shadow-sm disabled:opacity-50" type="button" disabled={calendarStatus !== 'success'} onClick={() => void openNewEvent()} aria-label="新建日程">
                 <Plus size={20} />
               </button>}
             </div>
@@ -1094,29 +1051,34 @@ export function CurrentSpaceApp({ session, spaces, allSpaces, calendarFilter, on
         </header>
 
         <section className="flex-1 px-4 py-4 safe-bottom">
-          {syncError && <Notice tone="error" message={syncError} />}
-          {calendarStatus === 'loading' && <p role="status">正在读取日程…</p>}
-          {calendarStatus === 'error' && <div role="alert"><Notice tone="error" message={calendarError || syncError || '日历读取失败，请重试。'} /><button type="button" className="min-h-11 rounded-lg bg-teal px-4 font-semibold text-white" onClick={() => setCalendarRetry((value) => value + 1)}>重试</button></div>}
-          {projectionError && <div role="alert"><Notice tone="error" message="重复日程无法完整显示，请重试。" /><button type="button" className="min-h-11 rounded-lg bg-teal px-4 font-semibold text-white" onClick={() => setCalendarRetry((value) => value + 1)}>重试</button></div>}
-          {calendarStatus === 'success' && !projectionError && <CalendarViews
+          {eventView.syncError && <Notice tone="error" message={eventView.syncError} />}
+          {calendarStatus === 'loading' && !eventView.presentation && <p role="status">正在读取日程…</p>}
+          {eventNotice && <p role="status" className="text-sm text-ink/60">{eventNotice}</p>}
+          {calendarError && <Notice tone="error" message={calendarError} />}
+          {calendarStatus === 'error' && <div role="alert"><Notice tone="error" message={eventView.error || eventView.syncError || '日历读取失败，请重试。'} /><button type="button" className="min-h-11 rounded-lg bg-teal px-4 font-semibold text-white" onClick={eventView.retry}>重试</button></div>}
+          <CalendarImportantDateStatus interaction={importantDates} />
+          {(eventView.presentation || importantDates.items.length > 0) && <CalendarViews
             expansion={visibleExpansion}
-            membersBySpaceId={membersBySpaceId}
+            importantDates={importantDates.items}
+            importantDatesComplete={importantDates.state.calendarComplete === true}
+            onOpenImportantDate={(item) => {
+              eventOpening.current.invalidate(); setEventNotice(''); createGuard.current.invalidate(); setShowNewEvent(false); setEditingTarget(null);
+              importantDates.open(item);
+            }}
+            membersBySpaceId={eventView.presentation?.membersBySpaceId ?? {}}
             spacesById={Object.fromEntries(allSpaces.map((item) => [item.id, item]))}
             showSpaceLabel={calendarFilter === 'all'}
             selectedDate={selectedDate}
             viewMode={viewMode}
             userId={userId}
-            onEdit={(occurrence) => setEditingTarget(
-              occurrence.source_event.recurrence_rule === null
-                ? eventEditTargetForEvent(occurrence.source_event)
-                : eventEditTargetForOccurrence(occurrence),
-            )}
+            onEdit={(occurrence) => { void openEvent(occurrence); }}
             onSelectDate={onSelectedDateChange}
           />}
         </section>
       </div>
 
-      {(showNewEvent || editingTarget) && sheetSpace && sheetMembers.length > 0 && (
+      <CalendarImportantDateSheets interaction={importantDates} />
+      {(showNewEvent || editingTarget) && !eventView.authLost && sheetSpace && sheetMembers.length > 0 && (
         <EventSheet
           target={editingTarget}
           space={sheetSpace}
@@ -1124,10 +1086,11 @@ export function CurrentSpaceApp({ session, spaces, allSpaces, calendarFilter, on
           members={sheetMembers}
           partnerId={sheetPartner?.user_id ?? null}
           onClose={() => {
+            eventOpening.current.invalidate();
             setShowNewEvent(false);
             setEditingTarget(null);
           }}
-          onSaved={() => reloadCalendar.current()}
+          onSaved={eventView.refresh}
           validateCreateTarget={() => verifyCreateTarget(sheetSpace.id)}
           showSourceSpace={calendarFilter === 'all'}
         />
@@ -1165,6 +1128,9 @@ export function BottomNavigation({ tab, onChange, disabled = false }: { tab: Top
 
 export function CalendarViews({
   expansion,
+  importantDates = [],
+  importantDatesComplete = true,
+  onOpenImportantDate = () => undefined,
   membersBySpaceId,
   spacesById,
   showSpaceLabel,
@@ -1174,21 +1140,24 @@ export function CalendarViews({
   onEdit,
   onSelectDate,
 }: {
-  expansion: ReturnType<typeof expandRecurringEvents>;
+  expansion: { occurrences: CalendarEventPresentation[]; errors: Array<{ source_event_id: string; error: string }> };
+  importantDates?: ImportantDateOccurrence[];
+  importantDatesComplete?: boolean;
+  onOpenImportantDate?: (item: ImportantDateOccurrence) => void;
   membersBySpaceId: Record<string, SpaceMember[]>;
   spacesById: Record<string, CurrentSpace>;
   showSpaceLabel: boolean;
   selectedDate: Date;
   viewMode: ViewMode;
   userId: string;
-  onEdit: (occurrence: CalendarOccurrence) => void;
+  onEdit: (occurrence: CalendarEventPresentation) => void;
   onSelectDate: (date: Date) => void;
 }) {
   if (expansion.errors.length > 0) return <Notice tone="error" message="重复日程无法完整显示，请重试。" />;
   if (viewMode === 'month') {
     return (
       <>
-        <MonthView occurrences={expansion.occurrences} membersBySpaceId={membersBySpaceId} spacesById={spacesById} showSpaceLabel={showSpaceLabel} selectedDate={selectedDate} userId={userId} onEdit={onEdit} onSelectDate={onSelectDate} />
+        <MonthView importantDatesComplete={importantDatesComplete} importantDates={importantDates} onOpenImportantDate={onOpenImportantDate} occurrences={expansion.occurrences} membersBySpaceId={membersBySpaceId} spacesById={spacesById} showSpaceLabel={showSpaceLabel} selectedDate={selectedDate} userId={userId} onEdit={onEdit} onSelectDate={onSelectDate} />
       </>
     );
   }
@@ -1200,7 +1169,7 @@ export function CalendarViews({
       {days.map((day) => {
         const dayOccurrences = sortOccurrences(expansion.occurrences.filter((occurrence) => occurrenceFallsOnDay(occurrence, day)));
         return (
-          <DaySection key={day.toISOString()} day={day} occurrences={dayOccurrences} membersBySpaceId={membersBySpaceId} spacesById={spacesById} showSpaceLabel={showSpaceLabel} userId={userId} onEdit={onEdit} />
+          <DaySection key={day.toISOString()} importantDatesComplete={importantDatesComplete} day={day} importantDates={importantDates.filter((item) => importantDateFallsOnDay(item, day))} onOpenImportantDate={onOpenImportantDate} occurrences={dayOccurrences} membersBySpaceId={membersBySpaceId} spacesById={spacesById} showSpaceLabel={showSpaceLabel} userId={userId} onEdit={onEdit} />
         );
       })}
     </div>
@@ -1208,6 +1177,9 @@ export function CalendarViews({
 }
 
 function MonthView({
+  importantDatesComplete,
+  importantDates,
+  onOpenImportantDate,
   occurrences,
   membersBySpaceId,
   spacesById,
@@ -1217,13 +1189,16 @@ function MonthView({
   onEdit,
   onSelectDate,
 }: {
-  occurrences: CalendarOccurrence[];
+  importantDatesComplete: boolean;
+  importantDates: ImportantDateOccurrence[];
+  onOpenImportantDate: (item: ImportantDateOccurrence) => void;
+  occurrences: CalendarEventPresentation[];
   membersBySpaceId: Record<string, SpaceMember[]>;
   spacesById: Record<string, CurrentSpace>;
   showSpaceLabel: boolean;
   selectedDate: Date;
   userId: string;
-  onEdit: (occurrence: CalendarOccurrence) => void;
+  onEdit: (occurrence: CalendarEventPresentation) => void;
   onSelectDate: (date: Date) => void;
 }) {
   const monthStart = startOfMonth(selectedDate);
@@ -1237,38 +1212,44 @@ function MonthView({
         <div className="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-ink/45">
           {['一', '二', '三', '四', '五', '六', '日'].map((day) => <span key={day}>{day}</span>)}
         </div>
-        <div className="mt-2 grid grid-cols-7 gap-1">
+        <div className="mt-2 grid grid-cols-7 gap-x-px gap-y-1">
           {cells.map((day) => {
             const dayOccurrences = occurrences.filter((occurrence) => occurrenceFallsOnDay(occurrence, day));
+            const dateItems = importantDates.filter((item) => importantDateFallsOnDay(item, day));
             const isCurrentMonth = day.getMonth() === selectedDate.getMonth();
             const isSelected = isSameDay(day, selectedDate);
             return (
               <button
                 key={day.toISOString()}
                 type="button"
-                className={`aspect-square rounded-lg text-sm ${isSelected ? 'bg-teal text-white' : isCurrentMonth ? 'bg-mist text-ink' : 'bg-transparent text-ink/30'}`}
+                aria-label={`${day.getFullYear()}-${day.getMonth() + 1}-${day.getDate()}，${dayOccurrences.length} 个日程，${importantDatesComplete ? `${dateItems.length} 个重要日` : '重要日尚未完整确认'}`}
+                className={`aspect-square min-h-11 w-full min-w-0 rounded-lg text-sm ${isSelected ? 'bg-teal text-white' : isCurrentMonth ? 'bg-mist text-ink' : 'bg-transparent text-ink/30'}`}
                 onClick={() => onSelectDate(day)}
               >
                 <span>{day.getDate()}</span>
-                {dayOccurrences.length > 0 && <span className={`mx-auto mt-1 block h-1.5 w-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-coral'}`} />}
+                <span className="mt-1 flex justify-center gap-1" aria-hidden="true">
+                  {dateItems.length > 0 && <span className={`h-1.5 w-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-teal'}`} />}
+                  {dayOccurrences.length > 0 && <span className={`h-1.5 w-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-coral'}`} />}
+                </span>
               </button>
             );
           })}
         </div>
       </section>
-      <DaySection day={selectedDate} occurrences={selectedOccurrences} membersBySpaceId={membersBySpaceId} spacesById={spacesById} showSpaceLabel={showSpaceLabel} userId={userId} onEdit={onEdit} />
+      <DaySection importantDatesComplete={importantDatesComplete} day={selectedDate} importantDates={importantDates.filter((item) => importantDateFallsOnDay(item, selectedDate))} onOpenImportantDate={onOpenImportantDate} occurrences={selectedOccurrences} membersBySpaceId={membersBySpaceId} spacesById={spacesById} showSpaceLabel={showSpaceLabel} userId={userId} onEdit={onEdit} />
     </div>
   );
 }
 
-function DaySection({ day, occurrences, membersBySpaceId, spacesById, showSpaceLabel, userId, onEdit }: { day: Date; occurrences: CalendarOccurrence[]; membersBySpaceId: Record<string, SpaceMember[]>; spacesById: Record<string, CurrentSpace>; showSpaceLabel: boolean; userId: string; onEdit: (occurrence: CalendarOccurrence) => void }) {
+function DaySection({ day, importantDatesComplete, importantDates, onOpenImportantDate, occurrences, membersBySpaceId, spacesById, showSpaceLabel, userId, onEdit }: { day: Date; importantDatesComplete: boolean; importantDates: ImportantDateOccurrence[]; onOpenImportantDate: (item: ImportantDateOccurrence) => void; occurrences: CalendarEventPresentation[]; membersBySpaceId: Record<string, SpaceMember[]>; spacesById: Record<string, CurrentSpace>; showSpaceLabel: boolean; userId: string; onEdit: (occurrence: CalendarEventPresentation) => void }) {
   return (
     <section>
       <h2 className="mb-2 text-sm font-bold text-ink/60">{formatDay(day)}</h2>
-      {occurrences.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-ink/15 bg-white px-4 py-6 text-center text-sm text-ink/45">这天还没有日程</div>
+      {occurrences.length === 0 && importantDates.length === 0 ? (
+        <div className="rounded-lg border border-dashed border-ink/15 bg-white px-4 py-6 text-center text-sm text-ink/45">{importantDatesComplete ? '这天还没有日程' : '重要日尚未完整确认'}</div>
       ) : (
         <div className="space-y-2">
+          {importantDates.map((item) => <CalendarImportantDateCard key={importantDateOccurrenceKey(item)} item={item} space={spacesById[item.spaceId]} showSpaceLabel={showSpaceLabel} onOpen={onOpenImportantDate} />)}
           {occurrences.map((occurrence) => (
             <EventCard key={occurrence.occurrence_id} occurrence={occurrence} members={membersBySpaceId[occurrence.source_event.space_id] ?? []} sourceSpace={spacesById[occurrence.source_event.space_id]} showSpaceLabel={showSpaceLabel} userId={userId} onEdit={onEdit} />
           ))}
@@ -1278,7 +1259,7 @@ function DaySection({ day, occurrences, membersBySpaceId, spacesById, showSpaceL
   );
 }
 
-function EventCard({ occurrence, members, sourceSpace, showSpaceLabel, userId, onEdit }: { occurrence: CalendarOccurrence; members: SpaceMember[]; sourceSpace: CurrentSpace; showSpaceLabel: boolean; userId: string; onEdit: (occurrence: CalendarOccurrence) => void }) {
+function EventCard({ occurrence, members, sourceSpace, showSpaceLabel, userId, onEdit }: { occurrence: CalendarEventPresentation; members: SpaceMember[]; sourceSpace: CurrentSpace; showSpaceLabel: boolean; userId: string; onEdit: (occurrence: CalendarEventPresentation) => void }) {
   const event = occurrence.source_event;
   const audience = audienceFromEvent(event, userId);
 
@@ -1353,6 +1334,9 @@ export function EventSheet({
   const canChoosePartner = Boolean(partnerId);
   const canManage = !event || canManageEvent(event, userId);
   const editUi = eventEditUiState(target);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const dialog = useRef<HTMLDivElement>(null);
+  const keyboard = useRef({ busy, cancel: () => {} });
   const [pendingOccurrenceAction, setPendingOccurrenceAction] = useState<OccurrenceAction | null>(null);
   const createReady = !createTarget || canUseCreateTarget(createTarget.state, createTarget.selectedId, space.id, members, userId);
 
@@ -1363,7 +1347,44 @@ export function EventSheet({
   }, [createTarget, space.id]);
 
   useEffect(() => { setConfirmingCreateTargetId(null); }, [createTarget?.selectedId, createTarget?.state, userId]);
-  useEffect(() => { if (createTarget) createHeading.current?.focus(); }, []);
+  keyboard.current = { busy, cancel: () => {
+    if (pendingOccurrenceAction) setPendingOccurrenceAction(null);
+    else if (confirmingDelete) setConfirmingDelete(false);
+    else if (confirmingCreateTargetId) setConfirmingCreateTargetId(null);
+    else onClose();
+  } };
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null;
+    const root = dialog.current;
+    createHeading.current?.focus();
+    const keydown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault(); event.stopPropagation();
+        if (!keyboard.current.busy) keyboard.current.cancel();
+      }
+      if (event.key !== 'Tab') return;
+      const active = root?.querySelector<HTMLElement>('[data-event-scope-dialog]') ?? root;
+      const controls = Array.from(active?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled)') ?? []);
+      const first = controls[0], last = controls[controls.length - 1];
+      if (!controls.includes(document.activeElement as HTMLElement) || (event.shiftKey ? document.activeElement === first : document.activeElement === last)) {
+        event.preventDefault(); (event.shiftKey ? last : first)?.focus();
+        if (!first) createHeading.current?.focus();
+      }
+    };
+    root?.addEventListener('keydown', keydown);
+    return () => { root?.removeEventListener('keydown', keydown); if (previous?.isConnected) previous.focus(); };
+  }, []);
+  useEffect(() => {
+    if (!pendingOccurrenceAction && !confirmingDelete && !confirmingCreateTargetId) return;
+    const previous = document.activeElement as HTMLElement | null;
+    const scope = dialog.current?.querySelector<HTMLElement>('[data-event-scope-dialog]');
+    if (scope) scope.querySelector<HTMLElement>('[data-confirm-cancel]')?.focus();
+    else if (confirmingDelete || confirmingCreateTargetId) dialog.current?.querySelector<HTMLElement>('[data-confirm-cancel]')?.focus();
+    return () => {
+      if (previous?.isConnected && dialog.current?.contains(previous)) previous.focus();
+      else if (dialog.current?.isConnected) createHeading.current?.focus();
+    };
+  }, [pendingOccurrenceAction, confirmingDelete, confirmingCreateTargetId]);
 
   useEffect(() => {
     const nextDraft = target ? draftFromEditTarget(target, draftFromEvent(target.event, userId), toDateInputValue) : emptyDraft();
@@ -1373,6 +1394,7 @@ export function EventSheet({
     setError('');
     setBusy(false);
     setPendingOccurrenceAction(null);
+    setConfirmingDelete(false);
   }, [event?.id, occurrenceId, userId]);
 
   function completeSuccessfulMutation() {
@@ -1556,7 +1578,7 @@ export function EventSheet({
     }
   }
 
-  async function deleteEvent() {
+  async function deleteEvent(confirmed = false) {
     if (!event || !canManage) {
       return;
     }
@@ -1567,6 +1589,8 @@ export function EventSheet({
       return;
     }
 
+    if (!confirmed) { setConfirmingDelete(true); return; }
+    if (busy) return;
     setBusy(true);
     const deleteResult = await supabase.from('events').delete().eq('id', event.id);
 
@@ -1580,10 +1604,10 @@ export function EventSheet({
   }
 
   return (
-    <div className="fixed inset-0 z-20 flex items-end bg-ink/35 md:items-center md:px-4 md:py-6">
-      <div className="mx-auto max-h-[92dvh] w-full max-w-3xl overflow-y-auto overscroll-contain rounded-t-2xl bg-white p-5 shadow-soft safe-bottom md:max-h-[calc(100dvh-3rem)] md:rounded-lg">
+    <div ref={dialog} className="fixed inset-0 z-20 flex items-end bg-ink/35 md:items-center md:px-4 md:py-6">
+      <div role="dialog" aria-modal="true" aria-labelledby="event-sheet-title" className="mx-auto max-h-[92dvh] w-full max-w-3xl overflow-y-auto overscroll-contain rounded-t-2xl bg-white p-5 shadow-soft safe-bottom md:max-h-[calc(100dvh-3rem)] md:rounded-lg">
         <div className="flex items-center justify-between">
-          <h2 ref={createHeading} tabIndex={createTarget ? -1 : undefined} className="text-xl font-bold">{event ? canManage ? editUi.isRecurringOccurrenceEdit ? '编辑此重复事件' : '编辑日程' : '日程详情' : '新建日程'}</h2>
+          <h2 id="event-sheet-title" ref={createHeading} tabIndex={-1} className="text-xl font-bold">{event ? canManage ? editUi.isRecurringOccurrenceEdit ? '编辑此重复事件' : '编辑日程' : '日程详情' : '新建日程'}</h2>
           <button className="grid h-10 w-10 place-items-center rounded-lg bg-mist disabled:opacity-60" type="button" onClick={onClose} disabled={busy} aria-label="关闭">
             <X size={20} />
           </button>
@@ -1606,12 +1630,20 @@ export function EventSheet({
             <ReadOnlyField label="重复" value={recurrenceSummary(event.recurrence_rule)} />
             <ReadOnlyField label="描述" value={event.description || '无'} />
           </div>
+        ) : confirmingDelete && event ? (
+          <div className="mt-5 space-y-4">
+            <p className="break-words text-sm text-ink/70">确定删除「{event.title}」吗？删除后无法恢复。</p>
+            <div className="flex gap-3">
+              <button data-confirm-cancel className="h-12 flex-1 rounded-lg bg-mist font-semibold disabled:opacity-60" type="button" disabled={busy} onClick={() => setConfirmingDelete(false)}>取消</button>
+              <button className="h-12 flex-1 rounded-lg bg-coral font-semibold text-white disabled:opacity-60" type="button" disabled={busy || !canManage} onClick={() => void deleteEvent(true)}>{busy ? '删除中' : '确认删除'}</button>
+            </div>
+          </div>
         ) : confirmingCreateTargetId && !event ? (
           <div className="mt-5 space-y-4">
             <h3 className="text-lg font-bold">确认保存？</h3>
             <p className="text-sm text-ink/70">将保存到：<strong className="block break-words text-base text-ink">{space.name}</strong></p>
             <div className="flex gap-3">
-              <button className="h-12 flex-1 rounded-lg bg-mist font-semibold" type="button" disabled={busy} onClick={() => setConfirmingCreateTargetId(null)}>取消</button>
+              <button data-confirm-cancel className="h-12 flex-1 rounded-lg bg-mist font-semibold" type="button" disabled={busy} onClick={() => setConfirmingCreateTargetId(null)}>取消</button>
               <button className="h-12 flex-1 rounded-lg bg-teal font-semibold text-white disabled:opacity-50" type="button" disabled={busy || !createReady} onClick={() => void save(undefined, true)}>{busy ? '保存中' : '确认保存'}</button>
             </div>
           </div>
@@ -1726,7 +1758,7 @@ function ReadOnlyField({ label, value }: { label: string; value: string }) {
 
 function OccurrenceActionChooser({ action, scopes, busy, onCancel, onSelect }: { action: OccurrenceAction; scopes: OccurrenceScope[]; busy: boolean; onCancel: () => void; onSelect: (scope: OccurrenceScope) => void }) {
   return (
-    <div className="fixed inset-0 z-30 flex items-end bg-ink/35 md:items-center md:px-4" role="dialog" aria-modal="true" aria-label={occurrenceActionCopy(action, 'only-this').title}>
+    <div className="fixed inset-0 z-30 flex items-end bg-ink/35 md:items-center md:px-4" data-event-scope-dialog role="dialog" aria-modal="true" aria-label={occurrenceActionCopy(action, 'only-this').title}>
       <section className="w-full rounded-t-2xl bg-white p-5 shadow-soft safe-bottom md:mx-auto md:max-w-md md:rounded-lg">
         <h3 className="text-lg font-bold text-ink">{occurrenceActionCopy(action, 'only-this').title}</h3>
         <div className="mt-4 space-y-2">
@@ -1736,7 +1768,7 @@ function OccurrenceActionChooser({ action, scopes, busy, onCancel, onSelect }: {
             </button>
           ))}
         </div>
-        <button className="mt-3 h-12 w-full rounded-lg bg-mist text-sm font-semibold text-ink disabled:opacity-60" type="button" onClick={onCancel} disabled={busy}>
+        <button data-confirm-cancel className="mt-3 h-12 w-full rounded-lg bg-mist text-sm font-semibold text-ink disabled:opacity-60" type="button" onClick={onCancel} disabled={busy}>
           取消
         </button>
       </section>

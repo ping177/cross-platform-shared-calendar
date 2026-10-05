@@ -43,6 +43,7 @@ async function runtime(run: (env: any) => Promise<void>) {
       if (m.homeFailure) throw new Error('offline');
       return { ...scope, dates: m.rows.filter((r: any) => m.eligible.some((s: any) => s.id === r.space_id)) };
     },
+    async calendar(_user: any, ids: string[], _range: any, _client: any, _spaces: any, publish: any) { calls.push(['calendar-projection']); const scope = { memberSpaces: m.members, eligibleSpaces: m.eligible }; publish?.(scope); return { ...scope, dates: m.rows.filter((r: any) => ids.includes(r.space_id) && m.eligible.some((x: any) => x.id === r.space_id)) }; },
     async canonical(...args: any[]) { calls.push(['canonical']); args[3]?.({ memberSpaces: m.members, eligibleSpaces: m.eligible });
       return { memberSpaces: m.members, eligibleSpaces: m.eligible, dates: m.rows.filter((r: any) => m.eligible.some((s: any) => s.id === r.space_id)) }; },
     async target(_user: string, identity: any) {
@@ -97,7 +98,7 @@ async function runtime(run: (env: any) => Promise<void>) {
       if (id === '\0home-hooks') return prefix + 'export const {useState,useRef,useCallback,useEffect,useMemo}=m;';
       if (id === '\0home-client') return prefix + 'export const supabase=m.supabase,isSupabaseConfigured=true;';
       if (id === '\0home-spaces') return prefix + 'export const listCurrentSpaces=async()=>m.spaceRead?m.spaceRead():m.members;';
-      if (id === '\0home-dates') return prefix + 'export class ImportantDatesAuthError extends Error{};export const loadHomeImportantDates=(...a)=>m.home(...a),loadCalendarImportantDates=()=>{throw Error("T4 not started")},loadImportantDates=(...a)=>m.canonical(...a),readImportantDateTarget=(...a)=>m.target(...a),loadImportantDatesEligibility=async()=>({memberSpaces:m.members,eligibleSpaces:m.eligible}),updateImportantDate=(...a)=>m.update(...a),deleteImportantDate=(...a)=>m.remove(...a),createImportantDate=()=>{throw Error("not used")};';
+      if (id === '\0home-dates') return prefix + 'export class ImportantDatesAuthError extends Error{};export const loadHomeImportantDates=(...a)=>m.home(...a),loadCalendarImportantDates=(...a)=>m.calendar(...a),loadImportantDates=(...a)=>m.canonical(...a),readImportantDateTarget=(...a)=>m.target(...a),loadImportantDatesEligibility=async()=>({memberSpaces:m.members,eligibleSpaces:m.eligible}),updateImportantDate=(...a)=>m.update(...a),deleteImportantDate=(...a)=>m.remove(...a),createImportantDate=()=>{throw Error("not used")};';
       if (id === '\0home-bootstrap') return prefix + 'export const bootstrapSpaces=async()=>({spaces:m.members,selectedSpaceId:"personal"}),chooseSelectedSpaceId=(s,id)=>s.find(x=>x.id===id)?.id??s[0]?.id,ensureOnceUntilFailure=f=>f,writeSelectedSpaceId=()=>{},clearSelectedSpaceId=()=>{};';
       if (id === '\0home-availability') return prefix + 'export const ModuleHub=()=>null,useModuleAvailability=()=>({availability:{tasksIds:m.taskIds,reviewIds:[],listsIds:[],importantDatesIds:m.eligible.map(s=>s.id),importantDatesError:!!m.availabilityError},refreshing:!!m.availabilityPending,refresh:async()=>{},invalidate:()=>{},moduleChanged:()=>{}});';
       if (id === '\0home-push') return 'export const registerPushServiceWorker=async()=>{};';
@@ -106,6 +107,7 @@ async function runtime(run: (env: any) => Promise<void>) {
       if (id.endsWith('/navigation.ts')) return code.replace(/(export function (?:selectTab|openImportantDatesModule)\([^)]*\)[^{]*\{)/g, '$1 globalThis.__homeImportantDates.navigationCalls++;');
       if (id.endsWith('/App.tsx')) return code + '\nexport { CalendarApp as HomeTestApp };';
       if (id.endsWith('/HomeImportantDatesSection.tsx') || id.endsWith('/HomePage.tsx')) return code.replace(/setTimeout\(/g, 'globalThis.__homeImportantDates.timer(').replace(/clearTimeout\(/g, 'globalThis.__homeImportantDates.clearTimer(');
+      if (id.endsWith('/aggregate-calendar.ts')) return code.replace('export async function readAggregateCalendar(', 'async function originalReadAggregateCalendar(') + '\nexport const readAggregateCalendar=async(...a)=>globalThis.__homeImportantDates.calendarEvents?globalThis.__homeImportantDates.calendarEvents(...a):({events:[],exceptions:[],membersBySpaceId:Object.fromEntries(a[0].map(s=>[s.id,[{space_id:s.id,user_id:globalThis.__homeImportantDates.userId}]]))});';
       if (id.endsWith('/home-aggregation.ts')) return code.replace('export async function readHomeEvents(', 'async function originalReadHomeEvents(').replace('export async function readHomeTasks(', 'async function originalReadHomeTasks(')
         + '\nexport const readHomeEvents=(...a)=>globalThis.__homeImportantDates.events(...a),readHomeTasks=(...a)=>globalThis.__homeImportantDates.tasks(...a);';
     },
@@ -122,7 +124,7 @@ async function runtime(run: (env: any) => Promise<void>) {
     const Home = (await vite.ssrLoadModule('/src/components/HomePage.tsx')).HomePage;
     (globalThis as any).window = surface; (globalThis as any).document = surface;
     (globalThis as any).Date = new Proxy(previous.Date, { construct(target, args) { return Reflect.construct(target, args.length ? args : [now.getTime()]); } });
-    const expanded = new Set(['HomePage', 'HomeSection', 'HomeImportantDatesSection', 'ImportantDatesPage', 'ImportantDatesModule', 'BottomNavigation']);
+    const expanded = new Set(['HomePage', 'HomeSection', 'HomeImportantDatesSection', 'ImportantDatesPage', 'ImportantDatesModule', 'BottomNavigation', 'CurrentSpaceApp', 'CalendarViews', 'MonthView', 'DaySection', 'CalendarImportantDateCard', 'CalendarImportantDateStatus', 'CalendarImportantDateSheets']);
     let app = false, home = false; let props: any = { userId: 'me', spaces, entry: { memberSpaces: spaces, eligibleSpaces: spaces }, onViewAll() {}, onOpen() {} };
     const render = () => {
       const visited = new Set<string>();
@@ -930,4 +932,71 @@ for (const kind of ['event', 'task']) test(`Home pending ${kind} cannot cover a 
   pending.resolve(kind === 'event' ? { occurrences: e.m.eventRows, membersBySpaceId: { shared: [{ user_id: 'me', space_id: 'shared', profiles: { display_name: '我' } }] } } : { data: e.m.taskRows[0], error: null });
   tree = await e.pump(); assert.equal(sheet(tree).props.date.id, 'a');
   assert.equal(kind === 'event' ? eventEditor(tree) : taskEditor(tree), undefined);
+}));
+
+
+test('App Calendar warm return restores validated Important Dates before pending Space and projection reads', () => runtime(async (e) => {
+  e.app(); e.m.rows = [row('calendar', shared.id, { month: 2, day: 27 })]; let tree = await e.pump();
+  button(tree, '日历').props.onClick(); tree = await e.pump();
+  assert.ok(button(tree, '打开重要日 同名'));
+  button(tree, '首页').props.onClick(); tree = await e.pump();
+  const pending = deferred(), projection = deferred(), loader = e.m.calendar;
+  e.m.spaceRead = () => pending.promise; e.m.calendar = () => projection.promise;
+  button(tree, '日历').props.onClick(); tree = e.render();
+  assert.ok(button(tree, '打开重要日 同名')); assert.doesNotMatch(renderToStaticMarkup(tree), /正在读取重要日|正在读取空间/);
+  tree = await e.pump(); assert.ok(button(tree, '打开重要日 同名'));
+  e.m.rows[0].name = 'fresh Calendar'; pending.resolve(spaces); projection.resolve(await loader('me', ['personal', 'shared'], {}, null, null));
+  tree = await e.pump(); assert.ok(button(tree, '打开重要日 fresh Calendar'));
+}));
+
+test('App cold Calendar retains Space gate and confirmed membership loss removes warm rows', () => runtime(async (e) => {
+  e.app(); e.m.rows = [row('calendar', shared.id, { month: 2, day: 27 })]; let tree = await e.pump();
+  const initial = deferred(); e.m.spaceRead = () => initial.promise;
+  button(tree, '日历').props.onClick(); tree = e.render(); assert.equal(button(tree, '打开重要日 同名'), undefined);
+  initial.resolve(spaces); tree = await e.pump(); assert.ok(button(tree, '打开重要日 同名'));
+  e.m.spaceRead = undefined; button(tree, '首页').props.onClick(); tree = await e.pump();
+  const pending = deferred(); e.m.spaceRead = () => pending.promise;
+  button(tree, '日历').props.onClick(); assert.ok(button(e.render(), '打开重要日 同名'));
+  e.m.members = [personal]; e.m.eligible = [personal]; pending.resolve([personal]); tree = await e.pump();
+  assert.equal(button(tree, '打开重要日 同名'), undefined);
+}));
+
+for (const boundary of ['leave', 'remove', 'delete', 'module']) test(`App ${boundary} signal rejects Calendar retained view before re-entry`, () => runtime(async (e) => {
+  e.app(); e.m.rows = [row('calendar', shared.id, { month: 2, day: 27 })]; let tree = await e.pump();
+  button(tree, '日历').props.onClick(); tree = await e.pump(); assert.ok(button(tree, '打开重要日 同名'));
+  button(tree, '我的').props.onClick(); tree = await e.pump();
+  elements(tree).find((el) => el.type?.name === 'MyPage').props.onManageSpaces(); tree = await e.pump();
+  const management = elements(tree).find((el) => el.type?.name === 'SpaceManagementPage');
+  if (boundary === 'module') management.props.onModuleChanged('important_dates', shared.id, 'disabled');
+  else await management.props.onLifecycleSettled(boundary);
+  tree = await e.pump(); const spacesPending = deferred(), datesPending = deferred();
+  e.m.spaceRead = () => spacesPending.promise; e.m.calendar = () => datesPending.promise;
+  button(tree, '日历').props.onClick(); tree = e.render(); assert.equal(button(tree, '打开重要日 同名'), undefined);
+}));
+
+const calendarEventCard = (tree: any, title = 'Calendar retained Event') => elements(tree).find((el) => el.type?.name === 'EventCard' && el.props.occurrence.title === title);
+const calendarEventData = () => ({ events: [{ id: 'calendar-event', space_id: shared.id, scope: 'shared', owner_user_id: null, recurrence_rule: null,
+  title: 'Calendar retained Event', starts_at: new Date(2027, 1, 27, 12).toISOString(), ends_at: null, all_day: false }], exceptions: [],
+  membersBySpaceId: Object.fromEntries(spaces.map((s) => [s.id, [{ space_id: s.id, user_id: 'me' }]])) });
+
+test('App Calendar Event alone restores first frame before pending Space and canonical reads', () => runtime(async (e) => {
+  e.app(); e.m.calendar = async () => { throw Error('no Important Date snapshot'); };
+  e.m.calendarEvents = async () => calendarEventData(); let tree = await e.pump();
+  button(tree, '日历').props.onClick(); tree = await e.pump(); assert.ok(calendarEventCard(tree));
+  button(tree, '首页').props.onClick(); tree = await e.pump();
+  const pending = deferred(), events = deferred(); e.m.spaceRead = () => pending.promise; e.m.calendarEvents = () => events.promise;
+  button(tree, '日历').props.onClick(); tree = e.render(); assert.ok(calendarEventCard(tree));
+  assert.doesNotMatch(renderToStaticMarkup(tree), /正在读取日程|正在读取空间/);
+  tree = await e.pump(); assert.ok(calendarEventCard(tree));
+  const data = calendarEventData(); data.events[0].title = 'Calendar fresh Event'; pending.resolve(spaces); events.resolve(data);
+  tree = await e.pump(); assert.ok(calendarEventCard(tree, 'Calendar fresh Event')); assert.equal(calendarEventCard(tree), undefined);
+}));
+
+for (const loss of ['membership', 'role']) test(`App confirmed ${loss} rejects Event retained view before new read resolves`, () => runtime(async (e) => {
+  e.app(); e.m.calendarEvents = async () => calendarEventData(); let tree = await e.pump();
+  button(tree, '日历').props.onClick(); tree = await e.pump(); assert.ok(calendarEventCard(tree));
+  button(tree, '首页').props.onClick(); tree = await e.pump();
+  const pending = deferred(); e.m.calendarEvents = () => pending.promise;
+  e.m.members = loss === 'membership' ? [personal] : [personal, { ...shared, membershipRole: 'owner' }];
+  button(tree, '日历').props.onClick(); tree = await e.pump(); assert.equal(calendarEventCard(tree), undefined);
 }));

@@ -107,7 +107,7 @@ export function eventFallsOnDay(event: CalendarEvent, date: Date) {
   return eventStart <= dayEnd && eventEnd >= dayStart;
 }
 
-export function occurrenceFallsOnDay(occurrence: CalendarOccurrence, date: Date) {
+export function occurrenceFallsOnDay(occurrence: Pick<CalendarOccurrence, 'occurrence_starts_at' | 'occurrence_ends_at'>, date: Date) {
   const occurrenceStart = new Date(occurrence.occurrence_starts_at);
   const occurrenceEnd = occurrence.occurrence_ends_at ? new Date(occurrence.occurrence_ends_at) : occurrenceStart;
   const dayStart = startOfDay(date);
@@ -119,6 +119,6 @@ export function sortEvents(events: CalendarEvent[]) {
   return [...events].sort((left, right) => new Date(left.starts_at).getTime() - new Date(right.starts_at).getTime());
 }
 
-export function sortOccurrences(occurrences: CalendarOccurrence[]) {
+export function sortOccurrences<T extends Pick<CalendarOccurrence, 'occurrence_starts_at'>>(occurrences: T[]) {
   return [...occurrences].sort((left, right) => new Date(left.occurrence_starts_at).getTime() - new Date(right.occurrence_starts_at).getTime());
 }

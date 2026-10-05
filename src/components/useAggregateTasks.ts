@@ -27,14 +27,21 @@ export function useAggregateTasks(userId: string, entry: ModuleEntry | null, ent
   entryRef.current = entry;
   pendingRef.current = entryPending;
 
+  function canRetain(data: TaskData | null): data is TaskData {
+    const currentFilter = filterRef.current;
+    return Boolean(data && (data.filter === 'all' ? currentFilter === 'all' : currentFilter !== 'all' && data.filter.spaceId === currentFilter.spaceId)
+      && (!entryRef.current || sameModuleScope(entryRef.current, data.memberSpaces, data.eligibleSpaces)));
+  }
+
   const refresh = useCallback(async (showLoading = false, revalidateEligibility = false) => {
     if (pendingRef.current && !revalidateEligibility) return;
-    if (showLoading) setState((current) => current.data ? current : { status: 'loading', data: null, error: '' });
+    if (showLoading) setState((current) => canRetain(current.data) ? { status: 'ready', data: current.data, error: '' } : { status: 'loading', data: current.data, error: '' });
     await loader.current.load(userId, filterRef.current, (result) => {
       if (result.status === 'error') {
         const error = loadErrorText(result.error);
         setRefreshError(error);
-        setState((current) => current.data ? current : { status: 'error', data: null, error });
+        // Old-filter data still supplies the selector, never this filter's rows.
+        setState((current) => canRetain(current.data) ? { status: 'ready', data: current.data, error: '' } : { status: 'error', data: current.data, error });
         return;
       }
       setRefreshError('');
@@ -83,7 +90,7 @@ export function useAggregateTasks(userId: string, entry: ModuleEntry | null, ent
     loader.current.invalidate();
     filterRef.current = next;
     setFilter(next);
-    setState((current) => ({ status: 'loading', data: current.data, error: '' }));
+    setState((current) => canRetain(current.data) ? { status: 'ready', data: current.data, error: '' } : { status: 'loading', data: current.data, error: '' });
     setSyncError('');
     setRefreshError('');
   }

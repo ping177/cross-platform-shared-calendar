@@ -82,7 +82,7 @@ export function TasksArea({ screen, onScreenChange, onHubBack, userId, entry = n
 }) {
   const createButton = useRef<HTMLButtonElement>(null);
   const { filter, state, syncError, refreshError, canAct, chooseFilter, refresh } = useAggregateTasks(userId, entry, entryPending, initialData, onValidated);
-  const editor = useTaskModuleEditor(userId, filter, refresh, onInvalidateEligibility);
+  const editor = useTaskModuleEditor(userId, filter, refresh, onInvalidateEligibility, entry);
   const data = state.data;
   const list = state.status === 'ready' ? screen === 'completed' ? state.data.grouped.completed : state.data.grouped.open : [];
   const create = editor.create;
@@ -100,7 +100,7 @@ export function TasksArea({ screen, onScreenChange, onHubBack, userId, entry = n
           {screen === 'tasks' ? <button ref={createButton} className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-teal text-white disabled:opacity-50" type="button" disabled={!canAct || editor.openingCreate || create !== null || state.status !== 'ready'} onClick={() => void editor.beginCreate()} aria-label="新建任务"><Plus size={20} /></button>
             : <span className="w-11 shrink-0" aria-hidden="true" />}
         </div>
-        {data && <TaskFilterPicker spaces={data.eligibleSpaces} filter={filter} onChange={chooseFilter} />}
+        {data && <TaskFilterPicker spaces={data.eligibleSpaces} filter={filter} onChange={(next) => { editor.invalidateTaskRequests(); chooseFilter(next); }} />}
       </header>
 
       <section className="flex-1 space-y-4 px-4 py-4 safe-bottom">
