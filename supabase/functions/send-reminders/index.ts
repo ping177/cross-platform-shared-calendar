@@ -15,6 +15,8 @@ import type { EventOccurrenceException } from '../../../src/types.ts';
 import { fetchImportantDateReminderCandidatePage, claimImportantDateReminder, assertImportantDateReminderSendable,
   type ImportantDateRpc } from './important-date-claim.ts';
 
+import { fetchTaskReminderCandidatePage, claimTaskReminder, assertTaskReminderSendable, type TaskRpc } from './task-claim.ts';
+
 const LOOKUP_BATCH_SIZE = 100;
 const jsonHeaders = { 'Content-Type': 'application/json; charset=utf-8' };
 
@@ -50,9 +52,13 @@ Deno.serve(async (request) => {
       const adminClient = createClient(supabaseUrl, serviceRoleKey, {
         auth: { persistSession: false, autoRefreshToken: false },
       });
+      const taskRpc: TaskRpc = async (name, parameters) => await adminClient.rpc(name, parameters);
       const importantDateRpc: ImportantDateRpc = async (name, parameters) => await adminClient.rpc(name, parameters);
 
       return runSendReminders(context, {
+        fetchTaskCandidatePage: (request) => fetchTaskReminderCandidatePage(taskRpc, request),
+        claimTask: (input) => claimTaskReminder(taskRpc, input),
+        checkTask: (deliveryId, kind, rawMarker) => assertTaskReminderSendable(taskRpc, deliveryId, kind, rawMarker),
         fetchImportantDateCandidatePage: (request) => fetchImportantDateReminderCandidatePage(importantDateRpc, request),
         fetchCandidatePage: async ({ afterId, limit }) => {
           let query = adminClient

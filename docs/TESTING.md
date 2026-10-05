@@ -1,5 +1,18 @@
 # Testing
 
+## v0.1.19 final local integration — READY_FOR_PRODUCTION_PATCH_REVIEW / 2026-10-05
+
+All four approved tasks implemented locally; Production and real-account/PWA acceptance remain NOT RUN.
+
+- New Task Node suites **21/21**, focused Task/aggregation/Home/P0b/reminder/claim/mixed-source regression **258/258**, full `node --test tests/*.test.ts tests/*.test.js` **753/753**, zero failures/cancellations/skips. Intercepted Edge entrypoint additionally covers Task source scan, exact raw-marker claim/check parameters, false/error pre-send failed finalization and incomplete Task scan abort without provider dispatch. Existing empty-Task fixtures explicitly supply the new required dependencies.
+- `deno check --cached-only --no-lock --node-modules-dir=none --config supabase/functions/send-reminders/deno.json supabase/functions/send-reminders/index.ts` PASS for complete production graph. Checked `task-reminders`, `task-reminder-delivery`, `mixed-source-reminders`, `important-date-claim`, `important-date-reminders`, `important-date-candidates`, `time-zone` suites **54/54 PASS**. Existing `reminder-due`, `recurring-reminders`, `send-reminders` Deno runtime suites **48/48 PASS** with `--no-check --allow-read` and same cached config flags. No dependency installation/lockfile change. Timing-dependent mixed-worker test now has deterministic first-wave barrier; assertions unchanged.
+- `npm run build` TypeScript/Vite PASS: 1715 modules, JS 764.20 kB / gzip 220.91 kB; existing >500 kB bundle warning only. `git diff --check` and Python AST syntax PASS.
+- SQL fresh/upgrade verification below: **935 assertions + 40 actual lock waits per path**; actual RPC/scanner 1000/1001 + raw timestamp parity. Tests use existing Docker and guarded temporary DB names only; no Production/local-main DB connection or persistent project-data root.
+- Injected actual TaskSheet handlers prove new-only 08:00 default, no-due off, historical-null due edits off, preset persistence, removal clearing, recipient copy, timezone failure before any write and canonical reread/close ordering. Exact unsigned Chrome CDP viewport 320/375px with actual SSR Sheet/final CSS: no horizontal overflow, controls in bounds, due/reminder heights 52/46px; 320px screenshot inspected. Real-device interaction/Push delivery is not established by static geometry.
+- Final focused review: correctness, simplicity, architecture, security and bounded capacity PASS. Event/Important Date database function definitions and ACL preserved; shared due/timezone/Web Push/SW files unchanged. Existing 50-delivery overflow starvation is recorded, not corrected. Database pre-send qualification cannot atomically cover later provider dispatch/retract notifications; current pipeline semantics retained.
+
+Next: separate Production patch/capability review and authorization. Exact SQL must precede new sender; missing Task candidate RPC aborts the whole run. Postflight/backend alignment must precede new authenticated frontend acceptance; local tests are not deployment or user Push PASS.
+
 ## v0.1.19 Task reminder persistence / backend — LOCAL PASS / 2026-10-05
 
 - `python3 -u supabase/tests/task_reminder_local.py --red`: frozen `34e52df…` lacks Task reminder columns.

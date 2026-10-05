@@ -76,6 +76,9 @@ export type Task = {
   title: string;
   status: 'open' | 'completed';
   due_on: string | null;
+  reminder_kind: 'all_day_same_day_08' | 'all_day_previous_day_20' | null;
+  time_zone: string | null;
+  reminder_schedule_changed_at: string;
   created_at: string;
   updated_at: string;
 };

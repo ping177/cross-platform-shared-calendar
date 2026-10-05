@@ -3,7 +3,8 @@ import { Trash2, X } from 'lucide-react';
 import { CreateTargetSelector, type CreateTargetControl } from './GlobalCreateControls';
 import { supabase } from '../lib/supabase';
 import { canConfirmCreate, canUseCreateTarget, createSubmitLock, resetTaskAssignmentForTarget } from '../lib/global-create';
-import { normalizeTaskTitle, taskAssignmentFromValue, taskAssignmentOptions, taskEditableChanges, taskErrorMessage } from '../lib/task';
+import { normalizeTaskTitle, taskAssignmentFromValue, taskAssignmentOptions, taskEditableChanges, taskErrorMessage, taskReminderValues } from '../lib/task';
+import { allDayReminderOptions } from '../lib/reminder';
 import { taskAssignmentForSpace } from '../lib/space-content';
 import type { Space, SpaceMember, Task } from '../types';
 
@@ -26,6 +27,7 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
   const [title, setTitle] = useState(task?.title ?? '');
   const [assignment, setAssignment] = useState(task?.assigned_to_user_id ?? '');
   const [dueOn, setDueOn] = useState(task?.due_on ?? '');
+  const [reminderKind, setReminderKind] = useState<Task['reminder_kind']>(task ? task.reminder_kind ?? null : 'all_day_same_day_08');
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -104,7 +106,8 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
     setError('');
     let createdSuccessfully = false;
     try {
-      const values = { title: normalizedTitle, assigned_to_user_id: assignedToUserId, due_on: dueOn || null };
+      const values = { title: normalizedTitle, assigned_to_user_id: assignedToUserId, due_on: dueOn || null,
+        ...taskReminderValues(task, dueOn, reminderKind) };
       const changes = task ? taskEditableChanges(task, values) : values;
       if (!task && createTarget) {
         if (!validateGlobalCreate) throw new Error('无法确认保存空间，请重试。');
@@ -211,6 +214,15 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
                 <input id="task-due-on" className="min-w-0 flex-1 rounded-lg border border-ink/15 px-4 py-3 outline-none focus:border-teal" type="date" value={dueOn} onChange={(event) => setDueOn(event.target.value)} />
                 {dueOn && <button className="shrink-0 rounded-lg bg-mist px-3 text-sm font-semibold" type="button" onClick={() => setDueOn('')}>清除</button>}
               </div>
+            </div>
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-ink/70" htmlFor="task-reminder">提醒</label>
+              <select id="task-reminder" className="min-h-11 w-full min-w-0 rounded-lg border border-ink/15 bg-white px-4 py-3 outline-none focus:border-teal disabled:opacity-60"
+                value={dueOn ? reminderKind ?? '' : ''} disabled={!dueOn || busy || !actionsAllowed}
+                onChange={(event) => setReminderKind((event.target.value || null) as Task['reminder_kind'])}>
+                {allDayReminderOptions.map((option) => <option key={option.value || 'off'} value={option.value}>{option.label}</option>)}
+              </select>
+              <p className="mt-2 text-sm text-ink/60">{!dueOn ? '设置截止日期后可启用提醒。' : spaceKind === 'personal' ? '提醒自己。' : assignment ? '提醒任务负责人。' : '提醒当前所有空间成员。'}</p>
             </div>
             <div className="flex gap-3 pt-2">
               {task && (

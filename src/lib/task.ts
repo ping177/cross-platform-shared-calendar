@@ -1,3 +1,4 @@
+import { detectBrowserTimeZone } from './reminder.ts';
 import { normalizeMemberDisplayName } from './member.ts';
 import type { SpaceMember, Task } from '../types.ts';
 
@@ -81,13 +82,16 @@ export function canChangeTaskStatus(task: Task, currentUserId: string) {
   return task.assigned_to_user_id === null || task.assigned_to_user_id === currentUserId;
 }
 
-export type TaskEditableValues = Pick<Task, 'title' | 'assigned_to_user_id' | 'due_on'>;
+export type TaskEditableValues = Pick<Task, 'title' | 'assigned_to_user_id' | 'due_on'>
+  & Partial<Pick<Task, 'reminder_kind' | 'time_zone'>>;
 
 export function taskEditableChanges(task: Task, values: TaskEditableValues): Partial<TaskEditableValues> {
   const changes: Partial<TaskEditableValues> = {};
   if (values.title !== task.title) changes.title = values.title;
   if (values.assigned_to_user_id !== task.assigned_to_user_id) changes.assigned_to_user_id = values.assigned_to_user_id;
   if (values.due_on !== task.due_on) changes.due_on = values.due_on;
+  if ('reminder_kind' in values && values.reminder_kind !== task.reminder_kind) changes.reminder_kind = values.reminder_kind;
+  if ('time_zone' in values && values.time_zone !== task.time_zone) changes.time_zone = values.time_zone;
   return changes;
 }
 
@@ -98,4 +102,18 @@ export function taskRealtimeConfig(spaceId: string) {
     table: 'tasks',
     filter: `space_id=eq.${spaceId}`,
   } as const;
+}
+
+// Null due always wins. Capture only on enablement without an established zone.
+export function taskReminderValues(task: Task | null, dueOn: string, reminderKind: Task['reminder_kind'],
+  resolve?: () => unknown): Pick<Task, 'reminder_kind' | 'time_zone'> {
+  if (reminderKind !== null && reminderKind !== 'all_day_same_day_08' && reminderKind !== 'all_day_previous_day_20') {
+    throw new Error('请选择有效的任务提醒。');
+  }
+  const kind = dueOn ? reminderKind : null;
+  if (kind === null) return { reminder_kind: null, time_zone: task?.time_zone ?? null };
+  if (task?.time_zone) return { reminder_kind: kind, time_zone: task.time_zone };
+  const result = detectBrowserTimeZone(resolve);
+  if (!result.ok) throw new Error(result.error);
+  return { reminder_kind: kind, time_zone: result.timeZone };
 }

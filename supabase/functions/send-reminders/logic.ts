@@ -18,6 +18,8 @@ import {
   type ImportantDateReminderSource,
   type ImportantDateReminderCandidate,
 } from './important-dates.ts';
+import { projectTaskReminderCandidates, type TaskReminderSource } from './tasks.ts';
+import type { TaskClaimInput } from './task-claim.ts';
 import type { ImportantDateClaimInput } from './important-date-claim.ts';
 import type { EventOccurrenceException } from '../../../src/types.ts';
 
@@ -57,7 +59,14 @@ type EligibleImportantDateCandidate = ImportantDateReminderCandidate & {
   expectedReminderKind: ImportantDateClaimInput['expectedReminderKind'];
   rawReminderScheduleChangedAt: string;
 };
-type EligibleDeliveryCandidate = EligibleReminderCandidate | EligibleImportantDateCandidate;
+type EligibleTaskCandidate = {
+  taskSource: TaskReminderSource;
+  occurrenceDate: string;
+  dueAt: Date;
+  expectedReminderKind: TaskClaimInput['expectedReminderKind'];
+  rawReminderScheduleChangedAt: string;
+};
+type EligibleDeliveryCandidate = EligibleReminderCandidate | EligibleImportantDateCandidate | EligibleTaskCandidate;
 
 export type SpaceMembership = {
   space_id: string;
@@ -87,7 +96,10 @@ type ImportantDateDeliveryTask = DeliveryTaskDetails & {
     reminderKind: ImportantDateClaimInput['expectedReminderKind'];
   };
 };
-export type DeliveryTask = EventDeliveryTask | ImportantDateDeliveryTask;
+type TaskDeliveryTask = DeliveryTaskDetails & {
+  task: { id: string; title: string; occurrenceDate: string; reminderKind: TaskClaimInput['expectedReminderKind'] };
+};
+export type DeliveryTask = EventDeliveryTask | ImportantDateDeliveryTask | TaskDeliveryTask;
 
 export type LedgerFinalResult = {
   status: 'sent' | 'failed';
@@ -134,6 +146,9 @@ export type FinalizeReminderInput = {
 export type RunSendRemindersDependencies = {
   fetchCandidatePage: (request: CandidatePageRequest) => Promise<ReminderCandidate[]>;
   fetchRecurringCandidatePage: (request: CandidatePageRequest) => Promise<RecurringReminderSource[]>;
+  fetchTaskCandidatePage: (request: CandidatePageRequest) => Promise<TaskReminderSource[]>;
+  claimTask: (input: TaskClaimInput) => Promise<string | null>;
+  checkTask: (deliveryId: string, kind: TaskClaimInput['expectedReminderKind'], rawMarker: string) => Promise<void>;
   fetchImportantDateCandidatePage: (request: CandidatePageRequest) => Promise<ImportantDateReminderSource[]>;
   fetchRecurringExceptions: (eventIds: string[]) => Promise<RecurringExceptionScanResult>;
   fetchMemberships: (spaceIds: string[]) => Promise<SpaceMembership[]>;
@@ -448,8 +463,16 @@ function recipientPairsFor(
 
   const recipientPairs: RecipientPair[] = [];
   for (const candidate of eligible) {
-    const spaceId = 'event' in candidate ? candidate.event.space_id : candidate.source.space_id;
+    const spaceId = 'event' in candidate ? candidate.event.space_id : 'taskSource' in candidate ? candidate.taskSource.space_id : candidate.source.space_id;
     const currentMembers = membersBySpace.get(spaceId) ?? new Set<string>();
+    if ('taskSource' in candidate) {
+      const source = candidate.taskSource;
+      const recipient = source.space_kind === 'personal' ? source.personal_owner_id : source.assigned_to_user_id;
+      if (recipient !== null) {
+        if (currentMembers.has(recipient)) recipientPairs.push({ candidate, userId: recipient });
+        continue;
+      }
+    }
     if ('event' in candidate && candidate.event.scope === 'personal') {
       const ownerId = candidate.event.owner_user_id;
       if (ownerId !== null && currentMembers.has(ownerId)) {
@@ -503,7 +526,10 @@ export function createDeliveryTasks(
         dueAt: pair.candidate.dueAt,
         rawReminderScheduleChangedAt: pair.candidate.rawReminderScheduleChangedAt,
       };
-      if ('event' in pair.candidate) {
+      if ('taskSource' in pair.candidate) {
+        tasks.push({ ...details, task: { id: pair.candidate.taskSource.id, title: pair.candidate.taskSource.title,
+          occurrenceDate: pair.candidate.occurrenceDate, reminderKind: pair.candidate.expectedReminderKind } });
+      } else if ('event' in pair.candidate) {
         tasks.push({
           ...details,
           eventId: pair.candidate.event.id,
@@ -536,13 +562,13 @@ function compareStrings(left: string, right: string) {
 }
 
 function compareDeliveryTasks(left: DeliveryTask, right: DeliveryTask) {
-  const leftId = 'importantDate' in left ? left.importantDate.id : left.eventId;
-  const rightId = 'importantDate' in right ? right.importantDate.id : right.eventId;
-  const leftOccurrence = 'importantDate' in left ? left.importantDate.occurrenceDate : left.recurrence?.occurrenceDate ?? '';
-  const rightOccurrence = 'importantDate' in right ? right.importantDate.occurrenceDate : right.recurrence?.occurrenceDate ?? '';
+  const leftId = 'task' in left ? left.task.id : 'importantDate' in left ? left.importantDate.id : left.eventId;
+  const rightId = 'task' in right ? right.task.id : 'importantDate' in right ? right.importantDate.id : right.eventId;
+  const leftOccurrence = 'task' in left ? left.task.occurrenceDate : 'importantDate' in left ? left.importantDate.occurrenceDate : left.recurrence?.occurrenceDate ?? '';
+  const rightOccurrence = 'task' in right ? right.task.occurrenceDate : 'importantDate' in right ? right.importantDate.occurrenceDate : right.recurrence?.occurrenceDate ?? '';
   return left.dueAt.getTime() - right.dueAt.getTime()
     || compareStrings(leftId, rightId)
-    || Number('importantDate' in left) - Number('importantDate' in right)
+    || ('task' in left ? 2 : Number('importantDate' in left)) - ('task' in right ? 2 : Number('importantDate' in right))
     || compareStrings(leftOccurrence, rightOccurrence)
     || compareStrings(left.recipientUserId, right.recipientUserId)
     || compareStrings(left.subscription.id, right.subscription.id);
@@ -624,7 +650,11 @@ async function processDeliveryTask(
 ) {
   let deliveryId: string | null;
   try {
-    if ('importantDate' in task) {
+    if ('task' in task) {
+      deliveryId = await dependencies.claimTask({ taskId: task.task.id, occurrenceDate: task.task.occurrenceDate,
+        recipientUserId: task.recipientUserId, subscriptionId: task.subscription.id, dueAt: task.dueAt.toISOString(),
+        expectedReminderKind: task.task.reminderKind, expectedReminderScheduleChangedAt: task.rawReminderScheduleChangedAt });
+    } else if ('importantDate' in task) {
       deliveryId = await dependencies.claimImportantDate({
         importantDateId: task.importantDate.id,
         occurrenceDate: task.importantDate.occurrenceDate,
@@ -671,12 +701,14 @@ async function processDeliveryTask(
 
   let finalResult: LedgerFinalResult;
   try {
-    if ('importantDate' in task) {
+    if ('task' in task) {
+      await dependencies.checkTask(deliveryId, task.task.reminderKind, task.rawReminderScheduleChangedAt);
+    } else if ('importantDate' in task) {
       await dependencies.checkImportantDate(deliveryId, task.importantDate.reminderKind, task.rawReminderScheduleChangedAt);
     }
     const senderResult = await dependencies.send(task.subscription, {
       title: '共享日历',
-      body: 'importantDate' in task ? task.importantDate.name : task.eventTitle,
+      body: 'task' in task ? task.task.title : 'importantDate' in task ? task.importantDate.name : task.eventTitle,
       url: '/',
       tag,
     });
@@ -723,13 +755,14 @@ export async function runSendReminders(
   dependencies: RunSendRemindersDependencies,
 ) {
   const diagnostics = emptyDiagnostics();
-  const [scan, recurringSourceScan, importantDateScan] = await Promise.all([
+  const [scan, recurringSourceScan, importantDateScan, taskScan] = await Promise.all([
     scanReminderCandidates(dependencies.fetchCandidatePage),
     scanReminderCandidates(dependencies.fetchRecurringCandidatePage, MAX_RECURRING_SOURCES),
     scanReminderCandidates(dependencies.fetchImportantDateCandidatePage),
+    scanReminderCandidates(dependencies.fetchTaskCandidatePage),
   ]);
-  diagnostics.candidates_scanned = scan.candidatesScanned + recurringSourceScan.candidatesScanned + importantDateScan.candidatesScanned;
-  diagnostics.candidate_truncated = scan.candidateTruncated || recurringSourceScan.candidateTruncated || importantDateScan.candidateTruncated;
+  diagnostics.candidates_scanned = scan.candidatesScanned + recurringSourceScan.candidatesScanned + importantDateScan.candidatesScanned + taskScan.candidatesScanned;
+  diagnostics.candidate_truncated = scan.candidateTruncated || recurringSourceScan.candidateTruncated || importantDateScan.candidateTruncated || taskScan.candidateTruncated;
 
   if (diagnostics.candidate_truncated) {
     diagnostics.status = 'candidate_limit_exceeded';
@@ -779,7 +812,18 @@ export async function runSendReminders(
       rawReminderScheduleChangedAt: rawMarker,
     });
   }
-  const eligible: EligibleDeliveryCandidate[] = [...due.eligible, ...importantDateEligible];
+  const taskProjection = projectTaskReminderCandidates(taskScan.candidates, context.runNow);
+  if (taskProjection.errors.length > 0) throw new Error('Task Reminder projection failed.');
+  const taskEligible: EligibleTaskCandidate[] = [];
+  for (const candidate of taskProjection.candidates) {
+    const rawMarker = candidate.source.reminder_schedule_changed_at;
+    const beforeMarker = dueIsBeforeMarker(candidate.dueAt, rawMarker);
+    if (beforeMarker === null || candidate.source.reminder_kind === null) { due.invalidSkipped += 1; continue; }
+    if (beforeMarker) { due.newlyPastSkipped += 1; continue; }
+    taskEligible.push({ taskSource: candidate.source, occurrenceDate: candidate.occurrenceDate, dueAt: candidate.dueAt,
+      expectedReminderKind: candidate.source.reminder_kind, rawReminderScheduleChangedAt: rawMarker });
+  }
+  const eligible: EligibleDeliveryCandidate[] = [...due.eligible, ...importantDateEligible, ...taskEligible];
   diagnostics.due_eligible = eligible.length;
   diagnostics.future_skipped = due.futureSkipped;
   diagnostics.newly_past_skipped = due.newlyPastSkipped;
@@ -790,7 +834,7 @@ export async function runSendReminders(
     return finishDiagnostics(diagnostics, context);
   }
 
-  const spaceIds = [...new Set(eligible.map((candidate) => 'event' in candidate ? candidate.event.space_id : candidate.source.space_id))];
+  const spaceIds = [...new Set(eligible.map((candidate) => 'event' in candidate ? candidate.event.space_id : 'taskSource' in candidate ? candidate.taskSource.space_id : candidate.source.space_id))];
   const memberships = await dependencies.fetchMemberships(spaceIds);
   const recipientPairs = recipientPairsFor(eligible, memberships);
   diagnostics.recipients = recipientPairs.length;
@@ -824,7 +868,9 @@ export async function runSendReminders(
 
       let tag: string;
       try {
-        tag = 'importantDate' in task
+        tag = 'task' in task
+          ? await createReminderTag(`task:${task.task.id}`, task.dueAt, task.task.occurrenceDate)
+          : 'importantDate' in task
           ? await createReminderTag(`important-date:${task.importantDate.id}`, task.dueAt, task.importantDate.occurrenceDate)
           : await createReminderTag(
             task.recurrence?.logicalSeriesId ?? task.eventId,

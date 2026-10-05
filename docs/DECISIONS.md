@@ -1,5 +1,14 @@
 # Decisions
 
+## v0.1.19 — Task Due-date Push Reminder — 2026-10-05
+
+- Approved repo-first bounded extension; [canonical contract](./v0.1.19_TASK_REMINDERS_SPEC.md). Four tasks locally implemented/automated PASS; READY_FOR_PRODUCTION_PATCH_REVIEW, overall IN PROGRESS, no Production rollout/acceptance.
+- Task remains Space-owned, date-only due and open/completed. No due means off. New UI-created due Task defaults same-day 08:00; historical null never auto-enables or guesses timezone. Two existing all-day presets/null; capture valid IANA on enablement without established zone and reject failed capture. Device changes preserve saved zone.
+- Personal recipient = Personal Space owner/self; Shared assigned = current assignee; Shared unassigned = all current members and active devices. This resolves the historical future-backlog recipient question without changing Event/Important Date recipients or Task status authority.
+- Three Task fields with server marker on due/preset/timezone/status/assignee (including FK set-null); title does not invalidate. Extend the existing ledger source identity/Task civil due identity, service-only claim/pre-send, and Tasks toggle Space locking. Keep direct Task CRUD and one existing scheduler/sender/subscription/SW architecture. No generic framework, queue/retry/lease/Task occurrence table or hidden Event.
+- Final database pre-send canonical check is the qualification boundary. Changes after the RPC returns cannot be atomically coordinated with Web Push/retract accepted notifications. Preserve newly-past skip/infrastructure-only ten-minute grace and existing duplicate identity; existing 50-delivery overflow limitation is only recorded.
+- Local commit is authorized after tests; push and Production writes require separate authorization. Rollout review order is additive SQL → integrated Edge → postflight/target alignment → user authenticated frontend/PWA acceptance; no sender-first deployment.
+
 ## Current implemented modules stage interaction cleanup — 2026-10-05
 
 - Home/Calendar single Important Date rows use their local direct Sheet with the shared exact canonical target/editor and requestId/generation qualification. Full-module entry/view-all/session restore stays in the existing navigation parser. The unreachable old runtime row-to-module controller, pending/returnTo wiring and module target branch are removed; no generic routing/resolver layer replaces them.

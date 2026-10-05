@@ -382,6 +382,9 @@ function orchestrationDependencies(
   return {
     fetchCandidatePage: pageFetcher([candidate('event-0001')]),
     fetchRecurringCandidatePage: async () => [],
+    fetchTaskCandidatePage: async () => [],
+    claimTask: async () => { throw new Error('Unexpected Task claim'); },
+    checkTask: async () => { throw new Error('Unexpected Task check'); },
     fetchImportantDateCandidatePage: async () => [],
     claimImportantDate: async () => { throw new Error('Unexpected Important Date claim'); },
     checkImportantDate: async () => { throw new Error('Unexpected Important Date check'); },

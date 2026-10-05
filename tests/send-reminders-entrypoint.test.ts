@@ -18,7 +18,8 @@ Object.assign(globalThis, { Deno: { env: { get: (name: string) => values[name] }
 await import('../supabase/functions/send-reminders/index.ts');
 
 test('entrypoint wires candidate/claim/check RPCs and failed finalize without provider dispatch', async () => {
-  for (const mode of ['reject', 'check-error', 'scan-incomplete', 'event-incomplete', 'recurring-incomplete', 'exception-incomplete', 'exception-duplicate'] as const) {
+  for (const mode of ['reject', 'check-error', 'scan-incomplete', 'event-incomplete', 'recurring-incomplete', 'exception-incomplete', 'exception-duplicate', 'task-reject', 'task-check-error', 'task-scan-incomplete'] as const) {
+    const taskMode = mode.startsWith('task-');
     const calls: { path: string; body: unknown }[] = [];
     const originalFetch = globalThis.fetch;
     const FixedDate = class extends Date { constructor(value?: string | number) { super(value ?? '2026-10-02T08:05:00Z'); } };
@@ -37,12 +38,20 @@ test('entrypoint wires candidate/claim/check RPCs and failed finalize without pr
           : repeating && mode.startsWith('exception-') ? [{ id: sourceId, space_id: spaceId }] : [];
       }
       else if (path.endsWith('/event_occurrence_exceptions')) data = mode === 'exception-incomplete' ? null : [{ id: sourceId }, { id: sourceId }];
-      else if (path.endsWith('/list_important_date_reminder_candidates')) data = mode === 'scan-incomplete' ? null : [{
+      else if (path.endsWith('/list_important_date_reminder_candidates')) data = mode === 'scan-incomplete' ? null : taskMode ? [] : [{
         id: sourceId, space_id: spaceId, name: 'Important date', repeat_kind: 'annual', month: 10, day: 2, year: null,
         reminder_kind: 'all_day_same_day_08', time_zone: 'UTC', reminder_schedule_changed_at: marker }];
+      else if (path.endsWith('/list_task_reminder_candidates')) data = mode === 'task-scan-incomplete' ? null : taskMode ? [{
+        id: sourceId, space_id: spaceId, space_kind: 'shared', personal_owner_id: memberId, title: 'Task', assigned_to_user_id: null,
+        due_on: '2026-10-02', status: 'open', reminder_kind: 'all_day_same_day_08', time_zone: 'UTC', reminder_schedule_changed_at: marker }] : [];
       else if (path.endsWith('/space_members')) data = [{ space_id: spaceId, user_id: memberId }];
       else if (path.endsWith('/push_subscriptions')) data = [{ id: subscriptionId, user_id: memberId, installation_id: subscriptionId,
         endpoint: 'https://fcm.googleapis.com/fixture', p256dh: 'fake', auth: 'fake', expiration_time: null, disabled_at: null }];
+      else if (path.endsWith('/claim_task_reminder_delivery')) data = deliveryId;
+      else if (path.endsWith('/check_task_reminder_delivery')) {
+        if (mode === 'task-check-error') return new Response(JSON.stringify({ code: 'XX000', message: 'synthetic error' }), { status: 500 });
+        data = false;
+      }
       else if (path.endsWith('/claim_important_date_reminder_delivery')) data = deliveryId;
       else if (path.endsWith('/check_important_date_reminder_delivery')) {
         if (mode === 'check-error') return new Response(JSON.stringify({ code: 'XX000', message: 'synthetic error' }), { status: 500 });
@@ -59,16 +68,17 @@ test('entrypoint wires candidate/claim/check RPCs and failed finalize without pr
       assert.equal(response.status, incomplete ? 500 : 200);
       const call = (name: string) => calls.find(entry => entry.path.endsWith(`/${name}`));
       assert.deepEqual(call('list_important_date_reminder_candidates')?.body, { p_after_id: null, p_limit: 100 });
-      if (incomplete) { assert.equal(call('claim_important_date_reminder_delivery'), undefined); continue; }
+      if (incomplete) { assert.equal(call('claim_important_date_reminder_delivery'), undefined); assert.equal(call('claim_task_reminder_delivery'), undefined); continue; }
       assert.equal(result.failed, 1); assert.equal(result.sent, 0);
-      assert.deepEqual(call('claim_important_date_reminder_delivery')?.body, { p_important_date_id: sourceId,
+      assert.deepEqual(call(taskMode ? 'claim_task_reminder_delivery' : 'claim_important_date_reminder_delivery')?.body, { [taskMode ? 'p_task_id' : 'p_important_date_id']: sourceId,
         p_occurrence_date: '2026-10-02', p_recipient_user_id: memberId, p_subscription_id: subscriptionId,
         p_due_at: '2026-10-02T08:00:00.000Z', p_expected_reminder_kind: 'all_day_same_day_08',
         p_expected_reminder_schedule_changed_at: marker });
-      assert.deepEqual(call('check_important_date_reminder_delivery')?.body, { p_delivery_id: deliveryId,
+      assert.deepEqual(call(taskMode ? 'check_task_reminder_delivery' : 'check_important_date_reminder_delivery')?.body, { p_delivery_id: deliveryId,
         p_expected_reminder_kind: 'all_day_same_day_08', p_expected_reminder_schedule_changed_at: marker });
       assert.deepEqual(call('reminder_deliveries')?.body, { status: 'failed', result_code: 'unexpected_task_error', provider_status: null });
-      assert.ok(!calls.some(entry => entry.path.endsWith('/important_dates')));
+      assert.deepEqual(call('list_task_reminder_candidates')?.body, { p_after_id: null, p_limit: 100 });
+      assert.ok(!calls.some(entry => entry.path.endsWith('/important_dates') || entry.path.endsWith('/tasks')));
     } finally { globalThis.fetch = originalFetch; globalThis.Date = OriginalDate; }
   }
 });

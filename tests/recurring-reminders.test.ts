@@ -271,6 +271,9 @@ test('orchestrates recurring projection through the recurring claim snapshot and
     { runNow, startedAt: 0, monotonicNow: () => 1 },
     {
       fetchCandidatePage: async () => [],
+      fetchTaskCandidatePage: async () => [],
+      claimTask: async () => { throw new Error('Unexpected Task claim'); },
+      checkTask: async () => { throw new Error('Unexpected Task check'); },
       fetchImportantDateCandidatePage: async () => [],
       claimImportantDate: async () => { throw new Error('Unexpected Important Date claim'); },
       checkImportantDate: async () => { throw new Error('Unexpected Important Date check'); },
@@ -330,6 +333,9 @@ test('aborts a truncated recurring exception scan before membership, claim, or s
     { runNow, startedAt: 0, monotonicNow: () => 1 },
     {
       fetchCandidatePage: async () => [],
+      fetchTaskCandidatePage: async () => [],
+      claimTask: async () => { throw new Error('Unexpected Task claim'); },
+      checkTask: async () => { throw new Error('Unexpected Task check'); },
       fetchImportantDateCandidatePage: async () => [],
       claimImportantDate: async () => { throw new Error('Unexpected Important Date claim'); },
       checkImportantDate: async () => { throw new Error('Unexpected Important Date check'); },

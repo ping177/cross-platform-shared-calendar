@@ -1,5 +1,11 @@
 # Backlog
 
+## v0.1.19 — Task Due-date Push Reminder — IN PROGRESS
+
+Four bounded implementation tasks are locally complete; automated verification and focused review PASS, **READY_FOR_PRODUCTION_PATCH_REVIEW**. Contract: [v0.1.19 spec](./v0.1.19_TASK_REMINDERS_SPEC.md). Production rollout/real-account/PWA acceptance NOT RUN; push remains unauthorized.
+
+Next: review exact additive SQL, deployed backend compatibility and rollout order, then obtain separate Production authorization. SQL/candidate/claim/check precede integrated sender; postflight/target alignment precede authenticated frontend acceptance. Existing overflow throughput issue remains outside scope; no second scheduler/framework.
+
 ## P0 - Blocking Verification or Core Use
 
 - Investigate any Magic Link, RLS, Realtime, or Production deployment regression that blocks the two-person calendar flow.
@@ -195,7 +201,7 @@ The long-term relationships and v0.1.10 scope are frozen in [Shared Life Archite
 - v0.1.16 — Module Entry Responsiveness / Data Flow Simplification (CLOSED / PASS; automated, local authenticated desktop, and Production installed-PWA acceptance PASS; Android-specific acceptance not reported).
 - v0.1.17 — Space-aware List create default (CLOSED / PASS; implementation/automated, local authenticated, and Production/PWA acceptance PASS; Android-specific acceptance not reported).
 - v0.1.18 — 重要日 (CLOSED / PASS; Slices 1–3 and Slice 3 T1–T4 CLOSED / PASS; T4 functional + retention UX PASS; P0a manual PASS; P0b automated PASS and final normal regression PASS; current-modules stage cleanup PASS; FINAL_MANUAL_REGRESSION = PASS; no extra Production/PWA-specific PASS inferred).
-- Later candidates without fixed versions/order: Task due-date Push Reminder, Calendar Sources v1, Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules. These remain unselected and their priority may change based on real product use.
+- Later candidates without fixed versions/order: Calendar Sources v1, Memo, Photos / Memories, richer external Calendars, Task Archive, and other validated modules. These remain unselected and their priority may change based on real product use.
 - Future direction only: consider projecting/sharing a Personal Event into another Space while keeping one canonical Event owner Space, avoiding duplicate canonical objects, and ensuring that leaving the target Shared Space does not affect the source Event. This is outside v0.1.13; do not implement or reserve schema for it in this version.
 - Native: decision gate only; no committed implementation version.
 
@@ -213,11 +219,9 @@ The long-term relationships and v0.1.10 scope are frozen in [Shared Life Archite
 - Reconsider `space_members.nickname` only after multi-space support creates a real per-space naming need.
 - Countdown/count-up/anniversary displays are covered by the unified v0.1.18 Important Date contract; do not create separate countdown objects.
 
-### Task due-date Push Reminder — independent future backlog
+### Task due-date Push Reminder — selected for v0.1.19
 
-- Current Tasks have optional date-only `due_on` and no Push reminder. This is outside v0.1.18; no Task reminder fields, claim, or sender work is approved here.
-- Future date-level UX direction: 不提醒 / 当天08:00 / 前一天20:00; default 当天08:00. No due_on means no reminder. Completion before due, due removal/change, or reminder disable must invalidate stale delivery.
-- Recipient direction remains Task-specific: Personal → self; Shared + assignee → assignee; **Shared + no assignee → unresolved**. Do not select the latter recipient in Important Date implementation.
+The historical future direction is now the approved v0.1.19 contract above. Shared without assignee recipients are current Space members; historical null remains off. Local implementation is complete, but no deployment or Push acceptance is claimed. Use the spec and TESTING for current scope/status.
 
 ## P3 - Long-Term Directions
 

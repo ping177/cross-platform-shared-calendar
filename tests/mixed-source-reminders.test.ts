@@ -39,6 +39,9 @@ function subscription(id = 'subscription', user = 'member'): ReminderSubscriptio
 function dependencies(overrides: Partial<RunSendRemindersDependencies> = {}): RunSendRemindersDependencies {
   return {
     fetchCandidatePage: pages([event()]), fetchRecurringCandidatePage: pages([recurring()]),
+    fetchTaskCandidatePage: async () => [],
+    claimTask: async () => { throw new Error('Unexpected Task claim'); },
+    checkTask: async () => { throw new Error('Unexpected Task check'); },
     fetchImportantDateCandidatePage: pages([important()]),
     fetchRecurringExceptions: async () => ({ exceptions: [], exceptionsScanned: 0, exceptionTruncated: false }),
     fetchMemberships: async () => [{ space_id: space, user_id: 'member' }],
@@ -207,6 +210,8 @@ test('claim-to-pre-send invalidation or check exception prevents provider and fi
 
 test('mixed sources share one 50-task budget and five workers, ordered by due across all sources', async () => {
   let active = 0; let maximum = 0; const claims: string[] = [];
+  let release!: () => void;
+  const firstWave = new Promise<void>(resolve => { release = resolve; });
   const result = await runSendReminders(context(), dependencies({
     fetchCandidatePage: pages(Array.from({ length: 30 }, (_, i) => event(i + 1))),
     fetchRecurringCandidatePage: pages(Array.from({ length: 30 }, (_, i) => recurring(i + 101))),
@@ -214,7 +219,7 @@ test('mixed sources share one 50-task budget and five workers, ordered by due ac
     claim: async () => { claims.push('event'); return uuid(11); },
     claimRecurring: async () => { claims.push('recurring'); return uuid(12); },
     claimImportantDate: async () => { claims.push('important'); return uuid(13); },
-    send: async () => { active += 1; maximum = Math.max(maximum, active); await new Promise(resolve => setImmediate(resolve));
+    send: async () => { active += 1; maximum = Math.max(maximum, active); if (active === 5) release(); await firstWave;
       active -= 1; return { classification: 'delivered', provider: 'fcm.googleapis.com', status: 201 }; },
   }));
   assert.equal(result.delivery_tasks, 90); assert.equal(result.selected_delivery_tasks, 50); assert.equal(result.overflow_delivery_tasks, 40);

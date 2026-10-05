@@ -12,9 +12,11 @@ v0.1.19
 
 ## Current status
 
-v0.1.19 Task Due-date Push Reminder IN PROGRESS；已批准四项 bounded scope，persistence / ledger / backend 本地自动验证 PASS。仅本地实施；Production patch review、环境/capability gate、backend rollout 和用户真实账号/PWA acceptance 尚未完成。v0.1.18 CLOSED / PASS 保持历史事实。
+v0.1.19 Task Due-date Push Reminder `LOCAL AUTOMATED PASS / READY_FOR_PRODUCTION_PATCH_REVIEW`，整体 IN PROGRESS。四项 bounded implementation 与 focused final review 完成；Production patch review、环境/capability gate、backend rollout 和用户真实账号/PWA acceptance 尚未完成。v0.1.18 CLOSED / PASS 保持历史事实。
 
 ## Latest completed
+
+2026-10-05 — v0.1.19 sender / TaskSheet integration：复用单一 reminder pipeline、Task recipients/opaque tag/pre-send 和既有表单，新建 due 默认08:00、历史 null、IANA capture、无 due关闭完成。Node 753/753、focused 258/258、Deno checked54/runtime48、TypeScript/build/diff-check、unsigned 320/375px PASS。既有 Event/Important Date 行为保持；无 Production write/部署/push。详细证据见 TESTING/DEVLOG。
 
 2026-10-05 — v0.1.19 persistence/backend：Task 三字段与 server marker、历史 null compatibility、task_id ledger、Task candidate/claim/check、Tasks toggle Space locking 已完成。Fresh/upgrade catalog/ACL parity、17 SQL suites / 935 assertions per path、40 observed waits per path、实际 RPC 1000/1001 分页 PASS。详细证据见 TESTING/DEVLOG。无 Production/main DB write。
 
@@ -205,8 +207,6 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Version Index
 
-- v0.1.19 — Task Due-date Push Reminder（IN PROGRESS；本地 backend PASS；无 Production rollout）
-
 - v0.1 — 共享日历 MVP
 - v0.1-smoke-test — Supabase 验收
 - v0.1.1 — 个人事件权限
@@ -240,13 +240,15 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 - v0.1.17 — Space-aware List create default（CLOSED / PASS；implementation/automated verification、local authenticated、Production/PWA acceptance PASS；Android-specific acceptance 未报告）
 - v0.1.18 — 重要日（CLOSED / PASS；Slice 1/2/3 与 Slice 3 T1/T2/T3/T4 CLOSED / PASS；T4 functional manual + retention UX PASS、P0a manual PASS、P0b automated PASS 并纳入最终人工回归、当前模块阶段性 cleanup PASS；FINAL_MANUAL_REGRESSION = PASS；active-view Realtime deferred）
 
+- v0.1.19 — Task Due-date Push Reminder（IN PROGRESS；LOCAL AUTOMATED PASS / READY_FOR_PRODUCTION_PATCH_REVIEW；NOT DEPLOYED）
+
 ## Last verified
 
 2026-10-05
 
 ## Next Action
 
-完成 v0.1.19 sender / TaskSheet integration 的本地最终 review 与自动验证；随后仅进入 Production patch review，rollout 与 push 均须单独授权。
+Next Action: v0.1.19 Production patch / capability / rollout READ-ONLY review。核验实际 backend baseline 与 exact SQL → sender → postflight 顺序；Production rollout、用户真实账号/PWA acceptance 与 push 各须相应授权。本地自动 PASS 不等于上线/真实 Push PASS。
 
 ## Blockers
 
@@ -256,7 +258,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 - Slice 1 user acceptance: authenticated CRUD/permissions/date behavior/module toggle, public Production alias and real-device annual layout are PASS. Annual 375px PASS; 320px only buttons wrap without overlap, clipping or horizontal overflow; no further 320px scope. Shared edits by another member appear after re-entry canonical reread rather than immediately in an open view, matching the frozen no-Realtime design. Active-view Realtime refresh is deferred and is not a blocker.
 
-- v0.1.18 重要日的唯一 canonical contract 是 [规格](./v0.1.18_IMPORTANT_DATES_SPEC.md)。Slice 1/2 CLOSED / PASS；日期核心由 browser/Edge 共用，future anchor / Feb29 Important Date fallback 与 Event skip 语义保持。Slice 3 与 T1/T2/T3/T4 CLOSED / PASS；T4 functional manual + retention UX、Calendar Event P0a manual、Tasks P0b automated 与用户最终人工回归 PASS。当前模块阶段性 cleanup PASS；Home/Calendar 原地 Sheet 与治理说明见 DECISIONS/BACKLOG。Important Date active-view Realtime deferred，Task due-date Push 独立 backlog。
+- v0.1.18 重要日的唯一 canonical contract 是 [规格](./v0.1.18_IMPORTANT_DATES_SPEC.md)。Slice 1/2 CLOSED / PASS；日期核心由 browser/Edge 共用，future anchor / Feb29 Important Date fallback 与 Event skip 语义保持。Slice 3 与 T1/T2/T3/T4 CLOSED / PASS；T4 functional manual + retention UX、Calendar Event P0a manual、Tasks P0b automated 与用户最终人工回归 PASS。当前模块阶段性 cleanup PASS；Home/Calendar 原地 Sheet 与治理说明见 DECISIONS/BACKLOG。Important Date active-view Realtime deferred，Task due-date Push 已选为 v0.1.19 bounded scope，状态见上方。
 - v0.1.17 `CLOSED / PASS`；冻结约定为 `CURRENT FILTER AS DEFAULT PRESELECTION, NOT OWNERSHIP AUTHORITY`。Tasks/Review/Lists 已符合，Calendar 行为有意保持不变；v0.1.18 重要日遵循此约定。Slice 3 T1 的 display Space IDs 只收窄读取/展示，不修改 ownership；T2 的 spaceId + importantDateId exact canonical reader 与 request guards 仍有效；当前 Home/Calendar 使用原地 Sheet，旧 module-navigation handoff/returnTo 已删除；target 不持久化，无新依赖。
 - v0.1.15 Shared Lists 的唯一 canonical contract 是 [v0.1.15_SHARED_LISTS_SPEC.md](./v0.1.15_SHARED_LISTS_SPEC.md)。Slices 1–4 与整个版本 `CLOSED / PASS`；Item drag 设备验收及长列表自动滚动通过。Section drag 按冻结设计延后且不阻塞；stale reorder `AUTOMATED PASS / MANUAL NOT REQUIRED`，既有 bundle warning 非阻塞。
 - v0.1.14 `CLOSED / PASS`：`review_date` 是业务时间轴且同 Space 同日唯一；上一份计划严格按日期上一篇、不 fallback；`round_no` 仅为内部技术序列。Backend、frontend deployment、public smoke、用户 Production authenticated acceptance 与最终 exact-ID fixture cleanup 均通过；Production 当前 0 rounds / 0 entries、Shared 与 Personal Review module enabled。v0.1.14.1 已解决刷新回首页问题并 `CLOSED / PASS`；既有 >500 kB bundle warning 仍为非阻塞项。完整 Review contract 和验收条件只以 v0.1.14 规格为准。
@@ -323,8 +325,4 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Handoff Prompt
 
-v0.1.19 已按 repo-first gate 批准四项 bounded implementation。persistence/backend LOCAL PASS；继续完成 sender/TaskSheet 最终本地 review 与验证。无 Production 或 push 授权。backend 环境/capability gate 必须在用户真实账号/PWA acceptance 前完成。
-
-历史 v0.1.18 closeout：
-
-v0.1.18 Important Dates CLOSED / PASS；Slices 1–3 与 Slice 3 T1–T4 CLOSED / PASS。用户 FINAL_MANUAL_REGRESSION = PASS，T4 functional/retention、P0a manual、P0b automated 与当前模块阶段性 cleanup 全部保持。活动 exact target/editor/request guards、Home/Calendar direct Sheets、完整模块 CRUD 与 Event/Task Realtime canonical reread 保留；旧 T2 runtime navigation 已删除。下一步产品工作须另行定范围，不开始新版本或继续 cleanup。Git/部署事实以实时核验为准；本次不声称额外 Production/PWA 专项验收，active-view Realtime deferred，暂无明确阻塞。未来新增主要功能后可再次进行全产品交互审计。
+v0.1.19 四项 bounded implementation LOCAL AUTOMATED PASS / READY_FOR_PRODUCTION_PATCH_REVIEW。先做 READ-ONLY Production patch/capability/rollout review；exact additive SQL 必须先于新 sender，缺失 Task candidate RPC 会使 mixed run fail closed。完成 backend postflight/实际 frontend target alignment 后才可请求用户真实账号/PWA acceptance。无 Production 或 push 授权；本地 commit 已获授权。v0.1.18 CLOSED / PASS；现有 Event/Important Date/Task authority/navigation/Realtime/retention 保持。旧 overflow 与 post-check→provider best-effort 边界仅记录，不扩大 scope。详见 v0.1.19 spec/TESTING/DEVLOG。
