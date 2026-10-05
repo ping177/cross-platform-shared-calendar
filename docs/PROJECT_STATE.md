@@ -8,15 +8,15 @@
 
 ## Current version
 
-v0.1.18
+v0.1.19
 
 ## Current status
 
-v0.1.18 重要日 `CLOSED / PASS`。Slice 1、Slice 2、Slice 3 均 `CLOSED / PASS`；Slice 3 T1/T2/T3/T4 均 `CLOSED / PASS`。T4 Important Date functional manual acceptance 与 retention UX PASS；Calendar Event P0a manual PASS；Tasks P0b automated PASS，正常行为已纳入用户最终人工回归；当前已实现模块阶段性 interaction cleanup PASS。用户确认 `FINAL_MANUAL_REGRESSION = PASS`。Home/Calendar 原地 own-object Sheet、validated presentation retention 与 fresh canonical action authority 保持；旧 T2 runtime navigation 已删除，活动 exact target/editor/guards 保留。
-
-Slice 1/2 已记录的 Production rollout、CRUD/Reminder 与 installed-PWA Push 验收 PASS 保持历史事实；本次 Slice 3 closeout 没有额外 Production 部署或 PWA 专项验收，不能从 Git 同步推断这些结果。Important Date active-view Realtime deferred，非 blocker。未来新增主要功能后仍可再次审计全产品交互一致性；本次仅当前已实现模块阶段性收口。
+v0.1.19 Task Due-date Push Reminder IN PROGRESS；已批准四项 bounded scope，persistence / ledger / backend 本地自动验证 PASS。仅本地实施；Production patch review、环境/capability gate、backend rollout 和用户真实账号/PWA acceptance 尚未完成。v0.1.18 CLOSED / PASS 保持历史事实。
 
 ## Latest completed
+
+2026-10-05 — v0.1.19 persistence/backend：Task 三字段与 server marker、历史 null compatibility、task_id ledger、Task candidate/claim/check、Tasks toggle Space locking 已完成。Fresh/upgrade catalog/ACL parity、17 SQL suites / 935 assertions per path、40 observed waits per path、实际 RPC 1000/1001 分页 PASS。详细证据见 TESTING/DEVLOG。无 Production/main DB write。
 
 2026-10-05 — v0.1.18 最终 closeout：用户最终人工回归 PASS，T1/T2/T3/T4、Slice 3 与整个版本 CLOSED / PASS。保留 T4 projection/retention、P0a Calendar Event retention、P0b fresh Task actions 与阶段性 cleanup；最终完整 diff review、聚焦/全量 Node、build、diff-check 与 Project State Push Gate 用于发布核验，结果见 TESTING/DEVLOG。下一步产品工作单独定范围；没有新功能、backend/schema/RPC/依赖修改或额外 Production/PWA 专项测试。
 
@@ -188,6 +188,8 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
+v0.1.19: LOCAL ONLY / NOT DEPLOYED。新 SQL patch、Task RPC 与 sender/UI 尚未 rollout；下述 v0.1.18 deployment/acceptance 仅为历史事实，不代表 Task reminder readiness。
+
 Status: public_deployed
 Public URL: https://cross-platform-shared-calendar.vercel.app/
 Provider: Vercel
@@ -202,6 +204,8 @@ v0.1.18: Tasks 1–4 implementation/automatic verification PASS. The exact Task 
 Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/mobile acceptance passed. User reports final Slice 4 desktop, dual-account Realtime, mobile/PWA Item drag and long-list auto-scroll acceptance `PASS`; v0.1.15 is `CLOSED / PASS`. The v0.1.16 deployment record was checked read-only; Codex did not operate Production or authenticated sessions. Existing Review backend keeps same-Space/date uniqueness, duplicate-safe create/date correction and `get_my_previous_review_plan`; final Review fixtures remain 0/0 while Shared and Personal Review modules remain enabled. Historical version-specific acceptance limits remain in DEVLOG/TESTING. `space_modules` remains outside Realtime; `send-test-push` remains ACTIVE v4 reviewed-equivalent and `send-reminders` ACTIVE v3 / `verify_jwt=false`. Vault, secrets and Cron were not changed.
 
 ## Version Index
+
+- v0.1.19 — Task Due-date Push Reminder（IN PROGRESS；本地 backend PASS；无 Production rollout）
 
 - v0.1 — 共享日历 MVP
 - v0.1-smoke-test — Supabase 验收
@@ -242,7 +246,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-Next Action: v0.1.18 closed; next product work to be separately scoped. 未来新增主要功能后可再次进行全产品 interaction consistency audit；本轮不开始下一版本。
+完成 v0.1.19 sender / TaskSheet integration 的本地最终 review 与自动验证；随后仅进入 Production patch review，rollout 与 push 均须单独授权。
 
 ## Blockers
 
@@ -318,5 +322,9 @@ Next Action: v0.1.18 closed; next product work to be separately scoped. 未来�
 - `v0.1.9 Shared Tasks` Slice 1/2/3 are CLOSED / PASS: backend applied/postflight verified, frontend deployed through Vercel, Desktop A/B Production acceptance and iPhone smoke passed. At the v0.1.13 closeout, Structured Review / Check-in and Shared Lists were future candidates; v0.1.14/14.1 subsequently closed, and Shared Lists was selected for v0.1.15. Its design is frozen and Slice 1 DB foundation is `CLOSED / PASS` after Production postflight.
 
 ## Handoff Prompt
+
+v0.1.19 已按 repo-first gate 批准四项 bounded implementation。persistence/backend LOCAL PASS；继续完成 sender/TaskSheet 最终本地 review 与验证。无 Production 或 push 授权。backend 环境/capability gate 必须在用户真实账号/PWA acceptance 前完成。
+
+历史 v0.1.18 closeout：
 
 v0.1.18 Important Dates CLOSED / PASS；Slices 1–3 与 Slice 3 T1–T4 CLOSED / PASS。用户 FINAL_MANUAL_REGRESSION = PASS，T4 functional/retention、P0a manual、P0b automated 与当前模块阶段性 cleanup 全部保持。活动 exact target/editor/request guards、Home/Calendar direct Sheets、完整模块 CRUD 与 Event/Task Realtime canonical reread 保留；旧 T2 runtime navigation 已删除。下一步产品工作须另行定范围，不开始新版本或继续 cleanup。Git/部署事实以实时核验为准；本次不声称额外 Production/PWA 专项验收，active-view Realtime deferred，暂无明确阻塞。未来新增主要功能后可再次进行全产品交互审计。

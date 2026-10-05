@@ -1,5 +1,13 @@
 # Development Log
 
+## 2026-10-05 — v0.1.19 Task reminder persistence / backend — LOCAL PASS
+
+- Approved repo-first gate baseline `34e52dfb94bdb7b2ca355a4ad2d00a8deb32618c`; four bounded tasks, local implementation/testing only. Frozen contract in v0.1.19_TASK_REMINDERS_SPEC.md. No Task redesign or second reminder architecture.
+- Three Task fields, server-owned strictly advancing marker on due/preset/timezone/status/assignee only; no due clears preset. Historical null/no guessed timezone; title/client marker writes cannot advance/forge marker. Direct Task CRUD/status ownership/RLS/Realtime preserved, FK set-null included.
+- Add task_id to existing audit ledger, three-source XOR and subscription/civil due/due-at uniqueness. Service-only candidate/claim/check, pinned search_path; Space advisory → Space row → Task row → actual claimed ledger. Post-wait clock, current recipient/module/member/subscription and raw marker qualification. Tasks toggle joins existing Space lock protocol; legacy Event/Important Date function bodies/ACL unchanged.
+- RED confirmed missing capability at frozen baseline. Guarded local Docker disposable fresh/upgrade paths PASS: full public catalog/ACL parity, unchanged historical Task/audit rows, old authorization/reminder functions, null compatibility, atomic drift/replay rejection; 17 SQL suites / 935 assertions per path (54 new), 40 observed lock waits per path, real candidate RPC → scanner 1000/1001 + raw microseconds. Personal fixture is removed with the disposable DB, respecting its no-delete rule. No Production/main DB connection.
+- No dependencies installed, Production/Edge/Cron write, authenticated-session automation, external project edits or secret output. Sender/frontend final checkpoint follows separately; no push.
+
 ## 2026-10-05 — v0.1.18 Important Dates final closeout — CLOSED / PASS
 
 - User confirms `FINAL_MANUAL_REGRESSION = PASS`. Slice 3 T1/T2/T3/T4, Slice 3 and v0.1.18 are CLOSED / PASS. T4 functional manual acceptance + Important Date retention UX PASS; Calendar Event P0a manual PASS; Tasks P0b automated PASS with normal behavior covered by the passed final manual regression; current implemented modules stage interaction cleanup PASS.

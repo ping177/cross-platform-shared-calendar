@@ -9,8 +9,8 @@ select is(
     from information_schema.columns
     where table_schema = 'public' and table_name = 'tasks'
   ),
-  'id,space_id,created_by,assigned_to_user_id,title,status,due_on,created_at,updated_at',
-  'Task table contains exactly the frozen Slice 1 columns'
+  'id,space_id,created_by,assigned_to_user_id,title,status,due_on,created_at,updated_at,reminder_kind,time_zone,reminder_schedule_changed_at',
+  'Task table contains the original columns plus only the v0.1.19 reminder extension'
 );
 select has_pk('public', 'tasks', 'Task table has a primary key');
 select is(

@@ -1,5 +1,13 @@
 # Testing
 
+## v0.1.19 Task reminder persistence / backend — LOCAL PASS / 2026-10-05
+
+- `python3 -u supabase/tests/task_reminder_local.py --red`: frozen `34e52df…` lacks Task reminder columns.
+- `python3 -u supabase/tests/task_reminder_local.py`: PASS on guarded disposable local Docker DBs only; fresh canonical schema and baseline + exact forward patch have full public catalog/ACL parity. Historical Task fields/audit rows and legacy Event/Important Date/status-authority functions unchanged; reminders/timezones null; drift/replay rejected atomically.
+- Each path: all 17 SQL files / **935 assertions** (54 new); **40 real observed waits**, including module/Space/source/ledger waits, complete/reopen, assignee round-trip, leave/remove FK set-null, due removal, subscription expiry/grace expiry and concurrent duplicate claim. Actual Task candidate RPC feeds existing scanner for **1000/1001** keyset boundaries and raw PG microseconds.
+- Old Task exact-column assertion now includes only the three approved columns; existing Node ledger assertion includes task_id. No existing authorization or behavioral assertion removed.
+- Cleanup drops only guarded disposable DBs; it does not delete Personal Spaces individually or touch local main/Production. Python AST syntax PASS. Production capability/rollout and real-device acceptance NOT RUN.
+
 ## 2026-10-05 — v0.1.18 final acceptance / closeout — CLOSED / PASS
 
 User confirms **`FINAL_MANUAL_REGRESSION = PASS`** for the final implemented frontend. Slice 3 **T1/T2/T3/T4 CLOSED / PASS**; Slice 3 and v0.1.18 **CLOSED / PASS**. T4 Important Date functional manual + same-range retention UX PASS; P0a Calendar Event retention manual PASS; P0b automated PASS and normal filter/complete/reopen included in final manual regression; current-modules stage interaction cleanup PASS. Earlier manual-pending/UX-OPEN/NOT-STARTED statements below are dated historical checkpoints, superseded by this final record.
