@@ -2,9 +2,9 @@
 
 ## v0.1.19 — Task Due-date Push Reminder — IN PROGRESS
 
-Four bounded implementation tasks are locally complete; automated verification and focused review PASS, **READY_FOR_PRODUCTION_PATCH_REVIEW**. Contract: [v0.1.19 spec](./v0.1.19_TASK_REMINDERS_SPEC.md). Production rollout/real-account/PWA acceptance NOT RUN; push remains unauthorized.
+Four bounded implementation tasks and focused review PASS. Production exact SQL/postflight, send-reminders ACTIVE v4 and natural Cron compatibility PASS; user-reported local authenticated pre-frontend acceptance **all PASS** (2026-10-07). Contract: [v0.1.19 spec](./v0.1.19_TASK_REMINDERS_SPEC.md). Frontend is not pushed/deployed; final Production/installed-PWA and real Task Push acceptance remain NOT RUN. Overall IN PROGRESS; push remains unauthorized.
 
-Next: review exact additive SQL, deployed backend compatibility and rollout order, then obtain separate Production authorization. SQL/candidate/claim/check precede integrated sender; postflight/target alignment precede authenticated frontend acceptance. Existing overflow throughput issue remains outside scope; no second scheduler/framework.
+Next: obtain separate Git push/frontend publication authorization, verify deployed assets/target/backend alignment, then user-run Production/installed-PWA Task and real Push acceptance. Backend-first order and local target gate are complete; no further backend write is planned. Existing overflow throughput issue remains outside scope; no second scheduler/framework.
 
 ## P0 - Blocking Verification or Core Use
 

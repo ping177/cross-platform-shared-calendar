@@ -12,9 +12,15 @@ v0.1.19
 
 ## Current status
 
-v0.1.19 Task Due-date Push Reminder `LOCAL AUTOMATED PASS / READY_FOR_PRODUCTION_PATCH_REVIEW`，整体 IN PROGRESS。四项 bounded implementation 与 focused final review 完成；Production patch review、环境/capability gate、backend rollout 和用户真实账号/PWA acceptance 尚未完成。v0.1.18 CLOSED / PASS 保持历史事实。
+v0.1.19 Task Due-date Push Reminder `BACKEND DEPLOYED / LOCAL AUTH ACCEPTANCE PASS / PRODUCTION FRONTEND ACCEPTANCE PENDING`，整体 IN PROGRESS。Production exact SQL/postflight、send-reminders ACTIVE v4 与自然 Cron compatibility PASS；用户已报告本地 authenticated pre-frontend acceptance 全部 PASS。frontend 尚未 push/deploy，真实 Production/PWA Task Push 最终验收未完成。v0.1.18 CLOSED / PASS 保持历史事实。
 
 ## Latest completed
+
+2026-10-07 — 用户报告 v0.1.19 本地 authenticated pre-frontend acceptance 全部 PASS：历史 null、新建 defaults/presets、canonical 保存/重开、due 编辑/删除、complete/reopen、recipient 文案、双账号基础回归及窄屏控件。Project State freshness review 更新治理记录；最终检查见 TESTING/DEVLOG。本地人工 PASS 不等于 Production installed-PWA 或真实 Task Push PASS。
+
+2026-10-06 — v0.1.19 backend 按两次独立授权上线：exact Task SQL 原样应用/postflight PASS；仅 send-reminders 从 ACTIVE v3 部署为 ACTIVE v4，verify_jwt=false，唯一 minute scheduler/目标、secrets 未变。部署后自然 runs 20082–20084 succeeded / HTTP 200 / completed；runtime Error/Warning 无记录，Task RPC ACL/历史 ledger/旧 Event 与 Important Date compatibility PASS。Task candidate=0，仅 backend/scheduler compatibility PASS。frontend target 与 clean implementation HEAD 对齐后启动本地 5175，由用户验收。
+
+以下 v0.1.19 LOCAL ONLY / 未部署描述是已由上述 rollout/验收接续的历史实现检查点。
 
 2026-10-05 — v0.1.19 sender / TaskSheet integration：复用单一 reminder pipeline、Task recipients/opaque tag/pre-send 和既有表单，新建 due 默认08:00、历史 null、IANA capture、无 due关闭完成。Node 753/753、focused 258/258、Deno checked54/runtime48、TypeScript/build/diff-check、unsigned 320/375px PASS。既有 Event/Important Date 行为保持；无 Production write/部署/push。详细证据见 TESTING/DEVLOG。
 
@@ -190,7 +196,7 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
-v0.1.19: LOCAL ONLY / NOT DEPLOYED。新 SQL patch、Task RPC 与 sender/UI 尚未 rollout；下述 v0.1.18 deployment/acceptance 仅为历史事实，不代表 Task reminder readiness。
+v0.1.19: Production project `ximazjhxvmktpcdbypka` 已应用 exact Task reminder SQL/postflight PASS；send-reminders ACTIVE v4（verify_jwt=false），自然 Cron/backend compatibility PASS。唯一 scheduler 与 secrets 未改变。本地新 frontend 指向同一 Production backend，用户 authenticated pre-frontend acceptance PASS；新 frontend 尚未 push/deploy，Production installed-PWA 与真实 Task Push 最终验收 NOT RUN。下述 v0.1.18 frontend deployment 为目前已发布版本的历史事实。
 
 Status: public_deployed
 Public URL: https://cross-platform-shared-calendar.vercel.app/
@@ -240,15 +246,15 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 - v0.1.17 — Space-aware List create default（CLOSED / PASS；implementation/automated verification、local authenticated、Production/PWA acceptance PASS；Android-specific acceptance 未报告）
 - v0.1.18 — 重要日（CLOSED / PASS；Slice 1/2/3 与 Slice 3 T1/T2/T3/T4 CLOSED / PASS；T4 functional manual + retention UX PASS、P0a manual PASS、P0b automated PASS 并纳入最终人工回归、当前模块阶段性 cleanup PASS；FINAL_MANUAL_REGRESSION = PASS；active-view Realtime deferred）
 
-- v0.1.19 — Task Due-date Push Reminder（IN PROGRESS；LOCAL AUTOMATED PASS / READY_FOR_PRODUCTION_PATCH_REVIEW；NOT DEPLOYED）
+- v0.1.19 — Task Due-date Push Reminder（IN PROGRESS；backend SQL/ACTIVE v4/Cron compatibility PASS；LOCAL AUTH ACCEPTANCE PASS；frontend/Production-PWA Task Push 最终验收 PENDING）
 
 ## Last verified
 
-2026-10-05
+2026-10-07
 
 ## Next Action
 
-Next Action: v0.1.19 Production patch / capability / rollout READ-ONLY review。核验实际 backend baseline 与 exact SQL → sender → postflight 顺序；Production rollout、用户真实账号/PWA acceptance 与 push 各须相应授权。本地自动 PASS 不等于上线/真实 Push PASS。
+Next Action: 验证 v0.1.19 Production frontend 发布后的实际 assets/target/backend compatibility，再由用户完成真实浏览器/installed-PWA Task 控件、保存/重开及真实 Task Push 最终验收。未完成前不关闭版本；已完成的本地人工与 backend compatibility PASS 不替代该验收。
 
 ## Blockers
 
@@ -325,4 +331,4 @@ Next Action: v0.1.19 Production patch / capability / rollout READ-ONLY review。
 
 ## Handoff Prompt
 
-v0.1.19 四项 bounded implementation LOCAL AUTOMATED PASS / READY_FOR_PRODUCTION_PATCH_REVIEW。先做 READ-ONLY Production patch/capability/rollout review；exact additive SQL 必须先于新 sender，缺失 Task candidate RPC 会使 mixed run fail closed。完成 backend postflight/实际 frontend target alignment 后才可请求用户真实账号/PWA acceptance。无 Production 或 push 授权；本地 commit 已获授权。v0.1.18 CLOSED / PASS；现有 Event/Important Date/Task authority/navigation/Realtime/retention 保持。旧 overflow 与 post-check→provider best-effort 边界仅记录，不扩大 scope。详见 v0.1.19 spec/TESTING/DEVLOG。
+v0.1.19 backend exact SQL/postflight 与 send-reminders ACTIVE v4 已按独立授权完成，verify_jwt=false、唯一 scheduler/secrets 保持；自然 Cron compatibility PASS，未制造 Task candidate。用户报告本地 authenticated pre-frontend acceptance 全部 PASS。当前 Project State Push Gate/docs commit 已获授权，但不 push；Git push/frontend 发布仍等待单独授权。发布后先只读验证 Production assets/target/backend，再由用户做 Production/PWA 及真实 Task Push 最终验收；整体 IN PROGRESS。v0.1.18 CLOSED / PASS；旧 overflow 与 post-check→provider best-effort 边界仅记录，不扩大 scope。详见 TESTING/DEVLOG。
