@@ -12,9 +12,15 @@ v0.1.19
 
 ## Current status
 
-v0.1.19 Task Due-date Push Reminder `BACKEND DEPLOYED / LOCAL AUTH ACCEPTANCE PASS / PRODUCTION FRONTEND ACCEPTANCE PENDING`，整体 IN PROGRESS。Production exact SQL/postflight、send-reminders ACTIVE v4 与自然 Cron compatibility PASS；用户已报告本地 authenticated pre-frontend acceptance 全部 PASS。frontend 尚未 push/deploy，真实 Production/PWA Task Push 最终验收未完成。v0.1.18 CLOSED / PASS 保持历史事实。
+v0.1.19 Task Due-date Push Reminder `CLOSED / PASS`。实现/自动验证、Production SQL/postflight、send-reminders ACTIVE v4、frontend 发布对齐、本地及 Production/installed-PWA 用户人工验收均 PASS。用户确认 2026-10-07 晚间真实 Task Push 成功，接受为最终人工 PASS；最小只读后台证据及其限制见 TESTING。治理收口完成，最终 REMOTE_SYNCED 只由最后一次获授权 push 后的实时 Git 验证建立。暂无明确阻塞。
 
 ## Latest completed
+
+2026-10-08 — v0.1.19 Final Closeout：记录用户 Production/installed-PWA 与 10-07 晚间真实 Task Push PASS。只读晚间窗口核验：1 Task / 3 subscription ledger rows 均 sent/delivered/2xx，identity duplicate groups=0，360/360 Cron succeeded；历史 HTTP response 未保留，不虚构设备逐项展示或逐次 HTTP 证据。修正 stale publication/Next Action，版本 CLOSED / PASS；只改治理文档，独立 docs commit，本轮不 push。下一阶段先阅读用户将提供的其他项目 lessons learned，再评估 PWA 手势交互体验；不预设方案/版本号，Market Validation / Commercialization Study 保留但不启动。
+
+2026-10-07 — 已获授权的正常 main push 成功至 9f30f5e；live remote/HEAD/origin/main 一致、0/0、clean。Vercel Production deployment 4in5dLHFYnz4WJC2KbNQjuAEXgsg 成功对应该 revision；root/JS/CSS/manifest/SW HTTP 200、Supabase target 正确；公开 bundle 差异定位为既有 Push 公共配置分支。停在用户 Production/PWA 最终验收点。以上是已完成发布记录，不代表本次尚未 push 的 docs closeout 已 REMOTE_SYNCED。
+
+以下 2026-10-07 pre-deploy 及本地实现描述为历史检查点，由上述最终验收接续。
 
 2026-10-07 — 用户报告 v0.1.19 本地 authenticated pre-frontend acceptance 全部 PASS：历史 null、新建 defaults/presets、canonical 保存/重开、due 编辑/删除、complete/reopen、recipient 文案、双账号基础回归及窄屏控件。Project State freshness review 更新治理记录；最终检查见 TESTING/DEVLOG。本地人工 PASS 不等于 Production installed-PWA 或真实 Task Push PASS。
 
@@ -196,7 +202,7 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
-v0.1.19: Production project `ximazjhxvmktpcdbypka` 已应用 exact Task reminder SQL/postflight PASS；send-reminders ACTIVE v4（verify_jwt=false），自然 Cron/backend compatibility PASS。唯一 scheduler 与 secrets 未改变。本地新 frontend 指向同一 Production backend，用户 authenticated pre-frontend acceptance PASS；新 frontend 尚未 push/deploy，Production installed-PWA 与真实 Task Push 最终验收 NOT RUN。下述 v0.1.18 frontend deployment 为目前已发布版本的历史事实。
+v0.1.19: Production project `ximazjhxvmktpcdbypka` Task SQL/postflight PASS；send-reminders ACTIVE v4（verify_jwt=false），单一 minute scheduler/Cron compatibility PASS，secrets 未改变。已核验的 Vercel Production revision `9f30f5e48eaa34282a5b2ca00d2c254f90711be2` / deployment `4in5dLHFYnz4WJC2KbNQjuAEXgsg` 于 2026-10-07 14:21:52 Asia/Shanghai success；unsigned assets/target alignment PASS。用户 Production/installed-PWA 人工验收与 10-07 晚间真实 Task Push PASS，v0.1.19 CLOSED / PASS。后续治理 commit 的 REMOTE_SYNCED 以最后获授权 push 后验证为准。以下 v0.1.18 deployment 为历史记录，不是当前 sender 版本。
 
 Status: public_deployed
 Public URL: https://cross-platform-shared-calendar.vercel.app/
@@ -246,15 +252,15 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 - v0.1.17 — Space-aware List create default（CLOSED / PASS；implementation/automated verification、local authenticated、Production/PWA acceptance PASS；Android-specific acceptance 未报告）
 - v0.1.18 — 重要日（CLOSED / PASS；Slice 1/2/3 与 Slice 3 T1/T2/T3/T4 CLOSED / PASS；T4 functional manual + retention UX PASS、P0a manual PASS、P0b automated PASS 并纳入最终人工回归、当前模块阶段性 cleanup PASS；FINAL_MANUAL_REGRESSION = PASS；active-view Realtime deferred）
 
-- v0.1.19 — Task Due-date Push Reminder（IN PROGRESS；backend SQL/ACTIVE v4/Cron compatibility PASS；LOCAL AUTH ACCEPTANCE PASS；frontend/Production-PWA Task Push 最终验收 PENDING）
+- v0.1.19 — Task Due-date Push Reminder（CLOSED / PASS；backend SQL/ACTIVE v4、frontend 发布对齐、local/Production/installed-PWA 人工验收及 2026-10-07 晚间真实 Task Push PASS）
 
 ## Last verified
 
-2026-10-07
+2026-10-08
 
 ## Next Action
 
-Next Action: 验证 v0.1.19 Production frontend 发布后的实际 assets/target/backend compatibility，再由用户完成真实浏览器/installed-PWA Task 控件、保存/重开及真实 Task Push 最终验收。未完成前不关闭版本；已完成的本地人工与 backend compatibility PASS 不替代该验收。
+Next Action: PWA 手势交互体验评估。先阅读用户将提供的其他项目 lessons learned，再确定本项目适用范围，不预设实现方式或版本号。原 Market Validation / Commercialization Study 路线保留，本轮不启动。
 
 ## Blockers
 
@@ -331,4 +337,4 @@ Next Action: 验证 v0.1.19 Production frontend 发布后的实际 assets/target
 
 ## Handoff Prompt
 
-v0.1.19 backend exact SQL/postflight 与 send-reminders ACTIVE v4 已按独立授权完成，verify_jwt=false、唯一 scheduler/secrets 保持；自然 Cron compatibility PASS，未制造 Task candidate。用户报告本地 authenticated pre-frontend acceptance 全部 PASS。当前 Project State Push Gate/docs commit 已获授权，但不 push；Git push/frontend 发布仍等待单独授权。发布后先只读验证 Production assets/target/backend，再由用户做 Production/PWA 及真实 Task Push 最终验收；整体 IN PROGRESS。v0.1.18 CLOSED / PASS；旧 overflow 与 post-check→provider best-effort 边界仅记录，不扩大 scope。详见 TESTING/DEVLOG。
+v0.1.19 CLOSED / PASS：backend exact SQL/postflight、ACTIVE v4/verify_jwt=false、唯一 Cron、已发布 frontend/target alignment 与用户 local/Production/installed-PWA/2026-10-07 晚间真实 Task Push PASS。只读 ledger/Cron 佐证与 HTTP 保留/设备展示限制见 TESTING；不扩大旧 overflow 或 post-check→provider best-effort 边界。本轮只做治理 docs closeout commit、不 push；最终 REMOTE_SYNCED 须最后授权 push 后独立验证。下一阶段等用户提供其他项目 lessons learned，先阅读再定 PWA 手势交互体验评估范围，不预设方案/版本。Market Validation / Commercialization Study 保留且本轮不启动。

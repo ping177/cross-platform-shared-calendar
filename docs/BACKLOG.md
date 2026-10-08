@@ -1,10 +1,18 @@
 # Backlog
 
-## v0.1.19 — Task Due-date Push Reminder — IN PROGRESS
+## v0.1.19 — Task Due-date Push Reminder — CLOSED / PASS
 
-Four bounded implementation tasks and focused review PASS. Production exact SQL/postflight, send-reminders ACTIVE v4 and natural Cron compatibility PASS; user-reported local authenticated pre-frontend acceptance **all PASS** (2026-10-07). Contract: [v0.1.19 spec](./v0.1.19_TASK_REMINDERS_SPEC.md). Frontend is not pushed/deployed; final Production/installed-PWA and real Task Push acceptance remain NOT RUN. Overall IN PROGRESS; push remains unauthorized.
+Four bounded tasks/review/automatic verification, Production exact SQL/postflight, ACTIVE v4/Cron compatibility and frontend publication/target alignment PASS. User local and final Production/installed-PWA acceptance PASS; user confirms real Task Push on 2026-10-07 evening, accepted as manual PASS. Aggregate read-only ledger/Cron corroboration and limitations are in TESTING. Contract: [v0.1.19 spec](./v0.1.19_TASK_REMINDERS_SPEC.md). Overall CLOSED / PASS; final docs REMOTE_SYNCED awaits separately authorized push verification.
 
-Next: obtain separate Git push/frontend publication authorization, verify deployed assets/target/backend alignment, then user-run Production/installed-PWA Task and real Push acceptance. Backend-first order and local target gate are complete; no further backend write is planned. Existing overflow throughput issue remains outside scope; no second scheduler/framework.
+Existing overflow throughput limitation remains recorded/outside scope; no second scheduler/framework or extra backend work. No need to repeat passed acceptance merely for docs closeout.
+
+## Next-stage evaluation — PWA 手势交互体验
+
+Read the other project's lessons learned that the user will provide first, then determine the applicable evaluation scope. No implementation approach, new version number or coding work is selected yet.
+
+## Preserved roadmap — Market Validation / Commercialization Study
+
+Keep the original route; do not start this study in the current closeout. The PWA evaluation does not replace or cancel it.
 
 ## P0 - Blocking Verification or Core Use
 
