@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useMobileSwipe } from './components/useMobileSwipe';
+import { createSwipeClickGuard, type SwipeClickGuard } from './lib/mobile-swipe';
 import type { Session } from '@supabase/supabase-js';
 import {
   CalendarDays,
@@ -82,7 +84,7 @@ import {
 import {
   addDays,
   addHours,
-  addMonths,
+  navigateCalendarPeriod,
   formatDay,
   formatMonth,
   formatTime,
@@ -420,6 +422,7 @@ function AuthPage() {
 }
 
 function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreOnStartup: boolean }) {
+  const swipeClickGuard = useRef(createSwipeClickGuard()).current;
   const userId = session.user.id;
   const [spaces, setSpaces] = useState<CurrentSpace[]>([]);
   const moduleAvailability = useModuleAvailability(userId, spaces);
@@ -721,7 +724,7 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
   }
 
   return (
-    <div className="min-h-screen bg-mist text-ink pb-nav">
+    <div className="min-h-screen bg-mist text-ink pb-nav" onPointerDownCapture={swipeClickGuard.onPointerDownCapture} onClickCapture={swipeClickGuard.onClickCapture}>
       {personalInitializationError && (
         <div className="bg-mist px-4 pt-4">
           <div className="mx-auto max-w-3xl rounded-lg border border-amber/40 bg-white px-4 py-3 text-sm text-ink shadow-soft" role="alert">
@@ -747,23 +750,24 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
       {navigation.tab === 'modules' && (spaceListStatus === 'ready' || navigation.moduleScreen === 'hub') && (navigation.moduleScreen === 'hub'
         ? <ModuleHub onOpenImportantDates={() => { setNavigation((current) => openImportantDatesModule(current)); }} availability={moduleAvailability.availability} onRefresh={() => { void moduleAvailability.refresh(); }} onOpenTasks={() => setNavigation((current) => openTaskModule(current))} onOpenReview={() => setNavigation((current) => openReviewModule(current))} onOpenLists={() => { setListNotice(''); setNavigation((current) => openListsModule(current)); }} />
         : navigation.moduleScreen === 'important-dates'
-          ? <ImportantDatesPage key={userId} userId={userId} entry={importantDatesEntry} entryPending={moduleAvailability.refreshing}
+          ? <ImportantDatesPage swipeClickGuard={swipeClickGuard} key={userId} userId={userId} entry={importantDatesEntry} entryPending={moduleAvailability.refreshing}
               initialData={retainedImportantDates?.data} initialFilter={retainedImportantDates?.filter} initialPastExpanded={retainedImportantDates?.pastExpanded}
               onHubBack={() => setNavigation((current) => selectTab(current, 'modules'))}
               onValidated={(data, filter, pastExpanded) => { if (sameModuleScope(importantDatesEntry, data.memberSpaces, data.eligibleSpaces)) importantDatesSnapshot.current = { userId, data, filter, pastExpanded }; }}
               onInvalidateEligibility={() => { importantDatesSnapshot.current = null; homeImportantDatesSnapshot.current = null; moduleAvailability.invalidate(); void refreshSpaces(false); void moduleAvailability.refresh(true); }}
               onNoEligible={() => { importantDatesSnapshot.current = null; homeImportantDatesSnapshot.current = null; void moduleAvailability.refresh(true); setNavigation((current) => selectTab(current, 'modules')); }} />
         : navigation.moduleScreen === 'lists'
-          ? <ListsOverviewPage key={userId} userId={userId} entry={listsEntry} entryPending={moduleAvailability.refreshing} initialData={retainedLists?.data} initialFilter={retainedLists?.filter} onValidated={(data, filter) => { if (sameModuleScope(listsEntry, data.memberSpaces, data.eligibleSpaces)) listsSnapshot.current = { userId, data, filter }; }} onInvalidateEligibility={() => { listsSnapshot.current = null; moduleAvailability.invalidate(); void moduleAvailability.refresh(true); }} initialNotice={listNotice} onOpenDetail={(list) => { setListNotice(''); setListDetail({ spaceId: list.space_id, listId: list.id }); setNavigation((current) => openListDetail(current)); }} onHubBack={() => setNavigation((current) => selectTab(current, 'modules'))} onNoEligible={() => { listsSnapshot.current = null; void moduleAvailability.refresh(); setNavigation((current) => selectTab(current, 'modules')); }} />
+          ? <ListsOverviewPage swipeClickGuard={swipeClickGuard} key={userId} userId={userId} entry={listsEntry} entryPending={moduleAvailability.refreshing} initialData={retainedLists?.data} initialFilter={retainedLists?.filter} onValidated={(data, filter) => { if (sameModuleScope(listsEntry, data.memberSpaces, data.eligibleSpaces)) listsSnapshot.current = { userId, data, filter }; }} onInvalidateEligibility={() => { listsSnapshot.current = null; moduleAvailability.invalidate(); void moduleAvailability.refresh(true); }} initialNotice={listNotice} onOpenDetail={(list) => { setListNotice(''); setListDetail({ spaceId: list.space_id, listId: list.id }); setNavigation((current) => openListDetail(current)); }} onHubBack={() => setNavigation((current) => selectTab(current, 'modules'))} onNoEligible={() => { listsSnapshot.current = null; void moduleAvailability.refresh(); setNavigation((current) => selectTab(current, 'modules')); }} />
         : navigation.moduleScreen === 'lists-detail'
           ? listDetail ? <ListDetailPage key={`${userId}:${listDetail.spaceId}:${listDetail.listId}`} userId={userId} target={listDetail} onBack={() => { setListDetail(null); setNavigation((current) => openListsModule(current)); }} onUnavailable={(result) => { listsSnapshot.current = null; void moduleAvailability.refresh(); setListNotice(result.status === 'deleted' ? '此清单已删除，列表已刷新。' : '清单空间资格已变化，列表已刷新。'); setListDetail(null); setNavigation((current) => result.eligibleSpaces.length ? openListsModule(current) : selectTab(current, 'modules')); }} />
             : <main className="mx-auto max-w-3xl px-4 py-6"><p>此清单暂不可访问。</p><button className="mt-3 min-h-11 font-semibold text-teal" type="button" onClick={() => setNavigation((current) => openListsModule(current))}>返回清单总览</button></main>
         : navigation.moduleScreen === 'review'
-          ? <ReviewHistoryPage userId={userId} entry={reviewEntry} entryPending={moduleAvailability.refreshing} initialSnapshot={retainedReview} onValidated={(history) => { if (reviewEntry && reviewSpaceId === history.selectedSpaceId) reviewSnapshot.current = { userId, memberSpaces: reviewEntry.memberSpaces, eligibleSpaces: reviewEntry.eligibleSpaces, history }; }} onInvalidateEligibility={() => { reviewSnapshot.current = null; moduleAvailability.invalidate(); void moduleAvailability.refresh(true); }} currentSpaceId={reviewSpaceId} onSpaceChange={(id) => { if (id !== reviewSpaceId) reviewSnapshot.current = null; setReviewSpaceId(id); }} onOpenDetail={(target) => { reviewDetailDirty.current = false; setReviewDetail(target); setNavigation((current) => openReviewDetail(current)); }} onHubBack={() => setNavigation((current) => selectTab(current, 'modules'))} onNoEligible={() => { reviewSnapshot.current = null; void moduleAvailability.refresh(); setReviewSpaceId(null); setNavigation((current) => selectTab(current, 'modules')); }} />
+          ? <ReviewHistoryPage swipeClickGuard={swipeClickGuard} userId={userId} entry={reviewEntry} entryPending={moduleAvailability.refreshing} initialSnapshot={retainedReview} onValidated={(history) => { if (reviewEntry && reviewSpaceId === history.selectedSpaceId) reviewSnapshot.current = { userId, memberSpaces: reviewEntry.memberSpaces, eligibleSpaces: reviewEntry.eligibleSpaces, history }; }} onInvalidateEligibility={() => { reviewSnapshot.current = null; moduleAvailability.invalidate(); void moduleAvailability.refresh(true); }} currentSpaceId={reviewSpaceId} onSpaceChange={(id) => { if (id !== reviewSpaceId) reviewSnapshot.current = null; setReviewSpaceId(id); }} onOpenDetail={(target) => { reviewDetailDirty.current = false; setReviewDetail(target); setNavigation((current) => openReviewDetail(current)); }} onHubBack={() => setNavigation((current) => selectTab(current, 'modules'))} onNoEligible={() => { reviewSnapshot.current = null; void moduleAvailability.refresh(); setReviewSpaceId(null); setNavigation((current) => selectTab(current, 'modules')); }} />
           : navigation.moduleScreen === 'review-detail'
             ? reviewDetail ? <ReviewDetailPage key={`${reviewDetail.spaceId}:${reviewDetail.reviewId}`} target={reviewDetail} userId={userId} onDirtyChange={(dirty) => { reviewDetailDirty.current = dirty; }} onBack={() => { reviewDetailDirty.current = false; setNavigation((current) => openReviewModule(current)); }} onUnavailable={(reason) => { reviewSnapshot.current = null; void moduleAvailability.refresh(); reviewDetailDirty.current = false; if (reason === 'review') setReviewSpaceId(reviewDetail.spaceId); setNavigation((current) => reason === 'space' ? selectTab(current, 'modules') : openReviewModule(current)); }} />
               : <main className="mx-auto max-w-3xl px-4 py-6"><p>这次回顾暂不可访问。</p><button className="mt-3 min-h-11 font-semibold text-teal" type="button" onClick={() => setNavigation((current) => openReviewModule(current))}>返回回顾列表</button></main>
           : <TasksArea
+            swipeClickGuard={swipeClickGuard}
             key={userId}
             screen={navigation.moduleScreen}
             onScreenChange={(screen) => setNavigation((current) => screen === 'completed' ? openCompletedTasks(current) : openTaskList(current))}
@@ -777,6 +781,7 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
           />)}
       {navigation.tab === 'calendar' && spaceListStatus === 'ready' && contentSpace && (
         <CurrentSpaceApp
+          swipeClickGuard={swipeClickGuard}
           key={`calendar:${validFilter === 'all' ? 'all' : validFilter.spaceId}:${spaces.map((item) => `${item.id}:${item.membershipRole}`).sort().join(',')}`}
           session={session}
           spaces={visibleCalendarSpaces}
@@ -921,8 +926,7 @@ export function CalendarDateNavigation({ selectedDate, viewMode, onSelectedDateC
   today?: Date;
 }) {
   const currentPeriodLabel = viewMode === 'today' ? '回到今天' : viewMode === 'week' ? '回到本周' : '回到本月';
-  const stepDays = viewMode === 'today' ? 1 : 7;
-  const navigate = (direction: -1 | 1) => onSelectedDateChange(viewMode === 'month' ? addMonths(selectedDate, direction) : addDays(selectedDate, direction * stepDays));
+  const navigate = (direction: -1 | 1) => onSelectedDateChange(navigateCalendarPeriod(selectedDate, viewMode, direction));
   return (
     <div className="mt-3 flex items-center justify-between">
       <button className="grid h-10 w-10 place-items-center rounded-lg bg-white" type="button" onClick={() => navigate(-1)} aria-label="上一段">
@@ -938,10 +942,11 @@ export function CalendarDateNavigation({ selectedDate, viewMode, onSelectedDateC
   );
 }
 
-export function CurrentSpaceApp({ session, spaces, allSpaces, importantDatesEntry = null, initialCalendarEvents, onCalendarEventsValidated, onCalendarEventsInvalidate, initialCalendarImportantDates, onCalendarImportantDatesValidated, onCalendarImportantDatesInvalidate, calendarFilter, onCalendarFilterChange, selectedDate, onSelectedDateChange, viewMode, onViewModeChange }: {
+export function CurrentSpaceApp({ swipeClickGuard, session, spaces, allSpaces, importantDatesEntry = null, initialCalendarEvents, onCalendarEventsValidated, onCalendarEventsInvalidate, initialCalendarImportantDates, onCalendarImportantDatesValidated, onCalendarImportantDatesInvalidate, calendarFilter, onCalendarFilterChange, selectedDate, onSelectedDateChange, viewMode, onViewModeChange }: {
   session: Session;
   spaces: CurrentSpace[];
   allSpaces: CurrentSpace[];
+  swipeClickGuard?: SwipeClickGuard;
   importantDatesEntry?: ModuleEntry | null;
   initialCalendarEvents?: CalendarEventsSnapshot;
   onCalendarEventsValidated?: (data: CalendarEventsSnapshot) => void;
@@ -972,6 +977,13 @@ export function CurrentSpaceApp({ session, spaces, allSpaces, importantDatesEntr
   const [openCalendarSelector, setOpenCalendarSelector] = useState<'space' | 'view' | null>(null);
   const importantDates = useCalendarImportantDates(userId, allSpaces, spaces, viewMode, selectedDate, importantDatesEntry, calendarFilter === 'all' ? 'all' : calendarFilter.spaceId,
     { initialData: initialCalendarImportantDates, onValidated: onCalendarImportantDatesValidated, onInvalidate: onCalendarImportantDatesInvalidate });
+
+  const calendarSwipe = useMobileSwipe({
+    enabled: !openCalendarSelector && !editingTarget && !showNewEvent && !importantDates.editor.editor
+      && !importantDates.editor.deleting && !importantDates.editor.busy && !importantDates.editor.targetRead.loading,
+    scope: contextKey, direction: 'both', clickGuard: swipeClickGuard,
+    onSwipe: (direction) => onSelectedDateChange(navigateCalendarPeriod(selectedDate, viewMode, direction === 'right' ? -1 : 1)),
+  });
 
   const sheetSpace = editingTarget
     ? allSpaces.find((item) => item.id === editingTarget.event.space_id) ?? null
@@ -1023,7 +1035,7 @@ export function CurrentSpaceApp({ session, spaces, allSpaces, importantDatesEntr
   }
 
   return (
-    <main className="min-h-screen bg-mist text-ink">
+    <main {...calendarSwipe} className="min-h-screen bg-mist text-ink">
       <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col">
         <header className="sticky top-0 z-10 border-b border-ink/10 bg-mist/95 px-4 pb-3 pt-4 backdrop-blur">
           <div className="flex items-center justify-between gap-3">
@@ -1221,6 +1233,7 @@ function MonthView({
             return (
               <button
                 key={day.toISOString()}
+                data-swipe-start
                 type="button"
                 aria-label={`${day.getFullYear()}-${day.getMonth() + 1}-${day.getDate()}，${dayOccurrences.length} 个日程，${importantDatesComplete ? `${dateItems.length} 个重要日` : '重要日尚未完整确认'}`}
                 className={`aspect-square min-h-11 w-full min-w-0 rounded-lg text-sm ${isSelected ? 'bg-teal text-white' : isCurrentMonth ? 'bg-mist text-ink' : 'bg-transparent text-ink/30'}`}
@@ -1264,7 +1277,7 @@ function EventCard({ occurrence, members, sourceSpace, showSpaceLabel, userId, o
   const audience = audienceFromEvent(event, userId);
 
   return (
-    <button type="button" className={`w-full rounded-lg border-l-4 bg-white p-4 text-left shadow-sm ${audienceClass(audience)}`} onClick={() => onEdit(occurrence)}>
+    <button data-swipe-start type="button" className={`w-full rounded-lg border-l-4 bg-white p-4 text-left shadow-sm ${audienceClass(audience)}`} onClick={() => onEdit(occurrence)}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate font-bold text-ink">{occurrence.title}</p>

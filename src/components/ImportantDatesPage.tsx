@@ -1,3 +1,5 @@
+import { useMobileSwipe } from './useMobileSwipe';
+import type { SwipeClickGuard } from '../lib/mobile-swipe';
 import { useEffect, useRef, useState } from 'react';
 import { ChevronDown, ChevronLeft, CalendarHeart, Plus } from 'lucide-react';
 import { createImportantDate, deleteImportantDate, updateImportantDate, type ImportantDatesData } from '../lib/important-dates-data';
@@ -24,7 +26,7 @@ export function ImportantDatesContent({ data, filter, today, pastExpanded, canAc
   const rows = (items: typeof grouped.current) => <ul className="space-y-2">{items.map((row) => {
     const space = spaces.get(row.date.space_id);
     return <li key={row.date.id} data-important-date-id={row.date.id} data-space-id={row.date.space_id}>
-      <button className="flex min-h-14 w-full min-w-0 items-start gap-3 rounded-lg bg-white px-4 py-3 text-left shadow-sm disabled:opacity-50" type="button" disabled={!canAct} onClick={() => onOpen(row.date)} aria-label={`打开重要日 ${row.date.name}`}>
+      <button data-swipe-start className="flex min-h-14 w-full min-w-0 items-start gap-3 rounded-lg bg-white px-4 py-3 text-left shadow-sm disabled:opacity-50" type="button" disabled={!canAct} onClick={() => onOpen(row.date)} aria-label={`打开重要日 ${row.date.name}`}>
         <span className="mt-1 shrink-0"><ImportantDateIcon emoji={row.date.emoji} /></span>
         <span className="min-w-0 flex-1"><span className="block break-words font-semibold">{row.date.name}</span>
           <span className="mt-1 block font-semibold text-teal">{row.primary}</span>
@@ -45,11 +47,11 @@ export function ImportantDatesContent({ data, filter, today, pastExpanded, canAc
   </>;
 }
 
-type Props = ImportantDatesEntryOptions & { userId: string; onHubBack: () => void; onNoEligible: () => void; eligibilityRevision?: number; initialPastExpanded?: boolean; onValidated?: (data: ImportantDatesData, filter: ImportantDateFilter, pastExpanded: boolean) => void };
+type Props = ImportantDatesEntryOptions & { swipeClickGuard?: SwipeClickGuard; userId: string; onHubBack: () => void; onNoEligible: () => void; eligibilityRevision?: number; initialPastExpanded?: boolean; onValidated?: (data: ImportantDatesData, filter: ImportantDateFilter, pastExpanded: boolean) => void };
 // Keep data, drafts and in-flight callbacks scoped to one account even without a parent key.
 export function ImportantDatesPage(props: Props) { return <ImportantDatesModule key={props.userId} {...props} />; }
 
-function ImportantDatesModule({ userId, onHubBack, onNoEligible, eligibilityRevision, initialPastExpanded = false, onValidated, ...entryOptions }: Props) {
+function ImportantDatesModule({ swipeClickGuard, userId, onHubBack, onNoEligible, eligibilityRevision, initialPastExpanded = false, onValidated, ...entryOptions }: Props) {
   const [pastExpanded, setPastExpanded] = useState(Boolean(entryOptions.initialData && sameModuleScope(entryOptions.entry ?? null, entryOptions.initialData.memberSpaces, entryOptions.initialData.eligibleSpaces) && initialPastExpanded));
   const [editor, setEditor] = useState<{ date?: ImportantDate; initialTargetId: string | null } | null>(null);
   const [deleting, setDeleting] = useState<ImportantDate | null>(null);
@@ -135,7 +137,10 @@ function ImportantDatesModule({ userId, onHubBack, onNoEligible, eligibilityRevi
     } finally { mutationLock.current = false; if (mutation.current.isCurrent(request)) setDeleteBusy(false); }
   }
 
-  return <main className="min-h-[100dvh] bg-mist text-ink">
+  const swipe = useMobileSwipe({ enabled: !editor && !deleting && !deleteBusy, scope: `${userId}:${filter === 'all' ? 'all' : filter.spaceId}`,
+    direction: 'right', clickGuard: swipeClickGuard, onSwipe: onHubBack });
+
+  return <main {...swipe} className="min-h-[100dvh] bg-mist text-ink">
     <div className="mx-auto flex min-h-[100dvh] w-full max-w-3xl flex-col">
       <header className="sticky top-0 z-10 border-b border-ink/10 bg-mist/95 px-4 pb-3 pt-4 backdrop-blur">
         <div className="flex min-h-12 items-center justify-between gap-3">

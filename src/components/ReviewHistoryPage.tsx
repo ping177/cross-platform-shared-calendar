@@ -1,3 +1,5 @@
+import { useMobileSwipe } from './useMobileSwipe';
+import type { SwipeClickGuard } from '../lib/mobile-swipe';
 import { useEffect, useRef, useState } from 'react';
 import { ChevronLeft, Plus } from 'lucide-react';
 import { createReviewRound, loadReviewEligibility, loadReviewHistoryPage } from '../lib/review-history-data';
@@ -23,7 +25,7 @@ export type ReviewHistorySnapshot = {
 };
 
 export function ReviewHistoryRows({ rows, onOpenDetail }: { rows: ReviewHistoryRow[]; onOpenDetail: (target: ReviewDetailTarget) => void }) {
-  return <div className="space-y-2">{rows.map((row) => <button key={row.round.id} className="block min-h-16 w-full min-w-0 rounded-lg bg-white px-4 py-3 text-left shadow-sm" type="button" aria-label={`打开 ${row.round.review_date} 回顾，我：${row.mine}${row.other !== null ? `，对方：${row.other}` : ''}`} onClick={() => onOpenDetail(reviewDetailTarget(row.round, false))} data-review-id={row.round.id}>
+  return <div className="space-y-2">{rows.map((row) => <button data-swipe-start key={row.round.id} className="block min-h-16 w-full min-w-0 rounded-lg bg-white px-4 py-3 text-left shadow-sm" type="button" aria-label={`打开 ${row.round.review_date} 回顾，我：${row.mine}${row.other !== null ? `，对方：${row.other}` : ''}`} onClick={() => onOpenDetail(reviewDetailTarget(row.round, false))} data-review-id={row.round.id}>
     <time className="block font-semibold" dateTime={row.round.review_date}>{row.round.review_date}</time>
     <span className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-ink/70"><span>我：{row.mine}</span>{row.other !== null && <span>对方：{row.other}</span>}</span>
   </button>)}</div>;
@@ -33,7 +35,7 @@ export function ReviewHistorySummary({ totalCount }: { totalCount: number }) {
   return <p className="text-sm text-ink/60">共 {totalCount} 篇回顾</p>;
 }
 
-export function ReviewHistoryPage({ userId, entry = null, entryPending = false, initialSnapshot, onValidated, onInvalidateEligibility, currentSpaceId, onSpaceChange, onOpenDetail, onHubBack, onNoEligible }: { userId: string; entry?: ModuleEntry | null; entryPending?: boolean; initialSnapshot?: ReviewHistorySnapshot; onValidated?: (snapshot: ReviewHistorySnapshot) => void; onInvalidateEligibility?: () => void; currentSpaceId: string | null; onSpaceChange: (id: string | null) => void; onOpenDetail: (target: ReviewDetailTarget) => void; onHubBack: () => void; onNoEligible?: () => void }) {
+export function ReviewHistoryPage({ swipeClickGuard, userId, entry = null, entryPending = false, initialSnapshot, onValidated, onInvalidateEligibility, currentSpaceId, onSpaceChange, onOpenDetail, onHubBack, onNoEligible }: { swipeClickGuard?: SwipeClickGuard; userId: string; entry?: ModuleEntry | null; entryPending?: boolean; initialSnapshot?: ReviewHistorySnapshot; onValidated?: (snapshot: ReviewHistorySnapshot) => void; onInvalidateEligibility?: () => void; currentSpaceId: string | null; onSpaceChange: (id: string | null) => void; onOpenDetail: (target: ReviewDetailTarget) => void; onHubBack: () => void; onNoEligible?: () => void }) {
   const [spaces, setSpaces] = useState<CurrentSpace[]>(entry?.eligibleSpaces ?? []);
   const [eligibilityStatus, setEligibilityStatus] = useState<'loading' | 'ready' | 'error'>(entry ? 'ready' : 'loading');
   const [eligibilityError, setEligibilityError] = useState('');
@@ -246,7 +248,10 @@ export function ReviewHistoryPage({ userId, entry = null, entryPending = false, 
     }
   }
 
-  return <main className="mx-auto min-h-screen w-full max-w-3xl px-4 py-4 safe-bottom">
+  const swipe = useMobileSwipe({ enabled: !createOpen && !createBusy, scope: `${userId}:${selectedId}`,
+    direction: 'right', clickGuard: swipeClickGuard, onSwipe: onHubBack });
+
+  return <main {...swipe} className="mx-auto min-h-screen w-full max-w-3xl px-4 py-4 safe-bottom">
     <header className="flex min-h-11 items-center justify-between gap-3">
       <div className="flex min-w-0 items-center gap-3">
         <button className="inline-flex min-h-11 shrink-0 items-center gap-1 font-semibold text-teal" type="button" onClick={onHubBack}><ChevronLeft size={18} />功能中心</button>

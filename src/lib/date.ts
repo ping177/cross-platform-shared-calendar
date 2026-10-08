@@ -1,5 +1,9 @@
 import type { CalendarEvent, CalendarOccurrence } from '../types';
 
+export function navigateCalendarPeriod(date: Date, mode: 'today' | 'week' | 'month', direction: -1 | 1) {
+  return mode === 'month' ? addMonths(date, direction) : addDays(date, direction * (mode === 'week' ? 7 : 1));
+}
+
 const dayFormatter = new Intl.DateTimeFormat('zh-CN', {
   month: 'short',
   day: 'numeric',

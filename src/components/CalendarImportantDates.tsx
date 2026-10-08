@@ -43,7 +43,7 @@ export function CalendarImportantDateCard({ item, space, showSpaceLabel, onOpen 
   item: ImportantDateOccurrence; space: CurrentSpace | undefined; showSpaceLabel: boolean;
   onOpen: (item: ImportantDateOccurrence) => void;
 }) {
-  return <button type="button" className="flex min-h-14 w-full min-w-0 items-start gap-3 rounded-lg border-l-4 border-teal bg-white p-4 text-left shadow-sm"
+  return <button data-swipe-start type="button" className="flex min-h-14 w-full min-w-0 items-start gap-3 rounded-lg border-l-4 border-teal bg-white p-4 text-left shadow-sm"
     data-important-date-id={item.importantDateId} data-space-id={item.spaceId}
     aria-label={`打开重要日 ${item.name}`} onClick={() => onOpen(item)}>
     <span className="mt-1 shrink-0"><ImportantDateIcon emoji={item.emoji} /></span>

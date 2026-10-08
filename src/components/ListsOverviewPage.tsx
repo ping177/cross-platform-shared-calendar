@@ -1,3 +1,5 @@
+import { useMobileSwipe } from './useMobileSwipe';
+import type { SwipeClickGuard } from '../lib/mobile-swipe';
 import { useEffect, useRef, useState } from 'react';
 import { ChevronDown, ChevronLeft, Plus } from 'lucide-react';
 import { createList, deleteList, renameList } from '../lib/lists-data';
@@ -21,7 +23,7 @@ export function ListsRows({ rows, spaces, showSource, disabled = false, onOpen, 
     const space = byId.get(row.list.space_id);
     return <li key={row.list.id} className="min-w-0 rounded-lg bg-white px-4 py-3 shadow-sm" data-list-id={row.list.id}>
       <div className="flex min-w-0 items-start justify-between gap-3">
-        <button className="min-h-11 min-w-0 flex-1 text-left disabled:opacity-50" type="button" disabled={disabled} onClick={() => onOpen(row.list)} aria-label={`打开清单 ${row.list.name}`}>
+        <button data-swipe-start className="min-h-11 min-w-0 flex-1 text-left disabled:opacity-50" type="button" disabled={disabled} onClick={() => onOpen(row.list)} aria-label={`打开清单 ${row.list.name}`}>
           <span className="block break-words font-semibold">{row.list.name}</span>
           {showSource && <span className="mt-1 block break-words text-xs text-teal">{space?.kind === 'personal' ? '我的空间' : space?.name ?? '空间不可用'}</span>}
           <span className="mt-1 block text-sm text-ink/60">已完成 {row.completedCount} / {row.totalItems}</span>
@@ -35,7 +37,7 @@ export function ListsRows({ rows, spaces, showSource, disabled = false, onOpen, 
   })}</ul>;
 }
 
-export function ListsOverviewPage({ userId, entry = null, entryPending = false, initialData, initialFilter = 'all', onValidated, onInvalidateEligibility, onHubBack, onNoEligible, onOpenDetail, initialNotice = '' }: { userId: string; entry?: ModuleEntry | null; entryPending?: boolean; initialData?: OverviewData; initialFilter?: ListFilter; onValidated?: (data: OverviewData, filter: ListFilter) => void; onInvalidateEligibility?: () => void; onHubBack: () => void; onNoEligible: () => void; onOpenDetail: (list: List) => void; initialNotice?: string }) {
+export function ListsOverviewPage({ swipeClickGuard, userId, entry = null, entryPending = false, initialData, initialFilter = 'all', onValidated, onInvalidateEligibility, onHubBack, onNoEligible, onOpenDetail, initialNotice = '' }: { swipeClickGuard?: SwipeClickGuard; userId: string; entry?: ModuleEntry | null; entryPending?: boolean; initialData?: OverviewData; initialFilter?: ListFilter; onValidated?: (data: OverviewData, filter: ListFilter) => void; onInvalidateEligibility?: () => void; onHubBack: () => void; onNoEligible: () => void; onOpenDetail: (list: List) => void; initialNotice?: string }) {
   const { filter, state, syncError, refreshError, canAct, chooseFilter, refresh } = useListsOverview(userId, onNoEligible, entry, entryPending, initialData, initialFilter, onValidated);
   const [completedCollapsed, setCompletedCollapsed] = useState(true);
   const [editor, setEditor] = useState<Editor | null>(null);
@@ -143,7 +145,10 @@ export function ListsOverviewPage({ userId, entry = null, entryPending = false, 
     } finally { deletingLock.current = false; }
   }
 
-  return <main className="min-h-screen bg-mist text-ink">
+  const swipe = useMobileSwipe({ enabled: !editor && !deleting, scope: `${userId}:${filter === 'all' ? 'all' : filter.spaceId}`,
+    direction: 'right', clickGuard: swipeClickGuard, onSwipe: onHubBack });
+
+  return <main {...swipe} className="min-h-screen bg-mist text-ink">
     <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col">
       <header className="sticky top-0 z-10 border-b border-ink/10 bg-mist/95 px-4 pb-3 pt-4 backdrop-blur">
         <div className="flex min-h-12 items-center justify-between gap-3">

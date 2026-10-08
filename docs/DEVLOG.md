@@ -1,5 +1,22 @@
 # Development Log
 
+## 2026-10-08 — v0.1.20 focused review / local commit verification
+
+- Focused READ-ONLY review PASS, no BLOCKER. User authorized one local feat commit only; push/deploy/Production actions remain unauthorized.
+- Rechecked all 17 scoped files against main baseline `dec562d`; no unrelated changes, sensitive files, dependencies or backend/config changes. No additional business-code edits in this commit preparation.
+- Reran full Node tests 788/788 PASS, `tsc -b` PASS, production build PASS and `git diff --check` PASS. Existing >500 kB bundle warning retained; no optimization scope added.
+- Refreshed stale review/authorization wording in PROJECT_STATE/BACKLOG/DECISIONS. Local implementation/review PASS; Production unpublished and iPhone PWA manual acceptance NOT RUN; v0.1.20 is not CLOSED / PASS. Commit trailer is `Project-State-Review: updated` because PROJECT_STATE differs from origin/main.
+- Next action: wait for separate frontend release authorization, then environment/assets alignment and user-owned iPhone PWA acceptance. No external project changes or direct secret inspection/output.
+
+## 2026-10-08 — v0.1.20 Mobile Gesture Navigation — LOCAL AUTOMATED PASS
+
+- Started from clean main `dec562d`, v0.1.19 CLOSED / PASS. User's frozen two-scope implementation instruction authorizes this bounded work after the read-only audit; no renewed whole-project audit. Saved frozen spec/ordered plan.
+- Calendar uses button-equivalent `navigateCalendarPeriod`; main-surface right/left moves previous/next Today/Week/Month. Four module-list components use their existing Back callbacks; completed Tasks returns to Tasks. Display-card/date-cell opt-in preserves ordinary taps and existing filters/snapshots; no new navigation/history authority.
+- Added typed pure swipe recognizer and ref-based Hook, touch-only/vertical-first/multi-touch/cancel/scope reset and local pan-y/pinch-zoom. CalendarApp retains click guard across page unmount; successful or clear horizontal intent suppresses matching trailing click, without swallowing next tap/keyboard. Modal/Portal containment and explicit editor/create/delete/busy states block background gestures; actual controls/drag handles hard-excluded. No Sheet/detail-close/business-action gestures or unrelated dirty/busy repairs.
+- Red test before recognizer existed; final new35/full788 Node PASS, prior relevant167 PASS, TypeScript/build/diff-check PASS. Built JS 768.28 kB/gzip222.72; existing chunk warning retained. Scoped correctness/maintainability/input-safety review completed; backend/dependencies/config unchanged.
+- Local built target matches accepted v0.1.19 target (boolean-only verification). No direct .env/secret inspection/output, external project edits or Production access. Existing backend capability PASS is historical baseline evidence, not a newly performed live postflight; real-login/release alignment gate and iPhone PWA acceptance remain pending.
+- Updated PROJECT_STATE/BACKLOG/DECISIONS/TESTING and this log; v0.1.20 LOCAL AUTOMATED PASS / READY FOR MANUAL ACCEPTANCE, not CLOSED. No commit/push/deploy. Stop for user/ChatGPT implementation review and separately authorized publication/alignment before installed-PWA acceptance; preserved Market Validation route.
+
 ## 2026-10-08 — v0.1.19 Final Closeout — CLOSED / PASS
 
 - Repo-first reconfirmed main/HEAD/origin/main and independent live remote at 9f30f5e48eaa34282a5b2ca00d2c254f90711be2, clean before docs edits. Previous authorized push/Vercel Production revision success and unsigned assets/target verification are now recorded instead of stale not-pushed/deployed state.

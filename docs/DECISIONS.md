@@ -1,5 +1,13 @@
 # Decisions
 
+## v0.1.20 — Frozen mobile gesture scope / 2026-10-08
+
+- Calendar right/left means previous/next civil period (Today day, Week seven days, Month month). Share the original button-equivalent date calculation; date cells and display cards opt in without granting gestures to their editing/dangerous descendants.
+- Tasks/completed/Review history/Lists overview/Important Dates use existing Back callbacks on the local main surface, without an edge-start restriction. Keep existing filter/snapshot/re-entry semantics and all buttons.
+- Adopt Food Expiry v0.3.5 recognition lessons, read-only: touch-only/ref-held pointer recognition, vertical/multi-touch/cancel priority, local pan-y/pinch-zoom, scope reset and a click guard retained by CalendarApp across page unmount. No Sidebar thresholds/navigation architecture, new history/controller or dependency.
+- Any modal, including Portal content outside the DOM surface, blocks background events; existing editor/create/delete/busy states disable gestures. Details and editing Sheets remain out of scope; do not redesign their exit protection or attach business operations to swipes.
+- Automated results establish local behavior only. Focused READ-ONLY review PASS; local commit subsequently authorized separately, without push/publication/Production modification authorization. Actual installed-PWA testing needs the new frontend available under separate release authorization and environment alignment.
+
 ## v0.1.19 — Task Due-date Push Reminder — 2026-10-05
 
 - Approved repo-first bounded extension; [canonical contract](./v0.1.19_TASK_REMINDERS_SPEC.md). Four tasks/automatic verification, Production exact SQL/postflight, ACTIVE v4/Cron, frontend publication/target alignment and user local/Production/installed-PWA acceptance PASS. User confirms real Task Push on 2026-10-07 evening; accepted as manual PASS. Aggregate backend evidence/limitations are in TESTING. v0.1.19 CLOSED / PASS as of 2026-10-08; docs REMOTE_SYNCED is established only by final authorized push verification.
@@ -9,7 +17,7 @@
 - Final database pre-send canonical check is the qualification boundary. Changes after the RPC returns cannot be atomically coordinated with Web Push/retract accepted notifications. Preserve newly-past skip/infrastructure-only ten-minute grace and existing duplicate identity; existing 50-delivery overflow limitation is only recorded.
 - Backend-first rollout completed under separate authorizations: exact SQL → integrated Edge → postflight/target alignment → local authenticated acceptance → normal Git push/Vercel Production → deployed alignment → user final acceptance. This round authorizes only docs closeout/commit and aggregate read-only evidence; no push or additional backend/scheduler/secrets work.
 
-## Next-stage direction — 2026-10-08
+## Next-stage direction — 2026-10-08（历史；由上方 v0.1.20 冻结范围接续）
 
 - Next is PWA 手势交互体验评估: first read lessons learned from another project supplied by the user, then decide the applicable scope. Do not assume an implementation method or assign a version number before that review.
 - Preserve the original Market Validation / Commercialization Study route; do not start or replace it during this closeout.

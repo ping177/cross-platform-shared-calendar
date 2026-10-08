@@ -1,3 +1,5 @@
+import { useMobileSwipe } from './useMobileSwipe';
+import type { SwipeClickGuard } from '../lib/mobile-swipe';
 import { useRef, type ChangeEvent } from 'react';
 import { CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Circle, Plus } from 'lucide-react';
 import { taskAssignmentLabel, canChangeTaskStatus, formatTaskDueDate } from '../lib/task';
@@ -55,7 +57,7 @@ export function TaskRows({ tasks, sourceSpacesById, membersBySpaceId, userId, co
         ) : !completed ? (
           <span className="grid h-11 w-11 shrink-0 place-items-center text-ink/35" role="img" aria-label="由负责人完成"><Circle size={23} /></span>
         ) : <span className="grid h-11 w-11 shrink-0 place-items-center text-teal" role="img" aria-label="已完成"><CheckCircle2 size={23} /></span>}
-        <button className="min-h-11 min-w-0 flex-1 py-1 text-left disabled:opacity-40" type="button" disabled={openingTask} onClick={() => onOpen(task)} aria-label={'打开任务 ' + task.title + '，' + (source?.name ?? '空间信息不可用')}>
+        <button data-swipe-start className="min-h-11 min-w-0 flex-1 py-1 text-left disabled:opacity-40" type="button" disabled={openingTask} onClick={() => onOpen(task)} aria-label={'打开任务 ' + task.title + '，' + (source?.name ?? '空间信息不可用')}>
           <span className="block break-words font-semibold leading-snug">{task.title}</span>
           <span className="mt-1 block min-w-0 break-words text-xs text-teal">{source?.name ?? '空间信息不可用'}</span>
           {(source?.kind === 'shared' || task.due_on) && <span className="mt-1 block break-words text-sm text-ink/55">
@@ -69,7 +71,8 @@ export function TaskRows({ tasks, sourceSpacesById, membersBySpaceId, userId, co
   </ul>;
 }
 
-export function TasksArea({ screen, onScreenChange, onHubBack, userId, entry = null, entryPending = false, initialData, onValidated, onInvalidateEligibility }: {
+export function TasksArea({ swipeClickGuard, screen, onScreenChange, onHubBack, userId, entry = null, entryPending = false, initialData, onValidated, onInvalidateEligibility }: {
+  swipeClickGuard?: SwipeClickGuard;
   screen: TasksScreen;
   onScreenChange: (screen: TasksScreen) => void;
   onHubBack: () => void;
@@ -88,11 +91,15 @@ export function TasksArea({ screen, onScreenChange, onHubBack, userId, entry = n
   const create = editor.create;
   const editing = editor.editing;
 
-  return <main className="min-h-screen bg-mist text-ink">
+  const back = () => screen === 'completed' ? onScreenChange('tasks') : onHubBack();
+  const swipe = useMobileSwipe({ enabled: !create && !editing && !editor.openingCreate && !editor.openingTask && editor.busyTaskId === null,
+    scope: `${userId}:${screen}:${filter === 'all' ? 'all' : filter.spaceId}`, direction: 'right', clickGuard: swipeClickGuard, onSwipe: back });
+
+  return <main {...swipe} className="min-h-screen bg-mist text-ink">
     <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col">
       <header className="sticky top-0 z-10 border-b border-ink/10 bg-mist/95 px-4 pb-3 pt-4 backdrop-blur">
         <div className="flex min-h-12 items-center justify-between gap-3">
-          <button className="inline-flex min-h-11 min-w-0 items-center gap-1 text-sm font-semibold text-teal" type="button" onClick={() => screen === 'completed' ? onScreenChange('tasks') : onHubBack()}>
+          <button className="inline-flex min-h-11 min-w-0 items-center gap-1 text-sm font-semibold text-teal" type="button" onClick={back}>
             <ChevronLeft size={18} className="shrink-0" aria-hidden="true" />
             <span className="truncate">{screen === 'completed' ? '任务' : '功能中心'}</span>
           </button>

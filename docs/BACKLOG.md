@@ -6,9 +6,9 @@ Four bounded tasks/review/automatic verification, Production exact SQL/postfligh
 
 Existing overflow throughput limitation remains recorded/outside scope; no second scheduler/framework or extra backend work. No need to repeat passed acceptance merely for docs closeout.
 
-## Next-stage evaluation — PWA 手势交互体验
+## v0.1.20 — Mobile Gesture Navigation — LOCAL AUTOMATED PASS
 
-Read the other project's lessons learned that the user will provide first, then determine the applicable evaluation scope. No implementation approach, new version number or coding work is selected yet.
+User froze Calendar period swipe and module-list right-swipe Back after the read-only audit. Both scopes implemented locally; new35/full788 Node, TypeScript/build/diff-check PASS; focused READ-ONLY review PASS. Contract and ordered plan: [v0.1.20 specification](./v0.1.20_MOBILE_GESTURE_NAVIGATION_SPEC.md). Preserve original navigation/buttons/state; no global/Sidebar/bottom-tab/detail/Sheet-close or business-operation gestures. Local commit separately authorized; iPhone installed-PWA acceptance NOT RUN, no push/deploy/Production operation; publication and environment alignment need separate authorization. Checklist in TESTING.
 
 ## Preserved roadmap — Market Validation / Commercialization Study
 

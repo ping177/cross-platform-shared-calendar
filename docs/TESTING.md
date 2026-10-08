@@ -1,5 +1,38 @@
 # Testing
 
+## v0.1.20 Mobile Gesture Navigation — LOCAL AUTOMATED PASS / 2026-10-08
+
+- Baseline: main `dec562d`, clean working tree, v0.1.19 CLOSED / PASS. Frozen contract: [specification](./v0.1.20_MOBILE_GESTURE_NAVIGATION_SPEC.md). No backend/SQL/RPC/Edge/scheduler/dependency/config change or Production access.
+- New gesture coverage **35/35 PASS**, included in full Node **788/788 PASS**, zero failures/cancellations/skips. Pure recognition tests cover Today/Week/Month direction and month/year boundaries, non-mutating dates, tap/mouse, vertical-first/max drift, multi-touch, cancel, disabled/scope invalidation, 60px/800ms recognition, horizontal-intent click suppression, old MouseEvent fallback and next-tap/keyboard behavior; input/dialog/disabled/drag exclusions and Portal/modal surface gating. Vite-injected real page/Hook handlers cover Calendar vs original buttons, Tasks/completed return callbacks and preserved filter/data, three other module-list Back buttons/create layers, Event/Important Date editors, selector/global modal/Portal blocks, six real display-card openers, date-cell tap and trailing click suppression. These are deterministic handler fixtures, not native iPhone pointer/scroll evidence.
+- Initial relevant regression **167/167 PASS** (Calendar UI/Important Dates, navigation/persistence, Tasks P0b, Review/Lists overview, current-module interaction); final full suite includes the final expanded new coverage and all original **753** tests.
+- `node_modules/.bin/tsc -b` PASS. `npm run build` PASS, 1717 modules; JS 768.28 kB / gzip 222.72 kB. Existing >500 kB chunk warning remains; no unrelated code splitting. `git diff --check` PASS. No authenticated browser/device acceptance performed by Codex.
+- Read-only local alignment evidence: built public bundle has exactly one Supabase target, matching v0.1.19's recorded accepted Production project (boolean comparison only, no key/config output). Supabase/client/SQL/RPC/Edge/scheduler/dependency/Vite paths remain unchanged from accepted baseline; v0.1.20 introduces no backend capability or feature-version requirement. v0.1.19 user-confirmed CLOSED / PASS is retained evidence; no fresh live Production postflight or deployed-asset verification was performed. Do not start authenticated acceptance until the chosen environment's alignment gate is satisfied; installed Production PWA still runs the published prior frontend.
+
+Commands executed:
+
+```sh
+node --experimental-strip-types --test tests/mobile-gesture*.test.ts
+node --experimental-strip-types --test tests/mobile-gesture-ui.test.ts
+node --experimental-strip-types --test tests/mobile-gesture.test.ts tests/aggregate-calendar-ui.test.ts tests/navigation.test.ts tests/navigation-persistence.test.ts tests/task-navigation-regression.test.ts tests/calendar-important-dates.test.ts tests/important-dates-flow.test.ts tests/tasks-p0b.test.ts tests/review-history-ui.test.ts tests/lists-overview-ui.test.ts tests/current-modules-interaction.test.ts
+node --experimental-strip-types --test tests/*.test.ts tests/*.test.js
+node_modules/.bin/tsc -b
+npm run build
+git diff --check
+```
+
+### Pending real iPhone installed-PWA acceptance
+
+Prerequisite: new frontend available under separate explicit Git/publication authorization, actual assets/target/backend feature compatibility aligned. Close/refresh old tabs and restart PWA. This implementation turn neither releases nor asks the user to test the old published version. Local development remains fixed port 5175; desktop localhost is not an iPhone-installed-PWA test environment.
+
+1. Today/Week/Month: swipe right to previous and left to next day/week/month; compare arrows, Today/current-period button and Space/view selectors. Check month-end clamping.
+2. Start from date cells, Event/Important Date cards and ordinary content away from the screen edge. Swipe must not also select a cell/open a card; next normal tap must work.
+3. Tasks → Hub; completed → Tasks; Review history/Lists overview → Hub; Important Dates → existing Back entry. Verify filters, folded content and warm return follow the same behavior as buttons.
+4. Long vertical scroll and slight diagonal scroll must remain natural; short tap/cancel/multi-finger/pinch must not navigate. Repeat ordinary-position swipes to judge reliability rather than one successful try.
+5. With Event/Task/Important Date editors, Calendar selectors, Review creation, List rename/delete and other confirmation layers open, no background date/page change. During save/delete/task completion, no background Back; preserve draft/confirmation and existing close controls.
+6. Input/select/checkbox/completion/reopen/delete controls must retain normal actions and not start navigation. List-detail drag/auto-scroll remains as before; no detail swipe-back or Sheet-close gesture should appear. Bottom tabs and original Back buttons still work normally.
+
+Record actual PASS/FAIL and any missed recognitions/accidental clicks. Native iPhone scrolling, pinch and system-edge gesture coexistence remain NOT RUN; do not claim all-browser or PWA PASS from automatic fixtures.
+
 ## v0.1.19 Final Acceptance / Closeout — CLOSED / PASS / 2026-10-08
 
 - **User-reported final Production / installed-PWA manual acceptance PASS**. The user explicitly confirms real Task Push succeeded on 2026-10-07 evening and accepts it as manual PASS. Local authenticated acceptance was already all PASS. Codex did not operate authenticated browser/PWA sessions; no separate device-by-device, recipient-by-recipient or notification display evidence is invented.

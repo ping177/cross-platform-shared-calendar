@@ -8,13 +8,19 @@
 
 ## Current version
 
-v0.1.19
+v0.1.20
 
 ## Current status
 
-v0.1.19 Task Due-date Push Reminder `CLOSED / PASS`。实现/自动验证、Production SQL/postflight、send-reminders ACTIVE v4、frontend 发布对齐、本地及 Production/installed-PWA 用户人工验收均 PASS。用户确认 2026-10-07 晚间真实 Task Push 成功，接受为最终人工 PASS；最小只读后台证据及其限制见 TESTING。治理收口完成，最终 REMOTE_SYNCED 只由最后一次获授权 push 后的实时 Git 验证建立。暂无明确阻塞。
+v0.1.20 Mobile Gesture Navigation `LOCAL IMPLEMENTATION / REVIEW PASS / READY FOR MANUAL ACCEPTANCE`。冻结的 Calendar 周期滑动与模块列表右滑返回已实现；全量 Node 788/788、TypeScript/build、diff-check PASS；focused READ-ONLY review PASS，无 BLOCKER。真实 iPhone installed-PWA 人工验收 NOT RUN；本地新代码尚未发布，现有 Production/PWA 不包含本版本。无 push/deploy/Production 操作。v0.1.19 保持 CLOSED / PASS。
 
 ## Latest completed
+
+2026-10-08 — v0.1.20 focused READ-ONLY review PASS，无明确 BLOCKER；用户随后仅授权本地 feat commit，未授权 push/deploy。版本仍待发布对齐及真实 iPhone PWA 人工验收，不是 CLOSED / PASS。
+
+2026-10-08 — v0.1.20 两个冻结 Scope 本地完成：日历右前/左后按 Today/Week/Month 原周期计算；Tasks/completed/Review history/Lists overview/Important Dates 调用既有返回入口。局部 touch-only Pointer Events、ref recognition、纵向/多指/cancel 清理、display-card opt-in、stable click guard、Portal/Sheet/Dialog/busy/drag 排除；不扩展详情/Sheet 关闭或全局导航。新增35项测试在全量788/788中通过；既有bundle警告保留。构建目标与已验收v0.1.19 Production一致，backend/contracts无变化，未重跑live Production postflight；发布后环境/资产对齐与真机验收待独立授权。详见 [规格](./v0.1.20_MOBILE_GESTURE_NAVIGATION_SPEC.md) 与 TESTING。
+
+以下 v0.1.19 及更早记录为历史检查点。
 
 2026-10-08 — v0.1.19 Final Closeout：记录用户 Production/installed-PWA 与 10-07 晚间真实 Task Push PASS。只读晚间窗口核验：1 Task / 3 subscription ledger rows 均 sent/delivered/2xx，identity duplicate groups=0，360/360 Cron succeeded；历史 HTTP response 未保留，不虚构设备逐项展示或逐次 HTTP 证据。修正 stale publication/Next Action，版本 CLOSED / PASS；只改治理文档，独立 docs commit，本轮不 push。下一阶段先阅读用户将提供的其他项目 lessons learned，再评估 PWA 手势交互体验；不预设方案/版本号，Market Validation / Commercialization Study 保留但不启动。
 
@@ -202,6 +208,8 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
+v0.1.20: LOCAL ONLY，未 push/deploy，Production 未发布；built frontend target 与下方 v0.1.19 已验收目标一致，backend/SQL/RPC/Edge/scheduler/config 无变更，无新增能力要求。此次不访问 Production；沿用用户确认 CLOSED / PASS 的 v0.1.19 能力证据，fresh live postflight 与发布后资产检查未执行。真实 installed-PWA acceptance NOT RUN，尚待单独发布授权/对齐；不宣称本版本已部署或设备 PASS。
+
 v0.1.19: Production project `ximazjhxvmktpcdbypka` Task SQL/postflight PASS；send-reminders ACTIVE v4（verify_jwt=false），单一 minute scheduler/Cron compatibility PASS，secrets 未改变。已核验的 Vercel Production revision `9f30f5e48eaa34282a5b2ca00d2c254f90711be2` / deployment `4in5dLHFYnz4WJC2KbNQjuAEXgsg` 于 2026-10-07 14:21:52 Asia/Shanghai success；unsigned assets/target alignment PASS。用户 Production/installed-PWA 人工验收与 10-07 晚间真实 Task Push PASS，v0.1.19 CLOSED / PASS。后续治理 commit 的 REMOTE_SYNCED 以最后获授权 push 后验证为准。以下 v0.1.18 deployment 为历史记录，不是当前 sender 版本。
 
 Status: public_deployed
@@ -254,19 +262,23 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 - v0.1.19 — Task Due-date Push Reminder（CLOSED / PASS；backend SQL/ACTIVE v4、frontend 发布对齐、local/Production/installed-PWA 人工验收及 2026-10-07 晚间真实 Task Push PASS）
 
+- v0.1.20 — Mobile Gesture Navigation（LOCAL IMPLEMENTATION / REVIEW PASS；两个冻结 Scope；iPhone PWA 人工验收 NOT RUN，未发布）
+
 ## Last verified
 
 2026-10-08
 
 ## Next Action
 
-Next Action: PWA 手势交互体验评估。先阅读用户将提供的其他项目 lessons learned，再确定本项目适用范围，不预设实现方式或版本号。原 Market Validation / Commercialization Study 路线保留，本轮不启动。
+等待用户单独授权 push/前端发布；本地实现与 focused review 均 PASS。真实登录验收前完成所选环境的 backend/feature-version alignment；已安装 Production PWA 必须先完成新前端发布与资产/目标对齐，再刷新旧标签页、重启 PWA 进行清单验收，不能拿现有 v0.1.19 当作新手势版本。未授权时不 push/deploy。Market Validation / Commercialization Study 保留，不启动。
 
 ## Blockers
 
 暂无明确阻塞。
 
 ## Important Context
+
+- v0.1.20 仅局部 Calendar 周期滑动及模块列表返回；保留按钮、filters/snapshots、编辑/危险确认。无全局 swipe-back、Sidebar、底栏横滑、详情/Sheet 关闭、业务操作手势或 dirty/busy 重构。识别阈值60px/800ms、2:1横向/30px最大纵向漂移；明显横向意图30px抑制尾随click，真实iPhone可用性尚待验收。
 
 - Slice 1 user acceptance: authenticated CRUD/permissions/date behavior/module toggle, public Production alias and real-device annual layout are PASS. Annual 375px PASS; 320px only buttons wrap without overlap, clipping or horizontal overflow; no further 320px scope. Shared edits by another member appear after re-entry canonical reread rather than immediately in an open view, matching the frozen no-Realtime design. Active-view Realtime refresh is deferred and is not a blocker.
 
@@ -337,4 +349,4 @@ Next Action: PWA 手势交互体验评估。先阅读用户将提供的其他项
 
 ## Handoff Prompt
 
-v0.1.19 CLOSED / PASS：backend exact SQL/postflight、ACTIVE v4/verify_jwt=false、唯一 Cron、已发布 frontend/target alignment 与用户 local/Production/installed-PWA/2026-10-07 晚间真实 Task Push PASS。只读 ledger/Cron 佐证与 HTTP 保留/设备展示限制见 TESTING；不扩大旧 overflow 或 post-check→provider best-effort 边界。本轮只做治理 docs closeout commit、不 push；最终 REMOTE_SYNCED 须最后授权 push 后独立验证。下一阶段等用户提供其他项目 lessons learned，先阅读再定 PWA 手势交互体验评估范围，不预设方案/版本。Market Validation / Commercialization Study 保留且本轮不启动。
+v0.1.20 Mobile Gesture Navigation LOCAL IMPLEMENTATION / REVIEW PASS / READY FOR MANUAL ACCEPTANCE。两个用户冻结 Scope 已实现，新35/全788 Node、TypeScript/build/diff-check PASS；focused READ-ONLY review PASS，无 BLOCKER。详情与Sheet不挂手势，保护弹层/确认/busy/drag/输入并保留原按钮/状态。规格见 docs/v0.1.20_MOBILE_GESTURE_NAVIGATION_SPEC.md。用户仅授权本地commit，未授权push/deploy；Production未发布，iPhone PWA manual acceptance NOT RUN。不要擅自push/deploy或修改Production。构建target与v0.1.19已验收目标一致，backend/依赖/config未变，未执行fresh live postflight。等待单独发布授权；后续所选real-login环境须通过alignment；如测试installed Production PWA，先验证新资产/目标，关闭/刷新旧标签并重启PWA，用户按TESTING清单验收。不将自动测试等同设备PASS。v0.1.19保持CLOSED / PASS；Market Validation路线保留。
