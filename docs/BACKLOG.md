@@ -6,13 +6,13 @@ Four bounded tasks/review/automatic verification, Production exact SQL/postfligh
 
 Existing overflow throughput limitation remains recorded/outside scope; no second scheduler/framework or extra backend work. No need to repeat passed acceptance merely for docs closeout.
 
-## v0.1.20 — Mobile Gesture Navigation — LOCAL AUTOMATED PASS
+## v0.1.20 — Mobile Gesture Navigation — CLOSED / PASS
 
-User froze Calendar period swipe and module-list right-swipe Back after the read-only audit. Both scopes implemented locally; new35/full788 Node, TypeScript/build/diff-check PASS; focused READ-ONLY review PASS. Contract and ordered plan: [v0.1.20 specification](./v0.1.20_MOBILE_GESTURE_NAVIGATION_SPEC.md). Preserve original navigation/buttons/state; no global/Sidebar/bottom-tab/detail/Sheet-close or business-operation gestures. Local commit separately authorized; iPhone installed-PWA acceptance NOT RUN, no push/deploy/Production operation; publication and environment alignment need separate authorization. Checklist in TESTING.
+Two frozen scopes, focused review, full788/new35 Node and TypeScript/build PASS. Implementation pushed; Vercel Production/source SHA/formal assets/target verified. User confirms iPhone installed-PWA 13/13 manual PASS; multi-touch/cancellation and busy not separately manually checked, without a confirmed defect/blocker. Evidence and limits: TESTING; contract: [v0.1.20 specification](./v0.1.20_MOBILE_GESTURE_NAVIGATION_SPEC.md). Keep original navigation/buttons/state and deferred scope. This round is local docs closeout only; no push/deploy or premature remote-sync claim.
 
 ## Preserved roadmap — Market Validation / Commercialization Study
 
-Keep the original route; do not start this study in the current closeout. The PWA evaluation does not replace or cancel it.
+Next business action: research target users, actual needs, existing alternatives and willingness to pay before choosing a direction. Do not presume commercialization conclusions or a native App route. Do not start this study or add functionality in the current closeout.
 
 ## P0 - Blocking Verification or Core Use
 

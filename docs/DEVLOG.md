@@ -1,5 +1,15 @@
 # Development Log
 
+## 2026-10-08 — v0.1.20 Final Closeout — CLOSED / PASS
+
+- User confirms real iPhone installed-PWA 13/13 checks PASS: three Calendar swipe periods, five list Back routes, natural starts, accidental-click protection, vertical scroll, Sheet blocking and original taps/navigation buttons. Multi-touch/cancellation and busy states were not separately manually checked; retain automated evidence without claiming manual PASS or FAIL. No confirmed new defect/blocker.
+- Prior implementation/review/full Node788, TypeScript/build/diff-check PASS reused. Authorized implementation push `2534a4085b9a5d64c488aa2b8975fa1a817460dd`, independent remote verification, matching Vercel Production success and formal-domain assets/Supabase target verification completed previously. Detailed deployment evidence and immutable-URL verification limits are in TESTING; no repeat Production access this round.
+- Updated only PROJECT_STATE/TESTING/DEVLOG/BACKLOG/DECISIONS/README; version CLOSED / PASS, stale publication/manual-acceptance status superseded. Preserve historical checkpoints, technical debt and deferred scope. No business/backend/config/dependency or external-project changes; no secrets read/output.
+- Docs diff/scope/link checks and Project State Gate used for closeout. User authorizes one local docs commit with `Project-State-Review: updated`, without push/deploy/Production operations. This closeout's remote sync is not established.
+- Next business action: Market Validation / Commercialization Study, research first; do not presume commercialization conclusions or a native App route. Study not started by this closeout; document push needs separate authorization.
+
+Earlier v0.1.20 entries below are historical implementation/commit checkpoints.
+
 ## 2026-10-08 — v0.1.20 focused review / local commit verification
 
 - Focused READ-ONLY review PASS, no BLOCKER. User authorized one local feat commit only; push/deploy/Production actions remain unauthorized.

@@ -1,5 +1,16 @@
 # Testing
 
+## v0.1.20 Final Acceptance / Closeout — CLOSED / PASS / 2026-10-08
+
+- **User-reported real iPhone installed-PWA manual acceptance: 13/13 PASS.** The user confirms Calendar Today/Week/Month swipes, all five module-list returns, natural content/card/date-cell starts, accidental-click protection, vertical scrolling, Sheet blocking, normal taps and navigation buttons passed. The 13-item count is the user's report; no unprovided per-item results are invented. Codex did not drive logged-in or device sessions.
+- Multi-touch/cancellation and busy states were **not separately manually checked**. Do not label them manual PASS or FAIL. Retain existing automated coverage; the user reports no confirmed new defect or blocker. No all-browser, Android or additional gesture claim is implied.
+- Prior final local verification remains **788/788 Node PASS**, new gesture tests **35/35 PASS**, TypeScript/build/diff-check PASS; focused READ-ONLY review PASS. This docs-only closeout reuses those results and does not rerun business tests/build. Existing >500 kB bundle warning and deferred scope remain unchanged.
+- Authorized normal push published implementation `2534a4085b9a5d64c488aa2b8975fa1a817460dd`; independent `git ls-remote` confirmed exact remote main. GitHub Production deployment `6937002413` / Vercel `8djfXCjoR5pBhkPoAyZ6D4yphSDM` succeeded at `2026-10-08T13:35:45Z` for that exact SHA.
+- Formal Production root/JS/CSS/manifest/SW returned HTTP 200. Default and no-cache query entry used `/assets/index-B5YtJCYx.js`, SHA-256 `8a95dce9d213406f4e1dddcf36cdae315a088a1ff0076f68554b565bb159b720`, containing new gesture markers; CSS matched local build. Bundle contained one Supabase target matching accepted Production (boolean-only check; no keys printed). Exact local/online JS byte equality was not established. Immutable deployment URL asset comparison **NOT VERIFIED** because no app script was returned; deployment-SHA and formal-domain checks support the published-frontend result.
+- Backend/client/SQL/RPC/Edge/scheduler/config unchanged; no new backend capability requirement or fresh live backend postflight. This round records completed prior release evidence and the user's acceptance, without accessing Production. Local docs closeout only; no push/deploy and no premature remote-sync claim.
+
+Following implementation notes and the original checklist are historical pre-release checkpoints, superseded by this closeout.
+
 ## v0.1.20 Mobile Gesture Navigation — LOCAL AUTOMATED PASS / 2026-10-08
 
 - Baseline: main `dec562d`, clean working tree, v0.1.19 CLOSED / PASS. Frozen contract: [specification](./v0.1.20_MOBILE_GESTURE_NAVIGATION_SPEC.md). No backend/SQL/RPC/Edge/scheduler/dependency/config change or Production access.
@@ -20,7 +31,7 @@ npm run build
 git diff --check
 ```
 
-### Pending real iPhone installed-PWA acceptance
+### Original real iPhone installed-PWA checklist — historical
 
 Prerequisite: new frontend available under separate explicit Git/publication authorization, actual assets/target/backend feature compatibility aligned. Close/refresh old tabs and restart PWA. This implementation turn neither releases nor asks the user to test the old published version. Local development remains fixed port 5175; desktop localhost is not an iPhone-installed-PWA test environment.
 
@@ -31,7 +42,7 @@ Prerequisite: new frontend available under separate explicit Git/publication aut
 5. With Event/Task/Important Date editors, Calendar selectors, Review creation, List rename/delete and other confirmation layers open, no background date/page change. During save/delete/task completion, no background Back; preserve draft/confirmation and existing close controls.
 6. Input/select/checkbox/completion/reopen/delete controls must retain normal actions and not start navigation. List-detail drag/auto-scroll remains as before; no detail swipe-back or Sheet-close gesture should appear. Bottom tabs and original Back buttons still work normally.
 
-Record actual PASS/FAIL and any missed recognitions/accidental clicks. Native iPhone scrolling, pinch and system-edge gesture coexistence remain NOT RUN; do not claim all-browser or PWA PASS from automatic fixtures.
+Historical instruction: record actual PASS/FAIL and missed recognitions/accidental clicks; automated fixtures alone do not prove native behavior. Current manual coverage and its limits are recorded in the final acceptance section above; original checklist items are not all automatically marked PASS.
 
 ## v0.1.19 Final Acceptance / Closeout — CLOSED / PASS / 2026-10-08
 
