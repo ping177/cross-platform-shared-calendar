@@ -12,9 +12,13 @@ v0.1.20
 
 ## Current status
 
-v0.1.20 Mobile Gesture Navigation `CLOSED / PASS`。两个冻结 Scope 的本地实现、focused review、全量 Node 788/788、TypeScript/build 与 diff-check PASS；实施 commit 已推送并完成 Vercel Production/source SHA/正式域名新资产与 Supabase target 核验。用户确认真实 iPhone installed PWA 13/13 项人工检查全部 PASS；多指取消与 busy 状态未单独人工检查，不记为人工 PASS 或失败，证据边界见 TESTING。本轮仅治理文档本地 closeout commit，不 push；不提前声明本轮文档已远端同步。
+v0.1.20 Mobile Gesture Navigation `CLOSED / PASS`，既有实现/review/788 自动测试、Production 发布与用户 iPhone installed PWA 13/13 人工 PASS 保持。多指取消/busy 未单独人工检查，证据边界不变。新阶段 Product Direction Freeze 已由用户确认：目标为完整、精致、可靠、实际可用的共享生活管理 PWA 与正式 AI-assisted product development 作品集；优先建立 Figma ↔ Codex MCP 工作流并完成整体 UI 设计。本轮仅记录方向，不安装/配置 MCP、不实施 UI，不新增版本功能。完整冻结条款见 DECISIONS。
 
 ## Latest completed
+
+2026-10-09 — 用户确认 Product Direction Freeze，记录产品定位、六步顺序、全应用 UI 覆盖与既有行为保护；商业化非产品完成条件，外部日历/备份加密/原生 App 等仅候选。只更新治理文档并创建本地 docs commit，不 push/deploy。
+
+2026-10-08 — 已授权最终 docs closeout commit `c316b60c14694c0c2c831fd65d7130b4839d03aa` 正常 push；独立 git ls-remote 精确匹配，最终 Git 0/0、clean。此次 docs-only push 触发 GitHub Production deployment `6937387220` / Vercel `5Lk9zsDDw4TyKZ6dYPnR3y1zAUbF`，success 且 source SHA 精确匹配。以下“本轮本地收口/未同步”和原 Next Action 是当时历史事实，由本记录与新阶段冻结接续；本次方向文档的同步不由上述 push 证明。
 
 2026-10-08 — v0.1.20 最终治理收口：用户确认 iPhone installed PWA 13/13 人工检查 PASS，版本 CLOSED / PASS；正常 Git push、匹配实施 SHA 的 Vercel Production 成功记录与正式域名新资产已验证。只更新治理文档；保留未单独人工检查的多指取消/busy 边界和既有延期事项，无确认新缺陷。下一阶段 Market Validation / Commercialization Study，先研究，不预设商业化结论或原生 App 路线。
 
@@ -212,7 +216,7 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
-v0.1.20: Production frontend 已发布。实施 revision `2534a4085b9a5d64c488aa2b8975fa1a817460dd` 正常 push 后由独立 git ls-remote 确认；GitHub Production deployment `6937002413` / Vercel `8djfXCjoR5pBhkPoAyZ6D4yphSDM` 于 2026-10-08T13:35:45Z success，source SHA 精确匹配。正式域名 root/新 JS/CSS/manifest/SW HTTP 200；默认与绕缓存入口均使用新 JS，Supabase target 与原 Production 一致。用户 iPhone installed-PWA 13/13 PASS。独立部署 URL 的资产对比 NOT VERIFIED（未返回应用脚本），不扩大既有验证结论。backend/SQL/RPC/Edge/scheduler/config 未变；无 fresh live backend postflight。本轮只做本地 docs closeout，不 push；本轮文档远端同步尚未验证。
+v0.1.20: Production frontend 已发布。实施 revision `2534a4085b9a5d64c488aa2b8975fa1a817460dd` 正常 push 后由独立 git ls-remote 确认；GitHub Production deployment `6937002413` / Vercel `8djfXCjoR5pBhkPoAyZ6D4yphSDM` 于 2026-10-08T13:35:45Z success，source SHA 精确匹配。正式域名 root/新 JS/CSS/manifest/SW HTTP 200；默认与绕缓存入口均使用新 JS，Supabase target 与原 Production 一致。用户 iPhone installed-PWA 13/13 PASS。独立部署 URL 的资产对比 NOT VERIFIED（未返回应用脚本），不扩大既有验证结论。backend/SQL/RPC/Edge/scheduler/config 未变；无 fresh live backend postflight。最终 docs closeout `c316b60c14694c0c2c831fd65d7130b4839d03aa` 已正常 push 并独立核验；该次 GitHub Production deployment `6937387220` / Vercel `5Lk9zsDDw4TyKZ6dYPnR3y1zAUbF` 于 2026-10-08T13:52:02Z success，source SHA 匹配。以上为已完成发布记录；本轮方向冻结不发布新前端，也不宣称本轮新文档已同步。
 
 v0.1.19: Production project `ximazjhxvmktpcdbypka` Task SQL/postflight PASS；send-reminders ACTIVE v4（verify_jwt=false），单一 minute scheduler/Cron compatibility PASS，secrets 未改变。已核验的 Vercel Production revision `9f30f5e48eaa34282a5b2ca00d2c254f90711be2` / deployment `4in5dLHFYnz4WJC2KbNQjuAEXgsg` 于 2026-10-07 14:21:52 Asia/Shanghai success；unsigned assets/target alignment PASS。用户 Production/installed-PWA 人工验收与 10-07 晚间真实 Task Push PASS，v0.1.19 CLOSED / PASS。后续治理 commit 的 REMOTE_SYNCED 以最后获授权 push 后验证为准。以下 v0.1.18 deployment 为历史记录，不是当前 sender 版本。
 
@@ -270,17 +274,19 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Last verified
 
-2026-10-08
+2026-10-09
 
 ## Next Action
 
-Market Validation / Commercialization Study：先研究目标用户、真实需求、现有替代方案与付费意愿，再根据证据判断后续方向；不预设商业化结论或原生 App 路线。本轮不启动研究或新功能；治理文档的 push 等待单独授权。
+建立 Figma ↔ Codex MCP 设计工作流，并开展全应用 UI 设计，直到用户明确满意。可先用代表性页面验证工作流，但最终须覆盖首页、日历、任务、回顾、清单、重要日、我的、空间管理及主要 Sheet/表单；不能以示范页作为最终交付。保留四栏导航、首页快速添加、Space ownership、Realtime、Push 与现有交互；行为变更建议先单独提出。后续六步顺序及候选边界见 DECISIONS。本轮不启动配置或实施。
 
 ## Blockers
 
 暂无明确阻塞。
 
 ## Important Context
+
+- 新阶段产品方向与六步顺序见 DECISIONS 的 Product Direction Freeze；商业化是可探索方向，不是完成产品的必要条件。保留分散居住家人的轻量共享需求与既有 Space/多成员/共享/提醒架构，不因个人使用频率降低而废弃。外部日历、导出/备份/加密、原生 App/订阅/大陆部署均未获功能批准或时间/架构承诺；回顾仍可选，不预设商业卖点。
 
 - v0.1.20 仅局部 Calendar 周期滑动及模块列表返回；保留按钮、filters/snapshots、编辑/危险确认。无全局 swipe-back、Sidebar、底栏横滑、详情/Sheet 关闭、业务操作手势或 dirty/busy 重构。识别阈值60px/800ms、2:1横向/30px最大纵向漂移；明显横向意图30px抑制尾随click；用户 iPhone installed PWA 13/13 PASS，多指取消/busy 未单独人工检查（不记失败），保留自动保护测试证据。
 
@@ -353,4 +359,4 @@ Market Validation / Commercialization Study：先研究目标用户、真实需�
 
 ## Handoff Prompt
 
-v0.1.20 Mobile Gesture Navigation CLOSED / PASS：两个冻结 Scope 实施与 focused review PASS，新增35/全量788 Node、TypeScript/build/diff-check PASS；实施 commit 2534a4085b9a5d64c488aa2b8975fa1a817460dd 已 push，Vercel Production/source SHA/正式域名新资产/Supabase target 核验 PASS。用户确认真实 iPhone installed PWA 13/13 人工检查 PASS；多指取消/busy 未单独人工检查，不记人工 PASS 或失败，无确认新缺陷/阻塞。证据见 TESTING；保留既有技术债/延期范围。本轮仅治理文档本地 closeout commit，不 push/deploy/操作 Production；不得提前声明本轮文档远端同步。下一阶段 Market Validation / Commercialization Study，先研究、不预设商业化结论或原生 App 路线；等待单独文档 push 授权。
+v0.1.20 CLOSED / PASS，Production/source SHA/资产/target 已核验，用户 iPhone installed PWA 13/13 PASS，多指取消/busy 未单独人工检查（不记失败）；最终 closeout c316b60 已 push 并独立核验，docs-only 自动 Production deployment success。本轮仅 2026-10-09 Product Direction Freeze 的治理文档本地 commit，不 push/deploy/配置 MCP/实施 UI。新目标为完整精致可靠、可实际使用的共享生活管理 PWA，继续服务用户与分散居住家人，作为 AI-assisted product development 正式作品集；商业化非完成条件，保留既有共享架构。下一步 Figma ↔ Codex MCP 工作流与全应用 UI 设计至用户明确满意，再按确认设计分阶段实施→中英文/i18n→外部试用前安全隐私账户访问检查→家庭与适量外部试用→演示/设计/项目说明/简历与 LinkedIn 材料。覆盖全部页面及主要 Sheet/表单，保留导航/快添/ownership/Realtime/Push/交互；行为变更先提案。候选功能与边界见 DECISIONS，不承诺时间/架构；不擅自启动候选或商业化研究。本轮文档 push 等待单独授权。

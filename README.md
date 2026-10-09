@@ -1,12 +1,13 @@
 # Cross Platform Shared Calendar
 
-一个两人共享日历 Web App。v0.1 面向“一个人用 iPhone/iOS Safari，另一个人用 Android/Chrome”的场景，优先做移动端友好的 Web/PWA。
+共享生活管理 PWA，继续服务用户与分散居住家人的轻量共享日程、任务和提醒需求。目标是完整、精致、可靠、实际可使用的产品，同时作为 AI-assisted product development 的正式作品集案例；商业化可探索，但不是完成产品的必要条件。最初 v0.1 面向 iPhone/iOS Safari 与 Android/Chrome 的两人共享场景，现有 Space、多成员、共享与提醒架构继续保留。
 
 Production URL: https://cross-platform-shared-calendar.vercel.app/
 
 ## 当前阶段
 
-- v0.1.20 Mobile Gesture Navigation `CLOSED / PASS`：两个冻结 Scope、focused review、全量788自动测试、Production发布与资产核验，以及用户真实 iPhone installed PWA 13/13 人工检查 PASS。多指取消/busy 未单独人工检查；证据边界见 [Testing](./docs/TESTING.md)。下一阶段为 Market Validation / Commercialization Study，先研究，不预设商业化结论或原生 App 路线。本轮治理文档仅本地收口，远端同步尚未验证。
+- 2026-10-09 Product Direction Freeze：先建立 Figma ↔ Codex MCP 工作流，完成全应用统一 UI 设计至用户明确满意；再分阶段实施确认设计、完善中英文/i18n、检查试用前安全/隐私/账户/访问体验、家庭与适量外部试用，最后整理演示/设计/项目说明/简历与 LinkedIn 材料。全应用覆盖与候选功能边界见 [Decisions](./docs/DECISIONS.md#product-direction-freeze--2026-10-09)。本轮只记录方向，不配置 MCP、不实施 UI。
+- v0.1.20 Mobile Gesture Navigation `CLOSED / PASS`：两个冻结 Scope、focused review、全量788自动测试、Production发布与资产核验，以及用户真实 iPhone installed PWA 13/13 人工检查 PASS。多指取消/busy 未单独人工检查；证据边界见 [Testing](./docs/TESTING.md)。最终 closeout c316b60 已 push、独立远端核验及 docs-only Production 部署成功；后续顺序由上方 Product Direction Freeze 接续。
 - v0.1.10 foundation remains `CLOSED / PASS`; v0.1.11 Slices 1–4 and the overall version are `CLOSED / PASS`. Production includes Slice 4; user-reported Desktop and installed PWA acceptance passed. Dedicated final iPhone Safari acceptance is `NOT RUN` and is not a Slice 4 blocker. Independent Slice 3 Event/Task section error/retry simulation remains `NOT RUN / DIFFICULT TO SIMULATE SAFELY`; second Shared Space is `N/A / NOT RUN`. Home “近期日程 +” opens Event creation directly; “需要处理的任务 +” opens Task creation directly. See the [v0.1.11 Navigation + Aggregation Spec](./docs/v0.1.11_NAVIGATION_AGGREGATION_SPEC.md), [v0.1.9 Shared Tasks Spec](./docs/v0.1.9_SHARED_TASKS_SPEC.md), and [Shared Life Architecture Freeze](./docs/SHARED_LIFE_ARCHITECTURE.md).
 - v0.1.12 Module Hub + Space Management Navigation、v0.1.13 Space Lifecycle & Membership Safety 与 v0.1.14「回顾」均为 `CLOSED / PASS`。v0.1.14 的 [canonical contract](./docs/v0.1.14_STRUCTURED_CHECKIN_SPEC.md)、backend/date chronology、frontend deployment、public smoke、用户报告的 Production authenticated acceptance 与最终 exact-ID fixture cleanup 均通过；Production Review 数据为 0/0，Shared 与 Personal Review module 保持 enabled。
 - v0.1.14.1 Navigation Persistence 已在 Production 完成用户真实账号刷新验收并 `CLOSED / PASS`。v0.1.15 Shared Lists 及 Slices 1–4 均 `CLOSED / PASS`：桌面真实账号、双账号 Realtime、移动端/PWA Item drag 与长列表自动滚动验收通过；full Node 356/356、build PASS。stale reorder `AUTOMATED PASS / MANUAL NOT REQUIRED`；Section drag 按冻结设计延后，既有 bundle warning 均非阻塞。详见 [v0.1.15 Shared Lists Specification](./docs/v0.1.15_SHARED_LISTS_SPEC.md)。

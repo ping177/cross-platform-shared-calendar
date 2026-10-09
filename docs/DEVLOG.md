@@ -1,5 +1,13 @@
 # Development Log
 
+## 2026-10-09 — Product Direction Freeze — docs only
+
+- Repo baseline: main/HEAD/local origin/main `c316b60c14694c0c2c831fd65d7130b4839d03aa`, clean, 0/0. Retain v0.1.20 CLOSED / PASS, full788/review/build evidence and user iPhone installed-PWA13/13; multi-touch/cancellation/busy manual limits unchanged. Prior authorized final closeout push was independently verified and matching docs-only Production deployment succeeded; no new Production access this round.
+- Recorded user-confirmed complete/refined/reliable/practical shared-life PWA and geographically separated family use, plus formal AI-assisted product development portfolio. Commercialization remains exploratory, not a product-completion condition; lower personal usage does not retire Space/multi-member/sharing/reminder architecture.
+- Freeze sequence: Figma ↔ Codex MCP + full-app design until explicit user satisfaction → staged confirmed-design implementation → Chinese/English/i18n → pre-trial security/privacy/account/access checks → family and proportionate external use → demos/design/project/resume/LinkedIn materials. Representative pages validate workflow only; entire app and major Sheets/forms remain final design scope. Preserve existing navigation/quick-add/ownership/Realtime/Push/interactions; behavior changes require separate proposals.
+- External calendars, export/backup/encryption, native App/subscription/mainland deployment remain candidates without feature approval or dates/architecture promises; Review stays optional, not a presumed commercial selling point. Market Validation priority is superseded by design-first sequence, not converted into a commercialization conclusion.
+- Updated only README/PROJECT_STATE/BACKLOG/DECISIONS/DEVLOG; preserved version index and completed historical states. Docs diff/scope/link/governance checks; one user-authorized local docs commit with `Project-State-Review: updated`. No business/dependency/SQL/Supabase/Vercel/external-project edits, secrets inspection/output, MCP installation/configuration, UI implementation, push or deployment. New direction documents' remote sync is not claimed; wait for separate push authorization.
+
 ## 2026-10-08 — v0.1.20 Final Closeout — CLOSED / PASS
 
 - User confirms real iPhone installed-PWA 13/13 checks PASS: three Calendar swipe periods, five list Back routes, natural starts, accidental-click protection, vertical scroll, Sheet blocking and original taps/navigation buttons. Multi-touch/cancellation and busy states were not separately manually checked; retain automated evidence without claiming manual PASS or FAIL. No confirmed new defect/blocker.

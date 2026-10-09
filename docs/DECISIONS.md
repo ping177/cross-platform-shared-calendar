@@ -1,12 +1,44 @@
 # Decisions
 
+## Product Direction Freeze — 2026-10-09
+
+This is the user-confirmed next-stage direction after v0.1.20 CLOSED / PASS, not a new feature-version assignment or implementation authorization.
+
+### Product goals
+
+- Build a complete, refined, reliable shared-life management PWA that is practical to use. Continue supporting lightweight shared schedules, tasks and reminders for the user and family living in different places.
+- Treat the project as a formal AI-assisted product development portfolio case, demonstrating requirements management, product design, implementation coordination, testing, deployment and iteration experience.
+- Commercialization remains exploratory and is not required to complete the product. Lower current personal usage does not justify abandoning Space ownership, multi-member/sharing or reminder architecture.
+
+### Frozen work sequence
+
+1. Establish the Figma ↔ Codex MCP design workflow and design the entire application until the user explicitly confirms satisfaction.
+2. Codex implements confirmed designs in stages, preserving existing business logic and acceptance records.
+3. Complete Chinese/English interfaces and the internationalization experience.
+4. Check security, privacy, account and access experience before external trials.
+5. Use with family and conduct a proportionate amount of external trials.
+6. Prepare product demos, design artifacts, project explanation and resume/LinkedIn portfolio materials.
+
+Representative pages may validate the Figma workflow first, but one or two sample pages are not the final design deliverable. Final UI coverage must include Home, Calendar, Tasks, Review, Lists, Important Dates, My, Space Management and major Sheets/forms, with a complete, consistent design explicitly accepted by the user. Preserve the four navigation tabs, Home quick-add, Space ownership, Realtime, Push and current interactions. Proposals that change product behavior must be raised separately before implementation; design approval does not silently authorize such changes.
+
+### Candidates, not approved features
+
+- Google / Outlook / Apple external-calendar aggregation and selective sharing.
+- Data export, user-owned backup and sensitive-content encryption.
+- Native App, commercial subscription and mainland-China-specific deployment.
+- Review stays optional; do not assume it is a commercial selling point.
+
+No implementation date or architecture is promised for these candidates. Market Validation / Commercialization Study is retained as exploration rather than the immediate next task or a prerequisite for product completion; it does not replace the frozen design-first sequence.
+
+This freeze changes governance documents only: no Figma MCP installation/configuration, UI implementation, business/dependency/backend/deployment changes or push. Future work proceeds under its separately authorized scope.
+
 ## v0.1.20 — Frozen mobile gesture scope / 2026-10-08
 
 - Calendar right/left means previous/next civil period (Today day, Week seven days, Month month). Share the original button-equivalent date calculation; date cells and display cards opt in without granting gestures to their editing/dangerous descendants.
 - Tasks/completed/Review history/Lists overview/Important Dates use existing Back callbacks on the local main surface, without an edge-start restriction. Keep existing filter/snapshot/re-entry semantics and all buttons.
 - Adopt Food Expiry v0.3.5 recognition lessons, read-only: touch-only/ref-held pointer recognition, vertical/multi-touch/cancel priority, local pan-y/pinch-zoom, scope reset and a click guard retained by CalendarApp across page unmount. No Sidebar thresholds/navigation architecture, new history/controller or dependency.
 - Any modal, including Portal content outside the DOM surface, blocks background events; existing editor/create/delete/busy states disable gestures. Details and editing Sheets remain out of scope; do not redesign their exit protection or attach business operations to swipes.
-- Final closeout: implementation/review/788 automatic tests PASS; separately authorized push and Vercel Production/asset/target verification completed. User confirms real iPhone installed-PWA 13/13 manual PASS. Multi-touch/cancellation and busy were not separately manually checked; retain automated coverage without labeling manual PASS or FAIL. No confirmed defect/blocker; v0.1.20 CLOSED / PASS. This round authorizes governance docs/local commit only, without push/deploy. Next is Market Validation / Commercialization Study, research first, without presuming commercialization conclusions or a native App route.
+- Final closeout: implementation/review/788 automatic tests PASS; separately authorized push and Vercel Production/asset/target verification completed. User confirms real iPhone installed-PWA 13/13 manual PASS. Multi-touch/cancellation and busy were not separately manually checked; retain automated coverage without labeling manual PASS or FAIL. No confirmed defect/blocker; v0.1.20 CLOSED / PASS. This round authorizes governance docs/local commit only, without push/deploy. Historical closeout next action was Market Validation / Commercialization Study; the 2026-10-09 Product Direction Freeze above supersedes its priority without presuming commercialization conclusions or a native App route.
 
 ## v0.1.19 — Task Due-date Push Reminder — 2026-10-05
 

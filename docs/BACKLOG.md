@@ -8,11 +8,24 @@ Existing overflow throughput limitation remains recorded/outside scope; no secon
 
 ## v0.1.20 — Mobile Gesture Navigation — CLOSED / PASS
 
-Two frozen scopes, focused review, full788/new35 Node and TypeScript/build PASS. Implementation pushed; Vercel Production/source SHA/formal assets/target verified. User confirms iPhone installed-PWA 13/13 manual PASS; multi-touch/cancellation and busy not separately manually checked, without a confirmed defect/blocker. Evidence and limits: TESTING; contract: [v0.1.20 specification](./v0.1.20_MOBILE_GESTURE_NAVIGATION_SPEC.md). Keep original navigation/buttons/state and deferred scope. This round is local docs closeout only; no push/deploy or premature remote-sync claim.
+Two frozen scopes, focused review, full788/new35 Node and TypeScript/build PASS. Implementation pushed; Vercel Production/source SHA/formal assets/target verified. User confirms iPhone installed-PWA 13/13 manual PASS; multi-touch/cancellation and busy not separately manually checked, without a confirmed defect/blocker. Evidence and limits: TESTING; contract: [v0.1.20 specification](./v0.1.20_MOBILE_GESTURE_NAVIGATION_SPEC.md). Keep original navigation/buttons/state and deferred scope. Final closeout c316b60 was pushed and independently verified; its docs-only Production deployment succeeded. The later direction-freeze documents remain subject to separate push authorization.
 
-## Preserved roadmap — Market Validation / Commercialization Study
+## Next-stage work — Product Direction Freeze / 2026-10-09
 
-Next business action: research target users, actual needs, existing alternatives and willingness to pay before choosing a direction. Do not presume commercialization conclusions or a native App route. Do not start this study or add functionality in the current closeout.
+User-confirmed goals and canonical contract: [Product Direction Freeze](./DECISIONS.md#product-direction-freeze--2026-10-09). Complete/refined/reliable/practical shared-life PWA for the user and geographically separated family; formal AI-assisted product development portfolio. Keep Space/multi-member/sharing/reminder architecture despite lower personal usage. Commercialization is exploratory, not a completion gate.
+
+1. Establish Figma ↔ Codex MCP and design the full application until the user is explicitly satisfied. Representative-page workflow validation is allowed; final coverage includes Home/Calendar/Tasks/Review/Lists/Important Dates/My/Space Management and major Sheets/forms.
+2. Codex stages implementation of confirmed designs, preserving business logic and acceptance records.
+3. Complete Chinese/English UI and internationalization.
+4. Check security/privacy/account/access experience before external trials.
+5. Family use and proportionate external trials.
+6. Product demos, design artifacts, project explanation and resume/LinkedIn portfolio materials.
+
+Keep four tabs, Home quick-add, Space ownership, Realtime, Push and existing interactions. Raise behavior-changing proposals separately before implementation. This round records direction only; no workflow configuration or UI implementation.
+
+### Candidates — not approved development
+
+Google/Outlook/Apple calendar aggregation and selective sharing; data export/user-owned backup/sensitive-content encryption; native App/commercial subscription/mainland-China deployment. Review remains optional, not a presumed commercial selling point. No dates or architecture promised. Market Validation / Commercialization Study remains exploratory and does not displace the frozen sequence.
 
 ## P0 - Blocking Verification or Core Use
 
