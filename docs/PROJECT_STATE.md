@@ -12,9 +12,13 @@ v0.1.20
 
 ## Current status
 
-v0.1.20 Mobile Gesture Navigation `CLOSED / PASS`，既有实现/review/788 自动测试、Production 发布与用户 iPhone installed PWA 13/13 人工 PASS 保持。多指取消/busy 未单独人工检查，证据边界不变。新阶段 Product Direction Freeze 已由用户确认：目标为完整、精致、可靠、实际可用的共享生活管理 PWA 与正式 AI-assisted product development 作品集；优先建立 Figma ↔ Codex MCP 工作流并完成整体 UI 设计。本轮仅记录方向，不安装/配置 MCP、不实施 UI，不新增版本功能。完整冻结条款见 DECISIONS。
+v0.1.20 CLOSED / PASS 及既有 Production/PWA 验收记录保持。UI v2 设计包与书面基线已对齐；隔离 worktree 中 Slice 1 已实施显式接入的 Design Tokens 基础和实施规格，本地相关测试 18/18、build、映射/对比度与 320px 离线回归检查 PASS，等待用户验收。全应用页面尚未迁移；具体数值为第一版工程候选，不是逐项不可变设计批准。本轮仅获本地 commit 收口授权，未 push/deploy，无后端变更。
 
 ## Latest completed
+
+2026-10-10 — Slice 1 最终复审 LOCAL PASS：预检分支/HEAD/精确五文件符合；tokens 单一来源、基础类/依赖/业务保持，相关测试 18/18、build 与 diff-check 重验 PASS。仅获本地 commit 授权，无 push/deploy；真机/PWA 与后续页面验收边界不变。
+
+2026-10-10 — UI v2 Slice 1：新增 ui CSS variables → Tailwind semantic mappings 与 [实施规格](./UI_V2_IMPLEMENTATION_SPEC.md)，保留旧页面默认样式/基础类/导航安全区。只改授权的五个文件；相关测试 18/18、build/diff-check、299 条既有 CSS 规则一致、8 个排版角色/26 组配色和四类页面 320px 离线对照 PASS；真实设备/新 UI 人工验收未执行。后续页面 Slice 未启动。
 
 2026-10-09 — 用户确认 Product Direction Freeze，记录产品定位、六步顺序、全应用 UI 覆盖与既有行为保护；商业化非产品完成条件，外部日历/备份加密/原生 App 等仅候选。只更新治理文档并创建本地 docs commit，不 push/deploy。
 
@@ -216,6 +220,8 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
+UI v2 Slice 1：LOCAL ONLY / LOCAL AUTOMATED PASS，本轮仅本地 commit 收口，未 push/deploy，页面尚未接入新 tokens。下方 Production 与真实设备 PASS 均为既有版本历史证据，不证明新 UI 已发布或验收。
+
 v0.1.20: Production frontend 已发布。实施 revision `2534a4085b9a5d64c488aa2b8975fa1a817460dd` 正常 push 后由独立 git ls-remote 确认；GitHub Production deployment `6937002413` / Vercel `8djfXCjoR5pBhkPoAyZ6D4yphSDM` 于 2026-10-08T13:35:45Z success，source SHA 精确匹配。正式域名 root/新 JS/CSS/manifest/SW HTTP 200；默认与绕缓存入口均使用新 JS，Supabase target 与原 Production 一致。用户 iPhone installed-PWA 13/13 PASS。独立部署 URL 的资产对比 NOT VERIFIED（未返回应用脚本），不扩大既有验证结论。backend/SQL/RPC/Edge/scheduler/config 未变；无 fresh live backend postflight。最终 docs closeout `c316b60c14694c0c2c831fd65d7130b4839d03aa` 已正常 push 并独立核验；该次 GitHub Production deployment `6937387220` / Vercel `5Lk9zsDDw4TyKZ6dYPnR3y1zAUbF` 于 2026-10-08T13:52:02Z success，source SHA 匹配。以上为已完成发布记录；本轮方向冻结不发布新前端，也不宣称本轮新文档已同步。
 
 v0.1.19: Production project `ximazjhxvmktpcdbypka` Task SQL/postflight PASS；send-reminders ACTIVE v4（verify_jwt=false），单一 minute scheduler/Cron compatibility PASS，secrets 未改变。已核验的 Vercel Production revision `9f30f5e48eaa34282a5b2ca00d2c254f90711be2` / deployment `4in5dLHFYnz4WJC2KbNQjuAEXgsg` 于 2026-10-07 14:21:52 Asia/Shanghai success；unsigned assets/target alignment PASS。用户 Production/installed-PWA 人工验收与 10-07 晚间真实 Task Push PASS，v0.1.19 CLOSED / PASS。后续治理 commit 的 REMOTE_SYNCED 以最后获授权 push 后验证为准。以下 v0.1.18 deployment 为历史记录，不是当前 sender 版本。
@@ -274,17 +280,19 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Last verified
 
-2026-10-09
+2026-10-10
 
 ## Next Action
 
-建立 Figma ↔ Codex MCP 设计工作流，并开展全应用 UI 设计，直到用户明确满意。可先用代表性页面验证工作流，但最终须覆盖首页、日历、任务、回顾、清单、重要日、我的、空间管理及主要 Sheet/表单；不能以示范页作为最终交付。保留四栏导航、首页快速添加、Space ownership、Realtime、Push 与现有交互；行为变更建议先单独提出。后续六步顺序及候选边界见 DECISIONS。本轮不启动配置或实施。
+等待用户验收 UI v2 Slice 1 的候选 tokens 与实施规格；随后另行确认下一 Slice 的首页/四栏壳层精确范围和授权。不得自行接入页面或进入下一 Slice；本轮仅授权 Slice 1 本地 commit，不 push/deploy。完整视觉参考、功能例外及分阶段验收见 [UI v2 实施规格](./UI_V2_IMPLEMENTATION_SPEC.md)。
 
 ## Blockers
 
 暂无明确阻塞。
 
 ## Important Context
+
+- UI v2 唯一技术链路为 CSS variables → Tailwind ui semantic mappings，显式逐页迁移；无 ThemeProvider/新框架/依赖变更。参考包身份、工程候选值、首页 3/2/2 仅预览、任务已完成页内折叠兼容旧导航、重要日复用日期引擎及禁止虚构功能见 [实施规格](./UI_V2_IMPLEMENTATION_SPEC.md)。这些功能例外尚未在 Slice 1 实施；不新增正式版本条目。
 
 - 新阶段产品方向与六步顺序见 DECISIONS 的 Product Direction Freeze；商业化是可探索方向，不是完成产品的必要条件。保留分散居住家人的轻量共享需求与既有 Space/多成员/共享/提醒架构，不因个人使用频率降低而废弃。外部日历、导出/备份/加密、原生 App/订阅/大陆部署均未获功能批准或时间/架构承诺；回顾仍可选，不预设商业卖点。
 
@@ -359,4 +367,4 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Handoff Prompt
 
-v0.1.20 CLOSED / PASS，Production/source SHA/资产/target 已核验，用户 iPhone installed PWA 13/13 PASS，多指取消/busy 未单独人工检查（不记失败）；最终 closeout c316b60 已 push 并独立核验，docs-only 自动 Production deployment success。本轮仅 2026-10-09 Product Direction Freeze 的治理文档本地 commit，不 push/deploy/配置 MCP/实施 UI。新目标为完整精致可靠、可实际使用的共享生活管理 PWA，继续服务用户与分散居住家人，作为 AI-assisted product development 正式作品集；商业化非完成条件，保留既有共享架构。下一步 Figma ↔ Codex MCP 工作流与全应用 UI 设计至用户明确满意，再按确认设计分阶段实施→中英文/i18n→外部试用前安全隐私账户访问检查→家庭与适量外部试用→演示/设计/项目说明/简历与 LinkedIn 材料。覆盖全部页面及主要 Sheet/表单，保留导航/快添/ownership/Realtime/Push/交互；行为变更先提案。候选功能与边界见 DECISIONS，不承诺时间/架构；不擅自启动候选或商业化研究。本轮文档 push 等待单独授权。
+v0.1.20 CLOSED / PASS 及历史验收边界保持。UI v2 正式参考包/书面基线已对齐；隔离 worktree /Users/wp/Projects/跨系统共享日历-ui-v2 的 Slice 1 已建立显式接入的 ui tokens 与实施规格，本地相关测试 18/18、build/diff-check、实际映射/配色/320px 离线回归 PASS，等待用户验收。只修改 styles.css、tailwind.config.ts、UI_V2_IMPLEMENTATION_SPEC、DEVLOG、PROJECT_STATE；原 worktree 完全不动，不读取 secrets。全应用页面尚未迁移，不开始下一 Slice，不改业务/数据库/后端/依赖/部署配置；本轮仅获 Slice 1 本地 commit 授权，不 push/deploy。精确值为工程候选，后续功能与人工验收遵守实施规格和 AGENTS；真实登录前必须环境对齐，用户操作设备。
