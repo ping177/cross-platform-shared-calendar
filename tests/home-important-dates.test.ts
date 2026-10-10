@@ -161,7 +161,8 @@ test('Home renders 0/1/3/>3 from T1 global ranking with canonical presentation, 
   assert.match(html, /还有 1 天/); assert.match(html, /我的空间/); assert.match(html, /我们的空间/); assert.doesNotMatch(html, /Personal internal name|展开更多/);
   assert.match(text(items(tree)[2]), /还有 1311 天/); // True 2030 anchor, not this year's month/day.
   e.m.rows = [row('old-annual', shared.id, { year: 2020, month: 2, day: 28 })]; e.dispatch('focus');
-  assert.match(renderToStaticMarkup(await e.pump()), /第 2557 天.*距 7 周年还有 1 天/);
+  const annual = renderToStaticMarkup(await e.pump());
+  assert.match(annual, /第 2557 天/); assert.match(annual, /距 7 周年还有 1 天/);
   e.now(new Date(2027, 1, 28)); for (const fn of [...e.timers]) fn();
   assert.match(renderToStaticMarkup(await e.pump()), /7 周年/);
 }));
@@ -402,7 +403,7 @@ test('App known module disable and Space lifecycle signals invalidate only Home 
 
 const legacySection = (tree: any, title: string) => elements(tree).find((el) => el.type === 'section' && el.props['aria-label'] === title);
 const eventSection = (tree: any) => legacySection(tree, '近期日程');
-const taskSection = (tree: any) => legacySection(tree, '需要处理的任务');
+const taskSection = (tree: any) => legacySection(tree, '待办事项');
 async function leaveHome(e: any, tree: any) {
   button(tree, '功能中心').props.onClick(); return e.pump();
 }
@@ -687,7 +688,7 @@ test('Home Event A/B/C retained view becomes canonical B/C/D and ordinary click 
   assert.match(renderToStaticMarkup(eventSection(tree)), /日程 A.*日程 B.*日程 C/);
   pending.resolve({ occurrences: ['B', 'C', 'D'].map((id) => occurrence(id)), membersBySpaceId: { shared: [{ space_id: 'shared', user_id: 'me' }] } });
   tree = await e.pump(); const html = renderToStaticMarkup(eventSection(tree)); assert.doesNotMatch(html, /日程 A/); assert.match(html, /日程 B.*日程 C.*日程 D/);
-  elements(eventSection(tree)).find((el) => el.type === 'button' && text(el).startsWith('日程 B')).props.onClick(); tree = await e.pump();
+  elements(eventSection(tree)).find((el) => el.type === 'button' && el.props['aria-label']?.startsWith('打开日程 日程 B ·')).props.onClick(); tree = await e.pump();
   assert.equal(eventEditor(tree).props.target.kind, 'event'); assert.equal(eventEditor(tree).props.target.event.id, 'B'); assert.equal(reads, 1);
 }));
 

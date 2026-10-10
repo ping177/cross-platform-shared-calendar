@@ -141,3 +141,35 @@ select {
     bottom: calc(var(--ui-nav-content-height) + env(safe-area-inset-bottom, 0px) + var(--ui-space-3));
   }
 }
+
+/* Slice 2: opt-in Home layout only; shared tokens remain the single source. */
+.ui-home {
+  padding-top: calc(var(--ui-space-6) + env(safe-area-inset-top, 0px));
+}
+
+.ui-home-event {
+  display: grid;
+  grid-template-columns: 4.25rem minmax(0, 1fr);
+  align-items: stretch;
+}
+
+.ui-home-event-details {
+  position: relative;
+  border-left: var(--ui-border-width) solid rgb(var(--ui-color-border));
+}
+
+.ui-home-event-details::before {
+  content: "";
+  position: absolute;
+  top: var(--ui-space-5);
+  left: -0.25rem;
+  width: var(--ui-space-2);
+  height: var(--ui-space-2);
+  border-radius: 50%;
+  background: rgb(var(--ui-color-accent));
+}
+
+.ui-home-list > li:not(:last-child) .ui-home-event-details,
+.ui-home-list > li:not(:last-child) .ui-home-row {
+  border-bottom: var(--ui-border-width) solid rgb(var(--ui-color-border));
+}

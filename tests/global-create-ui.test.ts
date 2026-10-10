@@ -19,10 +19,10 @@ test('Home has direct section create actions and no old title action or type cho
     const { MyPage } = await vite.ssrLoadModule('/src/components/MyPage.tsx');
     const { ModuleHub } = await vite.ssrLoadModule('/src/components/ModuleHub.tsx');
     const home = renderToStaticMarkup(React.createElement(HomePage, { spaces: [personal, shared], userId: 'me', EventSheetComponent: () => null, onMembershipRefresh: async () => undefined }));
-    assert.match(home, /<h1[^>]*>首页<\/h1>/);
-    assert.doesNotMatch(home, /<h1[^>]*>首页<\/h1><button|<h2[^>]*>创建<\/h2>|>日程<\/button>|>任务<\/button>/);
+    assert.match(home, /<h1[^>]*>今日安排<\/h1>/);
+    assert.doesNotMatch(home, /<h1[^>]*>今日安排<\/h1><button|<h2[^>]*>创建<\/h2>|>日程<\/button>|>任务<\/button>/);
     assert.match(home, /<section[^>]*aria-label="近期日程"[^>]*>.*?<h2[^>]*>近期日程<\/h2><button[^>]*aria-label="新建日程"/);
-    assert.match(home, /<section[^>]*aria-label="需要处理的任务"[^>]*>.*?<h2[^>]*>需要处理的任务<\/h2><button[^>]*aria-label="新建任务"/);
+    assert.match(home, /<section[^>]*aria-label="待办事项"[^>]*>.*?<h2[^>]*>待办事项<\/h2><button[^>]*aria-label="新建任务"/);
     const common = { session: { user: { id: 'me' } } as Session, space: personal, spaces: [personal], allSpaces: [personal, shared], calendarFilter: 'all' as const, onCalendarFilterChange: noop, screen: 'calendar' as const, onScreenChange: noop, onHubBack: noop, selectedDate: new Date(), onSelectedDateChange: noop, viewMode: 'today' as const, onViewModeChange: noop, onSpaceUpdate: noop };
     for (const markup of [
       renderToStaticMarkup(React.createElement(CurrentSpaceApp, common)),
@@ -59,5 +59,28 @@ test('global create mode shows a target selector and named save action; local cr
     const loadingTask = renderToStaticMarkup(React.createElement(TaskSheet, { ...taskProps, spaceId: shared.id, spaceKind: shared.kind, members: sharedMembers, createTarget: loadingShared, validateGlobalCreate: async () => undefined }));
     assert.doesNotMatch(loadingEvent, /归属/);
     assert.doesNotMatch(loadingTask, /分配给/);
+  } finally { await vite.close(); }
+});
+
+test('four-tab navigation preserves every destination, active page and native disabled controls', async () => {
+  const vite = await createServer({ configFile: false, envFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
+  const elements = (node: any): any[] => React.isValidElement(node) ? [node, ...React.Children.toArray((node.props as any).children).flatMap(elements)] : [];
+  try {
+    const { BottomNavigation } = await vite.ssrLoadModule('/src/App.tsx');
+    const ids = ['home', 'calendar', 'modules', 'me'];
+    for (const current of ids) {
+      const calls: string[] = [];
+      const tree = BottomNavigation({ tab: current, onChange: (id: string) => calls.push(id) });
+      const buttons = elements(tree).filter((el) => el.type === 'button');
+      assert.equal(buttons.length, 4);
+      assert.deepEqual(buttons.map((el) => el.props['aria-current']), ids.map((id) => id === current ? 'page' : undefined));
+      for (const control of buttons) control.props.onClick();
+      assert.deepEqual(calls, ids);
+      const markup = renderToStaticMarkup(tree);
+      assert.equal((markup.match(/aria-hidden="true"/g) ?? []).length, 4);
+      assert.match(markup, />首页<.*>日历<.*>功能中心<.*>我的</);
+      const blocked = elements(BottomNavigation({ tab: current, disabled: true, onChange: noop })).filter((el) => el.type === 'button');
+      assert.equal(blocked.every((el) => el.props.disabled === true), true);
+    }
   } finally { await vite.close(); }
 });

@@ -5,6 +5,9 @@ import { createSwipeClickGuard, type SwipeClickGuard } from './lib/mobile-swipe'
 import type { Session } from '@supabase/supabase-js';
 import {
   CalendarDays,
+  House,
+  LayoutGrid,
+  UserRound,
   Check,
   ChevronDown,
   ChevronLeft,
@@ -724,7 +727,7 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
   }
 
   return (
-    <div className="min-h-screen bg-mist text-ink pb-nav" onPointerDownCapture={swipeClickGuard.onPointerDownCapture} onClickCapture={swipeClickGuard.onClickCapture}>
+    <div className={`min-h-screen text-ink pb-nav ${navigation.tab === 'home' ? 'bg-ui-page' : 'bg-mist'}`} onPointerDownCapture={swipeClickGuard.onPointerDownCapture} onClickCapture={swipeClickGuard.onClickCapture}>
       {personalInitializationError && (
         <div className="bg-mist px-4 pt-4">
           <div className="mx-auto max-w-3xl rounded-lg border border-amber/40 bg-white px-4 py-3 text-sm text-ink shadow-soft" role="alert">
@@ -1121,17 +1124,20 @@ function Notice({ tone, message }: { tone: 'error' | 'success'; message: string 
 }
 
 export function BottomNavigation({ tab, onChange, disabled = false }: { tab: TopLevelTab; onChange: (tab: TopLevelTab) => void; disabled?: boolean }) {
-  const tabs: { id: TopLevelTab; label: string }[] = [
-    { id: 'home', label: '首页' },
-    { id: 'calendar', label: '日历' },
-    { id: 'modules', label: '功能中心' },
-    { id: 'me', label: '我的' },
-  ];
+  const tabs = [
+    { id: 'home', label: '首页', Icon: House },
+    { id: 'calendar', label: '日历', Icon: CalendarDays },
+    { id: 'modules', label: '功能中心', Icon: LayoutGrid },
+    { id: 'me', label: '我的', Icon: UserRound },
+  ] as const;
   return (
-    <nav className="bottom-nav fixed inset-x-0 bottom-0 z-10 border-t border-ink/10 bg-white" aria-label="一级导航">
+    <nav className="ui-bottom-nav fixed inset-x-0 bottom-0 z-10 border-t border-ui-border bg-ui-surface font-ui" aria-label="一级导航">
       <div className="mx-auto grid max-w-3xl grid-cols-4">
-        {tabs.map(({ id, label }) => (
-          <button key={id} type="button" className={`min-h-12 px-2 py-2 text-sm font-semibold disabled:opacity-50 ${tab === id ? 'text-teal' : 'text-ink/65'}`} onClick={() => onChange(id)} disabled={disabled} aria-current={tab === id ? 'page' : undefined}>{label}</button>
+        {tabs.map(({ id, label, Icon }) => (
+          <button key={id} type="button" className={`ui-focus flex h-12 min-h-12 flex-col items-center justify-center gap-ui-1 px-ui-2 text-ui-label ${tab === id ? 'text-ui-accent' : 'text-ui-muted'}`} onClick={() => onChange(id)} disabled={disabled} aria-current={tab === id ? 'page' : undefined}>
+            <Icon size={20} strokeWidth={tab === id ? 2.5 : 1.75} aria-hidden="true" />
+            <span>{label}</span>
+          </button>
         ))}
       </div>
     </nav>

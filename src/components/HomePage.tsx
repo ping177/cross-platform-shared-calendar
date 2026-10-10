@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ComponentType, type ReactNode } from 'react';
-import { Circle, Plus } from 'lucide-react';
+import { CalendarDays, ChevronRight, Plus, Square } from 'lucide-react';
 import type { EventSheetProps } from '../App';
 import { type CreateKind, type CreateTargetControl, type CreateTargetState } from './GlobalCreateControls';
 import { listCurrentSpaces } from '../lib/current-spaces';
@@ -80,19 +80,19 @@ export function HomeSection({ title, status, error, items, expanded, empty, onTo
   title: string; status: 'loading' | 'success' | 'error'; error: string; items: ReactNode[]; expanded: boolean; empty: string;
   onToggle: () => void; onRetry: () => void; createAction?: ReactNode; createFeedback?: ReactNode; refreshError?: string;
 }) {
-  return <section className="space-y-3" aria-label={title}>
-    <div className="flex items-center justify-between gap-3">
-      <h2 className="min-w-0 break-words text-lg font-bold">{title}</h2>
+  return <section className="rounded-ui-group bg-ui-surface p-ui-4 shadow-ui-group" aria-label={title}>
+    <div className="mb-ui-2 flex min-h-ui-touch items-center justify-between gap-ui-3">
+      <h2 className="min-w-0 break-words text-ui-section">{title}</h2>
       {createAction}
     </div>
     {createFeedback}
-    {status === 'success' && refreshError && <p className="break-words text-sm text-coral" role="alert">更新失败 · 正在显示上次已读取的内容<button className="ml-3 min-h-11 font-semibold underline" type="button" onClick={onRetry}>重试</button></p>}
-    {status === 'loading' && <p className="rounded-lg bg-white px-4 py-5 text-sm text-ink/60 shadow-sm" role="status">正在读取…</p>}
-    {status === 'error' && <div className="rounded-lg bg-white px-4 py-5 shadow-sm" role="alert"><p className="text-sm text-coral">{error || `${title}加载失败，请重试。`}</p><button className="mt-2 min-h-11 font-semibold text-teal" type="button" onClick={onRetry}>重试</button></div>}
+    {status === 'success' && refreshError && <p className="break-words text-ui-meta text-ui-danger" role="alert">更新失败 · 正在显示上次已读取的内容<button className="ui-focus ml-ui-3 min-h-ui-touch min-w-11 font-ui-semibold underline" type="button" onClick={onRetry}>重试</button></p>}
+    {status === 'loading' && <p className="py-ui-3 text-ui-meta text-ui-muted" role="status">正在读取…</p>}
+    {status === 'error' && <div className="py-ui-3" role="alert"><p className="break-words text-ui-meta text-ui-danger">{error || `${title}加载失败，请重试。`}</p><button className="ui-focus mt-ui-2 min-h-ui-touch min-w-11 font-ui-semibold text-ui-accent" type="button" onClick={onRetry}>重试</button></div>}
     {status === 'success' && (items.length ? <>
-      <ul className="space-y-2">{(expanded ? items : items.slice(0, 5)).map((item, index) => <li key={index}>{item}</li>)}</ul>
-      {items.length > 5 && <button className="min-h-11 font-semibold text-teal" type="button" onClick={onToggle}>{expanded ? '收起' : '展开更多'}</button>}
-    </> : <p className="rounded-lg bg-white px-4 py-5 text-sm text-ink/60 shadow-sm">{empty}</p>)}
+      <ul className="ui-home-list">{(expanded ? items : items.slice(0, 5)).map((item, index) => <li key={index}>{item}</li>)}</ul>
+      {items.length > 5 && <button className="ui-focus min-h-ui-touch text-ui-meta font-ui-semibold text-ui-accent" type="button" onClick={onToggle}>{expanded ? '收起' : '展开更多'}</button>}
+    </> : <p className="py-ui-3 text-ui-meta text-ui-muted">{empty}</p>)}
   </section>;
 }
 
@@ -263,11 +263,11 @@ export function HomePage({ spaces, userId, EventSheetComponent, onMembershipRefr
   function sectionCreateFeedback(kind: CreateKind) {
     const choices = kind === 'task' ? availableTaskTargets(createSpaces, enabledTaskIds) : createSpaces;
     return <>
-      {openingCreateKind === kind && <p className="text-sm text-ink/60" role="status">正在确认可用空间…</p>}
-      {createEntryError?.kind === kind && <p className="text-sm text-coral" role="alert">{createEntryError.message}<button className="ml-3 min-h-11 font-semibold underline" type="button" onClick={() => void beginCreate(kind)}>重试</button></p>}
-      {choosingSpaceKind === kind && <div className="rounded-lg bg-white p-3 text-sm shadow-sm" role="group" aria-label="选择保存空间">
-        <p className="text-ink/70">我的空间暂不可用，请主动选择保存空间。</p>
-        {choices.map((space) => <button key={space.id} className="mt-2 block min-h-11 w-full rounded-lg px-3 text-left font-semibold text-teal hover:bg-mist" type="button" onClick={() => startCreate(kind, space.id, createSpaces)}>{space.name}</button>)}
+      {openingCreateKind === kind && <p className="text-ui-meta text-ui-muted" role="status">正在确认可用空间…</p>}
+      {createEntryError?.kind === kind && <p className="text-ui-meta text-ui-danger" role="alert">{createEntryError.message}<button className="ui-focus ml-ui-3 min-h-ui-touch min-w-11 font-ui-semibold underline" type="button" onClick={() => void beginCreate(kind)}>重试</button></p>}
+      {choosingSpaceKind === kind && <div className="rounded-ui-control border-ui border-ui-border p-ui-3 text-ui-meta" role="group" aria-label="选择保存空间">
+        <p className="text-ui-muted">我的空间暂不可用，请主动选择保存空间。</p>
+        {choices.map((space) => <button key={space.id} className="ui-focus mt-ui-2 block min-h-ui-touch w-full break-words rounded-ui-control px-ui-3 text-left font-ui-semibold text-ui-accent hover:bg-ui-soft" type="button" onClick={() => startCreate(kind, space.id, createSpaces)}>{space.name}</button>)}
       </div>}
     </>;
   }
@@ -391,20 +391,33 @@ export function HomePage({ spaces, userId, EventSheetComponent, onMembershipRefr
 
   const eventItems = (eventView.snapshot?.items ?? []).map((row) => {
     const space = spaces.find((item) => item.id === row.spaceId);
-    return <button key={`${row.spaceId}:${row.occurrence_id}`} className="w-full rounded-lg bg-white p-4 text-left shadow-sm" type="button" onClick={() => void openEvent(row)}>
-      <span className="block break-words font-semibold">{row.title}</span>
-      <span className="mt-1 block text-sm text-ink/60">{formatDay(new Date(row.occurrence_starts_at))} · {formatTime(row.occurrence_starts_at, row.all_day)}</span>
-      <span className="mt-1 block break-words text-sm text-teal">{space?.name} · {row.sourceLabel}</span>
+    return <button key={`${row.spaceId}:${row.occurrence_id}`} className="ui-home-event ui-focus w-full text-left" type="button" aria-label={`打开日程 ${row.title} · ${formatDay(new Date(row.occurrence_starts_at))} · ${formatTime(row.occurrence_starts_at, row.all_day)} · ${space?.name ?? ''} · ${row.sourceLabel}`} onClick={() => void openEvent(row)}>
+      <span className="min-w-0 py-ui-3">
+        <span className="block text-ui-list font-ui-semibold">{formatTime(row.occurrence_starts_at, row.all_day)}</span>
+        <span className="mt-ui-1 block text-ui-label-small text-ui-muted" title={formatDay(new Date(row.occurrence_starts_at))}>{formatDay(new Date(row.occurrence_starts_at)).replace(/周.$/, '')}</span>
+      </span>
+      <span className="ui-home-event-details flex min-w-0 items-start gap-ui-2 py-ui-3 pl-ui-4">
+        <CalendarDays size={18} className="mt-ui-1 shrink-0 text-ui-muted" aria-hidden="true" />
+        <span className="min-w-0 flex-1">
+          <span className="block break-words text-ui-list font-ui-semibold">{row.title}</span>
+          <span className="mt-ui-1 block break-words text-ui-label-small text-ui-muted">{space?.name} · <span className="inline-block whitespace-nowrap rounded-ui-control bg-ui-soft px-ui-2">{row.sourceLabel}</span></span>
+        </span>
+        <ChevronRight size={16} className="mt-ui-1 shrink-0 text-ui-muted" aria-hidden="true" />
+      </span>
     </button>;
   });
   const taskItems = (taskView.snapshot?.items ?? []).map((task) => {
     const space = spaces.find((item) => item.id === task.space_id);
     const members = taskView.snapshot?.membersBySpaceId[task.space_id] ?? [];
-    return <div key={`${task.space_id}:${task.id}`} className="flex items-start gap-2 rounded-lg bg-white px-3 py-2 shadow-sm">
-      <button className="grid h-11 w-11 shrink-0 place-items-center text-teal disabled:opacity-50" type="button" disabled={busyTaskId !== null} onClick={() => void completeTask(task)} aria-label={`完成 ${task.title}`}><Circle size={23} /></button>
-      <button className="min-h-11 min-w-0 flex-1 py-1 text-left disabled:opacity-50" type="button" disabled={openingTask} onClick={() => void openTask(task)}>
-        <span className="block break-words font-semibold">{task.title}</span>
-        <span className="mt-1 block break-words text-sm text-ink/60">{space?.name}{space?.kind === 'shared' ? ` · ${taskAssignmentLabel(task.assigned_to_user_id, members, userId)}` : ''}{task.due_on ? ` · ${formatTaskDueDate(task.due_on)}` : ' · 无截止日期'}</span>
+    return <div key={`${task.space_id}:${task.id}`} className="ui-home-row flex items-start gap-ui-2 py-ui-3">
+      <button className="ui-focus grid h-11 w-11 shrink-0 place-items-center text-ui-accent disabled:text-ui-muted" type="button" disabled={busyTaskId !== null} onClick={() => void completeTask(task)} aria-label={`完成 ${task.title}`}><Square size={20} aria-hidden="true" /></button>
+      <button className="ui-focus min-h-ui-touch min-w-0 flex-1 text-left disabled:text-ui-muted" type="button" disabled={openingTask} onClick={() => void openTask(task)}>
+        <span className="flex items-center gap-ui-2">
+          <span className="min-w-0 flex-1 break-words text-ui-list font-ui-semibold">{task.title}</span>
+          {task.due_on && <span className="max-w-[5rem] shrink-0 break-words text-right text-ui-label text-ui-muted">{formatTaskDueDate(task.due_on)}</span>}
+          <ChevronRight size={16} className="shrink-0 text-ui-muted" aria-hidden="true" />
+        </span>
+        <span className="mt-ui-1 block break-words text-ui-label-small text-ui-muted">{space?.name}{space?.kind === 'shared' ? ` · ${taskAssignmentLabel(task.assigned_to_user_id, members, userId)}` : ''}{task.due_on ? '' : ' · 无截止日期'}</span>
       </button>
     </div>;
   });
@@ -413,17 +426,22 @@ export function HomePage({ spaces, userId, EventSheetComponent, onMembershipRefr
   const taskSpace = editingTask ? spaces.find((space) => space.id === editingTask.space_id) : null;
   const taskMembers = taskSpace ? editingTaskMembers : [];
 
-  return <main className="mx-auto min-h-screen max-w-3xl space-y-7 px-4 py-6 safe-bottom">
-    <h1 className="text-2xl font-bold">首页</h1>
-    <HomeSection title="近期日程" status={eventView.status} error={eventView.error} refreshError={eventView.error} items={eventItems} expanded={eventExpanded} empty="未来三天暂无日程" onToggle={() => setEventExpanded((value) => !value)} onRetry={eventView.retry}
-      createAction={<button ref={eventCreateButton} className="grid h-11 w-11 shrink-0 place-items-center rounded-lg text-teal hover:bg-white disabled:opacity-50" type="button" aria-label="新建日程" disabled={openingCreateKind !== null} onClick={() => void beginCreate('event')}><Plus size={21} aria-hidden="true" /></button>}
-      createFeedback={<>{sectionCreateFeedback('event')}{eventNotice && <p className="break-words text-sm text-ink/60" role="status">{eventNotice}</p>}</>}
-    />
-    <HomeSection title="需要处理的任务" status={taskView.status} error={taskView.error} refreshError={taskView.error} items={taskItems} expanded={taskExpanded} empty="暂无需要处理的任务" onToggle={() => setTaskExpanded((value) => !value)} onRetry={taskView.retry}
-      createAction={<button ref={taskCreateButton} className="grid h-11 w-11 shrink-0 place-items-center rounded-lg text-teal hover:bg-white disabled:opacity-50" type="button" aria-label="新建任务" disabled={openingCreateKind !== null} onClick={() => void beginCreate('task')}><Plus size={21} aria-hidden="true" /></button>}
-      createFeedback={<>{sectionCreateFeedback('task')}{taskNotice && <p className="break-words text-sm text-ink/60" role="status">{taskNotice}</p>}</>}
-    />
-    <HomeImportantDatesSection key={userId} userId={userId} spaces={spaces} entry={importantDatesEntry} initialData={initialImportantDates} onValidated={onImportantDatesValidated} onInvalidate={onImportantDatesInvalidate} onViewAll={onOpenImportantDates} onRefreshReady={(refresh) => { reconcileImportantDates.current = refresh; }} onOpen={openImportantDate} />
+  return <main className="ui-home mx-auto min-h-screen max-w-3xl px-ui-4 safe-bottom">
+    <div className="space-y-ui-5 font-ui text-ui-text">
+      <header>
+        <h1 className="text-ui-page-title">今日安排</h1>
+        <p className="mt-ui-1 text-ui-meta text-ui-muted">{formatDay(new Date())}</p>
+      </header>
+      <HomeSection title="近期日程" status={eventView.status} error={eventView.error} refreshError={eventView.error} items={eventItems} expanded={eventExpanded} empty="未来三天暂无日程" onToggle={() => setEventExpanded((value) => !value)} onRetry={eventView.retry}
+        createAction={<button ref={eventCreateButton} className="ui-focus grid h-11 w-11 shrink-0 place-items-center rounded-full bg-ui-accent text-ui-on-accent hover:bg-ui-accent-strong disabled:bg-ui-muted" type="button" aria-label="新建日程" disabled={openingCreateKind !== null} onClick={() => void beginCreate('event')}><Plus size={21} aria-hidden="true" /></button>}
+        createFeedback={<>{sectionCreateFeedback('event')}{eventNotice && <p className="break-words text-ui-meta text-ui-muted" role="status">{eventNotice}</p>}</>}
+      />
+      <HomeSection title="待办事项" status={taskView.status} error={taskView.error} refreshError={taskView.error} items={taskItems} expanded={taskExpanded} empty="暂无需要处理的任务" onToggle={() => setTaskExpanded((value) => !value)} onRetry={taskView.retry}
+        createAction={<button ref={taskCreateButton} className="ui-focus grid h-11 w-11 shrink-0 place-items-center rounded-full bg-ui-accent text-ui-on-accent hover:bg-ui-accent-strong disabled:bg-ui-muted" type="button" aria-label="新建任务" disabled={openingCreateKind !== null} onClick={() => void beginCreate('task')}><Plus size={21} aria-hidden="true" /></button>}
+        createFeedback={<>{sectionCreateFeedback('task')}{taskNotice && <p className="break-words text-ui-meta text-ui-muted" role="status">{taskNotice}</p>}</>}
+      />
+      <HomeImportantDatesSection key={userId} userId={userId} spaces={spaces} entry={importantDatesEntry} initialData={initialImportantDates} onValidated={onImportantDatesValidated} onInvalidate={onImportantDatesInvalidate} onViewAll={onOpenImportantDates} onRefreshReady={(refresh) => { reconcileImportantDates.current = refresh; }} onOpen={openImportantDate} />
+    </div>
     {importantDateEditor.notice && <p role="status" className="text-sm text-ink/60">{importantDateEditor.notice}</p>}
     {importantDateIdentity && !importantDateEditor.editor && <div className="text-sm text-ink/60">
       {importantDateEditor.targetRead.loading && <p role="status">正在确认重要日…</p>}
