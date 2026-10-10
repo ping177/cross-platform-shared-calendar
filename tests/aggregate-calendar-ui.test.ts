@@ -97,73 +97,34 @@ test('Calendar filter selector opens as a bounded sheet and chooses all or one u
   } finally { await vite.close(); }
 });
 
-test('Calendar view selector shows one mode, opens a sheet, and changes view independently of Space', async () => {
-  const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
+test('Calendar segmented views select all three modes without a modal and keep date and Space context independent', async () => {
+  const vite = await createServer({ configFile: false, envFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
   try {
-    const { CalendarViewPicker, CalendarFilterPicker, CurrentSpaceApp, CalendarViews } = await vite.ssrLoadModule('/src/App.tsx');
-    const noop = () => undefined;
-    const selectedSpaceId = shared.id;
+    const { CalendarViewPicker, CalendarFilterPicker, CurrentSpaceApp } = await vite.ssrLoadModule('/src/App.tsx');
+    const noop = () => undefined, selectedDate = new Date(2026, 8, 24);
     let filter: 'all' | { spaceId: string } = { spaceId: shared.id };
-    let view: 'today' | 'week' | 'month' = 'today';
-    let opens = 0;
-    let closes = 0;
-    const viewProps = { mode: view, open: false, onOpen: () => { opens += 1; }, onClose: () => { closes += 1; }, onSelect: (next: typeof view) => { view = next; } };
+    let view: 'today' | 'week' | 'month' = 'today'; let closes = 0;
+    const props = { open: false, onOpen: () => assert.fail('segmented views must not open a modal'), onClose: () => closes++, onSelect: (next: typeof view) => { view = next; } };
     for (const [mode, label] of [['today', '今日'], ['week', '本周'], ['month', '本月']] as const) {
-      const closed = renderToStaticMarkup(React.createElement(CalendarViewPicker, { ...viewProps, mode }));
-      assert.match(closed, new RegExp(`aria-label="选择日历视图"[^>]*>.*${label}`));
-      assert.doesNotMatch(closed, />视图</);
-      assert.doesNotMatch(closed, /role="dialog"|aria-label="视图：/);
+      const tree = CalendarViewPicker({ ...props, mode: view });
+      const html = renderToStaticMarkup(React.createElement(CalendarViewPicker, { ...props, mode }));
+      assert.match(html, /role="group" aria-label="选择日历视图"/);
+      assert.equal((html.match(/aria-pressed="true"/g) ?? []).length, 1);
+      assert.equal((html.match(/<button/g) ?? []).length, 3);
+      assert.doesNotMatch(html, /role="dialog"|aria-haspopup/);
+      const button = findButton(tree, `视图：${label}`); assert.ok(button); button.props.onClick();
+      assert.equal(view, mode); assert.deepEqual(filter, { spaceId: shared.id });
     }
-    const opener = findButton(CalendarViewPicker(viewProps), '选择日历视图');
-    assert.ok(opener);
-    opener.props.onClick();
-    assert.equal(opens, 1);
-    const opened = renderToStaticMarkup(React.createElement(CalendarViewPicker, { ...viewProps, open: true }));
-    assert.match(opened, /role="dialog"/);
-    assert.match(opened, /safe-bottom/);
-    for (const label of ['今日', '本周', '本月']) assert.match(opened, new RegExp(`aria-label="视图：${label}"`));
-    const choose = (label: string) => {
-      const button = findButton(CalendarViewPicker({ ...viewProps, mode: view, open: true }), `视图：${label}`);
-      assert.ok(button);
-      button.props.onClick();
-    };
-    choose('本周');
-    assert.equal(view, 'week');
-    choose('本月');
-    assert.equal(view, 'month');
-    choose('今日');
-    assert.equal(view, 'today');
     assert.equal(closes, 3);
-    assert.deepEqual(filter, { spaceId: shared.id });
-    const spaceButton = findButton(CalendarFilterPicker({ spaces: [personal, shared], filter, open: true, onOpen: noop, onClose: noop, onSelect: (next: typeof filter) => { filter = next; } }), '筛选：私人');
-    assert.ok(spaceButton);
-    spaceButton.props.onClick();
-    assert.equal(view, 'today');
-    assert.equal(selectedSpaceId, shared.id);
-
-    const common = { session: { user: { id: 'user-a' } } as Session, space: shared, spaces: [shared], allSpaces: [personal, shared], calendarFilter: 'all', screen: 'calendar', onScreenChange: noop, onHubBack: noop, selectedDate: new Date('2026-09-24'), onSelectedDateChange: noop, onViewModeChange: noop, onSpaceUpdate: noop, onCalendarFilterChange: noop };
-    for (const [mode, label] of [['today', '今日'], ['week', '本周'], ['month', '本月']] as const) {
-      const html = renderToStaticMarkup(React.createElement(CurrentSpaceApp, { ...common, viewMode: mode }));
-      assert.match(html, new RegExp(`aria-label="选择日历视图"[^>]*>.*${label}`));
-      assert.doesNotMatch(html, /grid-cols-3 gap-2 rounded-lg bg-white p-1/);
-      assert.match(html, /class="mt-3 grid w-full max-w-sm grid-cols-2 gap-2"/);
-      assert.match(html, /aria-label="筛选日历"[^>]*>.*truncate/);
-      assert.match(html, /class="flex h-11 w-full min-w-0 items-center gap-2 rounded-lg bg-white/);
+    findButton(CalendarFilterPicker({ spaces: [personal, shared], filter, open: true, onOpen: noop, onClose: noop, onSelect: (next: typeof filter) => { filter = next; } }), '筛选：私人')!.props.onClick();
+    assert.equal(view, 'month'); assert.deepEqual(filter, { spaceId: personal.id });
+    assert.equal(selectedDate.getTime(), new Date(2026, 8, 24).getTime());
+    for (const mode of ['today', 'week', 'month']) {
+      const html = renderToStaticMarkup(React.createElement(CurrentSpaceApp, { session: { user: { id: 'user-a' } }, spaces: [shared], allSpaces: [personal, shared], calendarFilter: 'all', selectedDate, viewMode: mode, onSelectedDateChange: noop, onViewModeChange: noop, onCalendarFilterChange: noop }));
+      const filterIndex = html.indexOf('aria-label="筛选日历"'), viewIndex = html.indexOf('aria-label="选择日历视图"');
+      const previous = html.indexOf('aria-label="上一段"'), current = html.indexOf(`aria-label="回到${mode === 'today' ? '今天' : mode === 'week' ? '本周' : '本月'}"`), next = html.indexOf('aria-label="下一段"');
+      assert.ok(filterIndex >= 0 && filterIndex < viewIndex && viewIndex < previous && previous < current && current < next);
     }
-    const away = renderToStaticMarkup(React.createElement(CurrentSpaceApp, { ...common, selectedDate: new Date(2000, 0, 1), viewMode: 'month' }));
-    const rowStart = away.indexOf('class="mt-3 grid w-full max-w-sm grid-cols-2 gap-2"');
-    const spaceSelector = away.indexOf('aria-label="筛选日历"');
-    const viewSelector = away.indexOf('aria-label="选择日历视图"');
-    const navigationRow = away.indexOf('class="mt-3 flex items-center justify-between"');
-    const action = away.indexOf('aria-label="回到本月"');
-    const leftArrow = away.indexOf('aria-label="上一段"');
-    const rightArrow = away.indexOf('aria-label="下一段"');
-    assert.ok(rowStart !== -1 && rowStart < spaceSelector && spaceSelector < viewSelector && viewSelector < navigationRow);
-    assert.ok(navigationRow < leftArrow && leftArrow < action && action < rightArrow);
-    const calendar = (mode: 'today' | 'week' | 'month') => renderToStaticMarkup(React.createElement(CalendarViews, { expansion: { occurrences: [], errors: [] }, membersBySpaceId: {}, spacesById: {}, showSpaceLabel: false, selectedDate: new Date(2026, 8, 24), viewMode: mode, userId: 'user-a', onEdit: noop, onSelectDate: noop }));
-    assert.equal((calendar('today').match(/<h2/g) ?? []).length, 1);
-    assert.equal((calendar('week').match(/<h2/g) ?? []).length, 7);
-    assert.match(calendar('month'), /grid-cols-7/);
   } finally { await vite.close(); }
 });
 
@@ -265,5 +226,77 @@ test('aggregate cards retain both same-time Events and resolve each owner from i
     }));
     assert.match(failed, /无法完整显示/);
     assert.doesNotMatch(failed, /同名日程/);
+  } finally { await vite.close(); }
+});
+
+
+test('v2 day/week retain exact event and Important Date click identities, all-day, cross-day, owner labels and sorted contents', async () => {
+  const vite = await createServer({ configFile: false, envFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
+  try {
+    const { CalendarViews } = await vite.ssrLoadModule('/src/App.tsx');
+    const selectedDate = new Date(2026, 9, 9, 12);
+    const make = (id: string, start: Date, end: Date | null, all_day = false, scope = 'personal') => ({ occurrence_id: id, source_event_id: id, occurrence_date: '2026-10-09', occurrence_starts_at: start.toISOString(), occurrence_ends_at: end?.toISOString() ?? null, all_day, title: id === 'long' ? '很长的标题_ABCDEFGHIJKLMNOPQRSTUVWXYZ'.repeat(8) : id, description: '保留原描述', source_event: { id, space_id: scope === 'shared' ? shared.id : personal.id, scope, owner_user_id: scope === 'shared' ? null : 'user-a', recurrence_rule: id === 'repeat' ? { frequency: 'daily' } : null } });
+    const events = [make('long', new Date(2026,9,9,19), null), make('repeat',new Date(2026,9,9,9),new Date(2026,9,9,10),false,'shared'), make('all-day',new Date(2026,9,9),null,true),make('cross-day',new Date(2026,9,8,23),new Date(2026,9,10,1))];
+    const important = { importantDateId: 'date', spaceId: shared.id, occurrenceDate: { year: 2026, month: 10, day: 9 }, name: '纪念日', emoji: '❤️' };
+    const clicks: any[] = [];
+    const common = { expansion: { occurrences: events, errors: [] }, importantDates: [important], membersBySpaceId: { personal: [{ user_id: 'user-a', profiles: { display_name: '本人姓名' } }] }, spacesById: { personal, shared }, showSpaceLabel: true, selectedDate, userId: 'user-a', onEdit: (item: any) => clicks.push(item), onOpenImportantDate: (item: any) => clicks.push(item), onSelectDate: () => undefined };
+    const expand = (node: any): any[] => {
+      if (!React.isValidElement(node)) return [];
+      const el: any = node;
+      if (['DaySection', 'EventCard', 'CalendarImportantDateCard'].includes(el.type?.name)) return expand(el.type(el.props));
+      return [el, ...React.Children.toArray(el.props.children).flatMap(expand)];
+    };
+    const tree = CalendarViews({ ...common, viewMode: 'today' });
+    const buttons = expand(tree).filter(el => el.props['data-calendar-event-id']);
+    assert.deepEqual(buttons.map(el => el.props['data-calendar-event-id']), ['cross-day','all-day','repeat','long']);
+    for (const button of buttons) { button.props.onClick(); assert.equal(clicks.at(-1), events.find(e => e.occurrence_id === button.props['data-calendar-event-id'])); }
+    const dateButton = expand(tree).find(el => el.type === 'button' && el.props['data-important-date-id']); dateButton.props.onClick(); assert.equal(clicks.at(-1), important);
+    const html = renderToStaticMarkup(React.createElement(CalendarViews, { ...common, viewMode: 'today' }));
+    for (const content of ['全天','跨日期','本人姓名','保留原描述','纪念日','我的空间','共享空间 · 旅行']) assert.ok(html.includes(content), content);
+    const week = renderToStaticMarkup(React.createElement(CalendarViews, { ...common, viewMode: 'week' }));
+    assert.equal((week.match(/data-calendar-day=/g) ?? []).length, 7); assert.doesNotMatch(week, /grid-cols-7/);
+    const month = renderToStaticMarkup(React.createElement(CalendarViews, { ...common, viewMode: 'month' }));
+    assert.match(month, /grid-cols-7/); assert.match(month, /border-l-4/); assert.doesNotMatch(month, /data-calendar-event-id|ui-calendar-timeline|ui-calendar-week/);
+  } finally { await vite.close(); }
+});
+
+test('v2 empty week keeps Monday through Sunday compact groups and never calls unknown Important Dates empty', async () => {
+  const vite = await createServer({ configFile: false, envFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
+  try {
+    const { CalendarViews } = await vite.ssrLoadModule('/src/App.tsx');
+    const props = { expansion: { occurrences: [], errors: [] }, membersBySpaceId: {}, spacesById: {}, showSpaceLabel: false, selectedDate: new Date(2026,9,9), userId: 'user-a', onEdit() {}, onSelectDate() {} };
+    const html = (mode: string, complete = true) => renderToStaticMarkup(React.createElement(CalendarViews, { ...props, viewMode: mode, importantDatesComplete: complete }));
+    assert.equal((html('week').match(/暂无日程/g) ?? []).length, 7);
+    assert.match(html('week'), /10月5日周一/); assert.match(html('week'), /10月11日周日/);
+    assert.equal((html('today').match(/暂无日程/g) ?? []).length, 1);
+    assert.doesNotMatch(html('week',false), /暂无日程/); assert.equal((html('week',false).match(/重要日尚未完整确认/g) ?? []).length,7);
+  } finally { await vite.close(); }
+});
+
+test('Space markers avoid six-color collisions and stay consistent across day/week, order and filtered content', async () => {
+  const vite = await createServer({ configFile: false, envFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
+  try {
+    const { calendarSpaceDotClasses, CalendarViews } = await vite.ssrLoadModule('/src/App.tsx');
+    const ids = ['space-a','space-g','space-m','space-s','space-y','space-aa'];
+    const mapping = calendarSpaceDotClasses(ids);
+    assert.equal(new Set(Object.values(mapping)).size, 6);
+    assert.deepEqual(calendarSpaceDotClasses([...ids].reverse()), mapping);
+    assert.deepEqual(calendarSpaceDotClasses([...ids, ids[0]]), mapping);
+    assert.deepEqual(calendarSpaceDotClasses([]), {});
+    const over = calendarSpaceDotClasses([...ids,'space-extra']);
+    assert.equal(Object.keys(over).length, 7);
+    assert.equal(new Set(Object.values(over)).size, 6);
+    const spacesById = Object.fromEntries(ids.map((id, index) => [id, { ...shared, id, name: `空间${index + 1}` }]));
+    const events = ids.map((id, index) => ({ occurrence_id: `event-${index}`, source_event_id: `event-${index}`, occurrence_date: '2026-10-09', title: `事项${index + 1}`, all_day: false, occurrence_starts_at: new Date(2026,9,9,9 + index).toISOString(), occurrence_ends_at: null, source_event: { id: `event-${index}`, space_id: id, scope: 'shared', owner_user_id: null } }));
+    const props = { expansion: { occurrences: events, errors: [] }, importantDates: [{ importantDateId: 'date', spaceId: ids[0], occurrenceDate: { year: 2026, month: 10, day: 9 }, name: '纪念日', emoji: null }], membersBySpaceId: {}, spacesById, showSpaceLabel: true, selectedDate: new Date(2026,9,9), userId: 'user-a', onEdit() {}, onOpenImportantDate() {}, onSelectDate() {} };
+    const html = (mode: string, occurrences = events) => renderToStaticMarkup(React.createElement(CalendarViews, { ...props, viewMode: mode, expansion: { occurrences, errors: [] } }));
+    const markers = (markup: string) => Array.from(markup.matchAll(/class="ui-calendar-time[^"]*?(ui-calendar-space-[a-z]+)/g), match => match[1]);
+    const day = html('today');
+    assert.deepEqual(markers(day), ids.map(id => mapping[id]));
+    assert.deepEqual(markers(html('week')), markers(day));
+    assert.deepEqual(markers(html('today', [events[3]])), [mapping[ids[3]]]);
+    assert.ok(day.includes(`ui-calendar-important-date mb-ui-2 ${mapping[ids[0]]}`));
+    ids.forEach((_, index) => assert.ok(day.includes(`空间${index + 1}`)));
+    assert.doesNotMatch(day, /bg-ui-accent-soft|bg-ui-auxiliary-soft/);
   } finally { await vite.close(); }
 });

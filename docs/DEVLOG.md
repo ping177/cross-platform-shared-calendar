@@ -1,5 +1,51 @@
 # Development Log
 
+## 2026-10-11 — UI v2 Slice 4 用户阶段验收与本地收口
+
+- 用户已查看六色圆点日/周离线预览并表示「你选的颜色不够鲜亮，算了，先这样吧，后面把颜色体系搞一下，让用户可以自己选择颜色。」据此记录 **Slice 4 = LOCAL PASS / VISUAL PROVISIONALLY ACCEPTED**：用户阶段性接受当前日/周整体作为版本；默认色不够鲜亮是已知待优化项，不代表对配色完全满意，不阻塞本Slice收口或后续月视图；不代表真实账号、真机、PWA、Production验收。没有臆称色板视觉满意。
+- 终审确认五个实现/测试文件：App、局部样式、aggregate calendar UI测试；原顶栏分段日/周/月、Space筛选、前后/当前周期按钮与回调保持，首页及导航无回归；日/周小圆点、深色标题、灰副信息、透明条目；六色按完整成员ID集稳定映射，六个以内不重复，原色相/参数不在本轮改代码；月视图内容未改。
+- 手工回归243/243相关测试、`npm run build`、`git diff --check`均PASS；五Space模拟样本、40组320/390px日周检查通过。最终只暂存本地授权五文件及DEVLOG、PROJECT_STATE和明确授权的BACKLOG，共六文件；未改正式版本或Version Index。本地commit记录于终态，不push/deploy，不进入Slice5。
+- Space Color System列为Deferred：未来用户可为每个Space选色并与稳定身份持久关联；日/周/月同色，新增/删除别的Space不重分已有设置，默认色更鲜亮/易区分；沿用小圆点/深色标题/灰色副信息/透明背景。先独立设计选择器、默认色板、存储与迁移方案，再单独授权实施。当前不做颜色UI/数据库/存储。
+- 原worktree29项指纹不变；正式版本v0.1.20不变；无secret读取/输出。
+
+
+## 2026-10-11 — UI v2 Slice4 — Space圆点六色识别修正，未收口
+
+- 预检PASS：`design/ui-v2`、HEAD `31d80bbc981a6e41a5e3ee3317597575d972bc50`，原Slice4精确五文件未暂存。用户反馈三种相近颜色辨识不足，授权约5–6色；继续彩色小圆点、深色标题、灰色副信息、透明底。仅App/styles/aggregate-calendar-ui测试/DEVLOG/PROJECT_STATE五文件，不修改业务、旧worktree或进入Slice5。
+- 六色是局部语义CSS变量 `--ui-calendar-space-*` → `ui-calendar-space-*` class → 圆点currentColor的单一来源，仅声明于日/周内容容器，不扩充第二套主题、基础Tailwind工具类或状态色。工程候选：green #2F7252、blue #356BB1、orange #A75B20、purple #7754A3、rose #B14570、cyan #237B86；8px圆点，标题text、副信息muted保持，全部条目透明。无Space颜色字段/用户设置/新依赖。
+- 共享纯展示映射 `calendarSpaceDotClasses` 使用完整成员Space ID集合（已有spacesById来自allSpaces），ID去重、固定排序、稳定hash起点和线性冲突消解；6个以内全部不重色，超过6个复用并保留真实Space名称。日/周/事件/重要日同一映射，筛选、内容日期、重复render及读入顺序不改变分配；后续月视图复用该规则，本轮不接入月内容。**无持久化限制**：成员集合新增/移除时，部分冲突颜色可能重新分配；不能同时承诺长期永久颜色与当前无冲突。不引入数据库、localStorage或复杂缓存，颜色不是永久Space身份。
+- 针对性测试先RED（旧映射缺少消解），再GREEN；新增1项覆盖6个碰撞候选ID、顺序/重复/空集合、超过容量、真实组件日周一致、筛选不重分配、重要日同Space同色与Space名称保留。原日期/排序/资格/权限/创建保存取消busy/refresh/导航/手势/Home测试保留：**243/243 PASS**，0fail/skip/cancel。`npm run build` **PASS**，1717模块，JS778.54kB/gzip224.68kB，既有>500kB警告；`git diff --check` **PASS**。
+- 最新源码真实组件SSR/Tailwind生成23个临时离线样本，新增 `day-spaces` / `week-spaces` 各5个不同Space；manifest SHA匹配，月内容markup与HEAD精确一致。320/390px ×20日周样本 **40/40 PASS**，无水平溢出、热区>=44px、全部标题深色/卡片透明；五个圆点颜色互异且日周逐项相同，重要日与对应旅行Space同色。六色暖白最低4.69:1、白底最低4.94:1，副文字4.99:1；Focus2px/offset2px有效。最新390/320截图带six-colors，颜色具体像素仍待用户视觉确认与真机检查。
+- 离线链接 `http://127.0.0.1:5176/slice4/day-spaces.html?revision=six-colors` / `week-spaces.html?revision=six-colors`，索引同目录。复用独立静态5176服务；开发5175配置未改。固定临时fixtures，不读取env、不连接业务网络/生产数据库、不hydration；静态控件不执行业务操作，不能替代真实业务验收。
+- 本轮源码对照：原顶部/controller、MonthView、旧DaySection/EventCard默认渲染及之后源码、先前CSS规则保持。原worktree28modified+1untracked/29文件指纹、Home3/2/2、依赖/锁文件/全局tokens与Version Index保持；无secrets读取/输出。状态 **LOCAL PASS / USER FINAL VISUAL CONFIRMATION PENDING**；真实账号、iOS/Android、installed PWA、Production未验收，保留AGENTS对齐gate。正式版本v0.1.20；不commit/push/deploy/进入Slice5，停在用户最后一次视觉确认。
+
+
+## 2026-10-10 — UI v2 Slice 4 — 冻结日历视觉方向并收敛日/周，未收口
+
+- 预检 `design/ui-v2` / HEAD `31d80bbc981a6e41a5e3ee3317597575d972bc50`，沿用 Slice4 五文件未暂存状态。用户明确确认「圆点有颜色就够了，文字统一黑色吧」「可以就这么定了」，冻结方向，停止风格探索。该确认是视觉方向授权，最新源码产物仍待用户复核，不宣称整个Slice4 VISUAL PASS或已收口。
+- **日历后续统一视觉基线**：小圆点区分Space；事项标题统一深色，副信息灰色、简洁；不使用彩色标题、多余彩色标签或大面积色块；保持轻、干净、克制。后续月视图也必须采用同一语言，本轮只记录规则，月网格/日期详情/交互不实施。最新用户明确指令按既有UI_V2_IMPLEMENTATION_SPEC来源优先级覆盖旧图片中的色块样式；tokens精确数值仍为工程候选，不改写为逐项用户批准。
+- 本轮增量只修改 `src/App.tsx`、`src/styles.css`、`docs/DEVLOG.md`、`docs/PROJECT_STATE.md`；Slice4既有 `tests/aggregate-calendar-ui.test.ts` 未再改动，总未提交范围仍精确五文件。日时间轴/起止/全天/跨日信息保持；周保持单列周一至周日，常规事项标题+灰色副信息两行，长内容允许必要换行，空日期仍一行「暂无日程」。保留重要日真实emoji、原卡片身份及打开回调，副信息同一行。
+- 没有Space颜色字段；仅用Space ID的稳定哈希映射现有accent / auxiliary / control三种token给8px圆点着色，不新增数据库字段/用户设置/独立色系，不使用状态颜色。事件与重要日同Space同色，切换/排序不改颜色；有限调色板可能同色，保留真实Space名称及成员标签辅助识别，颜色不是唯一身份依据。标题text、副信息muted，无降低透明度。条目透明底、无厚重边框/阴影。
+- 与本轮前Slice4源码比对：顶部及业务controller、月实现、旧DaySection/EventCard默认分支、其余后续源码与测试均保持；Home3/2/2/底栏/查询/排序/权限/日期引擎/保存取消busy/提醒/Realtime/后端未改。旧worktree29项指纹复核保持，依赖/锁文件/tokens基础保持，无secret读取/输出。
+- 相关原命令（日历UI/data/重要日/refresh、gesture、navigation、Home3/2/2及创建）**242/242 PASS**，0失败/跳过/取消；本轮无行为改动，不添加镜像样式断言。最终 `npm run build`、`git diff --check` **PASS**，1717模块，既有>500kB bundle提示保留。
+- 本轮最终源码重新SSR真实组件/编译Tailwind，21临时样本、manifest重新记录App/styles SHA。320/390px ×18日周状态 **36/36 PASS**：无横向溢出，44px热区，全部事项标题rgb(40,52,47)、所有条目透明底；实际文字最低4.99:1、样本圆点最低5.39:1（control/page约3.47:1）。原2px Focus/2px offset有效。月内容markup生成器与HEAD精确相同。新四张390px截图名称带 `space-dot`，避免沿用旧色块截图；长周预览可原生滚动。
+- 新预览 `http://127.0.0.1:5176/slice4/index.html?revision=space-dot-final`；日/周full与empty页面同revision。临时离线fixtures、无env文件、无登录/业务网络/Production写入，无hydration，静态按钮不执行业务操作；点击身份/行为由自动测试覆盖，不能冒充真实账号验收。仅复用独立离线5176服务，固定开发5175配置未改。
+- 状态：**LOCAL PASS / CALENDAR VISUAL DIRECTION FROZEN / LATEST IMPLEMENTATION VISUAL REVIEW PENDING**。真实账号、iOS/Android、installed PWA、Production本轮未验收；真实账号前须安全配置与AGENTS环境/版本gate。正式版本v0.1.20及Version Index不变；不commit/push/deploy、不进入Slice5，等待最新离线视觉复核。
+
+
+## 2026-10-10 — UI v2 Slice 4 — Calendar header / day / week, local only
+
+- Preflight PASS：隔离 worktree `design/ui-v2`、HEAD `31d80bbc981a6e41a5e3ee3317597575d972bc50`、clean。读取治理及 UI_V2_IMPLEMENTATION_SPEC，核对 approved ZIP CRC/15图/SHA，并实际查看02日视图、03周视图、04月视图（仅统一顶部参考）。旧 worktree 的 branch/HEAD、28 modified + 1 untracked 及29项文件指纹保持。
+- 精确五文件：`src/App.tsx`、`src/styles.css`、`tests/aggregate-calendar-ui.test.ts`、DEVLOG、PROJECT_STATE。Header：日/周/月原模式值及切换回调接入浅灰绿分段按钮，保留独立 Space selector 和原筛选 Sheet、前后/回当前周期动作。显示真实选中日期或周一至周日范围；原单Space新建资格/回调保持。44px目标与键盘Focus，选中项边界使用既有control token。
+- 日视图：左侧真实起止时间/全天，紧凑时间轴；个人用 auxiliary-soft，shared用 accent-soft，颜色仅来自真实scope；保留原描述、成员标签、来源Space、跨日期及原occurrence点击对象。长标题两行，完整内容仍在原Sheet。周视图：原单列七天与原sort/filter计算；清楚日期分组、紧凑条目，无数据日期一行「暂无日程」，重要日未完整确认时继续显示unknown文案，绝不伪装empty。
+- 共享组件隔离：日/周显式variant接入；MonthView函数、旧DaySection/EventCard默认渲染、Calendar business controller、BottomNavigation及Home源码均字节一致。重要日仍用原CalendarImportantDateCard，仅日/周包装样式接入。CSS旧规则完整保留，新规则仅ui-calendar范围；body min-width兼容仅日/周shell，解决320px桌面滚动条造成的空白横向溢出。月网格/日期/详情/浮层未实施，其他页面/tokens/依赖无改动。
+- 新增2个UI用例、适配分段选择用例，初始RED确认缺少新渲染。最终相关命令 `node --experimental-strip-types --test tests/aggregate-calendar-ui.test.ts tests/aggregate-calendar.test.ts tests/calendar-important-dates.test.ts tests/calendar-refresh.test.ts tests/mobile-gesture-ui.test.ts tests/mobile-gesture.test.ts tests/navigation.test.ts tests/navigation-persistence.test.ts tests/home-aggregation.test.ts tests/home-important-dates.test.ts tests/global-create-ui.test.ts`：**242/242 PASS**，0失败/跳过。包括原日期周期、跨天/重复/全天、Space与模块资格、freshness/保存取消busy、导航恢复、手势冲突及既有Home回归。
+- `npm run build` **PASS**：1717 modules，JS778.22kB/gzip224.48kB，CSS28.81kB；既有>500kB bundle warning。`git diff --check` **PASS**。五轴review未发现本地范围阻塞；没有查询/日期引擎/身份/权限/CRUD/提醒/Realtime/Push/数据库变化。
+- 最新源码真实组件SSR与实际Tailwind生成21个临时离线样本；envFile关闭，canonical hook I/O为固定fixtures，无hydration/业务网络/Production写入。`source-manifest.json`记录worktree/基准HEAD/App与styles SHA256并已重核。320/390/768/1024 ×18个日周状态 **72/72几何与状态检查PASS**，无水平溢出/目标小于44px；月内容markup与HEAD一致，四宽度各182元素计算样式一致。卡片实际16组文字配色最低4.75:1；保留2px focus/2px offset。周末尾内容滚动后在底栏上方31px，Safe Area实机仍待验收。
+- 离线预览 `http://127.0.0.1:5176/slice4/index.html`；日/周有数据与空态、390px真实视口截图、周视图长截图及滚动末尾截图保存在临时slice4目录。IAB整页截图API对日视图出现截屏失真，已用包含全部可见内容的正常390px截图替代；实际页面及几何检查正常。静态控件不会执行业务操作，不能替代真实账号验收；未伪造空闲时长、标题图标或其他图片虚构功能。已有首页及Slice3视觉验收保持。
+- 状态 **LOCAL PASS / USER VISUAL ACCEPTANCE PENDING**。真实账号、iOS、Android、installed PWA、Production本轮NOT RUN；真实账号前仍需安全运行配置与AGENTS环境/版本gate，由用户操作登录/设备。正式版本v0.1.20及Version Index不变；本轮不commit/push/deploy，不进入Slice5。停在用户离线视觉验收。
+
+
 ## 2026-10-10 — UI v2 Slice 3 final local closeout
 
 - 用户查看最终 Slice 3 离线首页预览后确认：「可以了，没那么突兀了。」记录 **LOCAL PASS / VISUAL PASS**。该结论仅覆盖本地技术验证与离线视觉；真实账号、iOS、Android、installed PWA 和 Production 尚未验收。

@@ -883,7 +883,7 @@ export function CalendarFilterPicker({ spaces, filter, open, onOpen, onClose, on
 
   return (
     <>
-      <button type="button" className="flex h-11 w-full min-w-0 items-center gap-2 rounded-lg bg-white px-3 text-sm font-semibold text-ink shadow-sm" aria-label="筛选日历" aria-haspopup="dialog" aria-expanded={open} onClick={onOpen}>
+      <button type="button" className="ui-focus flex min-h-ui-touch w-full min-w-0 items-center gap-ui-2 rounded-ui-control bg-ui-surface px-ui-3 text-ui-label text-ui-text shadow-ui-group" aria-label="筛选日历" aria-haspopup="dialog" aria-expanded={open} onClick={onOpen}>
         <span className="min-w-0 flex-1 truncate text-left">{selectedName}</span>
         <ChevronDown size={16} className="shrink-0" aria-hidden="true" />
       </button>
@@ -892,7 +892,7 @@ export function CalendarFilterPicker({ spaces, filter, open, onOpen, onClose, on
   );
 }
 
-export function CalendarViewPicker({ mode, open, onOpen, onClose, onSelect }: {
+export function CalendarViewPicker({ mode, onClose, onSelect }: {
   mode: ViewMode;
   open: boolean;
   onOpen: () => void;
@@ -903,22 +903,15 @@ export function CalendarViewPicker({ mode, open, onOpen, onClose, onSelect }: {
     onSelect(next);
     onClose();
   }
-  const sheet = open && calendarPickerSheet('选择视图', 'calendar-view-title', onClose,
-    (Object.keys(viewLabels) as ViewMode[]).map((option) => (
-      <button key={option} type="button" className="flex min-h-12 w-full min-w-0 items-center gap-3 rounded-lg px-3 text-left font-semibold hover:bg-mist" aria-label={`视图：${viewLabels[option]}`} aria-pressed={mode === option} onClick={() => choose(option)}>
-        <Check size={18} className={`shrink-0 ${mode === option ? 'text-teal' : 'invisible'}`} aria-hidden="true" />
-        <span>{viewLabels[option]}</span>
-      </button>
-    )),
-  );
   return (
-    <>
-      <button type="button" className="flex h-11 w-full min-w-0 items-center gap-2 rounded-lg bg-white px-3 text-sm font-semibold text-ink shadow-sm" aria-label="选择日历视图" aria-haspopup="dialog" aria-expanded={open} onClick={onOpen}>
-        <span className="min-w-0 flex-1 truncate text-left">{viewLabels[mode]}</span>
-        <ChevronDown size={16} className="shrink-0" aria-hidden="true" />
-      </button>
-      {sheet}
-    </>
+    <div className="grid min-w-0 grid-cols-3 gap-ui-1 rounded-ui-control bg-ui-accent-soft p-ui-1" role="group" aria-label="选择日历视图">
+      {(Object.keys(viewLabels) as ViewMode[]).map((option) => (
+        <button key={option} type="button" className={`ui-focus min-h-ui-touch min-w-11 rounded-ui-control border-ui text-ui-meta font-ui-semibold ${mode === option ? 'border-ui-control bg-ui-surface text-ui-accent-strong shadow-ui-group' : 'border-transparent text-ui-accent hover:text-ui-accent-strong'}`}
+          aria-label={`视图：${viewLabels[option]}`} aria-pressed={mode === option} onClick={() => choose(option)}>
+          {option === 'today' ? '日' : option === 'week' ? '周' : '月'}
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -931,15 +924,15 @@ export function CalendarDateNavigation({ selectedDate, viewMode, onSelectedDateC
   const currentPeriodLabel = viewMode === 'today' ? '回到今天' : viewMode === 'week' ? '回到本周' : '回到本月';
   const navigate = (direction: -1 | 1) => onSelectedDateChange(navigateCalendarPeriod(selectedDate, viewMode, direction));
   return (
-    <div className="mt-3 flex items-center justify-between">
-      <button className="grid h-10 w-10 place-items-center rounded-lg bg-white" type="button" onClick={() => navigate(-1)} aria-label="上一段">
-        <ChevronLeft size={18} />
+    <div className="ui-calendar-date-navigation mt-ui-2 flex items-center justify-between gap-ui-2">
+      <button className="ui-focus grid h-11 w-11 shrink-0 place-items-center rounded-ui-control bg-ui-surface text-ui-accent" type="button" onClick={() => navigate(-1)} aria-label="上一段">
+        <ChevronLeft size={18} aria-hidden="true" />
       </button>
-      <button className="h-10 rounded-lg bg-white px-4 text-sm font-semibold" type="button" onClick={() => onSelectedDateChange(today)} aria-label={currentPeriodLabel}>
+      <button className="ui-focus min-h-ui-touch rounded-ui-control bg-ui-surface px-ui-4 text-ui-meta font-ui-semibold text-ui-text" type="button" onClick={() => onSelectedDateChange(today)} aria-label={currentPeriodLabel}>
         {currentPeriodLabel}
       </button>
-      <button className="grid h-10 w-10 place-items-center rounded-lg bg-white" type="button" onClick={() => navigate(1)} aria-label="下一段">
-        <ChevronRight size={18} />
+      <button className="ui-focus grid h-11 w-11 shrink-0 place-items-center rounded-ui-control bg-ui-surface text-ui-accent" type="button" onClick={() => navigate(1)} aria-label="下一段">
+        <ChevronRight size={18} aria-hidden="true" />
       </button>
     </div>
   );
@@ -1038,22 +1031,22 @@ export function CurrentSpaceApp({ swipeClickGuard, session, spaces, allSpaces, i
   }
 
   return (
-    <main {...calendarSwipe} className="min-h-screen bg-mist text-ink">
+    <main {...calendarSwipe} className={`min-h-screen text-ink ${viewMode === 'month' ? 'bg-mist' : 'ui-calendar-shell bg-ui-page'}`}>
       <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col">
-        <header className="sticky top-0 z-10 border-b border-ink/10 bg-mist/95 px-4 pb-3 pt-4 backdrop-blur">
+        <header className="sticky top-0 z-10 border-b border-ui-border bg-ui-page/95 px-ui-4 pb-ui-3 pt-ui-4 font-ui text-ui-text backdrop-blur">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-xs font-semibold text-teal">日历</p>
-              <h1 className="text-2xl font-bold">{formatMonth(selectedDate)}</h1>
+              <h1 className="text-ui-page-title">日历</h1>
+              <p className="mt-ui-1 break-words text-ui-meta text-ui-muted">{viewMode === 'today' ? `${selectedDate.getFullYear()}年${formatDay(selectedDate)}` : viewMode === 'week' ? `${formatDay(startOfWeek(selectedDate))} — ${formatDay(addDays(startOfWeek(selectedDate), 6))}` : formatMonth(selectedDate)}</p>
             </div>
             <div className="flex items-center gap-2">
-              {calendarFilter !== 'all' && <button className="grid h-10 w-10 place-items-center rounded-lg bg-teal text-white shadow-sm disabled:opacity-50" type="button" disabled={calendarStatus !== 'success'} onClick={() => void openNewEvent()} aria-label="新建日程">
-                <Plus size={20} />
+              {calendarFilter !== 'all' && <button className="ui-focus grid h-11 w-11 shrink-0 place-items-center text-ui-accent disabled:text-ui-muted" type="button" disabled={calendarStatus !== 'success'} onClick={() => void openNewEvent()} aria-label="新建日程">
+                <Plus size={18} aria-hidden="true" />
               </button>}
             </div>
           </div>
 
-          <div className="mt-3 grid w-full max-w-sm grid-cols-2 gap-2">
+          <div className="ui-calendar-controls mt-ui-3 grid w-full items-center gap-ui-2">
             <div className="min-w-0">
               <CalendarFilterPicker spaces={allSpaces} filter={calendarFilter} open={openCalendarSelector === 'space'} onOpen={() => setOpenCalendarSelector('space')} onClose={() => setOpenCalendarSelector(null)} onSelect={onCalendarFilterChange} />
             </div>
@@ -1066,12 +1059,12 @@ export function CurrentSpaceApp({ swipeClickGuard, session, spaces, allSpaces, i
         </header>
 
         <section className="flex-1 px-4 py-4 safe-bottom">
-          {eventView.syncError && <Notice tone="error" message={eventView.syncError} />}
-          {calendarStatus === 'loading' && !eventView.presentation && <p role="status">正在读取日程…</p>}
-          {eventNotice && <p role="status" className="text-sm text-ink/60">{eventNotice}</p>}
-          {calendarError && <Notice tone="error" message={calendarError} />}
-          {calendarStatus === 'error' && <div role="alert"><Notice tone="error" message={eventView.error || eventView.syncError || '日历读取失败，请重试。'} /><button type="button" className="min-h-11 rounded-lg bg-teal px-4 font-semibold text-white" onClick={eventView.retry}>重试</button></div>}
-          <CalendarImportantDateStatus interaction={importantDates} />
+          {eventView.syncError && <Notice ui={viewMode !== 'month'} tone="error" message={eventView.syncError} />}
+          {calendarStatus === 'loading' && !eventView.presentation && <p role="status" className={viewMode === 'month' ? undefined : 'font-ui text-ui-meta text-ui-muted'}>正在读取日程…</p>}
+          {eventNotice && <p role="status" className={viewMode === 'month' ? 'text-sm text-ink/60' : 'font-ui text-ui-meta text-ui-muted'}>{eventNotice}</p>}
+          {calendarError && <Notice ui={viewMode !== 'month'} tone="error" message={calendarError} />}
+          {calendarStatus === 'error' && <div role="alert"><Notice ui={viewMode !== 'month'} tone="error" message={eventView.error || eventView.syncError || '日历读取失败，请重试。'} /><button type="button" className={viewMode === 'month' ? 'min-h-11 rounded-lg bg-teal px-4 font-semibold text-white' : 'ui-focus min-h-ui-touch rounded-ui-control bg-ui-accent px-ui-4 font-ui text-ui-meta text-ui-on-accent'} onClick={eventView.retry}>重试</button></div>}
+          {viewMode === 'month' ? <CalendarImportantDateStatus interaction={importantDates} /> : <div className="ui-calendar-status font-ui"><CalendarImportantDateStatus interaction={importantDates} /></div>}
           {(eventView.presentation || importantDates.items.length > 0) && <CalendarViews
             expansion={visibleExpansion}
             importantDates={importantDates.items}
@@ -1115,9 +1108,9 @@ export function CurrentSpaceApp({ swipeClickGuard, session, spaces, allSpaces, i
   );
 }
 
-function Notice({ tone, message }: { tone: 'error' | 'success'; message: string }) {
+function Notice({ tone, message, ui = false }: { tone: 'error' | 'success'; message: string; ui?: boolean }) {
   return (
-    <p className={`mb-4 rounded-lg px-4 py-3 text-sm ${tone === 'error' ? 'bg-coral/10 text-coral' : 'bg-teal/10 text-teal'}`}>
+    <p className={ui ? `mb-ui-3 rounded-ui-control px-ui-3 py-ui-3 font-ui text-ui-meta ${tone === 'error' ? 'bg-ui-danger-soft text-ui-danger' : 'bg-ui-success-soft text-ui-success'}` : `mb-4 rounded-lg px-4 py-3 text-sm ${tone === 'error' ? 'bg-coral/10 text-coral' : 'bg-teal/10 text-teal'}`}>
       {message}
     </p>
   );
@@ -1181,13 +1174,14 @@ export function CalendarViews({
   }
 
   const days = viewMode === 'today' ? [selectedDate] : Array.from({ length: 7 }, (_, index) => addDays(startOfWeek(selectedDate), index));
+  const spaceDotClasses = calendarSpaceDotClasses(Object.keys(spacesById));
 
   return (
-    <div className="space-y-4">
+    <div className={`font-ui text-ui-text ${viewMode === 'week' ? 'ui-calendar-week space-y-ui-4' : 'ui-calendar-day'}`}>
       {days.map((day) => {
         const dayOccurrences = sortOccurrences(expansion.occurrences.filter((occurrence) => occurrenceFallsOnDay(occurrence, day)));
         return (
-          <DaySection key={day.toISOString()} importantDatesComplete={importantDatesComplete} day={day} importantDates={importantDates.filter((item) => importantDateFallsOnDay(item, day))} onOpenImportantDate={onOpenImportantDate} occurrences={dayOccurrences} membersBySpaceId={membersBySpaceId} spacesById={spacesById} showSpaceLabel={showSpaceLabel} userId={userId} onEdit={onEdit} />
+          <DaySection key={day.toISOString()} variant={viewMode} spaceDotClasses={spaceDotClasses} importantDatesComplete={importantDatesComplete} day={day} importantDates={importantDates.filter((item) => importantDateFallsOnDay(item, day))} onOpenImportantDate={onOpenImportantDate} occurrences={dayOccurrences} membersBySpaceId={membersBySpaceId} spacesById={spacesById} showSpaceLabel={showSpaceLabel} userId={userId} onEdit={onEdit} />
         );
       })}
     </div>
@@ -1260,7 +1254,44 @@ function MonthView({
   );
 }
 
-function DaySection({ day, importantDatesComplete, importantDates, onOpenImportantDate, occurrences, membersBySpaceId, spacesById, showSpaceLabel, userId, onEdit }: { day: Date; importantDatesComplete: boolean; importantDates: ImportantDateOccurrence[]; onOpenImportantDate: (item: ImportantDateOccurrence) => void; occurrences: CalendarEventPresentation[]; membersBySpaceId: Record<string, SpaceMember[]>; spacesById: Record<string, CurrentSpace>; showSpaceLabel: boolean; userId: string; onEdit: (occurrence: CalendarEventPresentation) => void }) {
+// Deterministic for the complete membership set, regardless of filter or read order.
+// Membership changes can reassign collisions; without persistence this is not permanent identity.
+export function calendarSpaceDotClasses(spaceIds: string[]): Record<string, string> {
+  const palette = ['ui-calendar-space-green', 'ui-calendar-space-blue', 'ui-calendar-space-orange', 'ui-calendar-space-purple', 'ui-calendar-space-rose', 'ui-calendar-space-cyan'];
+  const used = new Set<number>();
+  const assignments: Record<string, string> = {};
+  for (const id of [...new Set(spaceIds)].sort()) {
+    const hash = Array.from(id).reduce((value, character) => (value * 31 + character.charCodeAt(0)) >>> 0, 0);
+    let index = hash % palette.length;
+    if (used.size < palette.length) {
+      while (used.has(index)) index = (index + 1) % palette.length;
+    }
+    used.add(index);
+    assignments[id] = palette[index];
+  }
+  return assignments;
+}
+
+function DaySection({ variant, spaceDotClasses = {}, day, importantDatesComplete, importantDates, onOpenImportantDate, occurrences, membersBySpaceId, spacesById, showSpaceLabel, userId, onEdit }: { variant?: 'today' | 'week'; spaceDotClasses?: Record<string, string>; day: Date; importantDatesComplete: boolean; importantDates: ImportantDateOccurrence[]; onOpenImportantDate: (item: ImportantDateOccurrence) => void; occurrences: CalendarEventPresentation[]; membersBySpaceId: Record<string, SpaceMember[]>; spacesById: Record<string, CurrentSpace>; showSpaceLabel: boolean; userId: string; onEdit: (occurrence: CalendarEventPresentation) => void }) {
+  if (variant) {
+    const empty = occurrences.length === 0 && importantDates.length === 0;
+    return <section data-calendar-day={toDateInputValue(day).slice(0, 10)}>
+      <div className={variant === 'week' && empty ? 'flex min-h-ui-touch items-center justify-between gap-ui-3 border-b border-ui-border' : 'mb-ui-2'}>
+        <h2 className={variant === 'today' ? 'sr-only' : 'text-ui-bar'}>{formatDay(day)}</h2>
+        {empty && <p className={variant === 'week' ? 'text-ui-meta text-ui-muted' : 'py-ui-6 text-ui-meta text-ui-muted'}>{importantDatesComplete ? '暂无日程' : '重要日尚未完整确认'}</p>}
+      </div>
+      {!empty && <>
+        <div className="space-y-ui-2">
+          {importantDates.map((item) => <div key={importantDateOccurrenceKey(item)} className={`ui-calendar-important-date mb-ui-2 ${spaceDotClasses[item.spaceId] ?? 'ui-calendar-space-green'}`}>
+            <CalendarImportantDateCard item={item} space={spacesById[item.spaceId]} showSpaceLabel={showSpaceLabel} onOpen={onOpenImportantDate} />
+          </div>)}
+        </div>
+        <div className={variant === 'today' ? 'ui-calendar-timeline space-y-ui-3' : 'space-y-ui-2'}>
+          {occurrences.map((occurrence) => <EventCard key={occurrence.occurrence_id} variant={variant} spaceDotClasses={spaceDotClasses} occurrence={occurrence} members={membersBySpaceId[occurrence.source_event.space_id] ?? []} sourceSpace={spacesById[occurrence.source_event.space_id]} showSpaceLabel={showSpaceLabel} userId={userId} onEdit={onEdit} />)}
+        </div>
+      </>}
+    </section>;
+  }
   return (
     <section>
       <h2 className="mb-2 text-sm font-bold text-ink/60">{formatDay(day)}</h2>
@@ -1278,10 +1309,28 @@ function DaySection({ day, importantDatesComplete, importantDates, onOpenImporta
   );
 }
 
-function EventCard({ occurrence, members, sourceSpace, showSpaceLabel, userId, onEdit }: { occurrence: CalendarEventPresentation; members: SpaceMember[]; sourceSpace: CurrentSpace; showSpaceLabel: boolean; userId: string; onEdit: (occurrence: CalendarEventPresentation) => void }) {
+function EventCard({ variant, spaceDotClasses = {}, occurrence, members, sourceSpace, showSpaceLabel, userId, onEdit }: { variant?: 'today' | 'week'; spaceDotClasses?: Record<string, string>; occurrence: CalendarEventPresentation; members: SpaceMember[]; sourceSpace: CurrentSpace; showSpaceLabel: boolean; userId: string; onEdit: (occurrence: CalendarEventPresentation) => void }) {
   const event = occurrence.source_event;
   const audience = audienceFromEvent(event, userId);
 
+  if (variant) {
+    const crossesDate = occurrence.occurrence_ends_at && !isSameDay(new Date(occurrence.occurrence_starts_at), new Date(occurrence.occurrence_ends_at));
+    return <button data-swipe-start data-calendar-event-id={occurrence.occurrence_id} type="button" className="ui-calendar-event ui-focus min-h-ui-touch w-full min-w-0 text-left" onClick={() => onEdit(occurrence)}>
+      <span className={`ui-calendar-time pt-ui-2 text-ui-list font-ui-semibold ${spaceDotClasses[event.space_id] ?? 'ui-calendar-space-green'}`}>
+        <span className="block text-ui-text">{formatTime(occurrence.occurrence_starts_at, occurrence.all_day)}</span>
+        {occurrence.occurrence_ends_at && !occurrence.all_day && <span className="mt-ui-1 block text-ui-label text-ui-muted">{formatTime(occurrence.occurrence_ends_at, false)}</span>}
+      </span>
+      <span className="ui-calendar-event-content min-w-0 py-ui-2">
+        <span className="flex min-w-0 items-start gap-ui-2"><span className="min-w-0 flex-1 break-words text-ui-list font-ui-semibold text-ui-text line-clamp-2">{occurrence.title}</span><ChevronRight size={16} className="mt-ui-1 shrink-0 text-ui-muted" aria-hidden="true" /></span>
+        {occurrence.description && <span className="mt-ui-1 block break-words text-ui-meta text-ui-muted line-clamp-2">{occurrence.description}</span>}
+        {crossesDate && <span className="mt-ui-1 block break-words text-ui-label text-ui-muted">跨日期 · {formatDay(new Date(occurrence.occurrence_starts_at))} — {formatDay(new Date(occurrence.occurrence_ends_at!))}</span>}
+        <span className="mt-ui-1 flex flex-wrap gap-x-ui-2 text-ui-label text-ui-muted">
+          <span className="min-w-0 break-words">{eventAudienceLabel(event, members)}</span>
+          {showSpaceLabel && <span className="min-w-0 break-words">{spaceLabel(sourceSpace)}</span>}
+        </span>
+      </span>
+    </button>;
+  }
   return (
     <button data-swipe-start type="button" className={`w-full rounded-lg border-l-4 bg-white p-4 text-left shadow-sm ${audienceClass(audience)}`} onClick={() => onEdit(occurrence)}>
       <div className="flex items-start justify-between gap-3">

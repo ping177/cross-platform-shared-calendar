@@ -27,6 +27,20 @@ Keep four tabs, Home quick-add, Space ownership, Realtime, Push and existing int
 
 Google/Outlook/Apple calendar aggregation and selective sharing; data export/user-owned backup/sensitive-content encryption; native App/commercial subscription/mainland-China deployment. Review remains optional, not a presumed commercial selling point. No dates or architecture promised. Market Validation / Commercialization Study remains exploratory and does not displace the frozen sequence.
 
+## Deferred — Space Color System
+
+Status: **Deferred; design and implementation not started.** The current six-color local calendar palette is accepted provisionally for Slice 4; its colors are known to be less vivid than desired. Do not interpret that acceptance as approval of the palette as a final user-customizable color system.
+
+Future goal, to be scoped and designed separately:
+
+- Let users choose an identification color for each Space and persist it with stable Space identity.
+- Keep the chosen color consistent across day, week, and month views; adding or deleting another Space must not change an existing assignment.
+- Design a brighter, clearly distinguishable yet professional default palette.
+- Preserve the frozen calendar presentation: small colored dot, dark title, gray secondary text, transparent background.
+- Design the color picker, default palette, persistence model, and any required migration before implementing them.
+
+No color picker, persistence, database migration, or user-defined Space color is authorized by this backlog item. Slice 4 provisional acceptance and mobile/PWA/Production boundaries are recorded in PROJECT_STATE / DEVLOG.
+
 ## P0 - Blocking Verification or Core Use
 
 - Investigate any Magic Link, RLS, Realtime, or Production deployment regression that blocks the two-person calendar flow.

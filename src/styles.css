@@ -173,3 +173,138 @@ select {
 .ui-home-list > li:not(:last-child) .ui-home-row {
   border-bottom: var(--ui-border-width) solid rgb(var(--ui-color-border));
 }
+
+
+/* Calendar v2 is opt-in for its header and day/week content only. */
+/* A narrow desktop scrollbar can reduce the 320px layout area below body min-width. */
+body:has(.ui-calendar-shell) {
+  min-width: 0;
+}
+.ui-calendar-controls {
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+}
+
+.ui-calendar-event {
+  display: grid;
+  grid-template-columns: 3.25rem minmax(0, 1fr);
+  column-gap: var(--ui-space-5);
+}
+
+.ui-calendar-timeline,
+.ui-calendar-time {
+  position: relative;
+}
+
+.ui-calendar-timeline::before {
+  content: "";
+  position: absolute;
+  top: var(--ui-space-4);
+  bottom: var(--ui-space-4);
+  left: calc(3.25rem + var(--ui-space-2));
+  border-left: var(--ui-border-width) solid rgb(var(--ui-color-border));
+  pointer-events: none;
+}
+
+.ui-calendar-time::after {
+  content: "";
+  position: absolute;
+  top: var(--ui-space-4);
+  left: calc(100% + var(--ui-space-1));
+  width: var(--ui-space-2);
+  height: var(--ui-space-2);
+  border-radius: 50%;
+  background: currentColor;
+  pointer-events: none;
+}
+
+/* The Space marker is the only colored part of each neutral calendar item. */
+.ui-calendar-important-date {
+  position: relative;
+}
+.ui-calendar-important-date::before {
+  content: "";
+  position: absolute;
+  left: var(--ui-space-1);
+  top: var(--ui-space-4);
+  width: var(--ui-space-2);
+  height: var(--ui-space-2);
+  border-radius: 50%;
+  background: currentColor;
+  pointer-events: none;
+}
+
+/* Retain the existing Important Date card's content, identity and callback. */
+.ui-calendar-important-date > button {
+  min-height: var(--ui-touch-target);
+  border: 0;
+  border-radius: var(--ui-radius-control);
+  background: transparent;
+  color: rgb(var(--ui-color-muted));
+  padding: var(--ui-space-2) 0 var(--ui-space-2) var(--ui-space-6);
+  box-shadow: none;
+}
+
+.ui-calendar-important-date > button > span:last-child > span:first-child {
+  color: rgb(var(--ui-color-text));
+  font-size: var(--ui-text-list);
+  line-height: var(--ui-leading-list);
+  font-weight: var(--ui-weight-semibold);
+}
+
+.ui-calendar-important-date > button > span:last-child > span:nth-child(2) {
+  display: inline;
+  color: rgb(var(--ui-color-muted));
+  font-size: var(--ui-text-label);
+  line-height: var(--ui-leading-label);
+}
+
+.ui-calendar-important-date > button > span:last-child > span:nth-child(3) {
+  display: inline;
+  color: rgb(var(--ui-color-muted));
+  margin-top: 0;
+  margin-left: var(--ui-space-2);
+  font-size: var(--ui-text-label-small);
+  line-height: var(--ui-leading-label);
+}
+
+.ui-calendar-important-date > button:focus-visible {
+  outline: var(--ui-focus-width) solid rgb(var(--ui-color-focus));
+  outline-offset: var(--ui-focus-offset);
+}
+
+
+.ui-calendar-status > div {
+  color: rgb(var(--ui-color-muted));
+  font-size: var(--ui-text-meta);
+  line-height: var(--ui-leading-meta);
+}
+
+.ui-calendar-status .text-coral {
+  color: rgb(var(--ui-color-danger));
+}
+
+.ui-calendar-status .text-teal {
+  color: rgb(var(--ui-color-accent));
+}
+
+.ui-calendar-status button:focus-visible {
+  outline: var(--ui-focus-width) solid rgb(var(--ui-color-focus));
+  outline-offset: var(--ui-focus-offset);
+}
+
+/* Display-only Space identity palette; not status or user-customizable colors. */
+.ui-calendar-day,
+.ui-calendar-week {
+  --ui-calendar-space-green: 47 114 82;
+  --ui-calendar-space-blue: 53 107 177;
+  --ui-calendar-space-orange: 167 91 32;
+  --ui-calendar-space-purple: 119 84 163;
+  --ui-calendar-space-rose: 177 69 112;
+  --ui-calendar-space-cyan: 35 123 134;
+}
+.ui-calendar-space-green { color: rgb(var(--ui-calendar-space-green)); }
+.ui-calendar-space-blue { color: rgb(var(--ui-calendar-space-blue)); }
+.ui-calendar-space-orange { color: rgb(var(--ui-calendar-space-orange)); }
+.ui-calendar-space-purple { color: rgb(var(--ui-calendar-space-purple)); }
+.ui-calendar-space-rose { color: rgb(var(--ui-calendar-space-rose)); }
+.ui-calendar-space-cyan { color: rgb(var(--ui-calendar-space-cyan)); }
