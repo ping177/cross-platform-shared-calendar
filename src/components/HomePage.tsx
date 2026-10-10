@@ -11,7 +11,7 @@ import { supabase } from '../lib/supabase';
 import { canChangeTaskStatus, formatTaskDueDate, taskAssignmentLabel, taskErrorMessage } from '../lib/task';
 import type { CalendarEvent, CalendarOccurrence, CalendarOccurrenceRange, CurrentSpace, EventOccurrenceException, SpaceMember, Task } from '../types';
 import { TaskSheet } from './TaskSheet';
-import { HomeImportantDatesSection } from './HomeImportantDatesSection';
+import { HomeImportantDateCreate, HomeImportantDatesSection } from './HomeImportantDatesSection';
 import type { ImportantDateTargetRequest, ImportantDateIdentity } from './useImportantDateTarget';
 import { useImportantDateEditor } from './useImportantDateEditor';
 import { ImportantDateSheet, ImportantDateDeleteDialog } from './ImportantDateSheet';
@@ -76,9 +76,9 @@ async function taskData(spaces: CurrentSpace[], userId: string, today: Date, onE
   });
 }
 
-export function HomeSection({ title, status, error, items, expanded, empty, onToggle, onRetry, createAction, createFeedback, refreshError }: {
-  title: string; status: 'loading' | 'success' | 'error'; error: string; items: ReactNode[]; expanded: boolean; empty: string;
-  onToggle: () => void; onRetry: () => void; createAction?: ReactNode; createFeedback?: ReactNode; refreshError?: string;
+export function HomeSection({ title, status, error, items, previewLimit, empty, onRetry, createAction, createFeedback, refreshError }: {
+  title: string; status: 'loading' | 'success' | 'error'; error: string; items: ReactNode[]; previewLimit: 2 | 3; empty: string;
+  onRetry: () => void; createAction?: ReactNode; createFeedback?: ReactNode; refreshError?: string;
 }) {
   return <section className="rounded-ui-group bg-ui-surface p-ui-4 shadow-ui-group" aria-label={title}>
     <div className="mb-ui-2 flex min-h-ui-touch items-center justify-between gap-ui-3">
@@ -90,8 +90,7 @@ export function HomeSection({ title, status, error, items, expanded, empty, onTo
     {status === 'loading' && <p className="py-ui-3 text-ui-meta text-ui-muted" role="status">正在读取…</p>}
     {status === 'error' && <div className="py-ui-3" role="alert"><p className="break-words text-ui-meta text-ui-danger">{error || `${title}加载失败，请重试。`}</p><button className="ui-focus mt-ui-2 min-h-ui-touch min-w-11 font-ui-semibold text-ui-accent" type="button" onClick={onRetry}>重试</button></div>}
     {status === 'success' && (items.length ? <>
-      <ul className="ui-home-list">{(expanded ? items : items.slice(0, 5)).map((item, index) => <li key={index}>{item}</li>)}</ul>
-      {items.length > 5 && <button className="ui-focus min-h-ui-touch text-ui-meta font-ui-semibold text-ui-accent" type="button" onClick={onToggle}>{expanded ? '收起' : '展开更多'}</button>}
+      <ul className="ui-home-list">{items.slice(0, previewLimit).map((item, index) => <li key={index}>{item}</li>)}</ul>
     </> : <p className="py-ui-3 text-ui-meta text-ui-muted">{empty}</p>)}
   </section>;
 }
@@ -116,8 +115,8 @@ export function HomePage({ spaces, userId, EventSheetComponent, onMembershipRefr
   const [eventNotice, setEventNotice] = useState('');
   const [taskNotice, setTaskNotice] = useState('');
   const [editingEventMembers, setEditingEventMembers] = useState<SpaceMember[]>([]);
-  const [eventExpanded, setEventExpanded] = useState(false);
-  const [taskExpanded, setTaskExpanded] = useState(false);
+  const [creatingImportantDate, setCreatingImportantDate] = useState(false);
+  const [importantDateCreateNotice, setImportantDateCreateNotice] = useState('');
   const [editingEvent, setEditingEvent] = useState<CalendarOccurrence | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [editingTaskMembers, setEditingTaskMembers] = useState<SpaceMember[]>([]);
@@ -144,6 +143,7 @@ export function HomePage({ spaces, userId, EventSheetComponent, onMembershipRefr
   const targetIdRef = useRef('');
   const eventCreateButton = useRef<HTMLButtonElement>(null);
   const taskCreateButton = useRef<HTMLButtonElement>(null);
+  const importantDateCreateButton = useRef<HTMLButtonElement>(null);
   membershipRefresh.current = onMembershipRefresh;
   const actionKey = `${userId}:${homeMemberKey(spaces)}:${homeCivilToday(new Date())}:${homeEventRangeKey(new Date())}:${tasksEntry ? homeMemberKey(tasksEntry.eligibleSpaces) : 'unknown'}`;
   const actionScope = useRef({ key: actionKey, generation: 0 });
@@ -174,6 +174,7 @@ export function HomePage({ spaces, userId, EventSheetComponent, onMembershipRefr
   }
 
   async function beginCreate(kind: CreateKind) {
+    setCreatingImportantDate(false);
     importantDateEditor.close();
     const generation = ++createGeneration.current;
     setOpeningCreateKind(kind);
@@ -302,7 +303,16 @@ export function HomePage({ spaces, userId, EventSheetComponent, onMembershipRefr
     return () => clearTimeout(timer);
   }, [dayRevision]);
 
+  function beginImportantDateCreate() {
+    importantDateEditor.close();
+    eventOpening.current += 1; openingGeneration.current += 1; createGeneration.current += 1;
+    setEditingEvent(null); setEditingTask(null); setOpeningTask(false);
+    setCreateKind(null); setChoosingSpaceKind(null); setOpeningCreateKind(null);
+    setImportantDateCreateNotice(''); setCreatingImportantDate(true);
+  }
+
   function openImportantDate(identity: ImportantDateIdentity) {
+    setCreatingImportantDate(false);
     // Cancel the existing Home opening tickets before choosing another Sheet.
     eventOpening.current += 1; openingGeneration.current += 1; createGeneration.current += 1;
     setEditingEvent(null); setEditingTask(null); setOpeningTask(false);
@@ -311,6 +321,7 @@ export function HomePage({ spaces, userId, EventSheetComponent, onMembershipRefr
   }
 
   async function openEvent(row: HomeEventRow) {
+    setCreatingImportantDate(false);
     importantDateEditor.close();
     const generation = ++eventOpening.current;
     setEventNotice(eventView.refreshing ? '正在确认日程…' : '');
@@ -322,6 +333,7 @@ export function HomePage({ spaces, userId, EventSheetComponent, onMembershipRefr
   }
 
   async function openTask(task: Task) {
+    setCreatingImportantDate(false);
     importantDateEditor.close();
     const generation = ++openingGeneration.current;
     const current = () => generation === openingGeneration.current && actionCurrent();
@@ -432,16 +444,22 @@ export function HomePage({ spaces, userId, EventSheetComponent, onMembershipRefr
         <h1 className="text-ui-page-title">今日安排</h1>
         <p className="mt-ui-1 text-ui-meta text-ui-muted">{formatDay(new Date())}</p>
       </header>
-      <HomeSection title="近期日程" status={eventView.status} error={eventView.error} refreshError={eventView.error} items={eventItems} expanded={eventExpanded} empty="未来三天暂无日程" onToggle={() => setEventExpanded((value) => !value)} onRetry={eventView.retry}
-        createAction={<button ref={eventCreateButton} className="ui-focus grid h-11 w-11 shrink-0 place-items-center rounded-full bg-ui-accent text-ui-on-accent hover:bg-ui-accent-strong disabled:bg-ui-muted" type="button" aria-label="新建日程" disabled={openingCreateKind !== null} onClick={() => void beginCreate('event')}><Plus size={21} aria-hidden="true" /></button>}
+      <HomeSection title="近期日程" status={eventView.status} error={eventView.error} refreshError={eventView.error} items={eventItems} previewLimit={3} empty="未来三天暂无日程" onRetry={eventView.retry}
+        createAction={<button ref={eventCreateButton} className="ui-focus grid h-11 w-11 shrink-0 place-items-center bg-transparent text-ui-accent hover:text-ui-accent-strong disabled:text-ui-muted" type="button" aria-label="新建日程" disabled={openingCreateKind !== null} onClick={() => void beginCreate('event')}><Plus size={18} aria-hidden="true" /></button>}
         createFeedback={<>{sectionCreateFeedback('event')}{eventNotice && <p className="break-words text-ui-meta text-ui-muted" role="status">{eventNotice}</p>}</>}
       />
-      <HomeSection title="待办事项" status={taskView.status} error={taskView.error} refreshError={taskView.error} items={taskItems} expanded={taskExpanded} empty="暂无需要处理的任务" onToggle={() => setTaskExpanded((value) => !value)} onRetry={taskView.retry}
-        createAction={<button ref={taskCreateButton} className="ui-focus grid h-11 w-11 shrink-0 place-items-center rounded-full bg-ui-accent text-ui-on-accent hover:bg-ui-accent-strong disabled:bg-ui-muted" type="button" aria-label="新建任务" disabled={openingCreateKind !== null} onClick={() => void beginCreate('task')}><Plus size={21} aria-hidden="true" /></button>}
+      <HomeSection title="待办事项" status={taskView.status} error={taskView.error} refreshError={taskView.error} items={taskItems} previewLimit={2} empty="暂无需要处理的任务" onRetry={taskView.retry}
+        createAction={<button ref={taskCreateButton} className="ui-focus grid h-11 w-11 shrink-0 place-items-center bg-transparent text-ui-accent hover:text-ui-accent-strong disabled:text-ui-muted" type="button" aria-label="新建任务" disabled={openingCreateKind !== null} onClick={() => void beginCreate('task')}><Plus size={18} aria-hidden="true" /></button>}
         createFeedback={<>{sectionCreateFeedback('task')}{taskNotice && <p className="break-words text-ui-meta text-ui-muted" role="status">{taskNotice}</p>}</>}
       />
-      <HomeImportantDatesSection key={userId} userId={userId} spaces={spaces} entry={importantDatesEntry} initialData={initialImportantDates} onValidated={onImportantDatesValidated} onInvalidate={onImportantDatesInvalidate} onViewAll={onOpenImportantDates} onRefreshReady={(refresh) => { reconcileImportantDates.current = refresh; }} onOpen={openImportantDate} />
+      <HomeImportantDatesSection key={userId} userId={userId} spaces={spaces} entry={importantDatesEntry} initialData={initialImportantDates} onValidated={onImportantDatesValidated} onInvalidate={onImportantDatesInvalidate} onViewAll={onOpenImportantDates} onCreate={beginImportantDateCreate} creating={creatingImportantDate} createButtonRef={importantDateCreateButton} onRefreshReady={(refresh) => { reconcileImportantDates.current = refresh; }} onOpen={openImportantDate} />
     </div>
+    {importantDateCreateNotice && <p role="status" className="font-ui text-ui-meta text-ui-muted">{importantDateCreateNotice}</p>}
+    {creatingImportantDate && <HomeImportantDateCreate userId={userId} spaces={spaces} entry={importantDatesEntry}
+      onClose={() => { setCreatingImportantDate(false); importantDateCreateButton.current?.focus(); }}
+      onNotice={setImportantDateCreateNotice}
+      onReconcile={() => { reconcileImportantDates.current(); void membershipRefresh.current(); }}
+    />}
     {importantDateEditor.notice && <p role="status" className="text-sm text-ink/60">{importantDateEditor.notice}</p>}
     {importantDateIdentity && !importantDateEditor.editor && <div className="text-sm text-ink/60">
       {importantDateEditor.targetRead.loading && <p role="status">正在确认重要日…</p>}

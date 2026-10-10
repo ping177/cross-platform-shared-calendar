@@ -12,9 +12,13 @@ v0.1.20
 
 ## Current status
 
-v0.1.20 CLOSED / PASS 及历史 Production/PWA 验收保持。隔离 worktree 的 UI v2 Slice 2 已本地实现四栏 Shell 与首页 C 视觉，相关回归 143/143、build/diff-check、四宽度离线检查 PASS；用户已确认离线预览，Slice 2 = LOCAL PASS / VISUAL PASS。真机、installed PWA 与 Production 尚未验收。现有 5/5/3 预览、三天范围和业务逻辑保持；全应用 UI 尚未完成；本地 Slice 2 commit 收口后仍未 push/deploy，后端未变更。
+v0.1.20 CLOSED / PASS 与既有 Production/PWA 验收保持；UI v2 Slice 2 和 Slice 3 均 LOCAL PASS / VISUAL PASS。Slice 3 用户已确认最终离线视觉，首页3/2/2与重要日直接创建通过177/177相关回归、build、diff-check及320/390px预览检查，并完成本地 commit；真账号、iOS、Android、installed PWA 和 Production 尚未验收，无 push/deploy。正式版本号不变，全应用 UI 尚未完成。
 
 ## Latest completed
+
+2026-10-10 — UI v2 Slice 3 最终收口：用户确认最终离线视觉「可以了，没那么突兀了」，记录 LOCAL PASS / VISUAL PASS。3/2/2、原查询/排序/资格及重要日真实创建链路通过完整相关测试177/177、build、diff-check与320/390px检查；精确七文件范围已创建本地 commit。旧 worktree 未变；真实账号、iOS/Android、installed PWA、Production 未验收；没有 push/deploy。正式版本仍v0.1.20，Slice 4未启动。
+
+2026-10-10 — UI v2 Slice 3：只调整首页展示上限、移除旧首页展开，新增重要日 + 并复用 existing Sheet/default/资格/canonical 写入与重读；保留原 Event/Task 创建行为。仅七个首页组件、测试与治理文件；177/177、build/diff-check、两宽度18组新源码离线检查 PASS，旧 worktree 指纹保持。用户/真实业务/PWA/Production 验收待完成，未提交或发布。
 
 2026-10-10 — UI v2 Slice 2 本地收口：用户确认离线视觉预览满意，Slice 2 = LOCAL PASS / VISUAL PASS。四栏 Shell 与首页 C 实现；143/143 回归、build/diff-check、36 组响应式/状态检查及 16 组其他页面 CSS 隔离对照 PASS，旧 worktree 指纹保持。真机、installed PWA 与 Production 尚未验收；下一步为另行授权的 Slice 3，详见 DEVLOG。
 
@@ -222,7 +226,7 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
-UI v2 Slice 1：LOCAL ONLY / LOCAL AUTOMATED PASS，本轮仅本地 commit 收口，未 push/deploy，页面尚未接入新 tokens。下方 Production 与真实设备 PASS 均为既有版本历史证据，不证明新 UI 已发布或验收。
+UI v2 Slice 1–3 均仅本地实现/commit，未 push/deploy；Slice 3 为 LOCAL PASS / VISUAL PASS。新 UI 尚未发布到 Production；下方 Production 与真实设备 PASS 仅为既有版本历史证据，不代表本轮 UI 已发布或通过真实设备验收。
 
 v0.1.20: Production frontend 已发布。实施 revision `2534a4085b9a5d64c488aa2b8975fa1a817460dd` 正常 push 后由独立 git ls-remote 确认；GitHub Production deployment `6937002413` / Vercel `8djfXCjoR5pBhkPoAyZ6D4yphSDM` 于 2026-10-08T13:35:45Z success，source SHA 精确匹配。正式域名 root/新 JS/CSS/manifest/SW HTTP 200；默认与绕缓存入口均使用新 JS，Supabase target 与原 Production 一致。用户 iPhone installed-PWA 13/13 PASS。独立部署 URL 的资产对比 NOT VERIFIED（未返回应用脚本），不扩大既有验证结论。backend/SQL/RPC/Edge/scheduler/config 未变；无 fresh live backend postflight。最终 docs closeout `c316b60c14694c0c2c831fd65d7130b4839d03aa` 已正常 push 并独立核验；该次 GitHub Production deployment `6937387220` / Vercel `5Lk9zsDDw4TyKZ6dYPnR3y1zAUbF` 于 2026-10-08T13:52:02Z success，source SHA 匹配。以上为已完成发布记录；本轮方向冻结不发布新前端，也不宣称本轮新文档已同步。
 
@@ -286,15 +290,15 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-下一步：待单独授权后开始 UI v2 Slice 3（须按独立范围实施）：只将首页预览上限调整为 3/2/2，不新增首页展开，并为重要日接入真实 + 创建入口；保持排序、查询范围与 canonical 业务能力。Slice 2 已获用户离线视觉验收，真机、installed PWA 与 Production 仍待验收。任何真实登录/设备验收前须完成 AGENTS 环境与版本对齐 gate，用户操作账号和设备。
+等待用户另行授权并确定 Slice 4 的实施范围；不自动开始下一 Slice。UI v2 真实账号/权限、iOS、Android、installed PWA 与 Production 验收仍待安全运行配置和 AGENTS 环境/版本对齐 gate，并由用户操作账号和设备。本地 Slice 3 已完成并 commit；当前不 push/deploy。
 
 ## Blockers
 
-暂无明确阻塞。
+真实业务验收尚缺新 worktree 的 Supabase 运行配置，须安全提供配置并完成环境/版本对齐 gate；本地自动化与离线视觉检查已完成，不受此限制。
 
 ## Important Context
 
-- UI v2 唯一技术链路为 CSS variables → Tailwind ui semantic mappings，显式逐页迁移；无 ThemeProvider/新框架/依赖变更。参考包身份、工程候选值、首页 3/2/2 仅预览、任务已完成页内折叠兼容旧导航、重要日复用日期引擎及禁止虚构功能见 [实施规格](./UI_V2_IMPLEMENTATION_SPEC.md)。Slice 2 仅迁移首页与四栏视觉；3/2/2 与重要日 + 留给独立 Slice 3，任务完成/重要日历史折叠留待以后单独定范围。不新增正式版本条目。
+- UI v2 唯一技术链路为 CSS variables → Tailwind ui semantic mappings，显式逐页迁移；无 ThemeProvider/新框架/依赖变更。参考包身份、工程候选值、首页 3/2/2 仅预览、任务已完成页内折叠兼容旧导航、重要日复用日期引擎及禁止虚构功能见 [实施规格](./UI_V2_IMPLEMENTATION_SPEC.md)。Slice 2 首页与四栏、Slice 3 首页3/2/2及重要日直接创建均获用户离线视觉验收；Slice 3 本地已完成。任务完成/重要日历史折叠留待以后单独定范围；Slice 4待另行授权。不新增正式版本条目。
 
 - 新阶段产品方向与六步顺序见 DECISIONS 的 Product Direction Freeze；商业化是可探索方向，不是完成产品的必要条件。保留分散居住家人的轻量共享需求与既有 Space/多成员/共享/提醒架构，不因个人使用频率降低而废弃。外部日历、导出/备份/加密、原生 App/订阅/大陆部署均未获功能批准或时间/架构承诺；回顾仍可选，不预设商业卖点。
 
@@ -369,4 +373,4 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Handoff Prompt
 
-v0.1.20 CLOSED / PASS 与历史验收保持。隔离 worktree /Users/wp/Projects/跨系统共享日历-ui-v2 的 UI v2 Slice 2 已本地收口，用户确认离线视觉预览，LOCAL PASS / VISUAL PASS；143/143 相关测试、build/diff-check、四宽度/状态离线检查 PASS。真机、installed PWA 与 Production 尚未验收。仅八个获授权文件变化；旧 worktree 完全不变，依赖/业务/后端/数据库/其他页面/Sheet 逻辑未改，不读取 secrets。保持 5/5/3 与三天范围；下一步 Slice 3 仅为 3/2/2 预览上限（无首页展开）及真实重要日 + 入口。真实账号前执行环境对齐 gate，用户操作账号及设备。
+UI v2 隔离 worktree `/Users/wp/Projects/跨系统共享日历-ui-v2`；Slice 2 和 Slice 3 均 LOCAL PASS / VISUAL PASS。Slice 3 已完成首页3/2/2、重要日真实创建入口、18px无底灰绿 + 与44px热区；完整相关回归177/177、build/diff-check、最终320/390px离线预览PASS，用户确认「可以了，没那么突兀了」。本地 commit 已创建，无 push/deploy。真实业务、iOS/Android、installed PWA、Production 尚未验收；真实账号前完成运行配置与环境/版本对齐 gate。旧 worktree 完全不变，正式版本仍v0.1.20。下一步等待 Slice 4 单独授权，不自动实施。

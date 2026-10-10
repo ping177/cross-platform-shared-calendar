@@ -102,17 +102,18 @@ test('Home Task module gate excludes disabled or absent Space and rejects incomp
   assert.equal(taskRead, false);
 });
 
-test('Home sections distinguish loading, empty and errors and expand only current candidates', async () => {
+test('Home sections distinguish loading, empty and errors and enforce fixed preview limits', async () => {
   const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
   try {
     const { HomeSection } = await vite.ssrLoadModule('/src/components/HomePage.tsx');
     const items = Array.from({ length: 7 }, (_, index) => React.createElement('span', { key: index }, `对象${index}`));
-    const props = { title: '近期日程', status: 'success', error: '', items, expanded: false, empty: '暂无', onToggle: () => undefined, onRetry: () => undefined };
-    const collapsed = renderToStaticMarkup(React.createElement(HomeSection, props));
-    assert.match(collapsed, /对象4.*展开更多/);
-    assert.doesNotMatch(collapsed, /对象5/);
-    const expanded = renderToStaticMarkup(React.createElement(HomeSection, { ...props, expanded: true }));
-    assert.match(expanded, /对象6.*收起/);
+    const props = { title: '近期日程', status: 'success', error: '', items, previewLimit: 3, empty: '暂无', onRetry: () => undefined };
+    for (const limit of [2, 3]) for (const count of [0, 1, limit, limit + 3]) {
+      const html = renderToStaticMarkup(React.createElement(HomeSection, { ...props, previewLimit: limit, items: items.slice(0, count) }));
+      assert.equal((html.match(/<li>/g) ?? []).length, Math.min(limit, count));
+      if (count > limit) assert.doesNotMatch(html, new RegExp(`对象${limit}`));
+      assert.doesNotMatch(html, /展开更多|>收起</);
+    }
     const failed = renderToStaticMarkup(React.createElement(HomeSection, { ...props, status: 'error', error: '读取失败' }));
     assert.match(failed, /读取失败.*重试/);
     assert.doesNotMatch(failed, /对象0|暂无/);

@@ -37,7 +37,7 @@ async function runtime(run: (env: any) => Promise<void>) {
     useRef(value: any) { return active.slots[active.cursor++] ??= { current: value }; },
     useCallback(fn: any, deps: any[]) { const i = active.cursor++; if (!active.slots[i] || deps.some((v, n) => v !== active.slots[i].deps[n])) active.slots[i] = { fn, deps }; return active.slots[i].fn; },
     useMemo(fn: any, deps: any[]) { const i = active.cursor++; if (!active.slots[i] || deps.some((v, n) => v !== active.slots[i].deps[n])) active.slots[i] = { value: fn(), deps }; return active.slots[i].value; },
-    useEffect(fn: any, deps: any[]) { const i = active.cursor++; if (!active.slots[i] || deps.some((v, n) => v !== active.slots[i][n])) { active.slots[i] = deps; active.effects.push({ i, fn }); } },
+    useEffect(fn: any, deps: any[]) { const i = active.cursor++; if (!active.slots[i] || deps.some((v, n) => v !== active.slots[i][n])) { active.slots[i] = deps; active.effects.push({ i, fn }); active.setups.set(i, fn); } },
     async home(userId: string, today: any, _client: any, _page: any, publish: any) {
       calls.push(['home', userId, today]); const scope = { memberSpaces: m.members, eligibleSpaces: m.eligible }; publish?.(scope);
       if (m.homeFailure) throw new Error('offline');
@@ -98,7 +98,7 @@ async function runtime(run: (env: any) => Promise<void>) {
       if (id === '\0home-hooks') return prefix + 'export const {useState,useRef,useCallback,useEffect,useMemo}=m;';
       if (id === '\0home-client') return prefix + 'export const supabase=m.supabase,isSupabaseConfigured=true;';
       if (id === '\0home-spaces') return prefix + 'export const listCurrentSpaces=async()=>m.spaceRead?m.spaceRead():m.members;';
-      if (id === '\0home-dates') return prefix + 'export class ImportantDatesAuthError extends Error{};export const loadHomeImportantDates=(...a)=>m.home(...a),loadCalendarImportantDates=(...a)=>m.calendar(...a),loadImportantDates=(...a)=>m.canonical(...a),readImportantDateTarget=(...a)=>m.target(...a),loadImportantDatesEligibility=async()=>({memberSpaces:m.members,eligibleSpaces:m.eligible}),updateImportantDate=(...a)=>m.update(...a),deleteImportantDate=(...a)=>m.remove(...a),createImportantDate=()=>{throw Error("not used")};';
+      if (id === '\0home-dates') return prefix + 'export class ImportantDatesAuthError extends Error{};export const loadHomeImportantDates=(...a)=>m.home(...a),loadCalendarImportantDates=(...a)=>m.calendar(...a),loadImportantDates=(...a)=>m.canonical(...a),readImportantDateTarget=(...a)=>m.target(...a),loadImportantDatesEligibility=async()=>({memberSpaces:m.members,eligibleSpaces:m.eligible}),updateImportantDate=(...a)=>m.update(...a),deleteImportantDate=(...a)=>m.remove(...a),createImportantDate=(...a)=>m.create(...a);';
       if (id === '\0home-bootstrap') return prefix + 'export const bootstrapSpaces=async()=>({spaces:m.members,selectedSpaceId:"personal"}),chooseSelectedSpaceId=(s,id)=>s.find(x=>x.id===id)?.id??s[0]?.id,ensureOnceUntilFailure=f=>f,writeSelectedSpaceId=()=>{},clearSelectedSpaceId=()=>{};';
       if (id === '\0home-availability') return prefix + 'export const ModuleHub=()=>null,useModuleAvailability=()=>({availability:{tasksIds:m.taskIds,reviewIds:[],listsIds:[],importantDatesIds:m.eligible.map(s=>s.id),importantDatesError:!!m.availabilityError},refreshing:!!m.availabilityPending,refresh:async()=>{},invalidate:()=>{},moduleChanged:()=>{}});';
       if (id === '\0home-push') return 'export const registerPushServiceWorker=async()=>{};';
@@ -115,7 +115,7 @@ async function runtime(run: (env: any) => Promise<void>) {
   const stop = (mount: any) => { for (const fn of mount.cleanups.values()) fn(); };
   const execute = (key: string, fn: any, props: any) => {
     if (!mounts.has(key) && fn.name === 'ImportantDatesPage') m.pageMounts++;
-    if (!mounts.has(key)) mounts.set(key, { slots: [], cleanups: new Map(), effects: [], cursor: 0 });
+    if (!mounts.has(key)) mounts.set(key, { slots: [], cleanups: new Map(), setups: new Map(), effects: [], cursor: 0 });
     active = mounts.get(key); active.cursor = 0; return fn(props);
   };
   try {
@@ -124,7 +124,7 @@ async function runtime(run: (env: any) => Promise<void>) {
     const Home = (await vite.ssrLoadModule('/src/components/HomePage.tsx')).HomePage;
     (globalThis as any).window = surface; (globalThis as any).document = surface;
     (globalThis as any).Date = new Proxy(previous.Date, { construct(target, args) { return Reflect.construct(target, args.length ? args : [now.getTime()]); } });
-    const expanded = new Set(['HomePage', 'HomeSection', 'HomeImportantDatesSection', 'ImportantDatesPage', 'ImportantDatesModule', 'BottomNavigation', 'CurrentSpaceApp', 'CalendarViews', 'MonthView', 'DaySection', 'CalendarImportantDateCard', 'CalendarImportantDateStatus', 'CalendarImportantDateSheets']);
+    const expanded = new Set(['HomePage', 'HomeSection', 'HomeImportantDatesSection', 'HomeImportantDateCreate', 'ImportantDatesPage', 'ImportantDatesModule', 'BottomNavigation', 'CurrentSpaceApp', 'CalendarViews', 'MonthView', 'DaySection', 'CalendarImportantDateCard', 'CalendarImportantDateStatus', 'CalendarImportantDateSheets']);
     let app = false, home = false; let props: any = { userId: 'me', spaces, entry: { memberSpaces: spaces, eligibleSpaces: spaces }, onViewAll() {}, onOpen() {} };
     const render = () => {
       const visited = new Set<string>();
@@ -140,7 +140,12 @@ async function runtime(run: (env: any) => Promise<void>) {
     };
     const pump = async () => { let tree: any; for (let n = 0; n < 7; n++) { tree = render(); for (const mount of mounts.values()) for (const { i, fn } of mount.effects.splice(0)) { mount.cleanups.get(i)?.(); const cleanup = fn(); if (cleanup) mount.cleanups.set(i, cleanup); else mount.cleanups.delete(i); } await tick(); } return render(); };
     const dispatch = (key: string) => { for (const fn of [...listeners.get(key) ?? []]) fn(); };
-    await run({ m, calls, props, render, pump, dispatch, surface, timers, auth, listenerCount: () => [...listeners.values()].reduce((count, set) => count + set.size, 0), home: () => { home = true; for (const mount of mounts.values()) stop(mount); mounts.clear(); Object.assign(props, { onMembershipRefresh: async () => {}, EventSheetComponent: function HomeEventSheet() {}, onOpenImportantDates() {} }); }, app: () => { app = true; for (const mount of mounts.values()) stop(mount); mounts.clear(); }, now: (value: Date) => { now = value; }, unmount: () => { for (const mount of mounts.values()) stop(mount); mounts.clear(); } });
+    await run({ m, calls, props, render, pump, dispatch, surface, timers, auth, replayCreateEffects: () => {
+      for (const [key, mount] of mounts) if (key.includes('HomeImportantDateCreate')) {
+        for (const cleanup of mount.cleanups.values()) cleanup(); mount.cleanups.clear();
+        for (const [i, setup] of mount.setups) { const cleanup = setup(); if (cleanup) mount.cleanups.set(i, cleanup); }
+      }
+    }, listenerCount: () => [...listeners.values()].reduce((count, set) => count + set.size, 0), home: () => { home = true; for (const mount of mounts.values()) stop(mount); mounts.clear(); Object.assign(props, { onMembershipRefresh: async () => {}, EventSheetComponent: function HomeEventSheet() {}, onOpenImportantDates() {} }); }, app: () => { app = true; for (const mount of mounts.values()) stop(mount); mounts.clear(); }, now: (value: Date) => { now = value; }, unmount: () => { for (const mount of mounts.values()) stop(mount); mounts.clear(); } });
   } finally {
     for (const mount of mounts.values()) stop(mount); await vite.close(); delete (globalThis as any).__homeImportantDates;
     (globalThis as any).window = previous.window; (globalThis as any).document = previous.document; (globalThis as any).Date = previous.Date;
@@ -151,15 +156,16 @@ test('Home renders 0/1/3/>3 from T1 global ranking with canonical presentation, 
   assert.match(renderToStaticMarkup(e.render()), /正在读取/);
   for (const count of [0, 1, 3, 4]) {
     e.m.rows = Array.from({ length: count }, (_, n) => row(String(n), n % 2 ? personal.id : shared.id)); e.dispatch('focus');
-    const tree = await e.pump(); assert.equal(items(tree).length, Math.min(count, 3));
+    const tree = await e.pump(); assert.equal(items(tree).length, Math.min(count, 2));
     if (!count) assert.match(renderToStaticMarkup(tree), /暂无重要日/);
-    else assert.deepEqual(items(tree).map((el) => el.props['data-important-date-id']), ['0', '1', '2'].slice(0, count));
+    else assert.deepEqual(items(tree).map((el) => el.props['data-important-date-id']), ['0', '1'].slice(0, count));
   }
   e.m.rows = [row('past', shared.id, { repeat_kind: 'none', year: 2020 }), row('future', personal.id, { year: 2030, month: 9, day: 30 }), row('leap'), row('once', personal.id, { repeat_kind: 'none', year: 2027, month: 2, day: 28 })];
   e.dispatch('focus'); const tree = await e.pump(); const html = renderToStaticMarkup(tree);
-  assert.deepEqual(items(tree).map((el) => el.props['data-important-date-id']), ['leap', 'once', 'future']);
+  assert.deepEqual(items(tree).map((el) => el.props['data-important-date-id']), ['leap', 'once']);
   assert.match(html, /还有 1 天/); assert.match(html, /我的空间/); assert.match(html, /我们的空间/); assert.doesNotMatch(html, /Personal internal name|展开更多/);
-  assert.match(text(items(tree)[2]), /还有 1311 天/); // True 2030 anchor, not this year's month/day.
+  e.m.rows = [e.m.rows.find((date: any) => date.id === 'future')]; e.dispatch('focus');
+  assert.match(text(items(await e.pump())[0]), /还有 1311 天/); // True 2030 anchor; still use existing date engine.
   e.m.rows = [row('old-annual', shared.id, { year: 2020, month: 2, day: 28 })]; e.dispatch('focus');
   const annual = renderToStaticMarkup(await e.pump());
   assert.match(annual, /第 2557 天/); assert.match(annual, /距 7 周年还有 1 天/);
@@ -186,11 +192,11 @@ test('Important Date error is distinct from empty, retries independently and iso
   e.app(); e.m.homeFailure = true;
   let tree = await e.pump(); let html = renderToStaticMarkup(tree);
   assert.match(html, /重要日暂时无法加载/); assert.match(html, /日程成功内容/); assert.match(html, /任务成功内容/); assert.doesNotMatch(renderToStaticMarkup(section(tree)), /暂无重要日/);
-  e.m.homeFailure = false; button(section(tree), '重试').props.onClick(); tree = await e.pump(); assert.equal(items(tree).length, 3);
+  e.m.homeFailure = false; button(section(tree), '重试').props.onClick(); tree = await e.pump(); assert.equal(items(tree).length, 2);
   e.unmount(); e.m.eventFailure = true; tree = await e.pump(); html = renderToStaticMarkup(tree);
-  assert.match(html, /日程测试失败/); assert.equal(items(tree).length, 3); assert.match(html, /任务成功内容/);
+  assert.match(html, /日程测试失败/); assert.equal(items(tree).length, 2); assert.match(html, /任务成功内容/);
   e.unmount(); e.m.eventFailure = false; e.m.taskFailure = true; tree = await e.pump(); html = renderToStaticMarkup(tree);
-  assert.match(html, /任务测试失败/); assert.equal(items(tree).length, 3); assert.match(html, /日程成功内容/);
+  assert.match(html, /任务测试失败/); assert.equal(items(tree).length, 2); assert.match(html, /日程成功内容/);
   assert.ok(e.calls.filter((c: any) => c[0] === 'channel').every((c: any) => /^home-(events|tasks):/.test(c[1])));
 }));
 
@@ -199,7 +205,8 @@ test('focus/visible/online/retry/midnight refresh and auth/scope/unmount suppres
   for (const name of ['focus', 'online', 'visibilitychange']) { const before = e.calls.length; e.dispatch(name); await e.pump(); assert.ok(e.calls.length > before); }
   e.surface.visibilityState = 'hidden'; const before = e.calls.length; e.dispatch('visibilitychange'); await e.pump(); assert.equal(e.calls.length, before); e.surface.visibilityState = 'visible';
   e.now(new Date(2027, 1, 28, 0, 0)); for (const fn of [...e.timers]) fn(); let tree = await e.pump(); assert.match(renderToStaticMarkup(tree), /就是今天/);
-  e.now(new Date(2027, 2, 1)); e.dispatch('focus'); tree = await e.pump(); assert.match(text(items(tree).find((el) => el.props['data-important-date-id'] === 'a')), /还有 365 天/);
+  e.m.rows = e.m.rows.filter((date: any) => ['a', 'b'].includes(date.id));
+  e.now(new Date(2027, 2, 1)); e.dispatch('focus'); tree = await e.pump(); assert.match(text(items(tree).find((el) => el.props['data-important-date-id'] === 'b')), /还有 365 天/);
   const late = deferred(); e.m.home = () => late.promise; e.dispatch('focus'); await tick();
   e.props.userId = 'other'; e.props.entry = { memberSpaces: [], eligibleSpaces: [] }; e.m.home = async () => ({ memberSpaces: [], eligibleSpaces: [], dates: [] });
   assert.doesNotMatch(renderToStaticMarkup(e.render()), /同名/); await e.pump(); late.resolve({ memberSpaces: spaces, eligibleSpaces: spaces, dates: [row('old')] }); await e.pump(); assert.equal(section(e.render()), undefined);
@@ -210,7 +217,7 @@ test('real App view-all/title navigates to module; single item opens exact Sheet
   e.app(); let tree = await e.pump();
   for (const label of ['查看全部重要日', '进入重要日']) {
     button(section(tree), label).props.onClick(); tree = await e.pump(); assert.equal(sheet(tree), undefined);
-    assert.ok(button(tree, '新建重要日')); button(tree, '首页').props.onClick(); tree = await e.pump(); assert.equal(items(tree).length, 3);
+    assert.ok(button(tree, '新建重要日')); button(tree, '首页').props.onClick(); tree = await e.pump(); assert.equal(items(tree).length, 2);
   }
   const clicked = items(tree).find((el) => el.props['data-important-date-id'] === 'b');
   e.m.rows = e.m.rows.map((r: any) => r.id === 'b' ? { ...r, name: 'fresh canonical name' } : r);
@@ -220,13 +227,13 @@ test('real App view-all/title navigates to module; single item opens exact Sheet
   assert.equal(sheet(tree).props.date.reminder_kind, 'all_day_previous_day_20'); assert.ok(section(tree));
   sheet(tree).props.onCancel(); tree = await e.pump(); assert.equal(sheet(tree), undefined);
   const reads = e.calls.filter((c: any) => c[0] === 'home').length; tree = await e.pump();
-  assert.equal(items(tree).length, 3); assert.equal(e.calls.filter((c: any) => c[0] === 'home').length, reads); assert.equal(sheet(tree), undefined);
+  assert.equal(items(tree).length, 2); assert.equal(e.calls.filter((c: any) => c[0] === 'home').length, reads); assert.equal(sheet(tree), undefined);
 }));
 
 test('unknown eligibility failure stays an error and auth loss discards an outstanding successful projection', () => runtime(async (e) => {
   const loader = e.m.home; e.m.home = async () => { throw new Error('qualification offline'); };
   let tree = await e.pump(); assert.match(renderToStaticMarkup(tree), /重要日暂时无法加载/); assert.doesNotMatch(renderToStaticMarkup(tree), /暂无重要日/);
-  e.m.home = loader; button(tree, '重试').props.onClick(); tree = await e.pump(); assert.equal(items(tree).length, 3);
+  e.m.home = loader; button(tree, '重试').props.onClick(); tree = await e.pump(); assert.equal(items(tree).length, 2);
   const late = deferred(); e.m.home = () => late.promise; e.dispatch('focus');
   for (const fn of e.auth) fn('SIGNED_OUT', null);
   late.resolve({ memberSpaces: spaces, eligibleSpaces: spaces, dates: [row('stale')] });
@@ -253,7 +260,7 @@ test('save/delete through existing canonical handlers updates Home on return and
   button(items(tree)[0], '打开重要日 已修改').props.onClick(); tree = await e.pump(); sheet(tree).props.onDelete(); tree = await e.pump();
   const dialog = elements(tree).find((el) => el.type?.name === 'ImportantDateDeleteDialog'); await dialog.props.onConfirm(); tree = await e.pump();
   tree = await e.pump();
-  assert.deepEqual(items(tree).map((el) => el.props['data-important-date-id']), ['b', 'c', 'd']); assert.equal(sheet(tree), undefined);
+  assert.deepEqual(items(tree).map((el) => el.props['data-important-date-id']), ['b', 'c']); assert.equal(sheet(tree), undefined);
 }));
 
 test('deleted projection target is confirmed missing by canonical reread rather than opening a colliding object', () => runtime(async (e) => {
@@ -264,7 +271,8 @@ test('deleted projection target is confirmed missing by canonical reread rather 
 
 test('Home section reuses projection and identity-only handoff without editing, database subscriptions or persistence', () => {
   const source = readFileSync(new URL('../src/components/HomeImportantDatesSection.tsx', import.meta.url), 'utf8');
-  assert.match(source, /useImportantDateProjection/); assert.doesNotMatch(source, /\.sort\(|resolveImportantDateOccurrence|\.rpc\(|\.channel\(|localStorage|sessionStorage|EventSheet|ImportantDateSheet/);
+  const projection = source.slice(source.indexOf('export function HomeImportantDatesSection'), source.indexOf('// Mounted only'));
+  assert.match(projection, /useImportantDateProjection/); assert.doesNotMatch(projection, /\.sort\(|resolveImportantDateOccurrence|\.rpc\(|\.channel\(|localStorage|sessionStorage|EventSheet|ImportantDateSheet/);
 });
 
 
@@ -282,12 +290,12 @@ test('actual App navigation performs one fresh Home reconciliation per re-entry 
   button(tree, '首页').props.onClick(); tree = await e.pump();
   assert.equal(e.calls.filter((c: any) => c[0] === 'home').length - before, 1);
   await e.pump(); assert.equal(e.calls.filter((c: any) => c[0] === 'home').length - before, 1);
-  assert.equal(items(tree).length, 3);
+  assert.equal(items(tree).length, 2);
 }));
 
 test('App-owned Home validated view survives unmount and renders during unresolved canonical re-entry', () => runtime(async (e) => {
   e.app(); let tree = await e.pump();
-  assert.deepEqual(items(tree).map((el) => el.props['data-important-date-id']), ['a', 'b', 'c']);
+  assert.deepEqual(items(tree).map((el) => el.props['data-important-date-id']), ['a', 'b']);
   button(section(tree), '查看全部重要日').props.onClick(); tree = await e.pump();
   const pending = deferred(); const spacesPending = deferred(); const loader = e.m.home;
   e.m.home = () => pending.promise;
@@ -295,9 +303,9 @@ test('App-owned Home validated view survives unmount and renders during unresolv
   button(tree, '首页').props.onClick();
   // No effect or network response is needed to restore the last validated rows.
   tree = e.render();
-  assert.equal(items(tree).length, 3);
+  assert.equal(items(tree).length, 2);
   assert.doesNotMatch(renderToStaticMarkup(section(tree)), /正在读取重要日/);
-  tree = await e.pump(); assert.equal(items(tree).length, 3);
+  tree = await e.pump(); assert.equal(items(tree).length, 2);
   e.m.rows = e.m.rows.map((r: any) => r.id === 'b' ? { ...r, name: 'fresh replacement' } : r);
   pending.resolve(await loader('me', {}, null, null, null));
   assert.match(renderToStaticMarkup(section(await e.pump())), /fresh replacement/);
@@ -309,12 +317,12 @@ test('warm background failure retains presentation with refresh error and retry;
   button(section(tree), '查看全部重要日').props.onClick(); tree = await e.pump();
   e.m.availabilityPending = true; e.m.availabilityError = true;
   const loader = e.m.home; e.m.home = async () => { throw new Error('offline qualification'); };
-  button(tree, '首页').props.onClick(); assert.equal(items(e.render()).length, 3);
+  button(tree, '首页').props.onClick(); assert.equal(items(e.render()).length, 2);
   tree = await e.pump(); const html = renderToStaticMarkup(section(tree));
-  assert.equal(items(tree).length, 3); assert.match(html, /更新失败.*上次已读取/);
+  assert.equal(items(tree).length, 2); assert.match(html, /更新失败.*上次已读取/);
   assert.doesNotMatch(html, /正在读取重要日|暂时无法加载/);
   e.m.home = loader; button(section(tree), '重试').props.onClick(); tree = await e.pump();
-  assert.equal(items(tree).length, 3); assert.doesNotMatch(renderToStaticMarkup(section(tree)), /更新失败/);
+  assert.equal(items(tree).length, 2); assert.doesNotMatch(renderToStaticMarkup(section(tree)), /更新失败/);
 }));
 
 test('fresh confirmed eligibility loss removes retained rows even if source reconciliation then fails', () => runtime(async (e) => {
@@ -369,15 +377,15 @@ test('direct save/delete retains presentation until canonical refresh replaces i
   button(items(tree)[0], '打开重要日 同名').props.onClick(); tree = await e.pump();
   const loader = e.m.home; let pending = deferred(); e.m.home = () => pending.promise;
   await sheet(tree).props.onSubmit({ ...sheet(tree).props.date, name: 'canonical edited' }, shared.id); tree = await e.pump();
-  assert.equal(items(tree).length, 3); assert.doesNotMatch(renderToStaticMarkup(section(tree)), /canonical edited|正在读取/);
+  assert.equal(items(tree).length, 2); assert.doesNotMatch(renderToStaticMarkup(section(tree)), /canonical edited|正在读取/);
   pending.resolve(await loader('me', {}, null, null, null)); tree = await e.pump();
   button(items(tree)[0], '打开重要日 canonical edited').props.onClick(); tree = await e.pump();
   sheet(tree).props.onDelete(); tree = await e.pump(); pending = deferred();
   await elements(tree).find((el) => el.type?.name === 'ImportantDateDeleteDialog').props.onConfirm(); tree = await e.pump();
-  assert.deepEqual(items(tree).map((el) => el.props['data-important-date-id']), ['a', 'b', 'c']);
+  assert.deepEqual(items(tree).map((el) => el.props['data-important-date-id']), ['a', 'b']);
   assert.equal(sheet(tree), undefined); assert.doesNotMatch(renderToStaticMarkup(section(tree)), /正在读取/);
   pending.resolve(await loader('me', {}, null, null, null));
-  assert.deepEqual(items(await e.pump()).map((el) => el.props['data-important-date-id']), ['b', 'c', 'd']);
+  assert.deepEqual(items(await e.pump()).map((el) => el.props['data-important-date-id']), ['b', 'c']);
 }));
 
 test('App known module disable and Space lifecycle signals invalidate only Home presentation before re-entry', () => runtime(async (e) => {
@@ -391,13 +399,13 @@ test('App known module disable and Space lifecycle signals invalidate only Home 
   const loader = e.m.home; const pending = deferred(); e.m.home = () => pending.promise;
   button(tree, '首页').props.onClick(); assert.equal(items(e.render()).length, 0);
   await e.pump(); pending.resolve(await loader('me', {}, null, null, null)); tree = await e.pump();
-  assert.equal(items(tree).length, 3);
+  assert.equal(items(tree).length, 2);
   for (const action of ['leave', 'remove', 'delete']) {
     await (await management()).props.onLifecycleSettled(action);
     const reread = deferred(); e.m.home = () => reread.promise;
     button(tree, '首页').props.onClick(); assert.equal(items(e.render()).length, 0);
     await e.pump(); reread.resolve(await loader('me', {}, null, null, null)); tree = await e.pump();
-    assert.equal(items(tree).length, 3);
+    assert.equal(items(tree).length, 2);
   }
 }));
 
@@ -509,12 +517,12 @@ test('retained completed/deleted/reassigned/distant Task cannot authorize comple
   }
 }));
 
-test('Home keeps the full qualified Task result for expand and fresh replacement fills/reorders rows', () => runtime(async (e) => {
+test('Home keeps the full qualified Task snapshot while preview remains two and fresh replacement fills/reorders rows', () => runtime(async (e) => {
   e.app(); e.m.taskRows = Array.from({ length: 7 }, (_, n) => ({ ...e.m.taskRows[0], id: String(n), title: `qualified ${n}` }));
   let tree = await e.pump(); assert.doesNotMatch(renderToStaticMarkup(taskSection(tree)), /qualified 6/);
   tree = await leaveHome(e, tree); const pending = deferred(), loader = e.m.tasks; e.m.tasks = () => pending.promise;
-  button(tree, '首页').props.onClick(); tree = await e.pump(); button(taskSection(tree), '展开更多').props.onClick(); tree = e.render();
-  assert.match(renderToStaticMarkup(taskSection(tree)), /qualified 6/);
+  button(tree, '首页').props.onClick(); tree = await e.pump();
+  assert.doesNotMatch(renderToStaticMarkup(taskSection(tree)), /qualified 6|展开更多/);
   e.m.taskRows = [{ ...e.m.taskRows[6], due_on: '2027-02-25' }, { ...e.m.taskRows[3], due_on: '2027-02-27', title: 'changed due ordering' }, { ...e.m.taskRows[0], status: 'completed' }, { ...e.m.taskRows[1], assigned_to_user_id: 'other' }, { ...e.m.taskRows[2], due_on: '2030-01-01' }];
   pending.resolve(await loader(spaces, 'me', new Date())); tree = await e.pump();
   assert.doesNotMatch(renderToStaticMarkup(taskSection(tree)), /qualified 0|qualified 1|qualified 2/);
@@ -755,7 +763,7 @@ test('Home Task late A click cannot overwrite the fresh B editor', () => runtime
 test('full Important Dates list arriving first never supplies the handoff editor; target failure retries exact identity', () => runtime(async (e) => {
   e.app(); let tree = await e.pump(); const pending = deferred(); const original = e.m.target;
   e.m.target = () => pending.promise; button(items(tree)[0],'打开重要日 同名').props.onClick(); tree = await e.pump();
-  assert.equal(sheet(tree),undefined); assert.ok(section(tree)); assert.equal(button(tree,'新建重要日'),undefined);
+  assert.equal(sheet(tree),undefined); assert.ok(section(tree)); assert.ok(button(section(tree),'新建重要日'));
   pending.resolve({ status: 'ready',date:{ ...e.m.rows.find((r: any) => r.id === 'a'),name:'exact version'},space:shared });
   tree = await e.pump(); assert.equal(sheet(tree).props.date.name,'exact version');
   sheet(tree).props.onCancel(); tree = await e.pump();
@@ -771,7 +779,7 @@ test('Home single Important Date opens fresh Sheet without navigation or full mo
   button(items(tree)[0], '打开重要日 同名').props.onClick(); tree = await e.pump();
   assert.ok(section(tree), 'Home remains mounted'); assert.equal(e.m.navigationCalls, navigations); assert.equal(e.m.pageMounts, mounts);
   assert.ok(sheet(tree)); assert.equal(e.calls.filter((c: any) => c[0] === 'target').length, 1); assert.equal(sheet(tree).props.date, e.m.rows.find((r: any) => r.id === 'a'));
-  assert.equal(elements(tree).some((el) => el.props['aria-label'] === '新建重要日'), false);
+  assert.equal(button(section(tree), '新建重要日').props.disabled, false);
   assert.equal(e.calls.filter((c: any) => c[0] === 'canonical').length, fullReads);
   sheet(tree).props.onCancel(); tree = await e.pump();
   assert.ok(section(tree)); assert.equal(sheet(tree), undefined);
@@ -874,13 +882,13 @@ test('Home direct save/delete errors preserve Home rows, report failure and neve
   e.m.home = () => { e.calls.push(['home']); return pending.promise; };
   e.m.update = async () => { throw Error('mutation offline'); };
   await assert.rejects(old.props.onSubmit({ ...old.props.date, name: 'unconfirmed' }, shared.id), /mutation offline/);
-  tree = await e.pump(); assert.ok(sheet(tree)); assert.equal(items(tree).length, 3);
+  tree = await e.pump(); assert.ok(sheet(tree)); assert.equal(items(tree).length, 2);
   assert.equal(e.calls.filter((c: any) => c[0] === 'home').length, reads + 1);
   assert.doesNotMatch(renderToStaticMarkup(section(tree)), /unconfirmed|正在读取/);
   old.props.onDelete(); tree = await e.pump(); e.m.remove = async () => { throw Error('delete offline'); };
   elements(tree).find((el) => el.type?.name === 'ImportantDateDeleteDialog').props.onConfirm(); tree = await e.pump();
   const dialog = elements(tree).find((el) => el.type?.name === 'ImportantDateDeleteDialog');
-  assert.match(dialog.props.error, /删除未确认成功/); assert.equal(dialog.props.busy, false); assert.equal(items(tree).length, 3);
+  assert.match(dialog.props.error, /删除未确认成功/); assert.equal(dialog.props.busy, false); assert.equal(items(tree).length, 2);
   dialog.props.onCancel(); assert.ok(section(await e.pump()));
 }));
 
@@ -1000,4 +1008,111 @@ for (const loss of ['membership', 'role']) test(`App confirmed ${loss} rejects E
   const pending = deferred(); e.m.calendarEvents = () => pending.promise;
   e.m.members = loss === 'membership' ? [personal] : [personal, { ...shared, membershipRole: 'owner' }];
   button(tree, '日历').props.onClick(); tree = await e.pump(); assert.equal(calendarEventCard(tree), undefined);
+}));
+
+
+test('Slice 3 Home has fixed 3/2/2 previews with original ordering and no expand controls', () => runtime(async (e) => {
+  e.app(); const event = e.m.eventRows[0], task = e.m.taskRows[0];
+  for (const count of [0, 1, 2, 3, 7]) {
+    e.m.eventRows = Array.from({ length: count }, (_, n) => ({ ...event, occurrence_id: `preview-event-${n}`, source_event_id: `preview-event-${n}`, title: `preview event ${n}`, source_event: { ...event.source_event, id: `preview-event-${n}`, title: `preview event ${n}` } }));
+    e.m.taskRows = Array.from({ length: count }, (_, n) => ({ ...task, id: `preview-task-${n}`, title: `preview task ${n}` }));
+    e.m.rows = Array.from({ length: count }, (_, n) => row(String(n), shared.id, { name: `preview date ${n}`, month: 3, day: n + 1 }));
+    e.dispatch('focus'); for (const channel of e.m.supabase.channels) channel.change?.();
+    await new Promise((resolve) => setTimeout(resolve, 180));
+    const tree = await e.pump();
+    assert.equal(elements(eventSection(tree)).filter((el) => el.type === 'li').length, Math.min(count, 3), `${count}: ${renderToStaticMarkup(eventSection(tree))}`);
+    assert.equal(elements(taskSection(tree)).filter((el) => el.type === 'li').length, Math.min(count, 2));
+    assert.equal(items(tree).length, Math.min(count, 2));
+    assert.deepEqual(items(tree).map((el) => el.props['data-important-date-id']), ['0', '1'].slice(0, count));
+    assert.doesNotMatch(renderToStaticMarkup(tree), /展开更多|>收起<|加载更多/);
+  }
+}));
+
+test('Slice 3 Important Date + opens existing create Sheet directly, defaults Personal, cancels and saves with Home reread', () => runtime(async (e) => {
+  e.app(); let tree = await e.pump(); const navigation = e.m.navigationCalls, mounts = e.m.pageMounts;
+  button(section(tree), '新建重要日').props.onClick(); tree = await e.pump();
+  assert.ok(sheet(tree)); assert.equal(sheet(tree).props.date, undefined); assert.equal(sheet(tree).props.initialTargetId, personal.id);
+  assert.equal(sheet(tree).props.canAct, true); assert.equal(e.m.navigationCalls, navigation); assert.equal(e.m.pageMounts, mounts);
+  sheet(tree).props.onCancel(); tree = await e.pump(); assert.equal(sheet(tree), undefined);
+  e.m.create = async (_client: any, userId: string, spaceId: string, draft: any) => { e.calls.push(['create', userId, spaceId, draft]); e.m.rows.push(row('created', spaceId, { ...draft })); };
+  button(section(tree), '新建重要日').props.onClick(); tree = await e.pump();
+  const reads = e.calls.filter((call: any) => call[0] === 'home').length;
+  await sheet(tree).props.onSubmit({ name: '新增纪念日', emoji: null, repeat_kind: 'annual', year: null, month: 2, day: 28 }, personal.id);
+  tree = await e.pump(); assert.equal(sheet(tree), undefined); assert.equal(e.calls.filter((call: any) => call[0] === 'create').length, 1);
+  assert.ok(e.calls.filter((call: any) => call[0] === 'home').length > reads); assert.match(renderToStaticMarkup(tree), /重要日已保存/);
+}));
+
+
+test('Slice 3 create preserves disabled Personal default, requires explicit eligible Space and rejects unknown target', () => runtime(async (e) => {
+  e.m.eligible = [shared]; e.app(); let tree = await e.pump();
+  button(section(tree), '新建重要日').props.onClick(); tree = await e.pump();
+  const props = sheet(tree).props; assert.equal(props.initialTargetId, personal.id); assert.equal(props.canAct, true);
+  let writes = 0; e.m.create = async () => { writes++; };
+  const draft = { name: '仅共享空间', emoji: null, repeat_kind: 'annual', year: null, month: 3, day: 1 };
+  for (const target of [personal.id, 'removed', '']) await assert.rejects(props.onSubmit(draft, target), /当前无法保存/);
+  assert.equal(writes, 0); await props.onSubmit(draft, shared.id); assert.equal(writes, 1);
+}));
+
+test('Slice 3 create is disabled during loading/error and confirmed no eligible Space cannot open a Sheet', () => runtime(async (e) => {
+  e.home(); let tree = e.render(); assert.equal(button(section(tree), '新建重要日').props.disabled, true);
+  e.m.homeFailure = true; tree = await e.pump(); assert.equal(button(section(tree), '新建重要日').props.disabled, true);
+  e.m.homeFailure = false; button(section(tree), '重试').props.onClick(); tree = await e.pump();
+  e.m.canonical = async () => ({ memberSpaces: spaces, eligibleSpaces: [], dates: [] });
+  button(section(tree), '新建重要日').props.onClick(); tree = await e.pump();
+  assert.equal(sheet(tree), undefined); assert.match(renderToStaticMarkup(tree), /重要日空间已不可用或未启用/);
+}));
+
+for (const loss of ['membership', 'module', 'role', 'auth']) test(`Slice 3 create rejects a stale save after ${loss} change`, () => runtime(async (e) => {
+  e.home(); e.props.importantDatesEntry = { memberSpaces: spaces, eligibleSpaces: spaces }; let tree = await e.pump();
+  button(section(tree), '新建重要日').props.onClick(); tree = await e.pump(); const stale = sheet(tree).props.onSubmit;
+  let writes = 0; e.m.create = async () => { writes++; };
+  if (loss === 'membership') e.props.spaces = [shared];
+  if (loss === 'module') e.props.importantDatesEntry = { memberSpaces: spaces, eligibleSpaces: [shared] };
+  if (loss === 'role') e.props.spaces = spaces.map((space: any) => ({ ...space, membershipRole: 'owner' }));
+  if (loss === 'auth') for (const fn of [...e.auth]) fn('SIGNED_OUT', null);
+  tree = e.render(); await assert.rejects(stale({ name: '不可保存', repeat_kind: 'annual', year: null, month: 3, day: 1 }, personal.id), /当前无法保存/);
+  tree = await e.pump(); assert.equal(sheet(tree), undefined); assert.equal(writes, 0);
+}));
+
+test('Slice 3 create locks duplicate submit and leaves a newer event opening intact after late completion', () => runtime(async (e) => {
+  e.app(); let tree = await e.pump(); button(section(tree), '新建重要日').props.onClick(); tree = await e.pump();
+  const pending = deferred(); let writes = 0; e.m.create = () => { writes++; return pending.promise; };
+  const submit = sheet(tree).props.onSubmit, draft = { name: '一次保存', repeat_kind: 'annual', year: null, month: 3, day: 1 };
+  const saving = submit(draft, personal.id); await assert.rejects(submit(draft, personal.id), /当前无法保存/); assert.equal(writes, 1);
+  eventButton(tree).props.onClick(); tree = await e.pump(); assert.ok(eventEditor(tree));
+  pending.resolve({}); await saving; tree = await e.pump(); assert.ok(eventEditor(tree)); assert.equal(sheet(tree), undefined);
+  assert.doesNotMatch(renderToStaticMarkup(tree), /重要日已保存/);
+}));
+
+test('Slice 3 failed create preserves the mounted Sheet through canonical retry and enables a safe retry', () => runtime(async (e) => {
+  e.app(); let tree = await e.pump(); button(section(tree), '新建重要日').props.onClick(); tree = await e.pump();
+  const pending = deferred(), loader = e.m.canonical; e.m.canonical = () => pending.promise;
+  e.m.create = async () => { throw new Error('创建失败'); };
+  const submit = sheet(tree).props.onSubmit, draft = { name: '保留草稿', repeat_kind: 'annual', year: null, month: 3, day: 1 };
+  const saving = submit(draft, personal.id); const rejected = assert.rejects(saving, /创建失败/);
+  tree = await e.pump(); assert.ok(sheet(tree)); assert.equal(sheet(tree).props.canAct, false);
+  pending.resolve(await loader()); await rejected; tree = await e.pump(); assert.ok(sheet(tree)); assert.equal(sheet(tree).props.canAct, true);
+  e.m.canonical = loader; e.m.create = async () => {}; await sheet(tree).props.onSubmit(draft, personal.id); tree = await e.pump(); assert.equal(sheet(tree), undefined);
+}));
+
+test('Slice 3 all three create entries cancel older pending creation without incorrect navigation', () => runtime(async (e) => {
+  e.app(); let tree = await e.pump(); const navigation = e.m.navigationCalls;
+  for (const kind of ['日程', '任务']) {
+    button(section(tree), '新建重要日').props.onClick(); tree = await e.pump(); assert.ok(sheet(tree));
+    button(tree, `新建${kind}`).props.onClick(); tree = await e.pump(); assert.equal(sheet(tree), undefined);
+    const editor = elements(tree).find((el) => el.type?.name === (kind === '日程' ? 'EventSheet' : 'TaskSheet')); assert.ok(editor);
+    button(section(tree), '新建重要日').props.onClick(); tree = await e.pump(); assert.ok(sheet(tree));
+    assert.equal(elements(tree).some((el) => ['EventSheet', 'TaskSheet'].includes(el.type?.name)), false);
+    sheet(tree).props.onCancel(); tree = await e.pump();
+  }
+  assert.equal(e.m.navigationCalls, navigation);
+}));
+
+
+test('Slice 3 create remains usable after StrictMode effect cleanup/setup replay', () => runtime(async (e) => {
+  e.app(); let tree = await e.pump(); button(section(tree), '新建重要日').props.onClick(); tree = await e.pump();
+  assert.ok(sheet(tree)); e.replayCreateEffects(); tree = await e.pump(); assert.ok(sheet(tree)); assert.equal(sheet(tree).props.canAct, true);
+  let writes = 0; e.m.create = async () => { writes++; };
+  await sheet(tree).props.onSubmit({ name: '重放后保存', repeat_kind: 'annual', year: null, month: 3, day: 1 }, personal.id);
+  assert.equal(writes, 1); assert.equal(sheet(await e.pump()), undefined);
 }));

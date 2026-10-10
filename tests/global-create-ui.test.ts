@@ -22,6 +22,7 @@ test('Home has direct section create actions and no old title action or type cho
     assert.match(home, /<h1[^>]*>今日安排<\/h1>/);
     assert.doesNotMatch(home, /<h1[^>]*>今日安排<\/h1><button|<h2[^>]*>创建<\/h2>|>日程<\/button>|>任务<\/button>/);
     assert.match(home, /<section[^>]*aria-label="近期日程"[^>]*>.*?<h2[^>]*>近期日程<\/h2><button[^>]*aria-label="新建日程"/);
+    assert.match(home, /<section[^>]*aria-label="重要日"[^>]*>.*?aria-label="新建重要日"/);
     assert.match(home, /<section[^>]*aria-label="待办事项"[^>]*>.*?<h2[^>]*>待办事项<\/h2><button[^>]*aria-label="新建任务"/);
     const common = { session: { user: { id: 'me' } } as Session, space: personal, spaces: [personal], allSpaces: [personal, shared], calendarFilter: 'all' as const, onCalendarFilterChange: noop, screen: 'calendar' as const, onScreenChange: noop, onHubBack: noop, selectedDate: new Date(), onSelectedDateChange: noop, viewMode: 'today' as const, onViewModeChange: noop, onSpaceUpdate: noop };
     for (const markup of [
