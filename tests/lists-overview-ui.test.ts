@@ -131,9 +131,9 @@ test('Hub waits for both module checks before showing the final ordered cards', 
     assert.doesNotMatch(tasksOnly, /进入回顾|进入清单/);
     const available = renderToStaticMarkup(React.createElement(ModuleHubContent, { ...props, listsAvailable: true }));
     assert.match(available, /进入清单/);
-    assert.match(available, /class="mt-4[^\"]*"[^>]*aria-label="进入清单"/);
+    assert.match(available, /aria-label="功能模块".*aria-label="进入清单".*ui-module-entry/);
     const reviewOnly = renderToStaticMarkup(React.createElement(ModuleHubContent, { ...props, reviewAvailable: true }));
-    assert.match(reviewOnly, /class="mt-4[^\"]*"[^>]*aria-label="进入回顾"/);
+    assert.match(reviewOnly, /aria-label="功能模块".*aria-label="进入回顾".*ui-module-entry/);
     const failed = renderToStaticMarkup(React.createElement(ModuleHubContent, { ...props, reviewAvailable: true, listsError: true }));
     assert.doesNotMatch(failed, /进入清单/);
     assert.match(failed, /进入回顾/);

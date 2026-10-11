@@ -67,7 +67,7 @@ test('four-tab Module Hub and Aggregate Tasks cards keep IDs, compact controls a
       onOpenTasks: noop, onOpenReview: noop, onOpenLists: noop, onRetryTasks: noop, onRetryReview: noop, onRetryLists: noop,
     }));
     assert.match(hub, /功能中心.*进入任务.*任务/);
-    assert.doesNotMatch(hub, /清单|Review|纪念日|Memo|开启任务模块/);
+    assert.doesNotMatch(hub, /进入清单|进入回顾|进入重要日|Review|纪念日|Memo|开启任务模块/);
     assert.match(hub, /min-h-16|safe-bottom/);
 
     const filter = renderToStaticMarkup(React.createElement(TaskFilterPicker, {

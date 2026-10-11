@@ -7,6 +7,8 @@ import { loadTaskEligibility } from '../lib/aggregate-tasks-data';
 import { createRequestGuard } from '../lib/request-guard';
 import { applyModuleToggle, mergeModuleAvailability, type ModuleAvailability, type ModuleKey, type ModuleRead } from '../lib/module-availability';
 import type { CurrentSpace } from '../types';
+import { useModuleOverview } from './useModuleOverview';
+import { pendingOverview, type ModuleOverview } from '../lib/module-overview';
 
 export async function resolveHubEligibility(
   readTasks: () => Promise<{ eligibleSpaces: CurrentSpace[] }>,
@@ -76,58 +78,76 @@ export function useModuleAvailability(userId: string, spaces: CurrentSpace[]) {
   return { availability, refreshing: refreshing || validatedSpacesKey !== spacesKey, refresh, invalidate, moduleChanged };
 }
 
-export function ModuleHub({ availability, onRefresh, onOpenTasks, onOpenReview, onOpenLists, onOpenImportantDates }: {
+export function ModuleHub({ availability, onRefresh, onOpenTasks, onOpenReview, onOpenLists, onOpenImportantDates, userId, spaces = [], reviewSpaceId = null, availabilityPending = false }: {
   availability: ModuleAvailability | null; onRefresh: () => void;
   onOpenTasks: () => void; onOpenReview: () => void; onOpenLists: () => void; onOpenImportantDates: () => void;
+  userId?: string; spaces?: CurrentSpace[]; reviewSpaceId?: string | null; availabilityPending?: boolean;
 }) {
-  return <ModuleHubContent loading={availability === null}
+  const overview = useModuleOverview(userId && availability ? { userId, spaces, availability, reviewSpaceId } : null, availabilityPending);
+  function retry() { onRefresh(); overview.retry(); }
+  return <ModuleHubContent loading={availability === null} overview={overview.data} onRetryOverview={retry}
     tasksAvailable={(availability?.tasksIds?.length ?? 0) > 0} tasksError={availability?.tasksError ?? false}
     reviewAvailable={(availability?.reviewIds?.length ?? 0) > 0} reviewError={availability?.reviewError ?? false}
     listsAvailable={(availability?.listsIds?.length ?? 0) > 0} listsError={availability?.listsError ?? false}
     importantDatesAvailable={(availability?.importantDatesIds?.length ?? 0) > 0} importantDatesError={availability?.importantDatesError ?? false}
-    onOpenImportantDates={onOpenImportantDates} onRetryImportantDates={onRefresh}
+    onOpenImportantDates={onOpenImportantDates} onRetryImportantDates={retry}
     onOpenTasks={onOpenTasks} onOpenReview={onOpenReview} onOpenLists={onOpenLists}
-    onRetryTasks={onRefresh} onRetryReview={onRefresh} onRetryLists={onRefresh} />;
+    onRetryTasks={retry} onRetryReview={retry} onRetryLists={retry} />;
 }
 
-export function ModuleHubContent({ loading, tasksAvailable, tasksError, reviewAvailable, reviewError, listsAvailable, listsError, onOpenTasks, onOpenReview, onOpenLists, onRetryTasks, onRetryReview, onRetryLists, importantDatesAvailable = false, importantDatesError = false, onOpenImportantDates, onRetryImportantDates }: {
+function overviewText(overview: ModuleOverview) {
+  return {
+    tasks: overview.tasks.state === 'ready' ? [overview.tasks.value + ' 项', ''] : null,
+    lists: overview.lists.state === 'ready' ? [overview.lists.value + ' 个', ''] : null,
+    review: overview.review.state === 'ready' ? [overview.review.value.date ?? '暂无回顾记录', overview.review.value.spaceName] : null,
+    importantDates: overview.importantDates.state === 'ready' ? [overview.importantDates.value?.name ?? '暂无未来重要日', overview.importantDates.value?.date ?? ''] : null,
+  };
+}
+
+export function ModuleHubContent({ loading, tasksAvailable, tasksError, reviewAvailable, reviewError, listsAvailable, listsError, onOpenTasks, onOpenReview, onOpenLists, onRetryTasks, onRetryReview, onRetryLists, importantDatesAvailable = false, importantDatesError = false, onOpenImportantDates, onRetryImportantDates, overview = pendingOverview(), onRetryOverview }: {
   loading: boolean; tasksAvailable: boolean; tasksError: boolean; reviewAvailable: boolean; reviewError: boolean;
-  listsAvailable: boolean; listsError: boolean;
-  importantDatesAvailable?: boolean; importantDatesError?: boolean;
+  listsAvailable: boolean; listsError: boolean; importantDatesAvailable?: boolean; importantDatesError?: boolean;
   onOpenImportantDates?: () => void; onRetryImportantDates?: () => void;
   onOpenTasks: () => void; onOpenReview: () => void; onOpenLists: () => void;
   onRetryTasks: () => void; onRetryReview: () => void; onRetryLists: () => void;
+  overview?: ModuleOverview; onRetryOverview?: () => void;
 }) {
-  return <main className="mx-auto min-h-screen w-full max-w-3xl px-4 py-4 safe-bottom">
-    <h1 className="text-xl font-bold">功能中心</h1>
-    {loading ? <p className="mt-4 rounded-lg bg-white px-4 py-5 text-sm text-ink/60 shadow-sm" role="status">正在读取功能模块…</p> : <>
-    {tasksAvailable && <button className="mt-4 flex min-h-16 w-full min-w-0 items-center justify-between gap-3 rounded-lg bg-white px-4 py-3 text-left shadow-sm" type="button" onClick={onOpenTasks} aria-label="进入任务">
-      <span className="flex min-w-0 items-center gap-3">
-        <ListTodo size={20} className="shrink-0 text-teal" aria-hidden="true" />
-        <span className="min-w-0">
-          <span className="block font-semibold">任务</span>
-          <span className="block text-sm text-ink/60">查看各空间的任务</span>
-        </span>
-      </span>
-      <ChevronRight size={18} className="shrink-0 text-ink/45" aria-hidden="true" />
-    </button>}
-    {reviewAvailable && <button className={`${tasksAvailable ? 'mt-3' : 'mt-4'} flex min-h-16 w-full min-w-0 items-center justify-between gap-3 rounded-lg bg-white px-4 py-3 text-left shadow-sm`} type="button" onClick={onOpenReview} aria-label="进入回顾">
-      <span className="flex min-w-0 items-center gap-3"><BookOpen size={20} className="shrink-0 text-teal" aria-hidden="true" /><span className="min-w-0"><span className="block font-semibold">回顾</span><span className="block text-sm text-ink/60">查看空间的历史回顾</span></span></span>
-      <ChevronRight size={18} className="shrink-0 text-ink/45" aria-hidden="true" />
-    </button>}
-    {listsAvailable && <button className={`${tasksAvailable || reviewAvailable ? 'mt-3' : 'mt-4'} flex min-h-16 w-full min-w-0 items-center justify-between gap-3 rounded-lg bg-white px-4 py-3 text-left shadow-sm`} type="button" onClick={onOpenLists} aria-label="进入清单">
-      <span className="flex min-w-0 items-center gap-3"><ListChecks size={20} className="shrink-0 text-teal" aria-hidden="true" /><span className="min-w-0"><span className="block font-semibold">清单</span><span className="block text-sm text-ink/60">查看各空间的清单</span></span></span>
-      <ChevronRight size={18} className="shrink-0 text-ink/45" aria-hidden="true" />
-    </button>}
-    {importantDatesAvailable && <button className={`${tasksAvailable || reviewAvailable || listsAvailable ? 'mt-3' : 'mt-4'} flex min-h-16 w-full min-w-0 items-center justify-between gap-3 rounded-lg bg-white px-4 py-3 text-left shadow-sm`} type="button" onClick={onOpenImportantDates} aria-label="进入重要日">
-      <span className="flex min-w-0 items-center gap-3"><CalendarHeart size={20} className="shrink-0 text-teal" aria-hidden="true" /><span className="min-w-0"><span className="block font-semibold">重要日</span><span className="block text-sm text-ink/60">查看各空间的重要日</span></span></span>
-      <ChevronRight size={18} className="shrink-0 text-ink/45" aria-hidden="true" />
-    </button>}
-    {!tasksAvailable && !reviewAvailable && !listsAvailable && !importantDatesAvailable && !importantDatesError && !tasksError && !reviewError && !listsError && <p className="mt-4 rounded-lg bg-white px-4 py-5 text-sm text-ink/60 shadow-sm">暂无已开启的功能模块。</p>}
-    {tasksError && <p className="mt-3 text-sm text-coral" role="alert">任务模块状态读取失败。<button className="ml-2 min-h-11 font-semibold text-teal" type="button" onClick={onRetryTasks}>重试</button></p>}
-    {reviewError && <p className="mt-3 text-sm text-coral" role="alert">回顾模块状态读取失败。<button className="ml-2 min-h-11 font-semibold text-teal" type="button" onClick={onRetryReview}>重试</button></p>}
-    {listsError && <p className="mt-3 text-sm text-coral" role="alert">清单模块状态读取失败。<button className="ml-2 min-h-11 font-semibold text-teal" type="button" onClick={onRetryLists}>重试</button></p>}
-    {importantDatesError && <p className="mt-3 text-sm text-coral" role="alert">重要日模块状态读取失败。<button className="ml-2 min-h-11 font-semibold text-teal" type="button" onClick={onRetryImportantDates}>重试</button></p>}
+  const rows = [
+    { key: 'tasks', title: '任务', description: '查看各空间的任务', Icon: ListTodo, available: tasksAvailable, error: tasksError, open: onOpenTasks, retry: onRetryTasks, color: 'text-ui-accent' },
+    { key: 'review', title: '回顾', description: '查看空间的历史回顾', Icon: BookOpen, available: reviewAvailable, error: reviewError, open: onOpenReview, retry: onRetryReview, color: 'text-ui-auxiliary' },
+    { key: 'lists', title: '清单', description: '查看各空间的清单', Icon: ListChecks, available: listsAvailable, error: listsError, open: onOpenLists, retry: onRetryLists, color: 'text-ui-accent' },
+    { key: 'importantDates', title: '重要日', description: '查看各空间的重要日', Icon: CalendarHeart, available: importantDatesAvailable, error: importantDatesError, open: onOpenImportantDates, retry: onRetryImportantDates, color: 'text-ui-auxiliary' },
+  ] as const;
+  const text = overviewText(overview);
+  return <main className="ui-module-hub mx-auto min-h-screen w-full max-w-3xl bg-ui-page px-ui-4 py-ui-6 font-ui text-ui-text safe-bottom">
+    <h1 className="text-ui-page-title">功能中心</h1>
+    <p className="mt-ui-1 text-ui-meta text-ui-muted">快速进入各项功能</p>
+    <section aria-label="功能概览" aria-live="polite" className="mt-ui-6">
+      <dl className="ui-module-overview grid grid-cols-2 gap-ui-3">
+        {rows.map(({ key, Icon, available, error, color }) => {
+          const state = loading ? 'loading' : error ? 'error' : !available ? 'unavailable' : overview[key].state;
+          const value = state === 'ready' ? text[key]![0] : state === 'loading' ? '加载中…' : state === 'error' ? '读取失败' : '当前不可用';
+          const detail = state === 'ready' ? text[key]![1] : state === 'unavailable' ? '暂无已开启的空间' : '';
+          const name = { tasks: '未完成任务', review: '最近回顾', lists: '清单总数', importantDates: '下个重要日' }[key];
+          return <div key={key} className="ui-module-metric min-w-0 rounded-ui-control bg-ui-surface text-center" data-overview-metric={key} data-overview-state={state}>
+            <dt className="flex items-center justify-center gap-ui-2 text-ui-meta font-ui-medium"><Icon size={18} className={'shrink-0 ' + color} aria-hidden="true" />{name}</dt>
+            <dd className="ui-module-metric-content mt-ui-2 w-full min-w-0"><span className="ui-module-metric-value font-ui-semibold" title={value}>{value}</span>{detail && <span className="block truncate text-ui-label text-ui-muted" title={detail}>{detail}</span>}</dd>
+          </div>;
+        })}
+      </dl>
+      {!loading && Object.values(overview).some(metric => metric.state === 'error') && <button type="button" onClick={onRetryOverview} className="ui-focus mt-ui-3 min-h-ui-touch text-ui-meta font-ui-semibold text-ui-accent">重试概览</button>}
+    </section>
+    {loading ? <p className="mt-ui-6 text-ui-meta text-ui-muted" role="status">正在读取功能模块…</p> : <>
+      {rows.some(row => row.available) && <nav aria-label="功能模块" className="mt-ui-6 overflow-hidden rounded-ui-group border border-ui-border bg-ui-surface">
+        {rows.filter(row => row.available).map(({ key, title, description, Icon, open, color }) => <button key={key} type="button" aria-label={'进入' + title} onClick={open}
+          className="ui-focus ui-module-entry flex min-h-ui-touch w-full min-w-0 items-center gap-ui-3 px-ui-4 py-ui-5 text-left">
+          <Icon size={24} className={'shrink-0 ' + color} aria-hidden="true" />
+          <span className="min-w-0 flex-1"><span className="block text-ui-list font-ui-semibold">{title}</span><span className="mt-ui-1 block text-ui-meta text-ui-muted">{description}</span></span>
+          <ChevronRight size={18} className="shrink-0 text-ui-muted" aria-hidden="true" />
+        </button>)}
+      </nav>}
+      {!rows.some(row => row.available || row.error) && <p className="mt-ui-6 text-ui-meta text-ui-muted">暂无已开启的功能模块。</p>}
+      {rows.filter(row => row.error).map(({ key, title, retry }) => <p key={key} className="mt-ui-3 text-ui-meta text-ui-danger" role="alert">{title}模块状态读取失败。<button className="ui-focus ml-ui-2 min-h-ui-touch min-w-11 font-ui-semibold text-ui-accent" type="button" onClick={retry}>重试</button></p>)}
     </>}
   </main>;
 }

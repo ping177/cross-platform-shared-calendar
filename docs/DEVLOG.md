@@ -1,5 +1,44 @@
 # Development Log
 
+## 2026-10-11 — UI v2 Slice 6 最终收口 — LOCAL PASS / LOCAL VISUAL PASS
+
+- 预检PASS：design/ui-v2，HEAD `2c9a03032077dec9add6007e0c1a51b7078b7ec2`，Slice6精确7 modified + 4 untracked，暂存区为空；原审计/实现/视觉增量记录完整保留。用户已认可居中卡片视觉「可以，我觉得看着还可以」，记录 **LOCAL VISUAL PASS**；本轮不再调整UI。
+- 收口审查发现回顾最新一条与四个重要日候选查询虽然limit1，仍通过candidates强制要求count=exact；无用总数会增加60秒刷新时的数据库计数工作。最小修复仅module-overview.ts及对应测试：候选select取消count选项，candidates先传递查询错误，再校验数组、最多一条且必须为记录对象；空数组是正常空状态，count缺失/null不影响候选读取。原记录字段/Space身份校验、排序、limit、canonical下一次重要日计算保持。
+- 四模块均可用的一次概览读取：业务精确计数从7次降至2次（任务1、清单1保留；回顾1→0、重要日4→0）。成员/module flags读取前后各一次共4次有界精确计数保持，因此本函数整轮exact count请求11→6。业务查询仍7个、资格查询/账号确认次数未改；优化的是无用精确计数要求，不宣称减少查询轮次或已量测Production性能。
+- 测试mock按实际select选项返回count，未请求时返回null或省略；新增测试检查真实调用选项、五个limit1、任务/清单及资格计数保留、零/单记录、数据库错误、无效结构/null记录/多记录。先RED确认旧代码仍发起无用count请求，再修复；针对性 **10/10 PASS**。完整Slice6指标/UI/资格/返回/导航/状态恢复/首页/日历/手势/重复事项相关回归 **317/317 PASS**（fail/skip/cancel均0），日志 `/private/tmp/calendar-slice6-countfix-full.log`。`npm run build` PASS（1719模块，JS789.45kB/gzip228.58kB），既有>500kB警告保持；`git diff --check` PASS。
+- 本轮增量4文件：src/lib/module-overview.ts、tests/module-overview.test.ts、DEVLOG、PROJECT_STATE。App、ModuleHub、CSS、useModuleOverview与其他Slice6测试SHA与本轮前完全一致；原60秒可见页刷新/去重/卸载清理/请求代次保护不改，回归通过。已接受UI及四宽度28/28视觉检查沿用，不冒充本轮重跑浏览器；未新生成视觉样本或连接生产。首页/日历/四模块业务流程/数据库/RLS/RPC/Push/Realtime/依赖/配置未改。
+- Slice6 **LOCAL PASS / LOCAL VISUAL PASS**。本地技术验证与用户离线视觉验收完成；正式版本v0.1.20保持。真实账号、真机、非零Safe Area、installed PWA与Production仍待验收，认证前遵循AGENTS gate。旧worktree原28 modified + 1 untracked和29文件指纹保持；未读取/输出secrets。按用户最终收口授权，11个Slice6授权文件以一个本地feat commit完成；未push/deploy。正式版本v0.1.20不变，不自动进入Slice7，下一步等待另行范围授权。
+
+## 2026-10-11 — UI v2 Slice 6 顶部概览四卡片视觉增量
+
+- Preflight PASS：design/ui-v2，HEAD `2c9a03032077dec9add6007e0c1a51b7078b7ec2`，现有Slice6精确11个未提交文件、index为空。保留上一轮实现/测试/治理记录与STOP审计历史。
+- 本轮增量仅5文件：ModuleHub.tsx顶部展示、styles.css局部卡片样式、module-overview-ui.test.ts已有文案断言、DEVLOG、PROJECT_STATE。2×2四张统一白底/极浅边框/12px圆角，无阴影；136px等高，标题/核心值/副信息水平居中。顶部名称改为未完成任务/最近回顾/清单总数/下个重要日；任务与清单移除重复副文案，回顾副信息仅Space名，重要日名称最多两行与独立日期。320px核心值16px、内边距8px，其他宽度18px/12px。概览仍是非交互信息，不增加入口。
+- 下方四模块入口源码片段完全一致，保持原左对齐、热区和回调。App、useModuleOverview、module-overview数据辅助及未修改测试的SHA与本轮前一致；四指标定义、统计边界、权限/资格/刷新规则不变。首页/日历/业务流程/backend/Realtime/依赖未改；无secret读取或输出。
+- 相关自动测试 **57/57 PASS**（overview数据/UI、module availability/reentry、Lists、Space、navigation、Home aggregation、calendar UI）；`npm run build` PASS（1719模块；JS789.43kB/gzip228.58kB，保留既有>500kB警告）；`git diff --check` PASS。
+- 最新源码重新SSR生成七状态离线页面、拷贝本轮build CSS并更新source-manifest；无生产连接，fixture不代表真实接口/业务交互验收。320/390/768/1024 × normal/empty/partial/loading/error/long/eligibility-error **28/28 PASS**：136px等高、内容居中、无阴影/横向溢出/值与副信息覆盖，卡片非按钮、原入口仍左对齐。390px正常与长名称实际视口截图 `hub-normal-cards-390.jpg`、`hub-long-cards-390.jpg`已目视核对；预览仍为 `http://127.0.0.1:5176/slice6/index.html`、normal.html、long.html。截图工具首帧曾有局部绘制，已重新取得完整位图，不交付异常帧。
+- LOCAL PASS / VISUAL ACCEPTANCE PENDING；等待用户最新四卡片视觉确认。正式v0.1.20保持；真实账号/设备/非零Safe Area/PWA/Production未验收，Space Color System Deferred。旧worktree28 modified + 1 untracked/29指纹保持。未commit/push/deploy，不自动进入下一Slice。
+
+## 2026-10-11 — UI v2 Slice 6 功能中心续作 — LOCAL PASS / VISUAL ACCEPTANCE PENDING
+
+- 延续上次数据审计STOP记录，用户明确批准方案A和四项真实指标、必要的受控前端只读接线。续作preflight PASS：design/ui-v2，HEAD `2c9a03032077dec9add6007e0c1a51b7078b7ec2`，仅DEVLOG/PROJECT_STATE两个上次审计修改、未暂存。下方审计历史完整保留；旧worktree原28 modified + 1 untracked及29文件SHA256终查一致。
+- 最终范围11文件：App仅增加ModuleHub数据props；ModuleHub、局部styles、新useModuleOverview及module-overview只读辅助；新增两个overview测试、调整两个旧Hub展示断言；DEVLOG/PROJECT_STATE。未修改首页3/2/2、日历、四模块内部流程、导航回调、数据库/RPC/RLS/Edge/Push/Reminder/Realtime、依赖或环境配置。正式版本仍v0.1.20；Space Color System Deferred。
+- 任务：合资格当前Space的tasks、status=open、head/exact count，已完成排除，不用首页预览量。清单：合资格Space的lists、head/exact count，不计list_items、不用分页缓存。回顾：遵循现有selectReviewSpace的选中/回退Space，review_rounds按review_date倒序、round_no倒序、limit1，显示“最近记录”，不称已完成或下一次排期。重要日：合资格Space，复用canonical下一次发生日期/年度重复/future-anchor/Feb29 fallback；四个有序候选桶各limit1覆盖未来一次性、当年年度、年度回绕与未来年度起始日期，排除过去一次性，不全量读入年度记录。
+- 每次概览最多7个业务只读请求（两个精确计数、回顾1候选、重要日4候选），并在读取前后核对auth.getUser、当前membership角色与module flags；RLS仍为服务器权限边界。结果缺失/不完整不能伪装0；资格不一致清空指标、显示失败；模块无资格显示不可用。资格验证读取有当前Space数量上限并校验exact count，避免截断冒充完整。没有持久快照或复杂聚合服务。
+- hook按账号、成员/资格、选中回顾Space隔离请求代次；切换立即遮蔽旧值，过期响应不回填；返回Hub重新读取。既有资格hook负责前台/联网刷新，其pending状态协调概览刷新，避免双重接线。可见页面60秒freshness检查并处理日界变化，刷新时显示加载；隐藏页不定时读取；重试恢复、StrictMode清理已测试。外部数据/资格变化在页面持续可见时通过该轮询获知，不宣称即时Realtime更新。
+- 视觉参考approved图06：暖白背景、轻量2×2概览、任务/回顾/清单/重要日统一圆角分组列表、细分隔线、深色标题/灰副信息、无彩色图标底框/装饰Banner。沿用ui tokens与既有导航资格：不可用模块不生成可用入口；资格刷新失败保留原有已知入口及重试，不把失败改成可用成功。焦点outline 2px/inset避免圆角裁切；行高约88px、按钮热区至少44×44，Safe Area沿用既有token/env。
+- 最终完整overview/资格/返回/四模块/首页/日历/导航/手势/重复事项相关测试 **314/314 PASS**，fail/skip/cancel均0；测试日志 `/private/tmp/calendar-slice6-final-tests.log`。最新受影响24/24也PASS。`npm run build` PASS（tsc + Vite，1719模块，JS789.30kB/gzip228.53kB），保留既有>500kB警告；最终`git diff --check`文档更新后PASS。
+- 最新真实ModuleHubContent与BottomNavigation源码SSR生成离线预览，envFile=false、无hydration、CSP connect-src none；fixture示例值不代表真实接口验收。源码manifest五项SHA匹配。独立离线5176服务预览 `/slice6/index.html`：normal/empty/partial/loading/error/eligibility-error/long；开发5175未改。320/390/768/1024 × 七状态 **28/28**检查PASS：无水平溢出、四格保持、按钮>=44×44、统一列表radius16；390×844逻辑视口截图已目视核对，本轮实际导出位图390×844。Tab首个真实入口Focus PASS，末行不被底栏挡住；静态预览按钮不承担业务交互验证，原入口回调由真实组件测试覆盖。
+- **LOCAL PASS / VISUAL ACCEPTANCE PENDING**：等待用户本轮离线视觉验收；真实账号、iOS/Android、installed PWA、nonzero Safe Area及Production未验收。认证验收前遵循AGENTS环境对齐gate及用户操作真实会话。未读取/打印secrets；未commit/push/deploy，未改旧worktree或自动进入下一Slice。
+
+## 2026-10-11 — UI v2 Slice 6 功能中心概览数据审计 — STOP / NOT IMPLEMENTED
+
+- Preflight PASS：隔离 worktree design/ui-v2，HEAD 2c9a03032077dec9add6007e0c1a51b7078b7ec2，clean；旧 worktree 原 28 modified + 1 untracked 的状态与29文件SHA256基线一致。阅读 AGENTS、README、UI_V2_IMPLEMENTATION_SPEC、PROJECT_STATE、DECISIONS、BACKLOG、TESTING及真实组件；查看正式ZIP中的 approved/06_功能中心_无图标底框.png。
+- 真实边界为 src/components/ModuleHub.tsx 的 ModuleHub/ModuleHubContent；useModuleAvailability/resolveHubEligibility只汇总四模块合资格Space ID和读取错误，不含业务记录或统计。App传入availability、refresh及原导航回调，首次直接进入功能中心没有已完成的四模块业务快照。资格数量不是任务或清单数量；其他页面可选缓存不能作为完整、持续有效的全空间统计。
+- 参考顶部四项缺口：任务“今日N项”缺少功能中心业务数据及明确的今日/截止/未完成/逾期计数口径；清单“N个清单”需要清单页已有loadListsOverview完整读入，当前Hub不调用；回顾“下次回顾日期”没有独立排期或下一次规则，review_date为回顾记录日期；重要日“最近生日”没有生日类别字段，不得从name/emoji猜测。现有日期引擎可计算重要日倒计时，但不能自动替代生日语义。
+- 按本轮用户明确STOP条件，在UI实施前停止；不新增读取/统计架构，不发明替代指标，不显示硬编码数字，不生成假成功UI预览。仅更新DEVLOG/PROJECT_STATE记录审计阻塞；App、组件、样式、业务、测试、依赖、后端与环境配置均未修改，无secrets读取/输出，无Production连接。
+- 验证为治理文档git diff --check；本轮未实施代码，相关自动测试/build/四宽度与浏览器验收均未运行，不沿用Slice5 PASS作为Slice6证据。未生成Slice6离线视觉预览。正式版本v0.1.20与既有Slice5 LOCAL PASS / VISUAL PASS保持；Space Color System Deferred；无commit/push/deploy。
+- Next Action：用户明确批准顶部四格的信息语义与数据边界后，重新定本Slice最小展示实施范围。可讨论只显示现有模块可用性状态的2×2概览；该替代方案尚未批准、未实施。若保留业务统计，需另行确认可靠口径与允许读取范围，不能在本UI-only授权下扩展。
+
 ## 2026-10-11 — UI v2 Slice 5 月网格 / 日期浮层 — LOCAL PASS / VISUAL PASS
 
 - PRE_CHANGE_BASELINE：隔离 worktree `/Users/wp/Projects/跨系统共享日历-ui-v2`，branch `design/ui-v2`，HEAD `dc97fae3ebfb486b241796c4a8b54277d7b78ce9`，clean。旧 worktree 28 modified + 1 untracked、29 文件 SHA256 完全不变。读取 AGENTS、README、UI_V2_IMPLEMENTATION_SPEC、PROJECT_STATE、DECISIONS、BACKLOG、TESTING 和相关实现；实际查看 approved 04/05 图，ZIP CRC PASS / SHA256 `39ade13689e54d8347b156e339f7c2ea21d47857936d46a440ca7ff07576973a`。

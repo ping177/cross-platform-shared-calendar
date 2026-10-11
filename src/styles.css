@@ -374,3 +374,43 @@ body:has(.ui-calendar-shell) {
   .ui-calendar-month > section { padding-inline: var(--ui-space-1); }
   .ui-month-grid { column-gap: 0; }
 }
+
+/* UI v2 Slice 6: feature center only. */
+.ui-module-entry + .ui-module-entry {
+  border-top: var(--ui-border-width) solid rgb(var(--ui-color-border));
+}
+.ui-module-entry:focus-visible { outline-offset: calc(-1 * var(--ui-focus-width)); }
+.ui-module-overview { min-width: 0; }
+.ui-module-hub .ui-module-entry { min-height: 5.25rem; }
+
+.ui-module-hub { padding-top: calc(var(--ui-space-6) + env(safe-area-inset-top, 0px)); }
+
+/* Compact, equal-height overview cards; module entry rows stay unchanged. */
+.ui-module-metric {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 8.5rem;
+  padding: var(--ui-space-3);
+  border: var(--ui-border-width) solid rgb(var(--ui-color-border) / 0.6);
+}
+.ui-module-metric-content {
+  display: grid;
+  grid-template-rows: 3rem 1.125rem;
+  row-gap: var(--ui-space-1);
+  align-items: center;
+}
+.ui-module-metric-value {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  font-size: 1.125rem;
+  line-height: 1.5rem;
+}
+@media (max-width: 359px) {
+  .ui-module-metric { padding-inline: var(--ui-space-2); }
+  .ui-module-metric-value { font-size: 1rem; }
+}
