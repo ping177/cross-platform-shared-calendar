@@ -12,6 +12,8 @@ v0.1.20
 
 ## Current status
 
+UI v2 Slice8 = LOCAL PASS / VISUAL PASS：用户已确认历史、详情、填写、草稿/已填写状态及透明18px灰绿44×44 +。最终范围11授权文件；相关47/47、全量850/850、npm run build、git diff --check、六视口90/90通过；预览 `/slice8-plus/index.html` 有真实375/390截图。多人回顾仅只读审计，BACKLOG标记Deferred / Design Pending。正式v0.1.20保持；真实账号/双账号/设备/PWA/Production仍未验收。按用户本轮授权创建一次本地commit后状态应clean；未push/deploy，不进入Slice9。旧worktree保持原28 modified + 1 untracked及8725项文件指纹。
+
 UI v2 Slice7 = LOCAL PASS / VISUAL PASS：用户已验收任务列表、页内已完成折叠、任务Sheet、Shared“分配给”、透明18px任务+及全局下拉箭头。15处native select与日历Space按钮触发器采用统一16px chevron/right16/text reserve48px；任务/导航/业务行为保持。完整回归841/841、build与diff-check PASS；一个本地commit已完成。真实账号、iOS/Android、installed PWA与Production尚未验收；未push/deploy。
 
 UI v2 Slice6 = LOCAL PASS / VISUAL PASS：用户已认可四张居中概览卡片视觉；最终范围审查、候选计数修复和完整相关回归317/317、build/diff-check PASS，本地Git closeout完成。业务数量指标保留精确计数，资格/刷新/日期规则保持。真实账号、iOS/Android、installed PWA与Production未验收。此前STOP审计及全部实施记录保留于DEVLOG。
@@ -19,6 +21,12 @@ UI v2 Slice6 = LOCAL PASS / VISUAL PASS：用户已认可四张居中概览卡�
 v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3为LOCAL PASS / VISUAL PASS；Slice4为LOCAL PASS / VISUAL PROVISIONALLY ACCEPTED。Slice5月视图本地验证与离线视觉验收通过：两条短标题/准确+N、六色圆点与日期浮层，261/261相关测试、build/diff-check、28组四宽度离线检查PASS；用户确认普通月、密集月、空月及浮层满意。已授权本地commit；不代表真实账号、真机、installed PWA或Production验收。Space Color System继续Deferred；真实账号/真机/installed PWA/Production未验收。正式版本仍v0.1.20。
 
 ## Latest completed
+
+2026-10-11 — UI v2 Slice8 最终审查与本地 Git Closeout：用户确认视觉，记录LOCAL PASS / VISUAL PASS。11文件授权范围审查；Review相关47/47、全量850/850、build/diff-check及320/360/375/390/768/1024×15状态90/90通过。多人回顾仅只读审计并Deferred / Design Pending；未改业务模型/权限/其他模块。真实账号、双账号、设备/PWA/Production未验收。已授权本地Git closeout，不push/deploy，不自动进入Slice9。详见DEVLOG。
+
+2026-10-11 — Slice8回顾 + 最小视觉修正与多人回顾只读审计：18px透明44×44按钮、原Focus/创建资格/回调保持；47/47及build/diff-check、五宽度20/20通过，最新 `/slice8-plus/index.html`。未来每轮选参与成员的Space容量/创建RPC/前端1/2假设、快照/草稿/权限/历史兼容已审计；详细建议与未决隐私记录BACKLOG Deferred / Design Pending。未实施多人、不收口Slice8，等待用户确认。
+
+2026-10-11 — Slice8回顾模块本地实施/测试/离线预览：历史仅日期/真实轮次/实际状态，详情完整四字段只读与本人编辑，新建沿用上一份本人计划参考；个人无对方，双方面板持续挂载，保存草稿与独立标记保持。849/849、build/diff-check及320/375/390/768/1024共75项布局通过，入口 `/slice8/index.html`。视觉与真实环境尚未验收，未Git closeout。详见DEVLOG。
 
 2026-10-11 — Slice7最终Git closeout：用户验收最新视觉，Slice7 = LOCAL PASS / VISUAL PASS；授权12文件以一个本地commit收口。全量841/841、npm run build、git diff --check PASS；旧worktree 28 modified + 1 untracked及29项指纹保持。真实账号、iOS/Android、installed PWA与Production未验收；未push/deploy。详见DEVLOG。
 
@@ -252,6 +260,8 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
+Slice8用户离线视觉验收PASS，并按授权完成本地Git closeout；新回顾UI尚未push/deploy。真实账号、双账号、设备/PWA与Production验收仍待后续安排。下方Production记录为既有版本历史证据。
+
 Slice7 = LOCAL PASS / VISUAL PASS，已完成本地commit，未push/deploy；新任务UI未发布。真实账号、iOS/Android、installed PWA与Production未验收。
 
 Slice6 = LOCAL PASS / VISUAL PASS，已完成本地commit，未push/deploy。UI v2 Slice1–4仅本地实现/commit；Slice4为LOCAL PASS / VISUAL PROVISIONALLY ACCEPTED。Slice5月视图已LOCAL PASS / VISUAL PASS并完成本地commit；未push/deploy。新UI尚未发布到Production。下方Production与真实设备PASS仅为既有版本历史证据，不代表本轮UI已发布或通过真实设备验收。
@@ -314,17 +324,21 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Last verified
 
-2026-10-11（Slice7用户视觉验收PASS；完整回归841/841、npm run build、git diff --check PASS；真实账号/设备/PWA/Production未验收）
+2026-10-11（Slice8用户离线视觉已确认；相关47/47、完整回归850/850、npm run build、git diff --check PASS；真实CSS 320/360/375/390/768/1024 ×15状态90/90，375实际viewport及390/375原尺寸截图。真实账号/双账号/设备/PWA/Production未验收）
 
 ## Next Action
 
-Slice7本地Git closeout已完成；等待用户下一轮明确授权后再开展后续Slice。真实账号、iOS/Android、installed PWA及Production验收另按AGENTS环境对齐gate安排；Space Color System继续Deferred。
+Slice8已LOCAL PASS / VISUAL PASS并按授权进行本地Git closeout。下一步等待用户另行启动Slice9；不push/deploy。真实账号/双账号/设备/PWA/Production验收应依AGENTS环境对齐gate单独安排。多人回顾保持BACKLOG Deferred / Design Pending，不视作已冻结或已实施。Space Color System继续Deferred。
 
 ## Blockers
 
 暂无明确阻塞。
 
 ## Important Context
+
+- 本轮 + 修正/多人只读审计后检：旧worktree完整8725项（含ignored/共享.git）与本轮前基线完全一致，无新增/删除/修改，原28 modified + 1 untracked保持。下条自动turn-diffs差异是前轮历史记录，本轮未发现新增差异；未自动修复元数据。最新 preview source-manifest六项匹配，增量精确五文件。
+
+- Slice8旧worktree仍28 modified + 1 untracked，全部工作区项目文件及现存基线文件字节指纹保持；包含共享.git的完整清单发现Codex turn-diffs快照引用新增2/移除1，不能宣称全清单完全一致。未修改/恢复/清理Git元数据；具体见DEVLOG及离线old-workspace-postflight.json。预览是离线fixture，不证明真实账号/backend或Realtime验收；原回顾focus刷新与资格/晚响应保护保持，无新增active-view Realtime。
 
 日历视觉基线已由用户明确冻结：小圆点区分Space；标题深色，副信息灰色；不依赖大色块或彩色标题，整体轻、干净、克制。日/周已本地收敛；Slice5月网格/日期浮层已按同一语言本地实现并获离线视觉验收。Space无颜色字段；当前Slice4六色默认圆点palette获用户阶段性接受，但默认色不够鲜亮是已知Deferred事项，不等同配色满意。临时映射以成员Space ID集合消解冲突，最多6个不重复；Space成员增减可能调整映射。未来独立Space Color System目标为用户选择并持久化、身份稳定、日周月一致，其他Space增删不影响已选颜色，默认色更鲜亮；需先设计选择器、色板、存储和迁移。现在不实施自定义颜色/数据库；后续月视图沿用当前冻结整体风格。
 
@@ -402,6 +416,8 @@ Slice7本地Git closeout已完成；等待用户下一轮明确授权后再开�
 - `v0.1.9 Shared Tasks` Slice 1/2/3 are CLOSED / PASS: backend applied/postflight verified, frontend deployed through Vercel, Desktop A/B Production acceptance and iPhone smoke passed. At the v0.1.13 closeout, Structured Review / Check-in and Shared Lists were future candidates; v0.1.14/14.1 subsequently closed, and Shared Lists was selected for v0.1.15. Its design is frozen and Slice 1 DB foundation is `CLOSED / PASS` after Production postflight.
 
 ## Handoff Prompt
+
+Slice8最终状态：LOCAL PASS / VISUAL PASS。用户确认历史列表、详情、填写、草稿/已填写状态及透明18px灰绿44×44 +。worktree `/Users/wp/Projects/跨系统共享日历-ui-v2`，design/ui-v2；本地 closeout 11文件。Review相关47/47、全量850/850、build/diff-check及真实CSS 320/360/375/390/768/1024 ×15状态90/90 PASS；390×844、真实375×844及390完整离线截图已提供，预览 `/slice8-plus/index.html`。新前端和真实组件预览，不是账号/设备/Production验收。业务字段、双人权限和保存/填写语义保持；多人需求仅只读审计，BACKLOG Deferred / Design Pending，Space上限与现行前端/RPC固定1/2人为主要先决限制，未来隐私/资格未决定。正式版本v0.1.20；真实账号、双账号、iOS/Android、installed PWA与Production未验收。用户已授权本地 Git closeout，本轮完成后等待用户另行启动Slice9；不push/deploy。旧worktree28 modified + 1 untracked和既定业务指纹保持；不清理既有共享.git快照元数据。以下Slice7/6/5条目为历史记录。
 
 Slice7任务模块、视觉修正及本地Git closeout已完成，LOCAL PASS / VISUAL PASS。授权12文件（10 modified + 2 untracked）已提交一个本地commit：TasksArea/TaskSheet/styles，App日历选择箭头、ListsOverviewPage/ImportantDateSheet冗余选择器SVG，4个测试与2份治理。App后三模块的本轮修改严格为下拉展示；原查询/导航/业务/权限保持，Home三个+与TaskSheet本轮前源码不改。全局15处native select声明与一个日历按钮选择器共用16px轻chevron、右16px/文本预留48px；不影响日期/折叠/导航箭头，native popup仍系统负责。任务+改为透明44×44/18px首页规格。全量841/841、build/diff-check、84/84响应式与9项本地交互通过。5176 `/slice7/index.html` 提供最新真实组件task15状态、跨模块6状态与390px新截图，fixture/SSR不代表真实接口验收。旧worktree28 modified + 1 untracked及29指纹保持。正式v0.1.20与Space Color System Deferred保持。用户视觉验收已通过，本地closeout完成；不push/deploy、不进入Slice8。真实账号/iOS/Android/PWA/Production仍待验收。以下为既有Slice6/5历史记录。
 

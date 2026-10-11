@@ -11,10 +11,10 @@ const own = { review_id: 'r2', user_id: 'me', focus: null, progress: null, probl
 const other = { ...own, user_id: 'former-member', focus: '长期目标\n第二行', content_revision: 1 };
 const detailSource = readFileSync(new URL('../src/components/ReviewDetailPage.tsx', import.meta.url), 'utf8');
 
-test('detail uses date as the visible identity and calls previous context 上一份计划', () => {
+test('detail shows canonical date and round while keeping 上一份计划 context', () => {
   assert.match(detailSource, /上一份计划/);
   assert.match(detailSource, /上一份计划暂无内容/);
-  assert.doesNotMatch(detailSource, /第 \{detail\.round\.round_no\} 次回顾|上一次下一步计划|上一次暂无计划/);
+  assert.match(detailSource, /第 \{detail\.round\.round_no\} 次回顾/);
 });
 
 test('successful date correction refreshes the date-driven previous plan', () => {
@@ -44,7 +44,7 @@ test('Shared keeps both panels mounted with mobile switching and desktop own-lef
   } finally { await vite.close(); }
 });
 
-test('Personal has only its editor; counterpart is fixed-height read-only with no actions', async () => {
+test('Personal has only its own panel; counterpart keeps all four full read-only fields and no actions', async () => {
   const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
   try {
     const { ReviewDetailPanels } = await vite.ssrLoadModule('/src/components/ReviewDetailPage.tsx');
@@ -53,10 +53,9 @@ test('Personal has only its editor; counterpart is fixed-height read-only with n
     assert.doesNotMatch(personal, /tablist|review-other-panel|md:grid-cols-2|对方/);
     assert.match(personal, /正在读取回顾内容/);
     const counterpart = renderToStaticMarkup(React.createElement(ReviewReadOnlyEntry, { entry: other }));
-    assert.equal((counterpart.match(/role="textbox"/g) ?? []).length, 4);
-    assert.equal((counterpart.match(/overflow-y-auto/g) ?? []).length, 4);
-    assert.equal((counterpart.match(/h-36/g) ?? []).length, 3);
-    assert.equal((counterpart.match(/h-24/g) ?? []).length, 1);
+    assert.equal((counterpart.match(/<h3/g) ?? []).length, 4);
+    for (const label of ['近期专注事项', '近期进展', '面临问题', '下一步计划']) assert.ok(counterpart.includes(label));
+    assert.doesNotMatch(counterpart, /line-clamp|overflow-hidden|h-24|h-36/);
     assert.match(counterpart, /whitespace-pre-wrap/);
     assert.doesNotMatch(counterpart, /<button|<textarea|我已填写/);
   } finally { await vite.close(); }

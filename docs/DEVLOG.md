@@ -1,5 +1,39 @@
 # Development Log
 
+## 2026-10-11 — UI v2 Slice 8 最终审查与本地 Git Closeout — LOCAL PASS / VISUAL PASS
+
+- 用户已验收 Slice8 的历史列表、阅读详情、填写页面、草稿/已填写状态，以及回顾首页18px灰绿色透明 + 与44×44触控区：「可以了。」记录 **LOCAL PASS / VISUAL PASS**。正式版本仍为v0.1.20；真实账号、双账号、iOS/Android、installed PWA与Production仍待独立验收。
+- Preflight PASS：branch `design/ui-v2`，起点HEAD `c92f55d9dd9d24f8fcaaf6b3d4c7f53940824a49`，原 Slice8 10 modified + 1 untracked，staged area为空。最终授权清单11文件与实际完全相同；仅五个组件/styles、三个直接UI测试和DEVLOG/PROJECT_STATE/BACKLOG。没有其他目标worktree文件变更。
+- 业务/范围审查通过：历史默认列表与真实日期/round_no顺序和参与者状态；Personal无虚构第二人；详情完整保留focus/progress/problems/next_plan与参与者只读区分；保存草稿仍独立于mark filled，revision状态、失败重试/重复提交/迟到响应、上一轮本人next_plan、创建/编辑/日期更正、资格/权限/导航均沿用原实现。本轮 + 只改展示尺寸/色彩/热区与直接断言；没有改双人回顾业务规则、App、数据层、backend或其他模块。
+- 重跑相关Review/下拉/Tasks UI测试 **47/47 PASS**；完整Node回归 `node --test tests/*.test.ts tests/*.test.js` **850/850 PASS**，fail/cancel/skip均0。`npm run build` PASS（tsc -b/Vite，1719 modules；JS795.74kB/gzip229.84kB，保留既有>500kB警告）；`git diff --check` PASS。首个沙箱内构建因Vite配置临时文件写权限EPERM失败，按授权目录权限重跑同命令后成功，不是代码构建失败。
+- 最新真实React源码离线预览仍为5176 `/slice8-plus/index.html`，15个离线状态。真实CSS宽度320/360/375/390/768/1024 ×15 **90/90 PASS**：无文档/正文横向溢出，Personal列表/详情无第二参与者文案；375为实际CSS viewport。截图390×844、375×844及完整390×908均为原尺寸；仅完整离线内容图临时隐藏固定底栏。Tab的2px Focus、Enter原创建入口也通过，取消后未创建数据。Fixtures无真实账户/DB/Production连接。
+- 多人回顾只读审计记录于BACKLOG **Deferred / Design Pending**：Entry可作每轮快照但当前Space容量、RPC和前端数据形状固定1/2人；非参与者隐私/草稿/进度、名单变化、历史、成员生命周期及上一轮计划选择仍未决定。本轮没有实施、迁移或冻结规则。
+- 旧worktree与本轮前8725项全指纹完全一致（新增/移除/字节改变0），原28 modified + 1 untracked保持。本地index此前为空；按用户本轮明确授权仅暂存上述11文件并创建一次本地commit，无amend、force、push或deploy；Slice9不自动启动。空间/Codex历史自动快照差异保持原记录，不清理元数据。
+
+## 2026-10-11 — Slice8 回顾 + 视觉修正与多人回顾只读审计
+
+- 本轮 preflight PASS：design/ui-v2，HEAD `c92f55d9dd9d24f8fcaaf6b3d4c7f53940824a49`，已有9 modified + 1 untracked，暂存区空。保留前轮 Slice8 实现与所有历史验证记录。用户本轮授权透明 + 修正、必要测试及治理/只读审计，不是 Slice8 收口或多人实施授权。
+- ReviewHistoryPage 仅把创建按钮展示换为已验收 Home/Tasks 的 18px 灰绿 Plus、透明背景、44×44 热区及原 ui-focus；原 disabled 条件与 onClick 完全保持。无 App/CSS/业务数据层/其他模块增量。新增现有 review-history-ui 的真实组件渲染断言先 RED（7 pass/1 fail），后相关 Review/dropdown/tasks UI **47/47 PASS**，fail/skip/cancel 为0；`npm run build` PASS（tsc-b/Vite1719模块、既有>500kB chunk提示保持）。本轮没有重跑前轮849项全量测试，不将前轮结果冒充本轮。
+- 重新编译最新真实 React 四个回顾组件、原底栏与最新 build CSS，生成5176 `/slice8-plus/index.html` 15个离线状态，前轮 `/slice8` 保留。fixtures 为内存模拟、envFile=false、CSP connect-src none，无生产账号/数据库连接。320/375/390/768/1024 × 历史/空/个人/创建受限 **20/20 PASS**：无横向溢出、按钮44×44、SVG18、透明底；375 为真实 CSS 视口。键盘 Tab outline2px/offset2px，Enter 打开原创建弹窗并取消，不创建记录；受限状态原 disabled 保持。新 `history-plus-390.jpg`、`history-plus-375.jpg` 及 `history-plus-full-390.jpg` 为原尺寸截图；完整图仅离线 capture=content 省略固定底栏，与前轮方法一致。
+- 完成仓库 schema、foundation/date patches、Review/Space 数据流与治理文档只读审计，详细结果写入 BACKLOG **Deferred / Design Pending**。当前 Entry 本身是可复用的每轮参与快照，没有表级两行约束；但创建 RPC、前端映射及 Space 入群/成员约束都固定1/2人。现行参与者可读其他参与者已保存草稿；can_read 同时用于日期更正，未来不能盲目扩展阅读。退出保留历史 Entry，但当前 membership 决定访问；上一份计划取 Space 紧邻上一轮，未参加则 null。每轮选人不自动批准非参与者隐私、进度分母、可变名单或新历史权限。
+- 本轮只增量5文件：ReviewHistoryPage、review-history-ui.test、BACKLOG、DEVLOG、PROJECT_STATE；Slice8累计10 modified + 1 untracked（11文件），仍未暂存。未来最小调整及风险是建议，未写 DECISIONS 冻结，未改 schema/RPC/RLS/Space 业务、未连接生产；四字段/保存草稿与我已填写、当前双人权限及创建回调不变。无依赖安装或环境改动。
+- 最终 `git diff --check` PASS；6项源码 manifest 全匹配，本轮增量精确5文件。旧 worktree 全量8725项（含ignored、共享.git、符号链接）与本轮前基线逐项完全一致：新增/删除/修改均0，28 modified + 1 untracked原状态一致；本轮未出现新的Git元数据差异。具体见最新预览的 plus-postflight.json/old-workspace-plus-postflight.json，前轮自动引用差异仍作为历史记录保留。仅临时预览/日志为外部产物；未查看/打印/修改 secret 内容，指纹程序读取字节、原 build 加载原环境，不将其复制进预览。Slice8 **LOCAL PASS / VISUAL ACCEPTANCE PENDING**，多人需求 **Deferred / Design Pending**；停止等用户视觉/未来规则确认。未commit/push/deploy，不收口 Slice8，不进入 Slice9；真实账号/设备/PWA/Production未验收。
+
+## 2026-10-11 — UI v2 Slice 8 回顾模块 — LOCAL PASS / VISUAL ACCEPTANCE PENDING
+
+- 用户已批准最小方案及补充约束：Personal无虚构对方、Shared仅实际参与者、草稿与已填写严格分开、增加真实375px CSS视口。Preflight PASS：design/ui-v2，HEAD `c92f55d9dd9d24f8fcaaf6b3d4c7f53940824a49`，clean/index为空。阅读治理/实施规格与真实Review数据流，核对正式ZIP approved/08、09、10；正式版本保持v0.1.20。
+- 最终10文件：ReviewHistoryPage/ReviewDetailPage/ReviewEntryEditor/ReviewReadOnlyEntry、局部styles、两个既有UI测试、新review-ui-v2测试、DEVLOG/PROJECT_STATE。App及所有业务数据层/hooks/types未改；无数据库/RPC/RLS/Push/Reminder/Realtime/backend/依赖/环境配置修改。首页、日历、底栏、功能中心、任务、清单与重要日源码保持；不实施Space Color System。
+- 历史页仍为模块默认入口，沿用review_date倒序、round_no倒序与分页/Space/成员/资格/创建规则。分组行仅真实日期、真实第N次、本人及实际对方状态，不展开内容摘要；保留空/加载/失败/不可用/刷新/加载更多。Personal不产生对方状态；共享缺成员时保留历史及原创建禁用提示。全局Slice7原生select箭头未改。
+- 详情默认阅读，展示日期、真实round_no及实际填写状态；四字段完整阅读，无截断/固定高度正文框。共享两个面板持续挂载，手机切换不丢本人草稿；Personal仅本人面板。仅本人可进入四字段编辑，对方始终只读；返回dirty确认、日期更正、读取/资格变化/请求代次与原focus刷新接线保持。既有回顾没有独立active-view Realtime订阅，本轮不新增或宣称即时跨成员刷新。
+- 编辑保持focus/progress/problems/next_plan真实语义、存储/验证/权限调用。仅新增本地阅读/填写切换、取消dirty确认与焦点恢复；保存失败保留输入，busy禁止取消，同步提交ref与generation保护保持。保存草稿不执行mark，不自动完成对方；未填写/编辑中/已填写/有更新仍来自canonical revisions。独立“我已填写”成功后回阅读。justCreated直接填写，原get_my_previous_review_plan及仅新建时参考本人上一轮next_plan能力保持，参考不自动复制，无新增业务机制。
+- 使用现有ui tokens：暖白、深标题/灰副信息、轻圆角/细分隔线，局部ui-review CSS；触控至少44px、输入16px、可见Focus与既有ui-safe-bottom，加safe-area-inset-top。320/375行状态换至日期下方；768起实际共享双方并排。键盘进入编辑聚焦首字段、取消/标记成功回编辑入口，离线确认outline2px。
+- RED后GREEN：相关回顾测试40/40 PASS；完整Node回归 `node --test tests/*.test.ts tests/*.test.js` **849/849 PASS**（失败/取消/跳过均0），覆盖Review业务/资格/排序/返回/previous plan、四字段、权限变化/重复提交/请求失效及首页/日历/Hub/任务/导航等。`npm run build` PASS（tsc-b + Vite、1719模块、JS795.73kB/gzip229.84kB；既有>500kB提示保持）；最终`git diff --check` PASS。日志 `/private/tmp/calendar-slice8-full-tests.log`、`calendar-slice8-build.log`。
+- 最新真实四个React组件及原BottomNavigation编译离线fixtures；envFile=false、内存适配器、CSP connect-src none，无真实账号或Supabase写入。5176 `/slice8/index.html` 15状态：历史/空/单次/详情/填写/草稿/双方已填写/个人历史与详情/长内容/加载/失败/不可用/创建受限/保存失败。source-manifest与本轮源码匹配。真实320/375/390/768/1024 ×15 **75/75布局检查PASS**，无横向溢出、控件至少44px、输入16px、Personal无对方。375实测innerWidth与main均375，不缩放390截图。
+- 补齐7个390px视口及完整截图、历史/详情/填写375px截图；390填写完整图390×1593。完整图使用仅离线capture=content移除固定底栏以避免长图中途遮字，正常预览与viewport截图保留原底栏；不修改真实导航。原生fullPage截图偶发宽度绘制异常，已改为保持真实390/375 CSS宽度、扩展视口高度的viewport截图完成长图，尺寸及main宽度见screenshot-checks.json；重拍后目视核验。浏览器交互确认历史进入/返回、Space切换Personal、四字段编辑/焦点、无dirty取消、新建后原上轮计划参考、失败保留/重试、草稿保存与独立mark；控制台warn/error为0。共享面板只读与切换保留草稿已验证。原生dirty confirm浏览器未完成（工具对原生对话框控制受限）；接受/拒绝及busy路径由真实handler自动测试覆盖，不宣称设备或真实账号验收。
+- 五轴审查：本地UI状态仅围绕既有数据调用；canonical状态/身份、分页/查询/权限不变，内容使用React文本转义，无新依赖、网络请求或持久存储。测试包含失败、权限及晚响应；无新增业务字段/状态/工作流。自动技术检查通过，用户视觉验收仍待进行。
+- 旧worktree终查28 modified + 1 untracked；全部工作区项目文件与基线一致，现存原文件字节SHA256无变化。包含共享.git的8723项全清单有审计例外：`.git/refs/codex/turn-diffs/`自动快照引用新增2、移除1；完整清单因此不是逐项一致。未修改/恢复/清理这些元数据，无stash/reset/clean。具体路径见离线`old-workspace-postflight.json`；不得将项目文件保持误报为全部.git清单完全匹配。
+- 未查看、打印或修改.env/secret内容；全文件指纹校验读取原文件字节，Vite按原配置加载环境，不将环境内容复制进预览。预览/截图/报告仅临时验证产物，未修改外部项目业务文件。**LOCAL PASS / VISUAL ACCEPTANCE PENDING**；真实账号、双账号、iOS/Android、软键盘/非零Safe Area、installed PWA及Production未验收，未来认证前按AGENTS环境对齐gate。未暂存/commit/push/deploy，不进入Slice9；停止等待用户视觉验收。
+
 ## 2026-10-11 — UI v2 Slice 7 最终审查与本地 Git Closeout — LOCAL PASS / VISUAL PASS
 
 - 用户已明确验收最新离线视觉：「我认为可以了，收口吧。」最终范围严格为授权12文件：6个任务/下拉展示文件、2个新增测试、2个相关测试及DEVLOG/PROJECT_STATE；新增 `tests/tasks-ui-v2.test.ts` 与 `tests/dropdown-ui.test.ts` 均已纳入提交。无其他文件、依赖或后端改动。

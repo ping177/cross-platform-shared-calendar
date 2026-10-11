@@ -78,7 +78,7 @@ test('historical row opens the canonical review id without newly-created context
     const markup = renderToStaticMarkup(tree);
     assert.match(markup, /打开 2026-09-26 回顾，我：已填写，对方：编辑中/);
     assert.match(markup, /<time[^>]*>2026-09-26<\/time>/);
-    assert.doesNotMatch(markup, /第\s*2\s*次|round_no/);
+    assert.match(markup, /第\s*2\s*次/);
     assert.match(markup, /我：已填写/);
     assert.match(markup, /对方：编辑中/);
     assert.match(renderToStaticMarkup(React.createElement(ReviewHistorySummary, { totalCount: 0 })), /共 0 篇回顾/);
@@ -86,5 +86,40 @@ test('historical row opens the canonical review id without newly-created context
     const button = (tree.props as { children: React.ReactElement[] }).children[0];
     (button.props as { onClick: () => void }).onClick();
     assert.deepEqual(targets, [{ spaceId: 's', reviewId: 'r2', justCreated: false }]);
+  } finally { await vite.close(); }
+});
+
+
+test('history preserves supplied canonical order, real round numbers, and personal participants only', async () => {
+  const vite = await createServer({ configFile: false, envFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
+  try {
+    const { ReviewHistoryRows } = await vite.ssrLoadModule('/src/components/ReviewHistoryPage.tsx');
+    const rows = [{ round: { id: 'new-date', space_id: 's', round_no: 2, review_date: '2026-10-11' }, mine: '编辑中', other: null }, { round: { id: 'older-date', space_id: 's', round_no: 9, review_date: '2026-10-01' }, mine: '有更新', other: null }];
+    const html = renderToStaticMarkup(React.createElement(ReviewHistoryRows, { rows, onOpenDetail() {} }));
+    assert.ok(html.indexOf('new-date') < html.indexOf('older-date'));
+    assert.match(html, /第\s*2\s*次/); assert.match(html, /第\s*9\s*次/);
+    assert.match(html, /我：编辑中/); assert.match(html, /我：有更新/);
+    assert.doesNotMatch(html, /对方|近期进展|下一步计划|Review/);
+  } finally { await vite.close(); }
+});
+
+
+test('Review create control uses the accepted transparent 18px plus and 44px focusable target', async () => {
+  const vite = await createServer({ configFile: false, envFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
+  try {
+    const { ReviewHistoryPage } = await vite.ssrLoadModule('/src/components/ReviewHistoryPage.tsx');
+    const html = renderToStaticMarkup(React.createElement(ReviewHistoryPage, {
+      userId: 'me', entry: { memberSpaces: [owner], eligibleSpaces: [owner] }, currentSpaceId: owner.id,
+      onSpaceChange() {}, onOpenDetail() {}, onHubBack() {},
+    }));
+    const create = html.match(/<button[^>]*aria-label="新建回顾"[^>]*>[\s\S]*?<\/button>/)?.[0];
+    assert.ok(create);
+    assert.match(create, /h-11 w-11/);
+    assert.match(create, /bg-transparent/);
+    assert.match(create, /text-ui-accent/);
+    assert.match(create, /ui-focus/);
+    assert.match(create, /width="18" height="18"/);
+    assert.match(create, /aria-hidden="true"/);
+    assert.doesNotMatch(create, /bg-ui-accent|text-ui-on-accent/);
   } finally { await vite.close(); }
 });

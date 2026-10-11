@@ -15,26 +15,27 @@ function detailError(error: unknown, fallback: string): string {
   return /[\u3400-\u9fff]/u.test(message) ? message : fallback;
 }
 
-export function ReviewDetailPanels({ detail, userId, mobilePanel, onMobilePanelChange, onDirtyChange }: {
+export function ReviewDetailPanels({ detail, userId, mobilePanel, onMobilePanelChange, onDirtyChange, startEditing = false }: {
   detail: ReviewDetail;
   userId: string;
   mobilePanel: 'mine' | 'other';
+  startEditing?: boolean;
   onMobilePanelChange: (panel: 'mine' | 'other') => void;
   onDirtyChange: (dirty: boolean) => void;
 }) {
   const shared = detail.other !== null;
   return <>
-    {shared && <div className="mt-4 grid grid-cols-2 gap-2 md:hidden" role="tablist" aria-label="回顾参与者">
-      <button className={`min-h-11 rounded-lg font-semibold ${mobilePanel === 'mine' ? 'bg-teal text-white' : 'bg-white text-ink'}`} id="review-mine-tab" type="button" role="tab" aria-selected={mobilePanel === 'mine'} aria-controls="review-mine-panel" onClick={() => onMobilePanelChange('mine')}>我的</button>
-      <button className={`min-h-11 rounded-lg font-semibold ${mobilePanel === 'other' ? 'bg-teal text-white' : 'bg-white text-ink'}`} id="review-other-tab" type="button" role="tab" aria-selected={mobilePanel === 'other'} aria-controls="review-other-panel" onClick={() => onMobilePanelChange('other')}>对方</button>
+    {shared && <div className="mt-ui-6 grid grid-cols-2 gap-ui-2 md:hidden" role="tablist" aria-label="回顾参与者">
+      <button className={`ui-focus min-h-ui-touch rounded-ui-control text-ui-meta font-ui-semibold ${mobilePanel === 'mine' ? 'bg-ui-accent-soft text-ui-accent' : 'bg-ui-surface text-ui-muted'}`} id="review-mine-tab" type="button" role="tab" aria-selected={mobilePanel === 'mine'} aria-controls="review-mine-panel" onClick={() => onMobilePanelChange('mine')}>我的</button>
+      <button className={`ui-focus min-h-ui-touch rounded-ui-control text-ui-meta font-ui-semibold ${mobilePanel === 'other' ? 'bg-ui-accent-soft text-ui-accent' : 'bg-ui-surface text-ui-muted'}`} id="review-other-tab" type="button" role="tab" aria-selected={mobilePanel === 'other'} aria-controls="review-other-panel" onClick={() => onMobilePanelChange('other')}>对方</button>
     </div>}
     <div className={`mt-4 grid min-w-0 gap-4 ${shared ? 'md:grid-cols-2 md:items-start' : ''}`}>
       <div className={`min-w-0 ${shared && mobilePanel !== 'mine' ? 'hidden md:block' : ''}`} id="review-mine-panel" role={shared ? 'tabpanel' : undefined} aria-labelledby={shared ? 'review-mine-tab' : undefined}>
-        <h2 className="mb-2 font-semibold">我</h2>
-        <ReviewEntryEditor reviewId={detail.round.id} userId={userId} onDirtyChange={onDirtyChange} />
+        <h2 className="mb-ui-3 text-ui-section">我</h2>
+        <ReviewEntryEditor reviewId={detail.round.id} userId={userId} startEditing={startEditing} onDirtyChange={onDirtyChange} />
       </div>
       {detail.other && <div className={`min-w-0 ${mobilePanel !== 'other' ? 'hidden md:block' : ''}`} id="review-other-panel" role="tabpanel" aria-labelledby="review-other-tab">
-        <h2 className="mb-2 font-semibold">对方</h2>
+        <h2 className="mb-ui-3 text-ui-section">对方</h2>
         <ReviewReadOnlyEntry entry={detail.other} />
       </div>}
     </div>
@@ -157,37 +158,38 @@ export function ReviewDetailPage({ target, userId, onBack, onDirtyChange, onUnav
     }
   }
 
-  return <main className="mx-auto min-h-screen w-full max-w-5xl px-4 py-4 safe-bottom">
+  return <main className="ui-review-page mx-auto min-h-screen w-full max-w-5xl bg-ui-page px-ui-4 py-ui-6 font-ui text-ui-text ui-safe-bottom">
     <header className="flex min-h-11 min-w-0 items-center gap-3">
-      <button className="inline-flex min-h-11 shrink-0 items-center gap-1 font-semibold text-teal" type="button" onClick={back}><ChevronLeft size={18} />回顾列表</button>
-      <span className="min-w-0 break-words text-sm text-ink/60">回顾详情</span>
+      <button className="ui-focus inline-flex min-h-ui-touch shrink-0 items-center gap-ui-1 rounded-ui-control text-ui-meta font-ui-semibold text-ui-accent" type="button" onClick={back}><ChevronLeft size={18} />回顾列表</button>
+      <span className="min-w-0 break-words text-ui-meta text-ui-muted">回顾详情</span>
     </header>
     {phase === 'loading' && <p className="mt-4" role="status">正在读取回顾详情…</p>}
-    {phase === 'error' && <div className="mt-4" role="alert">{error}<button className="ml-2 min-h-11 font-semibold text-teal" type="button" onClick={() => void refreshDetail()}>重试</button></div>}
-    {phase === 'unavailable' && <p className="mt-4 rounded-lg bg-white p-4 text-sm text-ink/70 shadow-sm" role="alert">这次回顾暂不可访问，请返回历史列表。</p>}
+    {phase === 'error' && <div className="mt-4" role="alert">{error}<button className="ui-focus ml-ui-2 min-h-ui-touch min-w-11 rounded-ui-control font-ui-semibold text-ui-accent" type="button" onClick={() => void refreshDetail()}>重试</button></div>}
+    {phase === 'unavailable' && <p className="mt-ui-4 rounded-ui-group border border-ui-border bg-ui-surface p-ui-4 text-ui-meta text-ui-muted" role="alert">这次回顾暂不可访问，请返回历史列表。</p>}
     {phase === 'ready' && detail && <>
-      <section className="mt-4 min-w-0 rounded-lg bg-white p-4 shadow-sm">
-        <h1 className="break-words text-xl font-bold">{formatReviewDate(detail.round.review_date)}</h1>
-        <button className="mt-2 min-h-11 text-sm font-semibold text-teal" type="button" aria-label="更正回顾日期" onClick={openDate}>更正日期</button>
+      <section className="mt-ui-6 min-w-0">
+        <h1 className="break-words text-ui-page-title">{formatReviewDate(detail.round.review_date)}</h1>
+        <p className="mt-ui-1 text-ui-meta text-ui-muted">第 {detail.round.round_no} 次回顾</p>
+        <button className="ui-focus mt-ui-2 min-h-ui-touch min-w-11 rounded-ui-control text-ui-meta font-ui-semibold text-ui-accent" type="button" aria-label="更正回顾日期" onClick={openDate}>更正日期</button>
       </section>
-      {refreshError && <div className="mt-3 text-sm text-coral" role="alert">{refreshError}<button className="ml-2 min-h-11 font-semibold text-teal" type="button" onClick={() => void refreshDetail()}>重试</button></div>}
-      {target.justCreated && <section className="mt-4 min-w-0 rounded-lg bg-white p-4 shadow-sm" aria-label="上一份计划参考">
-        <h2 className="font-semibold">上一份计划</h2>
-        <p className="mt-1 text-xs text-ink/60">仅供参考，不会复制到本次回顾。</p>
-        {previousState === 'loading' && <p className="mt-3 text-sm text-ink/60" role="status">正在读取上一份计划…</p>}
-        {previousState === 'error' && <p className="mt-3 text-sm text-coral" role="alert">上一份计划暂时无法读取。<button className="ml-2 min-h-11 font-semibold text-teal" type="button" onClick={() => void refreshPrevious(detail.round)}>重试</button></p>}
-        {previousState === 'ready' && <div className="mt-3 h-36 min-w-0 overflow-y-auto whitespace-pre-wrap break-words rounded-lg border border-ink/15 bg-mist/30 px-4 py-3 text-sm">{previousPlan ?? '上一份计划暂无内容'}</div>}
+      {refreshError && <div className="mt-3 text-ui-meta text-ui-danger" role="alert">{refreshError}<button className="ui-focus ml-ui-2 min-h-ui-touch min-w-11 rounded-ui-control font-ui-semibold text-ui-accent" type="button" onClick={() => void refreshDetail()}>重试</button></div>}
+      {target.justCreated && <section className="mt-ui-6 min-w-0 rounded-ui-group border border-ui-border bg-ui-surface p-ui-4" aria-label="上一份计划参考">
+        <h2 className="text-ui-list font-ui-semibold">上一份计划</h2>
+        <p className="mt-ui-1 text-ui-meta text-ui-muted">仅供参考，不会复制到本次回顾。</p>
+        {previousState === 'loading' && <p className="mt-ui-3 text-ui-meta text-ui-muted" role="status">正在读取上一份计划…</p>}
+        {previousState === 'error' && <p className="mt-3 text-ui-meta text-ui-danger" role="alert">上一份计划暂时无法读取。<button className="ui-focus ml-ui-2 min-h-ui-touch min-w-11 rounded-ui-control font-ui-semibold text-ui-accent" type="button" onClick={() => void refreshPrevious(detail.round)}>重试</button></p>}
+        {previousState === 'ready' && <div className="mt-ui-3 max-h-36 min-w-0 overflow-y-auto whitespace-pre-wrap break-words text-ui-body text-ui-muted">{previousPlan ?? '上一份计划暂无内容'}</div>}
       </section>}
-      <ReviewDetailPanels detail={detail} userId={userId} mobilePanel={mobilePanel} onMobilePanelChange={setMobilePanel} onDirtyChange={setDirty} />
+      <ReviewDetailPanels detail={detail} userId={userId} mobilePanel={mobilePanel} onMobilePanelChange={setMobilePanel} onDirtyChange={setDirty} startEditing={target.justCreated} />
     </>}
     {dateOpen && detail && <div className="fixed inset-0 z-40 flex items-end bg-ink/50 p-4 md:items-center" role="dialog" aria-modal="true" aria-labelledby="review-date-title" onClick={(event) => { if (event.target === event.currentTarget && !dateBusy) setDateOpen(false); }}>
-      <form className="mx-auto w-full max-w-md rounded-lg bg-white p-5 shadow-soft safe-bottom" onSubmit={(event) => void saveDate(event)}>
-        <h2 id="review-date-title" className="text-lg font-bold">更正回顾日期</h2>
-        <p className="mt-2 text-sm text-ink/65">当前日期：{formatReviewDate(detail.round.review_date)}</p>
-        <label className="mt-4 block text-sm font-semibold" htmlFor="review-corrected-date">回顾日期</label>
-        <input id="review-corrected-date" className="mt-2 min-h-11 w-full rounded-lg border border-ink/20 px-3" type="date" required value={dateDraft} onChange={(event) => setDateDraft(event.target.value)} disabled={dateBusy} />
-        {dateError && <p className="mt-3 text-sm text-coral" role="alert">{dateError}</p>}
-        <div className="mt-5 flex justify-end gap-2"><button className="min-h-11 rounded-lg bg-mist px-4 font-semibold" type="button" disabled={dateBusy} onClick={() => setDateOpen(false)}>取消</button><button className="min-h-11 rounded-lg bg-teal px-4 font-semibold text-white disabled:opacity-50" type="submit" disabled={dateBusy || !dateDraft}>{dateBusy ? '保存中…' : '保存日期'}</button></div>
+      <form className="mx-auto w-full max-w-md rounded-ui-sheet bg-ui-page p-ui-5 shadow-ui-sheet ui-safe-bottom" onSubmit={(event) => void saveDate(event)}>
+        <h2 id="review-date-title" className="text-ui-section">更正回顾日期</h2>
+        <p className="mt-ui-2 text-ui-meta text-ui-muted">当前日期：{formatReviewDate(detail.round.review_date)}</p>
+        <label className="mt-ui-4 block text-ui-meta font-ui-semibold" htmlFor="review-corrected-date">回顾日期</label>
+        <input id="review-corrected-date" className="ui-focus mt-ui-2 min-h-ui-touch w-full min-w-0 rounded-ui-control border border-ui-control bg-ui-surface px-ui-3 text-ui-body" type="date" required value={dateDraft} onChange={(event) => setDateDraft(event.target.value)} disabled={dateBusy} />
+        {dateError && <p className="mt-3 text-ui-meta text-ui-danger" role="alert">{dateError}</p>}
+        <div className="mt-5 flex justify-end gap-2"><button className="ui-focus min-h-ui-touch min-w-11 rounded-ui-control bg-ui-soft px-ui-4 font-ui-semibold" type="button" disabled={dateBusy} onClick={() => setDateOpen(false)}>取消</button><button className="ui-focus min-h-ui-touch min-w-11 rounded-ui-control bg-ui-accent px-ui-4 font-ui-semibold text-ui-on-accent disabled:opacity-50" type="submit" disabled={dateBusy || !dateDraft}>{dateBusy ? '保存中…' : '保存日期'}</button></div>
       </form>
     </div>}
   </main>;

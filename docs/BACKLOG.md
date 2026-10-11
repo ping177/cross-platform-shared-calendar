@@ -258,6 +258,47 @@ The long-term relationships and v0.1.10 scope are frozen in [Shared Life Archite
 
 The historical future direction is now the approved v0.1.19 contract above. Shared without assignee recipients are current Space members; historical null remains off. Local implementation is complete, but no deployment or Push acceptance is claimed. Use the spec and TESTING for current scope/status.
 
+### 每轮自选参与成员的多人回顾 — Deferred / Design Pending
+
+2026-10-11，只读仓库架构审计。**用户确认的未来方向只有：每次回顾自行选择参与的 Space 成员，不默认全员参与。** 未选实施版本、未批准数据迁移或权限变更；以下方案是可行性建议，非冻结决定。本轮未连接 Production 数据库、未修改 schema/migration/RPC/RLS，也未实施多人回顾。
+
+#### 现状与限制（仓库静态事实）
+
+| 审计项 | 当前实现及影响 |
+| --- | --- |
+| Round 结构/顺序 | `review_rounds` 保存 id、space_id、不可变 round_no、review_date、created_by、created_at；Space 内 round_no 和 review_date 分别唯一。展示按真实日期倒序，轮次身份不随日期修改而重排。没有全轮提交状态或独立参与者数组。 |
+| Entry 与参与者 | `review_entries` 主键 `(review_id,user_id)`，四字段 focus/progress/problems/next_plan、content_revision/filled_revision/updated_at；每行同时代表该轮参与者快照。表没有固定两行的数量约束；user_id 不外键关联会级联删除的 membership，身份由创建 RPC 从当时成员集合生成且禁止改写。 |
+| 固定人数创建 | `create_review_round(space_id,date)` 不接受选人参数；Personal 必须1名、Shared 必须2名，事务内为全部当时成员建立空 Entry。Space/module/actor 校验、Space 锁、日期去重和 max(round_no)+1 都在服务端。 |
+| Space 的先决限制 | `join_space_by_invite_code`、`lock_space_membership_change` 和 deferred `check_shared_space_final_state` 均限制共享 Space 最多2人。不能仅改 Review 创建资格就实现3人以上。SpaceManagementPage 还用单个 otherMember 处理成员展示/操作；多人 Space 的邀请、移除、转让与其他业务回归必须作为独立前置范围。 |
+| 前端固定两人 | review-history 的 canCreateReview、mapReviewHistory，review-detail 的 mapReviewDetail 精确要求 Personal1/Shared2；数据形状是 mine/other 或 own/other，详情两面板，Shared“两位成员”创建提示。收到3行会报不完整/不可用，不能直接放宽后端给旧前端使用。 |
+| 阅读/可见性 | `can_read_review_round` 要求当前仍为该 Space 成员且有自己的 Entry；Round/Entry SELECT RLS 共用此检查。合格参与者可读整轮所有 Entry，包括他人已保存但未标记的草稿；未保存本地输入不在数据库。未参与者即使是 Space owner 也没有该轮读取资格。此处陈述现行规则，不替未来作隐私决定。 |
+| 草稿/已填写/进度 | 保存仅真实字段变化时增加 content_revision，不自动标记；独立 mark RPC 要求非空，filled_revision 标记当前 revision，重复调用幂等。未填写/编辑中/已填写/有更新由内容及 revision 派生；没有持久化整轮完成状态或百分比。未来可从参与快照派生统计，但离开成员分母及“有更新”是否算完成待定。 |
+| 写入及日期更正 | 表直接写入被撤销；save/mark 使用 auth.uid() 且只改本人。correct_review_date 同样共用 can_read_review_round；未来如扩展非参与者阅读，必须独立审查读、本人写及日期管理资格，避免放宽阅读连带授予日期更正。 |
+| 加入/退出/历史 | leave/remove 删除 membership，不删除 Entry；退出者立即失去现行读写资格，仍在 Space 的原参与者可读其历史内容。新成员无旧轮 Entry，不能读取旧轮；同一 user_id 重新加入按现行检查可恢复原轮访问。删除 Space 会级联删除 Round/Entry。账号注销生命周期未由本次静态审计验证，user_id 无账号外键及 created_by 的账号外键需未来另行核对。 |
+| 姓名/历史身份 | current space-members 读取当前成员及 profiles；profiles SELECT 仅本人或当前同 Space 身份，不能假定已退出者姓名可从现有接口读到。历史 UI 要有合法的参与者身份投影/安全回退；不能为了显示姓名自动扩大 profiles 可见性。 |
+| 上一轮计划 | get_my_previous_review_plan 按真实日期先找 Space 紧邻上一轮，再取本人 next_plan；若本人没参加那一轮返回 null，不跳到更早“本人参加过”的轮次。不同轮选人后这将更常发生，保留原语义或改为上一轮本人参与需要确认；本轮不改。 |
+| 列表/概览/数据完整性 | 历史 exact count、最新回顾概览受现行 RLS 限制，是本人可见轮次，不代表全 Space。未来非参与者读取会影响历史计数/概览/深链恢复；人数扩展还需检查每页20轮的 Entry 批量读取完整性及服务端行数上限，避免少读后把错误人数当完成比例。 |
+
+依据：[Review foundation patch](../supabase/patches/2026-09-26-v0.1.14-review-foundation.sql)、[date chronology patch](../supabase/patches/2026-09-26-v0.1.14-review-date-chronology.sql)、[schema](../supabase/schema.sql) 中 Review 2057–2345、join_space 786–847、membership guards 1815–1864、leave/remove 1924–1967、profiles SELECT 1277–1284；[review-history](../src/lib/review-history.ts)、[review-detail](../src/lib/review-detail.ts)、[review-entry](../src/lib/review-entry.ts)、相应 `*-data.ts`、ReviewHistoryPage/ReviewDetailPage/ReviewEntryEditor/ReviewReadOnlyEntry、SpaceManagementPage/space-members/module-overview，以及既有 [回顾规格](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md) 与 DECISIONS。SQL 文件代表仓库合同，本次没有核实线上实存结构。
+
+#### 最小未来调整建议（未批准实施）
+
+1. 先确认下列产品问题，并单独安排多人 Space 容量/生命周期扩展。Review 人数扩展不能绕过现行 Space 安全约束，也不能无范围地修改其他模块。
+2. 若参与名单只在创建时确定且之后不变，可复用 Entry 行作名单快照，**不必先新增业务字段、第三张参与表或改四字段结构**。新增显式选择成员的创建 API：校验 actor、Space/module、非空/去重/人数界限、所有所选成员当前属同一 Space；在与成员变更一致的事务锁下原子创建 Round 和所选空 Entry。创建者是否必须被选待定。若需要创建后增删/替换/退出本轮，则另行设计参与关系生命周期、历史审计及权限，不能通过删除已填写 Entry 实现。
+3. 把历史/详情的数据形状改为真实参与者数组，保留本人编辑和其他参与者只读、四字段、revision 状态、请求失效/刷新/返回与原导航；根据确认的权限再决定 own 是否可缺省。复用现有阅读/填写组件与视觉 tokens，调整名单、状态/进度布局及有界完整读取。无需引入新的填写业务状态、AI 字段或全轮提交工作流。
+4. 旧 Personal1/Shared2 历史保留原 id/round_no/date、参与 user_id、四字段及 revision，不依据当前成员回填。若未来新增参与表，只能由每轮现存 Entry 生成原快照，不把新加入成员补进历史。
+5. 保留/版本化旧双参数创建 API，避免旧调用在多人 Space 中静默创建全员回顾。仅增加新 RPC 不保证旧前端兼容：旧前端会拒绝多人历史。独立设计 backend/frontend 兼容 gate、功能启用边界及发布顺序；在用户另行授权前不迁移或部署。
+6. 最小合理独立版本可限定为“创建时选名单 + 不变快照 + 本人四字段填写 + 实际参与者阅读/派生状态 + 旧历史兼容”；这只是建议，人数与读取规则须先确认。创建后改名单、退出本轮机制、新通知/提醒、全轮提交等不默认纳入。验收应覆盖3人以上不同轮名单、成员变更与创建并发、跨 Space 注入、直接 RPC/RLS、草稿可见性、重复保存/mark、日期与轮次、分页完整性、旧客户端和真实多账号设备；上线前需独立环境对齐。
+
+#### 未冻结的产品决定与风险
+
+- 非参与者可否知道某轮存在、日期/轮次、参与名单、填写进度，或阅读正文/已保存草稿？Space owner、创建者但未参与者是否例外？这些边界必须分别确认，不从“同 Space”推导全员可读。
+- 谁能创建/选择名单、创建者是否必须参加、Shared 是否允许只选1人、最大人数及是否至少2人？同 Space 同日仅一轮是否继续沿用？不自行解除日期唯一约束。
+- 创建后是否允许增删/替换参与者？已有内容如何保留，新加入者能读哪段历史、被移除者是否保留阅读权、谁有日期更正权？本次不采用任何未批准规则。
+- 退出 Space/被移除/再次加入后的历史权限、显示姓名及进度分母如何处理？已填写后更新是否计入完成？需要明确快照与当前身份各自用途。
+- 原“Space 紧邻上一轮本人计划”还是“最近本人参加的一轮计划”？未参加上一轮时的提示与隐私边界需确认，不自动检索更多历史。
+- 主要风险：权限扩大泄露草稿/元数据、共用资格误授日期更正、选人与成员退出的竞态、旧前端不兼容、读取截断误判人数/统计、姓名投影越权、迁移误改旧参与者。上述均待独立设计及安全回归；不阻止本轮仅视觉的 Slice8 + 修正。
+
 ## P3 - Long-Term Directions
 
 - Re-evaluate Supabase Pro if the project becomes a formal service that must stay online long term.
