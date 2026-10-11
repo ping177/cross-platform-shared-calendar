@@ -96,6 +96,7 @@ import {
   occurrenceFallsOnDay,
   sortOccurrences,
   startOfMonth,
+  endOfMonth,
   startOfWeek,
   toDateInputValue,
 } from './lib/date';
@@ -970,6 +971,7 @@ export function CurrentSpaceApp({ swipeClickGuard, session, spaces, allSpaces, i
   if (eventContext.current !== contextKey) { eventOpening.current.invalidate(); createGuard.current.invalidate(); eventContext.current = contextKey; }
   const [editingTarget, setEditingTarget] = useState<EventEditTarget | null>(null);
   const [showNewEvent, setShowNewEvent] = useState(false);
+  const [monthPopoverRequest, setMonthPopoverRequest] = useState<{ dateKey: string; contextKey: string } | null>(null);
   const [openCalendarSelector, setOpenCalendarSelector] = useState<'space' | 'view' | null>(null);
   const importantDates = useCalendarImportantDates(userId, allSpaces, spaces, viewMode, selectedDate, importantDatesEntry, calendarFilter === 'all' ? 'all' : calendarFilter.spaceId,
     { initialData: initialCalendarImportantDates, onValidated: onCalendarImportantDatesValidated, onInvalidate: onCalendarImportantDatesInvalidate });
@@ -988,6 +990,9 @@ export function CurrentSpaceApp({ swipeClickGuard, session, spaces, allSpaces, i
   const sheetPartner = sheetMembers.find((member) => member.user_id !== userId) ?? null;
   const visibleExpansion = { occurrences: eventView.presentation?.items ?? [], errors: [] };
   useEffect(() => () => { eventOpening.current.invalidate(); createGuard.current.invalidate(); }, []);
+  useEffect(() => {
+    if (monthPopoverRequest && monthPopoverRequest.contextKey !== contextKey) setMonthPopoverRequest(null);
+  }, [contextKey, monthPopoverRequest]);
   useEffect(() => { setShowNewEvent(false); setEditingTarget(null); setEventNotice(''); setCalendarError(''); }, [contextKey]);
 
   useEffect(() => {
@@ -1031,7 +1036,7 @@ export function CurrentSpaceApp({ swipeClickGuard, session, spaces, allSpaces, i
   }
 
   return (
-    <main {...calendarSwipe} className={`min-h-screen text-ink ${viewMode === 'month' ? 'bg-mist' : 'ui-calendar-shell bg-ui-page'}`}>
+    <main {...calendarSwipe} className="ui-calendar-shell min-h-screen bg-ui-page text-ink">
       <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col">
         <header className="sticky top-0 z-10 border-b border-ui-border bg-ui-page/95 px-ui-4 pb-ui-3 pt-ui-4 font-ui text-ui-text backdrop-blur">
           <div className="flex items-center justify-between gap-3">
@@ -1058,7 +1063,7 @@ export function CurrentSpaceApp({ swipeClickGuard, session, spaces, allSpaces, i
           <CalendarDateNavigation selectedDate={selectedDate} viewMode={viewMode} onSelectedDateChange={onSelectedDateChange} />
         </header>
 
-        <section className="flex-1 px-4 py-4 safe-bottom">
+        <section className={`flex-1 px-4 py-4 safe-bottom ${viewMode === 'month' ? 'ui-month-content' : ''}`}>
           {eventView.syncError && <Notice ui={viewMode !== 'month'} tone="error" message={eventView.syncError} />}
           {calendarStatus === 'loading' && !eventView.presentation && <p role="status" className={viewMode === 'month' ? undefined : 'font-ui text-ui-meta text-ui-muted'}>正在读取日程…</p>}
           {eventNotice && <p role="status" className={viewMode === 'month' ? 'text-sm text-ink/60' : 'font-ui text-ui-meta text-ui-muted'}>{eventNotice}</p>}
@@ -1066,6 +1071,9 @@ export function CurrentSpaceApp({ swipeClickGuard, session, spaces, allSpaces, i
           {calendarStatus === 'error' && <div role="alert"><Notice ui={viewMode !== 'month'} tone="error" message={eventView.error || eventView.syncError || '日历读取失败，请重试。'} /><button type="button" className={viewMode === 'month' ? 'min-h-11 rounded-lg bg-teal px-4 font-semibold text-white' : 'ui-focus min-h-ui-touch rounded-ui-control bg-ui-accent px-ui-4 font-ui text-ui-meta text-ui-on-accent'} onClick={eventView.retry}>重试</button></div>}
           {viewMode === 'month' ? <CalendarImportantDateStatus interaction={importantDates} /> : <div className="ui-calendar-status font-ui"><CalendarImportantDateStatus interaction={importantDates} /></div>}
           {(eventView.presentation || importantDates.items.length > 0) && <CalendarViews
+            monthContextKey={contextKey}
+            initialMonthPopoverDate={monthPopoverRequest?.contextKey === contextKey ? monthPopoverRequest.dateKey : null}
+            onMonthPopoverClose={() => setMonthPopoverRequest(null)}
             expansion={visibleExpansion}
             importantDates={importantDates.items}
             importantDatesComplete={importantDates.state.calendarComplete === true}
@@ -1080,7 +1088,10 @@ export function CurrentSpaceApp({ swipeClickGuard, session, spaces, allSpaces, i
             viewMode={viewMode}
             userId={userId}
             onEdit={(occurrence) => { void openEvent(occurrence); }}
-            onSelectDate={onSelectedDateChange}
+            onSelectDate={(day) => {
+              setMonthPopoverRequest({ dateKey: toDateInputValue(day).slice(0, 10), contextKey: calendarEventViewKey(calendarEventScopeKey(userId, allSpaces, spaces, calendarFilter), 'month', day) });
+              onSelectedDateChange(day);
+            }}
           />}
         </section>
       </div>
@@ -1139,6 +1150,9 @@ export function BottomNavigation({ tab, onChange, disabled = false }: { tab: Top
 
 export function CalendarViews({
   expansion,
+  monthContextKey,
+  initialMonthPopoverDate = null,
+  onMonthPopoverClose = () => undefined,
   importantDates = [],
   importantDatesComplete = true,
   onOpenImportantDate = () => undefined,
@@ -1151,6 +1165,9 @@ export function CalendarViews({
   onEdit,
   onSelectDate,
 }: {
+  monthContextKey?: string;
+  initialMonthPopoverDate?: string | null;
+  onMonthPopoverClose?: () => void;
   expansion: { occurrences: CalendarEventPresentation[]; errors: Array<{ source_event_id: string; error: string }> };
   importantDates?: ImportantDateOccurrence[];
   importantDatesComplete?: boolean;
@@ -1168,7 +1185,7 @@ export function CalendarViews({
   if (viewMode === 'month') {
     return (
       <>
-        <MonthView importantDatesComplete={importantDatesComplete} importantDates={importantDates} onOpenImportantDate={onOpenImportantDate} occurrences={expansion.occurrences} membersBySpaceId={membersBySpaceId} spacesById={spacesById} showSpaceLabel={showSpaceLabel} selectedDate={selectedDate} userId={userId} onEdit={onEdit} onSelectDate={onSelectDate} />
+        <MonthView key={monthContextKey} initialOpenDateKey={initialMonthPopoverDate} onPopoverClose={onMonthPopoverClose} importantDatesComplete={importantDatesComplete} importantDates={importantDates} onOpenImportantDate={onOpenImportantDate} occurrences={expansion.occurrences} membersBySpaceId={membersBySpaceId} spacesById={spacesById} showSpaceLabel={showSpaceLabel} selectedDate={selectedDate} userId={userId} onEdit={onEdit} onSelectDate={onSelectDate} />
       </>
     );
   }
@@ -1189,6 +1206,8 @@ export function CalendarViews({
 }
 
 function MonthView({
+  initialOpenDateKey = null,
+  onPopoverClose = () => undefined,
   importantDatesComplete,
   importantDates,
   onOpenImportantDate,
@@ -1212,44 +1231,150 @@ function MonthView({
   userId: string;
   onEdit: (occurrence: CalendarEventPresentation) => void;
   onSelectDate: (date: Date) => void;
+  initialOpenDateKey?: string | null;
+  onPopoverClose?: () => void;
 }) {
   const monthStart = startOfMonth(selectedDate);
   const gridStart = startOfWeek(monthStart);
-  const cells = Array.from({ length: 42 }, (_, index) => addDays(gridStart, index));
+  const weekCount = Math.round((startOfWeek(endOfMonth(selectedDate)).getTime() - gridStart.getTime()) / (7 * 86400000)) + 1;
+  const cells = Array.from({ length: weekCount * 7 }, (_, index) => addDays(gridStart, index));
+  const spaceDotClasses = calendarSpaceDotClasses(Object.keys(spacesById));
+  const selectedKey = toDateInputValue(selectedDate).slice(0, 10);
+  const [openDateKey, setOpenDateKey] = useState<string | null>(initialOpenDateKey);
+  const anchor = useRef<HTMLButtonElement | null>(null);
+  const popover = useRef<HTMLDivElement | null>(null);
+  const closeButton = useRef<HTMLButtonElement | null>(null);
+  const [position, setPosition] = useState({ left: 16, top: 200, maxHeight: 320, width: 288 });
+  const open = openDateKey === selectedKey;
   const selectedOccurrences = sortOccurrences(occurrences.filter((occurrence) => occurrenceFallsOnDay(occurrence, selectedDate)));
+  const selectedImportantDates = importantDates.filter((item) => importantDateFallsOnDay(item, selectedDate));
+
+  function closePopover(restoreFocus = false) {
+    setOpenDateKey(null);
+    onPopoverClose();
+    if (restoreFocus) anchor.current?.focus({ preventScroll: true });
+  }
+
+  useEffect(() => {
+    if (openDateKey && openDateKey !== selectedKey) setOpenDateKey(null);
+  }, [selectedKey, openDateKey]);
+
+  useEffect(() => {
+    if (!open) return;
+    function placePopover() {
+      anchor.current ??= popover.current?.parentElement?.querySelector<HTMLButtonElement>(`[data-month-date="${selectedKey}"]`) ?? null;
+      if (!anchor.current || !popover.current) return;
+      const viewport = window.visualViewport;
+      const viewportTop = viewport?.offsetTop ?? 0;
+      const width = viewport?.width ?? window.innerWidth;
+      const height = viewport?.height ?? window.innerHeight;
+      const headerBottom = anchor.current.closest('main')?.querySelector('header')?.getBoundingClientRect().bottom ?? viewportTop;
+      const minTop = Math.max(viewportTop + 12, headerBottom + 8);
+      const navTop = document.querySelector('.ui-bottom-nav')?.getBoundingClientRect().top ?? viewportTop + height - 64;
+      const bottom = Math.min(viewportTop + height - 16, navTop - 16);
+      const maxHeight = Math.max(44, Math.min(416, bottom - minTop));
+      const rect = anchor.current.getBoundingClientRect();
+      const bounds = popover.current.getBoundingClientRect();
+      const left = Math.max(16, Math.min(rect.left + rect.width / 2 - bounds.width / 2, width - bounds.width - 16));
+      const preferredTop = rect.bottom + 8 + bounds.height <= bottom ? rect.bottom + 8 : rect.top - bounds.height - 8;
+      const top = Math.max(minTop, Math.min(preferredTop, bottom - Math.min(bounds.height, maxHeight)));
+      setPosition({ left, top, maxHeight, width: Math.min(360, width - 32) });
+    }
+    const outside = (event: PointerEvent) => {
+      if (!popover.current?.contains(event.target as Node)) closePopover();
+    };
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); closePopover(true); }
+    };
+    const focusOutside = (event: FocusEvent) => {
+      if (!popover.current?.contains(event.target as Node) && event.target !== anchor.current) closePopover();
+    };
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(placePopover);
+    if (popover.current) observer?.observe(popover.current);
+    placePopover();
+    closeButton.current?.focus({ preventScroll: true });
+    window.addEventListener('resize', placePopover);
+    window.addEventListener('scroll', placePopover, true);
+    window.visualViewport?.addEventListener('resize', placePopover);
+    window.visualViewport?.addEventListener('scroll', placePopover);
+    document.addEventListener('pointerdown', outside);
+    document.addEventListener('keydown', escape);
+    document.addEventListener('focusin', focusOutside);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener('resize', placePopover);
+      window.removeEventListener('scroll', placePopover, true);
+      window.visualViewport?.removeEventListener('resize', placePopover);
+      window.visualViewport?.removeEventListener('scroll', placePopover);
+      document.removeEventListener('pointerdown', outside);
+      document.removeEventListener('keydown', escape);
+      document.removeEventListener('focusin', focusOutside);
+    };
+  }, [openDateKey, open]);
 
   return (
-    <div className="space-y-4">
-      <section className="rounded-lg bg-white p-3 shadow-sm">
-        <div className="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-ink/45">
+    <div className="ui-calendar-month font-ui text-ui-text">
+      <section className="rounded-ui-group bg-ui-surface p-ui-2 shadow-ui-group" aria-label={formatMonth(selectedDate)}>
+        <div className="grid grid-cols-7 py-ui-2 text-center text-ui-label text-ui-muted" aria-hidden="true">
           {['一', '二', '三', '四', '五', '六', '日'].map((day) => <span key={day}>{day}</span>)}
         </div>
-        <div className="mt-2 grid grid-cols-7 gap-x-px gap-y-1">
+        <div className="ui-month-grid grid grid-cols-7 gap-1">
           {cells.map((day) => {
-            const dayOccurrences = occurrences.filter((occurrence) => occurrenceFallsOnDay(occurrence, day));
+            const dayOccurrences = sortOccurrences(occurrences.filter((occurrence) => occurrenceFallsOnDay(occurrence, day)));
             const dateItems = importantDates.filter((item) => importantDateFallsOnDay(item, day));
+            const items = [
+              ...dateItems.map((item) => ({ key: importantDateOccurrenceKey(item), title: item.name, spaceId: item.spaceId })),
+              ...dayOccurrences.map((item) => ({ key: item.occurrence_id, title: item.title, spaceId: item.source_event.space_id })),
+            ];
             const isCurrentMonth = day.getMonth() === selectedDate.getMonth();
             const isSelected = isSameDay(day, selectedDate);
+            const isToday = isSameDay(day, new Date());
+            const dayKey = toDateInputValue(day).slice(0, 10);
             return (
               <button
-                key={day.toISOString()}
+                key={dayKey}
+                data-month-date={dayKey}
                 data-swipe-start
                 type="button"
                 aria-label={`${day.getFullYear()}-${day.getMonth() + 1}-${day.getDate()}，${dayOccurrences.length} 个日程，${importantDatesComplete ? `${dateItems.length} 个重要日` : '重要日尚未完整确认'}`}
-                className={`aspect-square min-h-11 w-full min-w-0 rounded-lg text-sm ${isSelected ? 'bg-teal text-white' : isCurrentMonth ? 'bg-mist text-ink' : 'bg-transparent text-ink/30'}`}
-                onClick={() => onSelectDate(day)}
+                aria-current={isToday ? 'date' : undefined}
+                aria-expanded={open && isSelected}
+                aria-controls={open && isSelected ? 'calendar-date-popover' : undefined}
+                aria-haspopup="dialog"
+                className={`ui-month-cell ui-focus min-h-ui-touch w-full min-w-0 rounded-ui-control text-left ${isSelected ? 'ui-month-selected' : ''} ${isCurrentMonth ? 'ui-month-current' : 'ui-month-outside'}`}
+                onClick={(event) => {
+                  anchor.current = event.currentTarget;
+                  setOpenDateKey(dayKey);
+                  onSelectDate(day);
+                }}
               >
-                <span>{day.getDate()}</span>
-                <span className="mt-1 flex justify-center gap-1" aria-hidden="true">
-                  {dateItems.length > 0 && <span className={`h-1.5 w-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-teal'}`} />}
-                  {dayOccurrences.length > 0 && <span className={`h-1.5 w-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-coral'}`} />}
+                <span className={`ui-month-number ${isToday ? 'ui-month-today' : ''}`}>{day.getDate()}</span>
+                <span className="mt-ui-1 block min-w-0" aria-hidden="true">
+                  {items.slice(0, 2).map((item) => <span key={item.key} data-month-item={item.key} className="ui-month-item">
+                    <span className={`ui-month-dot ${spaceDotClasses[item.spaceId] ?? 'ui-calendar-space-green'}`} />
+                    <span className="min-w-0 truncate text-ui-text">{item.title}</span>
+                  </span>)}
+                  {items.length > 2 && <span data-month-more className="block text-ui-label-small text-ui-muted" aria-label={`还有 ${items.length - 2} 项事项`}>+{items.length - 2}</span>}
                 </span>
               </button>
             );
           })}
         </div>
       </section>
-      <DaySection importantDatesComplete={importantDatesComplete} day={selectedDate} importantDates={importantDates.filter((item) => importantDateFallsOnDay(item, selectedDate))} onOpenImportantDate={onOpenImportantDate} occurrences={selectedOccurrences} membersBySpaceId={membersBySpaceId} spacesById={spacesById} showSpaceLabel={showSpaceLabel} userId={userId} onEdit={onEdit} />
+      {open && <div ref={popover} id="calendar-date-popover" role="dialog" aria-labelledby="calendar-date-popover-title" data-no-swipe
+        className="ui-month-popover fixed z-20 flex flex-col rounded-ui-sheet border border-ui-border bg-ui-surface text-ui-text shadow-ui-sheet"
+        style={position}>
+        <div className="flex shrink-0 items-center justify-between gap-ui-2 px-ui-4 py-ui-2">
+          <h2 id="calendar-date-popover-title" className="min-w-0 text-ui-bar">{formatDay(selectedDate)}</h2>
+          <button ref={closeButton} type="button" className="ui-focus grid h-11 w-11 shrink-0 place-items-center rounded-ui-control text-ui-muted" aria-label="关闭日期详情" onClick={() => closePopover(true)}><X size={20} aria-hidden="true" /></button>
+        </div>
+        <div className="ui-month-popover-body min-h-0 overflow-y-auto overscroll-contain px-ui-4 pb-ui-4">
+          <DaySection variant="month" spaceDotClasses={spaceDotClasses} importantDatesComplete={importantDatesComplete} day={selectedDate}
+            importantDates={selectedImportantDates} onOpenImportantDate={(item) => { closePopover(true); onOpenImportantDate(item); }}
+            occurrences={selectedOccurrences} membersBySpaceId={membersBySpaceId} spacesById={spacesById} showSpaceLabel userId={userId}
+            onEdit={(item) => { closePopover(true); onEdit(item); }} />
+        </div>
+      </div>}
     </div>
   );
 }
@@ -1272,12 +1397,12 @@ export function calendarSpaceDotClasses(spaceIds: string[]): Record<string, stri
   return assignments;
 }
 
-function DaySection({ variant, spaceDotClasses = {}, day, importantDatesComplete, importantDates, onOpenImportantDate, occurrences, membersBySpaceId, spacesById, showSpaceLabel, userId, onEdit }: { variant?: 'today' | 'week'; spaceDotClasses?: Record<string, string>; day: Date; importantDatesComplete: boolean; importantDates: ImportantDateOccurrence[]; onOpenImportantDate: (item: ImportantDateOccurrence) => void; occurrences: CalendarEventPresentation[]; membersBySpaceId: Record<string, SpaceMember[]>; spacesById: Record<string, CurrentSpace>; showSpaceLabel: boolean; userId: string; onEdit: (occurrence: CalendarEventPresentation) => void }) {
+function DaySection({ variant, spaceDotClasses = {}, day, importantDatesComplete, importantDates, onOpenImportantDate, occurrences, membersBySpaceId, spacesById, showSpaceLabel, userId, onEdit }: { variant?: 'today' | 'week' | 'month'; spaceDotClasses?: Record<string, string>; day: Date; importantDatesComplete: boolean; importantDates: ImportantDateOccurrence[]; onOpenImportantDate: (item: ImportantDateOccurrence) => void; occurrences: CalendarEventPresentation[]; membersBySpaceId: Record<string, SpaceMember[]>; spacesById: Record<string, CurrentSpace>; showSpaceLabel: boolean; userId: string; onEdit: (occurrence: CalendarEventPresentation) => void }) {
   if (variant) {
     const empty = occurrences.length === 0 && importantDates.length === 0;
     return <section data-calendar-day={toDateInputValue(day).slice(0, 10)}>
       <div className={variant === 'week' && empty ? 'flex min-h-ui-touch items-center justify-between gap-ui-3 border-b border-ui-border' : 'mb-ui-2'}>
-        <h2 className={variant === 'today' ? 'sr-only' : 'text-ui-bar'}>{formatDay(day)}</h2>
+        {variant !== 'month' && <h2 className={variant === 'today' ? 'sr-only' : 'text-ui-bar'}>{formatDay(day)}</h2>}
         {empty && <p className={variant === 'week' ? 'text-ui-meta text-ui-muted' : 'py-ui-6 text-ui-meta text-ui-muted'}>{importantDatesComplete ? '暂无日程' : '重要日尚未完整确认'}</p>}
       </div>
       {!empty && <>
@@ -1309,7 +1434,7 @@ function DaySection({ variant, spaceDotClasses = {}, day, importantDatesComplete
   );
 }
 
-function EventCard({ variant, spaceDotClasses = {}, occurrence, members, sourceSpace, showSpaceLabel, userId, onEdit }: { variant?: 'today' | 'week'; spaceDotClasses?: Record<string, string>; occurrence: CalendarEventPresentation; members: SpaceMember[]; sourceSpace: CurrentSpace; showSpaceLabel: boolean; userId: string; onEdit: (occurrence: CalendarEventPresentation) => void }) {
+function EventCard({ variant, spaceDotClasses = {}, occurrence, members, sourceSpace, showSpaceLabel, userId, onEdit }: { variant?: 'today' | 'week' | 'month'; spaceDotClasses?: Record<string, string>; occurrence: CalendarEventPresentation; members: SpaceMember[]; sourceSpace: CurrentSpace; showSpaceLabel: boolean; userId: string; onEdit: (occurrence: CalendarEventPresentation) => void }) {
   const event = occurrence.source_event;
   const audience = audienceFromEvent(event, userId);
 

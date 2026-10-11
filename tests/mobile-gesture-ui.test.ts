@@ -131,11 +131,12 @@ for (const name of ['review', 'lists', 'dates']) test(`${name} list reuses exist
 test('date cell opts in; trailing click guard preserves cell selection and next tap', () => runtime((e) => {
   let selected = 0; const tree = e.app.CalendarViews({ expansion: { occurrences: [], errors: [] }, selectedDate: new Date(2026, 9, 15), viewMode: 'month', userId: 'me', membersBySpaceId: {}, spacesById: {}, onEdit() {}, onSelectDate: () => selected++ });
   const monthNode = nodes(tree).find((n) => n.type.name === 'MonthView'); const month = monthNode.type(monthNode.props); const cell = nodes(month).find((n) => n.type === 'button');
-  assert.ok('data-swipe-start' in cell.props); cell.props.onClick(); assert.equal(selected, 1);
+  assert.ok('data-swipe-start' in cell.props); cell.props.onClick({ currentTarget: null }); assert.equal(selected, 1);
+  e.clear(); // The standalone MonthView and page own separate hook lifecycles.
   let changes = 0; const page = e.render('calendar', calendarProps(() => changes++)); e.swipe(page, 80, e.target(cell)); assert.equal(changes, 1);
   let suppressed = false; e.guard.onClickCapture({ detail: 1, clientX: 180, clientY: 102, timeStamp: 210, nativeEvent: { pointerId: 1, pointerType: 'touch', isTrusted: true }, preventDefault() { suppressed = true; }, stopPropagation() {} });
-  if (!suppressed) cell.props.onClick(); assert.equal(selected, 1);
-  page.props.onPointerDownCapture(); cell.props.onClick(); assert.equal(selected, 2);
+  if (!suppressed) cell.props.onClick({ currentTarget: null }); assert.equal(selected, 1);
+  page.props.onPointerDownCapture(); cell.props.onClick({ currentTarget: null }); assert.equal(selected, 2);
   e.swipe(page, 80, e.target(cell, true)); assert.equal(changes, 1);
   e.swipe(page, 80, e.target(), 90); assert.equal(changes, 1);
 }));

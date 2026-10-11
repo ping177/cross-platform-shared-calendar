@@ -256,7 +256,7 @@ test('v2 day/week retain exact event and Important Date click identities, all-da
     const week = renderToStaticMarkup(React.createElement(CalendarViews, { ...common, viewMode: 'week' }));
     assert.equal((week.match(/data-calendar-day=/g) ?? []).length, 7); assert.doesNotMatch(week, /grid-cols-7/);
     const month = renderToStaticMarkup(React.createElement(CalendarViews, { ...common, viewMode: 'month' }));
-    assert.match(month, /grid-cols-7/); assert.match(month, /border-l-4/); assert.doesNotMatch(month, /data-calendar-event-id|ui-calendar-timeline|ui-calendar-week/);
+    assert.match(month, /grid-cols-7/); assert.match(month, /data-month-item/); assert.doesNotMatch(month, /border-l-4|role="dialog"/); assert.doesNotMatch(month, /data-calendar-event-id|ui-calendar-timeline|ui-calendar-week/);
   } finally { await vite.close(); }
 });
 
@@ -298,5 +298,42 @@ test('Space markers avoid six-color collisions and stay consistent across day/we
     assert.ok(day.includes(`ui-calendar-important-date mb-ui-2 ${mapping[ids[0]]}`));
     ids.forEach((_, index) => assert.ok(day.includes(`空间${index + 1}`)));
     assert.doesNotMatch(day, /bg-ui-accent-soft|bg-ui-auxiliary-soft/);
+  } finally { await vite.close(); }
+});
+
+
+test('month grid shows two real titles and an exact remainder across four, five and six weeks', async () => {
+  const vite = await createServer({ configFile: false, envFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false } });
+  try {
+    const { CalendarViews } = await vite.ssrLoadModule('/src/App.tsx');
+    const day = new Date(2026, 9, 9);
+    const events = Array.from({ length: 4 }, (_, index) => ({ occurrence_id: `occ-${index}`, title: `真实事项${index}`, all_day: index === 0,
+      occurrence_starts_at: new Date(2026, 9, 9, index + 8).toISOString(), occurrence_ends_at: null, source_event: { id: `source-${index}`, space_id: shared.id } }));
+    const important = { importantDateId: 'important', spaceId: personal.id, occurrenceDate: { year: 2026, month: 10, day: 9 }, name: '真实重要日', emoji: null };
+    const props = { expansion: { occurrences: events, errors: [] }, importantDates: [important], membersBySpaceId: {}, spacesById: { personal, shared }, showSpaceLabel: true,
+      selectedDate: day, viewMode: 'month', userId: 'me', onEdit() {}, onSelectDate() {} };
+    for (const count of [0, 1, 2, 4]) {
+      const html = renderToStaticMarkup(React.createElement(CalendarViews, { ...props, expansion: { occurrences: events.slice(0, count), errors: [] }, importantDates: [] }));
+      assert.equal((html.match(/data-month-item=/g) ?? []).length, Math.min(count, 2));
+      if (count > 2) assert.match(html, /还有 2 项事项[^>]*>\+2</); else assert.doesNotMatch(html, /data-month-more/);
+      assert.doesNotMatch(html, /role="dialog"|border-l-4/);
+    }
+    const mixed = renderToStaticMarkup(React.createElement(CalendarViews, props));
+    assert.match(mixed, /真实重要日/); assert.match(mixed, /还有 3 项事项[^>]*>\+3</);
+    assert.match(mixed, /ui-calendar-space-/);
+    for (const [date, expected] of [[new Date(2021, 1, 10), 28], [day, 35], [new Date(2026, 2, 10), 42], [new Date(2028, 1, 10), 35], [new Date(2026, 11, 31), 35]] as const) {
+      const html = renderToStaticMarkup(React.createElement(CalendarViews, { ...props, selectedDate: date, expansion: { occurrences: [], errors: [] }, importantDates: [] }));
+      assert.equal((html.match(/data-month-date=/g) ?? []).length, expected);
+    }
+    const sixIds = ['aa','bb','cc','dd','ee','ff'];
+    const palette = (await vite.ssrLoadModule('/src/App.tsx')).calendarSpaceDotClasses(sixIds);
+    const colored = renderToStaticMarkup(React.createElement(CalendarViews, { ...props, importantDates: [],
+      spacesById: Object.fromEntries(sixIds.map(id => [id, { ...shared, id }])),
+      expansion: { errors: [], occurrences: sixIds.map((id, index) => ({ ...events[0], occurrence_id: id,
+        occurrence_starts_at: new Date(2026,9,9+index,9).toISOString(), source_event: { ...events[0].source_event, space_id: id } })) } }));
+    const dots = Array.from(colored.matchAll(/data-month-item="([^"]+)"[^>]*>.*?ui-month-dot (ui-calendar-space-[a-z]+)/g), match => [match[1], match[2]]);
+    assert.deepEqual(Object.fromEntries(dots), palette);
+    const html = renderToStaticMarkup(React.createElement(CalendarViews, { ...props, selectedDate: new Date(2026, 11, 31) }));
+    assert.match(html, /data-month-date="2027-01-03"/);
   } finally { await vite.close(); }
 });

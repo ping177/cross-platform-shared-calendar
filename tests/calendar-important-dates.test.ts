@@ -20,11 +20,11 @@ const row = (id = 'important', space_id = shared.id, fields = {}) => ({ id, spac
 
 // Real Calendar, projection, target and editor handlers; only canonical I/O is
 // injected. No authenticated browser, network, RPC or persistent data is used.
-async function runtime(run: (env: any) => Promise<void>) {
+async function runtime(run: (env: any) => Promise<void>, showMonthDetails = true) {
   const previous = { window: (globalThis as any).window, document: (globalThis as any).document };
   let latest: any, latestEvents: any; let cursor = 0; const slots: any[] = []; const effects: any[] = []; const cleanups = new Map();
   const listeners = new Map<string, Set<any>>(); const auth = new Set<any>(); const calls: any[] = []; const timers = new Set<any>();
-  const surface = { visibilityState: 'visible', addEventListener(key: string, fn: any) { if (!listeners.has(key)) listeners.set(key, new Set()); listeners.get(key)!.add(fn); }, removeEventListener(key: string, fn: any) { listeners.get(key)?.delete(fn); } };
+  const surface = { visibilityState: 'visible', querySelector: () => null, addEventListener(key: string, fn: any) { if (!listeners.has(key)) listeners.set(key, new Set()); listeners.get(key)!.add(fn); }, removeEventListener(key: string, fn: any) { listeners.get(key)?.delete(fn); } };
   const m: any = { timeZone: 'Asia/Shanghai', rows: [row()], members: [personal, shared], eligible: [personal, shared], userId: 'me', eventFailure: false, dateFailure: false,
     timer: (fn: any) => { timers.add(fn); return fn; }, clearTimer: (fn: any) => timers.delete(fn),
     useState(initial: any) { const i = cursor++; if (!(i in slots)) slots[i] = typeof initial === 'function' ? initial() : initial;
@@ -85,15 +85,41 @@ async function runtime(run: (env: any) => Promise<void>) {
       onCalendarEventsValidated: (data: any) => { latestEvents = data; }, onCalendarEventsInvalidate: () => { latestEvents = undefined; },
       onCalendarImportantDatesValidated: (data: any) => { latest = data; }, onCalendarImportantDatesInvalidate: () => { latest = undefined; },
       calendarFilter: 'all', onCalendarFilterChange: noop, selectedDate: day, onSelectedDateChange: noop, viewMode: 'week', onViewModeChange: noop };
+    let monthKey: string | null = null; let monthStart = -1;
     const expand = (node: any): any => {
       if (!React.isValidElement(node)) return node;
+      if (node.type?.name === 'MonthView') {
+        if (monthKey !== node.key) {
+          for (const [index, fn] of cleanups) if (index >= cursor) { fn(); cleanups.delete(index); }
+          slots.splice(cursor); monthKey = node.key;
+        }
+        monthStart = cursor;
+      }
       if (typeof node.type === 'function' && ['CalendarViews', 'MonthView', 'DaySection', 'CalendarImportantDateCard', 'CalendarImportantDateStatus', 'CalendarImportantDateSheets'].includes(node.type.name)) return expand(node.type(node.props));
       return React.cloneElement(node, undefined, ...React.Children.toArray((node.props as any).children).map(expand));
     };
-    const render = () => { cursor = 0; return expand(CurrentSpaceApp(props)); };
+    const render = () => {
+      if (props.viewMode !== 'month' && monthStart >= 0) {
+        for (const [index, fn] of cleanups) if (index >= monthStart) { fn(); cleanups.delete(index); }
+        slots.splice(monthStart); monthStart = -1; monthKey = null;
+      }
+      cursor = 0; return expand(CurrentSpaceApp(props));
+    };
     const pump = async () => { for (let i = 0; i < 6; i++) { render(); for (const { i, fn } of effects.splice(0)) { cleanups.get(i)?.(); const cleanup = fn(); if (cleanup) cleanups.set(i, cleanup); else cleanups.delete(i); } for (const fn of [...timers]) { timers.delete(fn); fn(); } await tick(); } return render(); };
-    const dispatch = (key: string) => { for (const fn of [...listeners.get(key) ?? []]) fn(); };
-    await run({ m, props, calls, render, pump, unmount, channels, auth, surface, dispatch, latest: () => latest,
+    // Existing canonical data tests explicitly inspect the selected-date list.
+    // In month mode that now requires clicking the date before inspecting cards.
+    const selectedCell = (tree: any, date = props.selectedDate) => nodes(tree).find((el) => el.props['data-month-date'] === `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`);
+    const anchor = { focus() {}, closest: () => null, getBoundingClientRect: () => ({ left: 16, top: 240, bottom: 344, width: 44 }) };
+    const pumpForDetails = async () => {
+      let tree = await pump();
+      if (showMonthDetails && props.viewMode === 'month' && !sheet(tree) && !nodes(tree).some((el) => el.type?.name === 'EventSheet')) {
+        const cell = selectedCell(tree);
+        if (cell && !cell.props['aria-expanded']) { cell.props.onClick({ currentTarget: anchor }); tree = await pump(); }
+      }
+      return tree;
+    };
+    const dispatch = (key: string, event?: any) => { for (const fn of [...listeners.get(key) ?? []]) fn(event); };
+    await run({ m, props, calls, render, pump: pumpForDetails, selectedCell, anchor, unmount, channels, auth, surface, dispatch, latest: () => latest,
       latestEvents: () => latestEvents, restoreEvents: () => { props.initialCalendarEvents = latestEvents; unmount(); },
       restore: () => { props.initialCalendarImportantDates = latest; unmount(); } });
   } finally { unmount(); await vite.close(); delete (globalThis as any).__calendarDates;
@@ -309,14 +335,15 @@ test('Calendar day/week/month render Important Dates separately from Events with
         membersBySpaceId: {}, spacesById: { personal, shared }, showSpaceLabel: true, selectedDate: day, viewMode,
         userId: 'me', onEdit: noop, onSelectDate: noop, importantDates: [occurrence(), occurrence('personal')], onOpenImportantDate: noop }));
       assert.match(html, /同名重要日/);
-      assert.match(html, /重要日 · 共同/);
-      assert.match(html, /重要日 · 我的/);
-      assert.match(html, /旅行空间/);
-      assert.match(html, /我的空间/);
-      assert.equal((html.match(/data-important-date-id=/g) ?? []).length, 2);
       if (viewMode === 'month') {
         assert.match(html, /2 个重要日/);
-        assert.equal((html.match(/aria-label="\d{4}-\d+-\d+/g) ?? []).length, 42);
+        assert.equal((html.match(/data-month-date=/g) ?? []).length, 35);
+        assert.equal((html.match(/data-month-item=/g) ?? []).length, 2);
+        assert.doesNotMatch(html, /role="dialog"/);
+      } else {
+        assert.match(html, /重要日 · 共同/); assert.match(html, /重要日 · 我的/);
+        assert.match(html, /旅行空间/); assert.match(html, /我的空间/);
+        assert.equal((html.match(/data-important-date-id=/g) ?? []).length, 2);
       }
     }
   } finally { await vite.close(); }
@@ -596,5 +623,56 @@ test('Calendar Event Feb29 remains SKIP while Important Date Feb29 fallback and 
   assert.equal(e.latestEvents().items.length, 0); assert.ok(button(tree, '打开重要日 同名重要日'));
   e.props.initialCalendarEvents = e.latestEvents(); e.restore(); const events = deferred(), dates = deferred();
   e.m.events = () => events.promise; e.m.dates = () => dates.promise;
-  tree = e.render(); assert.ok(button(tree, '打开重要日 同名重要日')); assert.doesNotMatch(renderToStaticMarkup(tree), /正在读取日程|正在读取重要日/);
+  tree = e.render(); assert.match(renderToStaticMarkup(tree), /同名重要日/); assert.doesNotMatch(renderToStaticMarkup(tree), /正在读取日程|正在读取重要日/);
 }));
+
+
+test('month date popover opens only on selection, switches content and forwards exact real card identities', () => runtime(async (e) => {
+  e.props.viewMode = 'month'; e.props.onSelectedDateChange = (date: Date) => { e.props.selectedDate = date; };
+  let tree = await e.pump();
+  assert.equal(nodes(tree).some((el) => el.props.role === 'dialog'), false);
+  e.selectedCell(tree).props.onClick({ currentTarget: e.anchor }); tree = await e.pump();
+  assert.ok(nodes(tree).find((el) => el.props.role === 'dialog'));
+  assert.ok(button(tree, '打开重要日 同名重要日')); assert.match(renderToStaticMarkup(tree), /普通日程/);
+  const event = nodes(tree).find((el) => el.type?.name === 'EventCard'); assert.ok(event);
+  event.props.onEdit(event.props.occurrence); tree = await e.pump();
+  assert.ok(nodes(tree).find((el) => el.type?.name === 'EventSheet'));
+  assert.equal(nodes(tree).some((el) => el.props.id === 'calendar-date-popover'), false);
+  nodes(tree).find((el) => el.type?.name === 'EventSheet').props.onClose(); tree = await e.pump();
+  e.selectedCell(tree).props.onClick({ currentTarget: e.anchor }); tree = await e.pump();
+  button(tree, '打开重要日 同名重要日').props.onClick(); tree = await e.pump();
+  assert.equal(sheet(tree).props.date.id, 'important'); assert.equal(sheet(tree).props.memberSpaces[0].id, shared.id);
+  assert.equal(nodes(tree).some((el) => el.props.id === 'calendar-date-popover'), false);
+  sheet(tree).props.onCancel(); tree = await e.pump();
+  e.selectedCell(tree, new Date(2026,9,11)).props.onClick({ currentTarget: e.anchor }); tree = await e.pump();
+  assert.match(renderToStaticMarkup(tree), /暂无日程/); assert.doesNotMatch(renderToStaticMarkup(tree), /打开重要日 同名重要日/);
+  e.selectedCell(tree, day).props.onClick({ currentTarget: e.anchor }); tree = await e.pump();
+  assert.ok(button(tree, '打开重要日 同名重要日'));
+}, false));
+
+for (const boundary of ['escape', 'outside', 'focus', 'close', 'date', 'month', 'filter', 'view']) test(`month popover clears on ${boundary} and preserves the canonical data boundary`, () => runtime(async (e) => {
+  e.props.viewMode = 'month'; let focused = 0; e.anchor.focus = () => { focused++; };
+  let tree = await e.pump(); e.selectedCell(tree).props.onClick({ currentTarget: e.anchor }); tree = await e.pump();
+  assert.ok(button(tree, '关闭日期详情')); const reads = e.calls.filter((c: any) => c[0] === 'projection').length;
+  if (boundary === 'escape') e.dispatch('keydown', { key: 'Escape', preventDefault() {}, stopPropagation() {} });
+  if (boundary === 'outside') e.dispatch('pointerdown', { target: {} });
+  if (boundary === 'focus') e.dispatch('focusin', { target: {} });
+  if (boundary === 'close') button(tree, '关闭日期详情').props.onClick();
+  if (boundary === 'date') e.props.selectedDate = new Date(2026, 9, 11);
+  if (boundary === 'month') e.props.selectedDate = new Date(2026, 10, 10);
+  if (boundary === 'filter') e.props.calendarFilter = { spaceId: personal.id };
+  if (boundary === 'view') e.props.viewMode = 'week';
+  tree = await e.pump(); assert.equal(button(tree, '关闭日期详情'), undefined);
+  if (['escape','close'].includes(boundary)) assert.equal(focused, 1);
+  if (['escape','outside','focus','close','date'].includes(boundary)) assert.equal(e.calls.filter((c: any) => c[0] === 'projection').length, reads);
+  assert.equal(e.calls.some((c: any) => ['update','delete'].includes(c[0])), false);
+}, false));
+
+
+test('adjacent-month date click opens its details on the first tap while explicit period navigation clears it', () => runtime(async (e) => {
+  e.props.viewMode = 'month'; e.props.onSelectedDateChange = (date: Date) => { e.props.selectedDate = date; };
+  let tree = await e.pump(); e.selectedCell(tree, new Date(2026,10,1)).props.onClick({ currentTarget: e.anchor }); tree = await e.pump();
+  assert.equal(e.props.selectedDate.getMonth(), 10);
+  assert.ok(button(tree, '关闭日期详情')); assert.match(renderToStaticMarkup(tree), /11月1日/);
+  e.props.selectedDate = new Date(2026,11,1); tree = await e.pump(); assert.equal(button(tree, '关闭日期详情'), undefined);
+}, false));
