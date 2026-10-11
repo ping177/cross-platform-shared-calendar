@@ -21,19 +21,29 @@ type TaskSheetProps = {
   createTarget?: CreateTargetControl;
   validateGlobalCreate?: (assignedUserId: string | null) => Promise<void>;
   actionsAllowed?: boolean;
+  moduleView?: boolean;
 };
 
-export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, onSaved, onMutationError, sourceSpaceLabel, createTarget, validateGlobalCreate, actionsAllowed = true }: TaskSheetProps) {
+export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, onSaved, onMutationError, sourceSpaceLabel, createTarget, validateGlobalCreate, actionsAllowed = true, moduleView = false }: TaskSheetProps) {
   const [title, setTitle] = useState(task?.title ?? '');
   const [assignment, setAssignment] = useState(task?.assigned_to_user_id ?? '');
   const [dueOn, setDueOn] = useState(task?.due_on ?? '');
   const [reminderKind, setReminderKind] = useState<Task['reminder_kind']>(task ? task.reminder_kind ?? null : 'all_day_same_day_08');
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [confirmingDiscard, setConfirmingDiscard] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [confirmingCreateTargetId, setConfirmingCreateTargetId] = useState<string | null>(null);
   const submitLock = useRef(createSubmitLock());
   const previousSpaceId = useRef(spaceId);
+  const moduleMutation = useRef(false);
+  const initialDraft = useRef(JSON.stringify([title, assignment, dueOn, reminderKind, spaceId]));
+  const dirty = initialDraft.current !== JSON.stringify([title, assignment, dueOn, reminderKind, spaceId]);
+  function requestClose() {
+    if (busy || (moduleView && moduleMutation.current)) return;
+    if (moduleView && dirty) setConfirmingDiscard(true);
+    else onClose();
+  }
   const createHeading = useRef<HTMLHeadingElement>(null);
   const dialog = useRef<HTMLElement>(null);
   const keyboard = useRef({ busy, cancel: () => {} });
@@ -49,7 +59,8 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
   keyboard.current = { busy, cancel: () => {
     if (confirmingDelete) setConfirmingDelete(false);
     else if (confirmingCreateTargetId) setConfirmingCreateTargetId(null);
-    else onClose();
+    else if (confirmingDiscard) setConfirmingDiscard(false);
+    else requestClose();
   } };
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
@@ -72,18 +83,18 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
     return () => { root?.removeEventListener('keydown', keydown); if (previous?.isConnected) previous.focus(); };
   }, []);
   useEffect(() => {
-    if (!confirmingDelete && !confirmingCreateTargetId) return;
+    if (!confirmingDelete && !confirmingCreateTargetId && !confirmingDiscard) return;
     const previous = document.activeElement as HTMLElement | null;
-    if (confirmingDelete || confirmingCreateTargetId) dialog.current?.querySelector<HTMLElement>('[data-confirm-cancel]')?.focus();
+    if (confirmingDelete || confirmingCreateTargetId || confirmingDiscard) dialog.current?.querySelector<HTMLElement>('[data-confirm-cancel]')?.focus();
     return () => {
       if (previous?.isConnected && dialog.current?.contains(previous)) previous.focus();
       else if (dialog.current?.isConnected) createHeading.current?.focus();
     };
-  }, [confirmingDelete, confirmingCreateTargetId]);
+  }, [confirmingDelete, confirmingCreateTargetId, confirmingDiscard]);
 
   async function save(event?: FormEvent, confirmed = false) {
     event?.preventDefault();
-    if (!actionsAllowed) return;
+    if (!actionsAllowed || (moduleView && (busy || moduleMutation.current))) return;
 
     let normalizedTitle: string;
     let assignedToUserId: string | null;
@@ -102,6 +113,7 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
       if (!canConfirmCreate(confirmingCreateTargetId, createTarget.selectedId, spaceId) || !submitLock.current.acquire()) return;
     }
 
+    if (moduleView) moduleMutation.current = true;
     setBusy(true);
     setError('');
     let createdSuccessfully = false;
@@ -135,13 +147,15 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
         : message);
       setConfirmingCreateTargetId(null);
     } finally {
+      if (moduleView) moduleMutation.current = false;
       setBusy(false);
       if (createTarget && confirmed && !createdSuccessfully) submitLock.current.release();
     }
   }
 
   async function deleteTask() {
-    if (!task || !actionsAllowed) return;
+    if (!task || !actionsAllowed || (moduleView && (busy || moduleMutation.current))) return;
+    if (moduleView) moduleMutation.current = true;
     setBusy(true);
     setError('');
     try {
@@ -159,25 +173,38 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
       if (await onMutationError?.(deleteError)) return;
       setError(taskErrorMessage(deleteError));
     } finally {
+      if (moduleView) moduleMutation.current = false;
       setBusy(false);
     }
   }
 
   return (
-    <div className="fixed inset-0 z-20 flex items-end bg-ink/35 md:items-center md:px-4 md:py-6">
+    <div className={moduleView ? "ui-task-sheet fixed inset-0 z-20 flex items-end bg-ink/35 font-ui text-ui-text md:items-center md:px-4 md:py-6" : "fixed inset-0 z-20 flex items-end bg-ink/35 md:items-center md:px-4 md:py-6"}>
       <section ref={dialog} className="mx-auto max-h-[92dvh] w-full max-w-md overflow-y-auto overscroll-contain rounded-t-2xl bg-white p-5 shadow-soft safe-bottom md:rounded-lg" role="dialog" aria-modal="true" aria-labelledby="task-sheet-title">
-        <div className="flex items-center justify-between gap-3">
+        {moduleView ? <header className="ui-task-sheet-header">
+          <button className="ui-focus" type="button" onClick={requestClose} disabled={busy} aria-label="关闭任务表单"><X size={20} aria-hidden="true" /></button>
+          <h2 id="task-sheet-title" ref={createHeading} tabIndex={-1} className="text-ui-bar">{task ? '编辑任务' : '新建任务'}</h2>
+          <button className="ui-focus text-ui-accent text-ui-meta font-ui-semibold" type="submit" form="task-sheet-form" disabled={busy || !actionsAllowed || !createReady || confirmingDelete || confirmingDiscard || Boolean(confirmingCreateTargetId)}>{busy ? '保存中' : '保存'}</button>
+        </header> : <div className="flex items-center justify-between gap-3">
           <h2 id="task-sheet-title" ref={createHeading} tabIndex={-1} className="text-xl font-bold">{task ? '编辑任务' : '新建任务'}</h2>
           <button className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-mist disabled:opacity-60" type="button" onClick={onClose} disabled={busy} aria-label="关闭任务表单">
             <X size={20} />
           </button>
-        </div>
-        {sourceSpaceLabel && <p className="mt-2 text-sm font-semibold text-teal">所属空间：{sourceSpaceLabel}</p>}
+        </div>}
+        <div className={moduleView ? 'ui-task-sheet-body' : undefined}>
+        {sourceSpaceLabel && (moduleView ? <div className="ui-task-space-label"><span className="text-ui-label text-ui-muted">保存到</span><p className="mt-ui-1 break-words text-ui-body">{sourceSpaceLabel}</p></div> : <p className="mt-2 text-sm font-semibold text-teal">所属空间：{sourceSpaceLabel}</p>)}
         {!task && createTarget && <div className="mt-4"><CreateTargetSelector control={{ ...createTarget, onSelect: (id) => { setAssignment(resetTaskAssignmentForTarget); setConfirmingCreateTargetId(null); createTarget.onSelect(id); } }} kind="task" disabled={busy} /></div>}
 
         {error && <p className="mt-4 rounded-lg bg-coral/10 px-4 py-3 text-sm text-coral" role="alert">{error}</p>}
 
-        {confirmingCreateTargetId && !task ? (
+        {confirmingDiscard ? <div className="mt-5 space-y-4">
+          <h3 className="text-ui-bar">放弃未保存的更改？</h3>
+          <p className="text-ui-meta text-ui-muted">关闭后，本次输入将不会保存。</p>
+          <div className="flex gap-3">
+            <button data-confirm-cancel className="min-h-ui-touch flex-1 rounded-ui-control bg-ui-soft px-ui-3 text-ui-body ui-focus" type="button" onClick={() => setConfirmingDiscard(false)}>继续编辑</button>
+            <button className="min-h-ui-touch flex-1 rounded-ui-control bg-ui-danger px-ui-3 text-ui-body text-ui-on-status ui-focus" type="button" onClick={onClose}>放弃更改</button>
+          </div>
+        </div> : confirmingCreateTargetId && !task ? (
           <div className="mt-5 space-y-4">
             <h3 className="text-lg font-bold">确认保存？</h3>
             <p className="text-sm text-ink/70">将保存到：<strong className="block break-words text-base text-ink">{createTarget?.spaces.find((item) => item.id === spaceId)?.name ?? ''}</strong></p>
@@ -195,10 +222,10 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
             </div>
           </div>
         ) : (
-          <form className="mt-5 space-y-4" onSubmit={save}>
+          <form id={moduleView ? 'task-sheet-form' : undefined} className="mt-5 space-y-4" onSubmit={save}>
             <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-ink/70">标题</span>
-              <input className="w-full rounded-lg border border-ink/15 px-4 py-3 outline-none focus:border-teal" value={title} onChange={(event) => setTitle(event.target.value)} required />
+              <span className="mb-2 block text-sm font-semibold text-ink/70">{moduleView ? '标题 *' : '标题'}</span>
+              <input className="w-full rounded-lg border border-ink/15 px-4 py-3 outline-none focus:border-teal" value={title} onChange={(event) => setTitle(event.target.value)} placeholder={moduleView ? '输入任务标题' : undefined} required />
             </label>
             {spaceKind === 'shared' && (!createTarget || createReady) && <label className="block">
               <span className="mb-2 block text-sm font-semibold text-ink/70">分配给</span>
@@ -230,10 +257,11 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
                   <Trash2 size={20} />
                 </button>
               )}
-              <button className="min-h-12 flex-1 break-words rounded-lg bg-teal px-2 py-2 font-semibold text-white disabled:opacity-60" type="submit" disabled={busy || !actionsAllowed || !createReady}>{busy ? '保存中' : createTarget && !task ? `保存到「${createTarget.spaces.find((item) => item.id === createTarget.selectedId)?.name ?? ''}」` : '保存'}</button>
+              {!moduleView && <button className="min-h-12 flex-1 break-words rounded-lg bg-teal px-2 py-2 font-semibold text-white disabled:opacity-60" type="submit" disabled={busy || !actionsAllowed || !createReady}>{busy ? '保存中' : createTarget && !task ? `保存到「${createTarget.spaces.find((item) => item.id === createTarget.selectedId)?.name ?? ''}」` : '保存'}</button>}
             </div>
           </form>
         )}
+        </div>
       </section>
     </div>
   );

@@ -161,7 +161,7 @@ export function ListsOverviewPage({ swipeClickGuard, userId, entry = null, entry
           <span className="relative block"><select className="h-11 w-full min-w-0 appearance-none truncate rounded-lg bg-white pl-3 pr-10 text-sm font-semibold text-ink shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-teal" aria-label="筛选清单空间" value={filter === 'all' ? 'all' : filter.spaceId} onChange={(event) => chooseFilter(event.target.value === 'all' ? 'all' : { spaceId: event.target.value })}>
             <option value="all">全部空间</option>
             {data.eligibleSpaces.map((space) => <option key={space.id} value={space.id}>{space.kind === 'personal' ? '我的空间' : space.name}</option>)}
-          </select><ChevronDown size={16} className="pointer-events-none absolute right-3 top-3.5 text-ink/60" aria-hidden="true" /></span>
+          </select></span>
         </label>}
       </header>
       <div className="flex-1 space-y-5 px-4 py-4 safe-bottom">

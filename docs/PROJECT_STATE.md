@@ -12,11 +12,17 @@ v0.1.20
 
 ## Current status
 
+UI v2 Slice7 = LOCAL PASS / VISUAL PASS：用户已验收任务列表、页内已完成折叠、任务Sheet、Shared“分配给”、透明18px任务+及全局下拉箭头。15处native select与日历Space按钮触发器采用统一16px chevron/right16/text reserve48px；任务/导航/业务行为保持。完整回归841/841、build与diff-check PASS；一个本地commit已完成。真实账号、iOS/Android、installed PWA与Production尚未验收；未push/deploy。
+
 UI v2 Slice6 = LOCAL PASS / VISUAL PASS：用户已认可四张居中概览卡片视觉；最终范围审查、候选计数修复和完整相关回归317/317、build/diff-check PASS，本地Git closeout完成。业务数量指标保留精确计数，资格/刷新/日期规则保持。真实账号、iOS/Android、installed PWA与Production未验收。此前STOP审计及全部实施记录保留于DEVLOG。
 
 v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3为LOCAL PASS / VISUAL PASS；Slice4为LOCAL PASS / VISUAL PROVISIONALLY ACCEPTED。Slice5月视图本地验证与离线视觉验收通过：两条短标题/准确+N、六色圆点与日期浮层，261/261相关测试、build/diff-check、28组四宽度离线检查PASS；用户确认普通月、密集月、空月及浮层满意。已授权本地commit；不代表真实账号、真机、installed PWA或Production验收。Space Color System继续Deferred；真实账号/真机/installed PWA/Production未验收。正式版本仍v0.1.20。
 
 ## Latest completed
+
+2026-10-11 — Slice7最终Git closeout：用户验收最新视觉，Slice7 = LOCAL PASS / VISUAL PASS；授权12文件以一个本地commit收口。全量841/841、npm run build、git diff --check PASS；旧worktree 28 modified + 1 untracked及29项指纹保持。真实账号、iOS/Android、installed PWA与Production未验收；未push/deploy。详见DEVLOG。
+
+2026-10-11 — Slice7任务模块本地实现与验证：8文件范围，原业务/查询/权限/提醒/Realtime保持；页内已完成和模块专属固定Sheet顶栏、dirty确认及同步重复提交防护。409/409、build/diff-check、60/60布局与390×844最新源码截图完成，离线入口 `/slice7/index.html`。用户视觉与真实环境待验收，详见DEVLOG。
 
 2026-10-11 — Slice6最终本地Git closeout：11个授权文件以一个本地commit收口；计数修复后完整相关测试317/317、build/diff-check PASS。用户离线视觉验收通过，Slice6 = LOCAL PASS / VISUAL PASS。未push/deploy；真实账号、设备、installed PWA与Production仍未验收。详见DEVLOG。
 
@@ -246,6 +252,8 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
+Slice7 = LOCAL PASS / VISUAL PASS，已完成本地commit，未push/deploy；新任务UI未发布。真实账号、iOS/Android、installed PWA与Production未验收。
+
 Slice6 = LOCAL PASS / VISUAL PASS，已完成本地commit，未push/deploy。UI v2 Slice1–4仅本地实现/commit；Slice4为LOCAL PASS / VISUAL PROVISIONALLY ACCEPTED。Slice5月视图已LOCAL PASS / VISUAL PASS并完成本地commit；未push/deploy。新UI尚未发布到Production。下方Production与真实设备PASS仅为既有版本历史证据，不代表本轮UI已发布或通过真实设备验收。
 
 v0.1.20: Production frontend 已发布。实施 revision `2534a4085b9a5d64c488aa2b8975fa1a817460dd` 正常 push 后由独立 git ls-remote 确认；GitHub Production deployment `6937002413` / Vercel `8djfXCjoR5pBhkPoAyZ6D4yphSDM` 于 2026-10-08T13:35:45Z success，source SHA 精确匹配。正式域名 root/新 JS/CSS/manifest/SW HTTP 200；默认与绕缓存入口均使用新 JS，Supabase target 与原 Production 一致。用户 iPhone installed-PWA 13/13 PASS。独立部署 URL 的资产对比 NOT VERIFIED（未返回应用脚本），不扩大既有验证结论。backend/SQL/RPC/Edge/scheduler/config 未变；无 fresh live backend postflight。最终 docs closeout `c316b60c14694c0c2c831fd65d7130b4839d03aa` 已正常 push 并独立核验；该次 GitHub Production deployment `6937387220` / Vercel `5Lk9zsDDw4TyKZ6dYPnR3y1zAUbF` 于 2026-10-08T13:52:02Z success，source SHA 匹配。以上为已完成发布记录；本轮方向冻结不发布新前端，也不宣称本轮新文档已同步。
@@ -306,11 +314,11 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Last verified
 
-2026-10-11（Slice6候选计数修复：完整相关测试317/317、build/diff-check PASS；用户离线视觉LOCAL VISUAL PASS，真实账号/设备/PWA/Production未验收）
+2026-10-11（Slice7用户视觉验收PASS；完整回归841/841、npm run build、git diff --check PASS；真实账号/设备/PWA/Production未验收）
 
 ## Next Action
 
-由用户另行确定UI v2 Slice7范围并授权开始；不自动进入下一Slice。Slice6本地commit未push/deploy；真实账号、iOS/Android、installed PWA及Production验收另按AGENTS环境对齐gate安排，Space Color System继续Deferred。
+Slice7本地Git closeout已完成；等待用户下一轮明确授权后再开展后续Slice。真实账号、iOS/Android、installed PWA及Production验收另按AGENTS环境对齐gate安排；Space Color System继续Deferred。
 
 ## Blockers
 
@@ -320,7 +328,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 日历视觉基线已由用户明确冻结：小圆点区分Space；标题深色，副信息灰色；不依赖大色块或彩色标题，整体轻、干净、克制。日/周已本地收敛；Slice5月网格/日期浮层已按同一语言本地实现并获离线视觉验收。Space无颜色字段；当前Slice4六色默认圆点palette获用户阶段性接受，但默认色不够鲜亮是已知Deferred事项，不等同配色满意。临时映射以成员Space ID集合消解冲突，最多6个不重复；Space成员增减可能调整映射。未来独立Space Color System目标为用户选择并持久化、身份稳定、日周月一致，其他Space增删不影响已选颜色，默认色更鲜亮；需先设计选择器、色板、存储和迁移。现在不实施自定义颜色/数据库；后续月视图沿用当前冻结整体风格。
 
-- UI v2 唯一技术链路为 CSS variables → Tailwind ui semantic mappings，显式逐页迁移；无 ThemeProvider/新框架/依赖变更。参考包身份、工程候选值、首页 3/2/2 仅预览、任务已完成页内折叠兼容旧导航、重要日复用日期引擎及禁止虚构功能见 [实施规格](./UI_V2_IMPLEMENTATION_SPEC.md)。Slice 2 首页与四栏、Slice 3 首页3/2/2及重要日直接创建均获用户离线视觉验收；Slice 3 本地已完成。任务完成/重要日历史折叠留待以后单独定范围；Slice4日历顶部/日/周已获阶段性视觉接受；Slice5月内容已本地实现并获离线视觉验收。不新增正式版本条目。
+- UI v2 唯一技术链路为 CSS variables → Tailwind ui semantic mappings，显式逐页迁移；无 ThemeProvider/新框架/依赖变更。参考包身份、工程候选值、首页 3/2/2 仅预览、任务已完成页内折叠兼容旧导航、重要日复用日期引擎及禁止虚构功能见 [实施规格](./UI_V2_IMPLEMENTATION_SPEC.md)。Slice 2 首页与四栏、Slice 3 首页3/2/2及重要日直接创建均获用户离线视觉验收；Slice 3 本地已完成。任务完成页内折叠已在Slice7本地实施并获用户视觉验收；重要日历史折叠留待以后单独定范围；Slice4日历顶部/日/周已获阶段性视觉接受；Slice5月内容已本地实现并获离线视觉验收。不新增正式版本条目。
 
 - 新阶段产品方向与六步顺序见 DECISIONS 的 Product Direction Freeze；商业化是可探索方向，不是完成产品的必要条件。保留分散居住家人的轻量共享需求与既有 Space/多成员/共享/提醒架构，不因个人使用频率降低而废弃。外部日历、导出/备份/加密、原生 App/订阅/大陆部署均未获功能批准或时间/架构承诺；回顾仍可选，不预设商业卖点。
 
@@ -395,6 +403,8 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Handoff Prompt
 
-Slice6已按用户方案A完成本地实现及最终closeout：隔离worktree design/ui-v2，起点HEAD 2c9a03032077dec9add6007e0c1a51b7078b7ec2；最终11个授权文件以一个本地commit收口。四真实指标使用受控只读查询与canonical日期规则，回顾维持选中Space边界；资格前后核验、晚响应屏蔽、返回重读及60秒可见页freshness。候选计数最小修复后完整相关回归317/317、build/diff-check通过；离线视觉已由用户验收，Slice6 = LOCAL PASS / VISUAL PASS。静态fixture只用于视觉，不代表真实业务验收。真实账号、iOS/Android、installed PWA与Production仍待验收，认证前按AGENTS gate。上次STOP审计历史完整保留于DEVLOG，旧worktree28modified+1untracked/29指纹不变。正式v0.1.20与Version Index保持、Space Color System Deferred。未push/deploy；Slice7未启动，等待用户另行确定范围。
+Slice7任务模块、视觉修正及本地Git closeout已完成，LOCAL PASS / VISUAL PASS。授权12文件（10 modified + 2 untracked）已提交一个本地commit：TasksArea/TaskSheet/styles，App日历选择箭头、ListsOverviewPage/ImportantDateSheet冗余选择器SVG，4个测试与2份治理。App后三模块的本轮修改严格为下拉展示；原查询/导航/业务/权限保持，Home三个+与TaskSheet本轮前源码不改。全局15处native select声明与一个日历按钮选择器共用16px轻chevron、右16px/文本预留48px；不影响日期/折叠/导航箭头，native popup仍系统负责。任务+改为透明44×44/18px首页规格。全量841/841、build/diff-check、84/84响应式与9项本地交互通过。5176 `/slice7/index.html` 提供最新真实组件task15状态、跨模块6状态与390px新截图，fixture/SSR不代表真实接口验收。旧worktree28 modified + 1 untracked及29指纹保持。正式v0.1.20与Space Color System Deferred保持。用户视觉验收已通过，本地closeout完成；不push/deploy、不进入Slice8。真实账号/iOS/Android/PWA/Production仍待验收。以下为既有Slice6/5历史记录。
+
+Slice6已按用户方案A完成本地实现及最终closeout：隔离worktree design/ui-v2，起点HEAD 2c9a03032077dec9add6007e0c1a51b7078b7ec2；最终11个授权文件以一个本地commit收口。四真实指标使用受控只读查询与canonical日期规则，回顾维持选中Space边界；资格前后核验、晚响应屏蔽、返回重读及60秒可见页freshness。候选计数最小修复后完整相关回归317/317、build/diff-check通过；离线视觉已由用户验收，Slice6 = LOCAL PASS / VISUAL PASS。静态fixture只用于视觉，不代表真实业务验收。真实账号、iOS/Android、installed PWA与Production仍待验收，认证前按AGENTS gate。上次STOP审计历史完整保留于DEVLOG，旧worktree28modified+1untracked/29指纹不变。正式v0.1.20与Version Index保持、Space Color System Deferred。未push/deploy；此处为Slice6收口时的历史状态，Slice7当前进度见上文。
 
 UI v2隔离worktree `/Users/wp/Projects/跨系统共享日历-ui-v2`，design/ui-v2，Slice5起点dc97fae3ebfb486b241796c4a8b54277d7b78ce9。本轮七文件（App/styles/三日历及手势测试/DEVLOG/PROJECT_STATE）随 Slice5 收口创建本地commit。Slice5月视图已本地完成：4–6周两条标题/+N、六色圆点、轻日期浮层及真实详情入口，日期包括邻月一击打开，外点/Escape/焦点/周期/筛选/视图清理。261/261、build/diff-check、四宽度28组与10项离线交互记录PASS；最新源码manifest匹配，390px四截图与预览 `/slice5/index.html` 在独立离线5176服务。准确状态 LOCAL PASS / VISUAL PASS（仅本地技术与离线视觉验收）；真实账号/真机/PWA/Production未验收，认证前按AGENTS gate。既有42天查询/日期引擎/权限/创建保存/后端未改，旧worktree28modified+1untracked/29指纹不变。日/周/home保持，Space Color System Deferred，不自定义颜色，不进入下一Slice；按用户授权完成一个本地commit，未push/deploy。视觉验收已通过；正式v0.1.20与Version Index保持。

@@ -9,7 +9,6 @@ import {
   LayoutGrid,
   UserRound,
   Check,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Plus,
@@ -884,9 +883,8 @@ export function CalendarFilterPicker({ spaces, filter, open, onOpen, onClose, on
 
   return (
     <>
-      <button type="button" className="ui-focus flex min-h-ui-touch w-full min-w-0 items-center gap-ui-2 rounded-ui-control bg-ui-surface px-ui-3 text-ui-label text-ui-text shadow-ui-group" aria-label="筛选日历" aria-haspopup="dialog" aria-expanded={open} onClick={onOpen}>
+      <button type="button" className="ui-dropdown-trigger ui-focus flex min-h-ui-touch w-full min-w-0 items-center gap-ui-2 rounded-ui-control bg-ui-surface px-ui-3 text-ui-label text-ui-text shadow-ui-group" aria-label="筛选日历" aria-haspopup="dialog" aria-expanded={open} onClick={onOpen}>
         <span className="min-w-0 flex-1 truncate text-left">{selectedName}</span>
-        <ChevronDown size={16} className="shrink-0" aria-hidden="true" />
       </button>
       {sheet}
     </>

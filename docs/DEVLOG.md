@@ -1,5 +1,37 @@
 # Development Log
 
+## 2026-10-11 — UI v2 Slice 7 最终审查与本地 Git Closeout — LOCAL PASS / VISUAL PASS
+
+- 用户已明确验收最新离线视觉：「我认为可以了，收口吧。」最终范围严格为授权12文件：6个任务/下拉展示文件、2个新增测试、2个相关测试及DEVLOG/PROJECT_STATE；新增 `tests/tasks-ui-v2.test.ts` 与 `tests/dropdown-ui.test.ts` 均已纳入提交。无其他文件、依赖或后端改动。
+- 任务模块审查确认跨Space聚合、原排序/身份/资格/权限、完成/恢复/编辑回调、旧completed路由与深链兼容均保持。TaskSheet保留Home旧模式及Shared真实“分配给”；dirty/busy/重复提交/失败保留输入行为和已有测试通过。
+- 选择器审计确认15处原生单选select及一个日历按钮式Space触发器。共用16px轻量chevron、右16px留白和48px文本预留；无双箭头，原生option/popup及键盘/移动端行为保留。Focus、Disabled、Error、高对比度样式检查通过；日期、导航和列表折叠箭头不在变更范围。
+- 重新运行完整相关Node回归 `node --experimental-strip-types --test --test-reporter=tap tests/*.test.ts tests/*.test.js`：**841/841 PASS**，失败/取消/跳过均0。`npm run build` PASS（1719 modules；既有>500kB chunk提示保留）；`git diff --check` PASS。先前本轮84项响应式状态检查及9项离线交互仍是本次实际预览证据。
+- 本地Git closeout仅暂存授权12文件，审查staged清单/diff后创建一个普通本地commit；无amend/force/push/deploy。Slice7 = **LOCAL PASS / VISUAL PASS**。真实账号、iOS/Android、installed PWA及Production未验收；正式版本仍v0.1.20，Space Color System仍Deferred。旧worktree28 modified + 1 untracked及29项SHA256指纹完全匹配；不自动进入Slice8。
+
+
+## 2026-10-11 — UI v2 Slice 7 视觉增量：透明 + 与全局下拉箭头
+
+- 延续既有Slice7，不收口。Preflight PASS：design/ui-v2，HEAD `dd4198f2f14a6dde57ac5802e85109b138784baf`，精确7 modified + 1 untracked，index为空；旧worktree28 modified + 1 untracked和29文件指纹匹配。
+- TasksArea新建入口对齐已验收Home +：18px灰绿Plus、透明44×44热区、无常驻背景/边框，保留ui-focus及原disabled/onClick；首页三个+源码未改。TaskSheet源码、本轮前的完成折叠/业务保存/资格/提醒接线不改。
+- 只读审计精确15处native select声明：App Event提醒1、TaskSheet负责人/提醒2、GlobalCreateControls保存Space1（多个入口复用）、TasksArea筛选1、ImportantDateSheet保存Space/重复/提醒3、ImportantDatesPage筛选1、ListSheets保存Space1、ListsOverviewPage筛选1、ReviewHistoryPage Space1、RecurrenceControls日期/月/日3。另有App CalendarFilterPicker按钮式Space选择，原弹层/回调保留。无独立Select/Combobox库；重复频率按钮、日期选择器、完成折叠/导航箭头不属于本轮下拉范围。
+- 现有styles.css统一single native select与.ui-dropdown-trigger：同一个装饰性chevron-down SVG（Lucide原path、stroke2/round、16×16图标框、既有ui-muted色）、右16px/垂直居中、文本右padding48px；height/radius/业务props保持。无multiple/listbox/size>1覆盖，不重写原生菜单；forced-colors回退系统select箭头。去除TasksArea/ListsOverviewPage/ImportantDateSheet重复的独立SVG叠层；App仅日历选择按钮class/重复SVG及无用import发生视觉修改，onOpen/onClose/choose逻辑完全相同。共享规则自然覆盖其他模块，不逐页加补丁。
+- 本轮增量9文件：TasksArea、styles、App（仅CalendarFilterPicker展示）、ListsOverviewPage/ImportantDateSheet（仅箭头叠层）、tasks-ui-v2测试、新dropdown-ui测试、DEVLOG/PROJECT_STATE。Slice7累计12文件：10 modified + 2 untracked，均未暂存。TaskSheet、task-reminder-ui、tasks-p0b是保留的前轮实现，无本轮增量；无数据层/模型/日期引擎/查询/权限/Push/Realtime/backend/依赖修改。
+- 新增断言先RED（3项失败）后GREEN（6/6含原Slice7列表检查）。最终全量Node回归 **841/841 PASS**，含完整Slice7相关及所有受影响模块UI/导航/日期/提醒/资格测试，fail/skip/cancel均0，日志 `/private/tmp/calendar-slice7-dropdown-full.log`。`npm run build` PASS：1719模块、JS792.25kB/gzip229.14kB，既有>500kB警告保持；最终`git diff --check` PASS。
+- 最新真实React组件重新编译task15状态，并增加6个跨模块样本；React gallery复用CalendarFilterPicker/CreateTargetSelector/RecurrenceControls，ImportantDateSheet/ListEditorSheet/ReviewHistoryPage另用标注的SSR静态视觉样本。envFile=false、CSP connect-src none、无生产连接。320/390/768/1024 × 21状态 **84/84 PASS**：无横向溢出、单一箭头图形、size16/right16/padding48、无额外SVG叠层。9项本地交互检查PASS：native ArrowUp/Enter、日历原弹层选择/关闭、月末日期、disabled/error/retry、任务+ Focus、负责人/提醒/无截止禁用；截图与source manifests已核验来自本輪源码。SSR样本不证明业务写入；任务fixture仍故意拒绝保存。
+- 390px最新截图：normal-dropdown-390.jpg、edit-shared-dropdown-390.jpg、dropdowns-390.jpg；入口 `http://127.0.0.1:5176/slice7/index.html`，新增 `/dropdowns.html`、dropdowns-disabled/error及dropdown-important-date/list-space/review-space。只复用既有独立离线5176服务，开发5175未改。系统原生菜单内部外观仍由平台决定；iOS/Android native picker、软键盘/非零Safe Area/PWA/真实账号/Production待验收，不把响应式视口当真机。
+- 状态 **LOCAL PASS / VISUAL ACCEPTANCE PENDING**，等待本轮两项视觉修正验收。正式v0.1.20及Space Color System Deferred保持；保留旧worktree与全部原记录，无secret打印/复制，无commit/push/deploy，不进入Slice8。
+
+## 2026-10-11 — UI v2 Slice 7 任务模块 — LOCAL PASS / VISUAL ACCEPTANCE PENDING
+
+- Preflight PASS：design/ui-v2，HEAD `dd4198f2f14a6dde57ac5802e85109b138784baf`，clean/index为空；旧worktree原28 modified + 1 untracked状态及29项SHA256与既存基线匹配。阅读治理/实施规格与真实任务组件，核对正式ZIP approved/07及15；正式版本仍v0.1.20。
+- 最终范围8文件：TasksArea、TaskSheet、styles；新增tasks-ui-v2测试、调整task-reminder-ui/tasks-p0b测试；DEVLOG/PROJECT_STATE。App、任务数据层/hooks、Home、ModuleHub、日历、其他模块及backend/SQL/RLS/RPC/Reminder/Push/Realtime/依赖未改。展示迁移及必要的任务模块本地交互保护，不改变业务数据定义或读写查询。
+- 列表沿用完整跨Space聚合/排序/资格/归属：暖白、轻量圆角分组、深色标题/灰副信息/细分隔线；标题最多两行，完整标题仍在可访问名称与编辑入口。原完成/恢复/editor回调保持。原生details/summary实现已完成默认收起、重复展开/收起，筛选切换按key重置；summary已在原手势排除规则中，无新手势接线。旧completed页面与tasks-completed深链/返回完全保留，不删除导航能力。
+- TaskSheet新moduleView模式仅由TasksArea传入；Home沿用原模式与原创建行为。固定关闭/标题/保存顶栏，正文内部滚动，无重复底部表单submit。创建仍使用原保存Space确认与fresh资格校验；编辑Space只展示，不虚构迁移。四类真实字段及原生date/三种提醒选项保持；用户明确补充授权保留Shared专属“分配给”，负责人及提醒对象语义不变，不新增描述等字段。仅模块模式新增dirty关闭确认、同步mutation ref防重复保存/删除与busy关闭；成功仍canonical刷新后关闭，失败保留输入。
+- 先RED验证旧实现不满足页内折叠/顶栏submit/dirty/同步重复防护，再实施。最终完整相关自动回归 **409/409 PASS**，fail/skip/cancel均0；含任务数据/资格/ownership/提醒/创建确认/恢复/请求失效/首页/Hub/日历/底栏/手势，日志 `/private/tmp/calendar-slice7-full.log`。TaskSheet 12/12包含module模式创建确认/双击/失败重试及Home原关闭回归；tasks-p0b可见行断言仅跳过原生关闭details中的隐藏DOM行。`npm run build` PASS（1719模块，JS792.72kB/gzip229.29kB），保留既有>500kB警告；最终`git diff --check` PASS。
+- 最新真实TasksArea/TaskSheet/BottomNavigation React源码编译离线fixtures，envFile=false、supabase替换为拒绝保存的离线适配器、CSP connect-src none，无生产连接/secret复制。独立5176预览 `/slice7/index.html` 共15状态（normal/dense/one/long/empty/expanded/loading/error/unavailable/create/create-blocked/edit/edit-shared/edit-disabled/legacy-completed）；开发端口5175未改。320/390/768/1024 × 15状态 **60/60**布局检查PASS：无横向溢出，可见控件宽高至少44px、输入16px。10项真实本地Sheet交互检查PASS；另验证Enter折叠/筛选重置、320×480内部焦点滚动与固定顶栏、密集列表底部不被导航挡住。控制台error/warn为0。
+- 390×844实际JPEG截图 normal/expanded/empty/create/edit/edit-shared/long 已核验尺寸并目视检查；预览只隐藏桌面滚动条以匹配手机内容宽度，不修改组件源码。fixtures只用于视觉/本地交互；完成/导航为fixture空回调，保存返回明确离线错误，不宣称真实数据库或权限成功。浏览器工具未可靠驱动native date新增日期，状态变动由真实处理器测试覆盖，原生选择器/触控/软键盘/非零Safe Area/iOS/Android/PWA仍需用户设备验收。
+- **LOCAL PASS / VISUAL ACCEPTANCE PENDING**：等待用户本轮视觉验收。真实账号与Production未验收；认证前按AGENTS环境/版本gate。旧worktree状态与29指纹终查保持；未人工读取/打印/复制.env或secrets。未暂存/commit/push/deploy，不进入下一Slice；Space Color System Deferred。
+
 ## 2026-10-11 — UI v2 Slice 6 最终收口 — LOCAL PASS / LOCAL VISUAL PASS
 
 - 预检PASS：design/ui-v2，HEAD `2c9a03032077dec9add6007e0c1a51b7078b7ec2`，Slice6精确7 modified + 4 untracked，暂存区为空；原审计/实现/视觉增量记录完整保留。用户已认可居中卡片视觉「可以，我觉得看着还可以」，记录 **LOCAL VISUAL PASS**；本轮不再调整UI。

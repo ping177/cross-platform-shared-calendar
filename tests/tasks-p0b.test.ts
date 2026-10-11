@@ -18,7 +18,10 @@ const deferred = () => { let resolve!: (value: any) => void; const promise = new
 const elements = (node: any): any[] => React.isValidElement(node) ? [node, ...React.Children.toArray((node.props as any).children).flatMap(elements)] : [];
 const text = (node: any): string => React.isValidElement(node) ? React.Children.toArray((node.props as any).children).map(text).join('') : typeof node === 'string' ? node : '';
 const button = (tree: any, label: string) => elements(tree).find((el) => el.type === 'button' && (el.props['aria-label'] === label || text(el) === label));
-const rows = (tree: any) => elements(tree).filter((el) => el.type === 'li').map((el) => el.props['data-task-id']);
+// Native closed details contains DOM rows, but they are not visible or actionable.
+const rows = (node: any): any[] => !React.isValidElement(node) || (node.type === 'details' && !(node.props as any).open) ? []
+  : node.type === 'li' ? [(node.props as any)['data-task-id']]
+    : React.Children.toArray((node.props as any).children).flatMap(rows);
 
 // Real TasksArea, aggregate loader, eligibility reader and editor qualification.
 // Only React scheduling and external I/O are injected, with explicit barriers.

@@ -2,6 +2,85 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Slice 7: task-module surfaces only. */
+.ui-task-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.ui-task-row[data-completed="true"] .ui-task-title {
+  color: rgb(var(--ui-color-muted));
+  text-decoration: line-through;
+}
+.ui-task-completed > summary::-webkit-details-marker { display: none; }
+.ui-task-completed[open] > summary .ui-task-disclosure { transform: rotate(180deg); }
+.ui-task-rows .ui-focus:focus-visible { outline-offset: -2px; }
+.ui-task-sheet > section {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+  background: rgb(var(--ui-color-page));
+  border-radius: var(--ui-radius-sheet) var(--ui-radius-sheet) 0 0;
+  box-shadow: var(--ui-shadow-sheet);
+}
+.ui-task-sheet-header {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr) 4rem;
+  align-items: center;
+  gap: var(--ui-space-2);
+  flex-shrink: 0;
+  padding: var(--ui-space-3) var(--ui-space-4);
+  border-bottom: 1px solid rgb(var(--ui-color-border));
+}
+.ui-task-sheet-header h2 { text-align: center; }
+.ui-task-sheet-header h2:focus { outline: none; }
+.ui-task-sheet-header button {
+  display: grid;
+  place-items: center;
+  min-height: var(--ui-touch-target);
+  border-radius: var(--ui-radius-control);
+}
+.ui-task-sheet-body {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--ui-space-4) var(--ui-space-4) max(var(--ui-space-5), env(safe-area-inset-bottom, 0px));
+}
+.ui-task-sheet-body input, .ui-task-sheet-body select {
+  min-height: var(--ui-touch-target);
+  max-width: 100%;
+  border-color: rgb(var(--ui-color-control));
+  border-radius: var(--ui-radius-control);
+  background-color: rgb(var(--ui-color-surface));
+  color: rgb(var(--ui-color-text));
+  font-size: var(--ui-text-body);
+  line-height: var(--ui-leading-body);
+}
+.ui-task-sheet-body :is(input, select, button):focus-visible {
+  outline: var(--ui-focus-width) solid rgb(var(--ui-color-focus));
+  outline-offset: -2px;
+}
+.ui-task-sheet-body button { min-height: var(--ui-touch-target); min-width: var(--ui-touch-target); }
+.ui-task-sheet-body :is(label > span, label[for], p:not([role="alert"])) { color: rgb(var(--ui-color-muted)); }
+.ui-task-sheet-body .bg-teal { background-color: rgb(var(--ui-color-accent)); }
+.ui-task-sheet-body .text-teal { color: rgb(var(--ui-color-accent)); }
+.ui-task-sheet-body .bg-mist { background-color: rgb(var(--ui-color-soft)); }
+.ui-task-sheet-body .text-coral { color: rgb(var(--ui-color-danger)); }
+.ui-task-sheet-body .bg-coral { background-color: rgb(var(--ui-color-danger)); }
+.ui-task-space-label {
+  border: 1px solid rgb(var(--ui-color-border));
+  border-radius: var(--ui-radius-control);
+  padding: var(--ui-space-3) var(--ui-space-4);
+  background: rgb(var(--ui-color-surface));
+}
+.ui-task-space-label p { color: rgb(var(--ui-color-text)); }
+@media (min-width: 768px) {
+  .ui-task-sheet > section { border-radius: var(--ui-radius-sheet); }
+}
+
 :root {
   color: #172026;
   background: #f5f7f8;
@@ -31,6 +110,47 @@ input,
 textarea,
 select {
   font-size: 16px;
+}
+
+/* One decoration for native single selects and the Calendar Space trigger.
+   The icon is Lucide's 24px chevron path in a 16px box, using ui-muted (#636F67).
+   It is decorative: native options, popup UI and keyboard behavior stay intact. */
+:root {
+  --ui-dropdown-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23636F67' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+select:not([multiple]):not([size]),
+select[size="1"]:not([multiple]),
+.ui-dropdown-trigger {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: var(--ui-dropdown-chevron);
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1rem 1rem;
+  padding-right: 3rem;
+}
+select:focus-visible {
+  outline: var(--ui-focus-width) solid rgb(var(--ui-color-focus));
+  outline-offset: var(--ui-focus-offset);
+}
+@media (forced-colors: active) {
+  select:not([multiple]):not([size]), select[size="1"]:not([multiple]) {
+    appearance: auto;
+    -webkit-appearance: auto;
+    background-image: none;
+  }
+  .ui-dropdown-trigger { position: relative; background-image: none; }
+  .ui-dropdown-trigger::after {
+    content: "";
+    position: absolute;
+    right: 1.25rem;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-right: 2px solid ButtonText;
+    border-bottom: 2px solid ButtonText;
+    transform: rotate(45deg);
+    pointer-events: none;
+  }
 }
 
 .safe-bottom {
