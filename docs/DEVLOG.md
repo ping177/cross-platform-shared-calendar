@@ -1,5 +1,40 @@
 # Development Log
 
+## 2026-10-12 — Slice 10 最终审查与本地 Git Closeout — LOCAL PASS / VISUAL ACCEPTED
+
+- 用户批准低频重试后等待30秒，审批恢复，复用已有5176服务和已生成真实React预览。未改组件、CSS、测试或业务文件；source-manifest六项源码哈希与当前文件一致。原审批429记录保留，以下验证替代此前“新增视觉验证未完成”状态。
+- 用户最终确认重要日模块及Emoji选择器整体视觉满意，Slice10 = LOCAL PASS / VISUAL ACCEPTED；该结论仅覆盖本地实现与离线视觉，不表示真实账号、双账号、真机、PWA、Realtime或Production验收完成。正式Production版本v0.1.20不变，UI v2整体仍未完成或发布。全局中文字体栈/字重一致性Deferred保留。
+- 最终重新运行：重要日/首页/日历/模块/手势相关376/376 PASS，全量883/883 PASS，build PASS（1719模块及既有>500kB提示），`git diff --check` PASS。响应式复核既有证据：320/360/375/390/768/1024真实CSS宽度×已有自定义值收起/展开/选择/清除四状态24/24 PASS；页面及字段无横向溢出，选择/清除/12个Emoji按钮均至少44×44px。375px为六列两行，320/360为五列；输入框计算字号16px。
+- 六宽度×420px短视口展开/滚动两状态：12/12 PASS，顶栏保持可见、正文overflow-y:auto可滚动，键盘Tab能滚动到末尾操作；只模拟视口压缩，没有宣称iOS/Android真实软键盘或Safe Area验收。
+- 实际浏览器验证键盘Enter展开/选择，Tab进入第一Emoji，Focus outline 2px；Escape仅关闭网格并恢复选择按钮焦点，不关闭Sheet。选择/清除后尚未保存，取消后原🦋✨仍显示；首页/日历默认Sheet没有选择器且原“保存修改”存在，浏览器warn/error日志为空。
+- 最新入口 `http://127.0.0.1:5176/slice10-emoji/index.html` 已加入六张真实375px截图与布局/交互JSON：默认收起、展开、已选择、清空、已有非预设值、375×420短视口。常规375×844截图保留实际正文滚动，未缩放390px图像代替375px。截图与fixture仅离线视觉证据，不代表真实账号、数据库、设备、installed PWA或Production验收。
+- 浏览器补验阶段已有11/11直接UI、376/376相关、883/883全量和build PASS；该阶段只补浏览器检查，故当时未commit。当前最终closeout已重新运行完整相关/全量测试和构建，并在其通过后创建单一本地commit；无push/deploy，正式v0.1.20不变，不进入Slice11。
+
+## 2026-10-12 — Slice 10 模块专属轻量 Emoji 选择器 — 自动验证通过（最终结论见下方Closeout）
+
+- 用户明确授权后实施，Preflight：design/ui-v2，HEAD `ea820fb75ecd8a0c99a098c8e4f508b3eacc7b1c`，6 modified + 1 untracked，index为空。保留既有Slice10修改；本轮增量仅ImportantDateSheet、局部styles、已有新增important-dates-ui-v2测试、DEVLOG、PROJECT_STATE五文件，累计仍七文件。
+- 仅moduleView模式增加“选择”按钮、默认收起的12个常用Emoji网格和“清除”。所有新增按钮type=button；选择/清除只更新现有本地emoji state并收起，焦点回到选择按钮，仍由原唯一保存按钮提交。Escape捕获先关闭网格，不关闭Sheet；组合输入Escape不关闭网格。没有独立Sheet、依赖或通用Popover系统。6列布局，≤360px局部规则为5列，控件最小44px；实际浏览器布局尚待核验。
+- 原手动输入、非预设值、空字段、新建无默认Emoji、32 Unicode码点normalize校验、空白转null和CalendarHeart回退保持。submit函数、资格锁、错误/重试/关闭流程、首页/日历默认模式保持；App、hooks、数据层、日期引擎、提醒、Push、数据库和其它模块无增量改动。
+- 先RED后GREEN：直接UI测试11/11、重要日/首页/日历/模块/手势相关376/376、全量883/883 PASS（原878基线增加5项）；npm run build PASS，1719模块，既有>500kB提示。未commit/push/deploy，正式版本v0.1.20保持。
+- 最新真实React源码和构建CSS离线预览：`http://127.0.0.1:5176/slice10-emoji/index.html`，30个场景含新建默认收起、网格展开入口、选择/清空操作入口、已有自定义Emoji、默认Sheet隔离。展开/选择/清除场景需要点击页面真实控件；不是预先注入的保存状态。原5176 Python服务保持，未影响5175；全部fixture在内存中，无后端连接。
+- 浏览器自动审批在打开该localhost地址时失败：429 Too Many Requests，超过重试上限；操作未执行，不代表被判定不安全。没有换浏览器/端口/底层接口绕过。故新增网格六真实CSS视口、Escape/Focus的浏览器实测及375px新截图未完成，不能沿用上一轮144/144和旧截图作为本轮证明。等待用户允许重试浏览器验证，再完成视觉验收；真实账号/设备/installed PWA/Production仍未验收。
+
+## 2026-10-12 — UI v2 Slice 10 重要日模块视觉改造 — LOCAL PASS / VISUAL ACCEPTANCE PENDING
+
+- 用户批准最小实施方案后执行。Preflight PASS：design/ui-v2，HEAD `ea820fb75ecd8a0c99a098c8e4f508b3eacc7b1c`，clean/index空；旧worktree28 modified + 1 untracked，8661项项目文件/符号链接指纹一致，共享.git快照元数据沿用历史记录，不恢复/清理。已读AGENTS、UI v2规格、治理记录、重要日canonical规格、真实组件/hooks/数据层及日期引擎；核对设计包SHA `39ade13689e54d8347b156e339f7c2ea21d47857936d46a440ca7ff07576973a` 与第12张原始设计板。
+- 审计与实施规格：仅迁移重要日模块列表和原编辑Sheet，保留真实groupImportantDates排序/Space资格、一次性/年度字段、正计时/周年、下一发生日期、草稿/失败/锁/保存刷新和原返回。当前没有独立只读详情；点击记录仍打开原编辑Sheet。不增加参考图示意的备注、分类、添加到日历或月/周/日重复。实际字段完整保留：名称、可选Emoji、Space、annual/none、年/月/日与原三个提醒选项；年度开始年份仍可选，不合并成会丢失该语义的日期控件。
+- 精确7文件：ImportantDatesPage、ImportantDateSheet、局部styles、important-dates-ui既有测试（历史文案预期）、新增important-dates-ui-v2测试、DEVLOG/PROJECT_STATE。App、hooks、lib数据/日期/helper、types、SQL/RLS/RPC/Edge/Push/Reminder、依赖与其它模块未改。新增moduleView默认false，仅重要日模块传true；首页/日历原Sheet模式和共享Icon保持。无Space Color System/多人回顾，也未调整全局字体栈或Slice7选择器箭头。
+- 列表采用暖白、轻量圆角细边框、深色名称、灰色日期/重复/Space、克制灰绿日期信息；18px透明44×44 + 与原openCreate资格/回调保持，空状态CTA复用同一回调。历史改为“历史重要日 · N”，默认收起且沿用既有同scope导航恢复；只有原引擎past分组的一次性记录进入历史，显示“已过 elapsedDays 天”。年度开始年份的第N天/下一周年、今日周年及yearless今天/倒计时全部保留，排序/identity不变。
+- 模块Sheet采用关闭/标题/唯一保存顶栏，正文独立滚动与Safe Area；原提交表单、normalize校验、锁、失败保留、资格禁止保存、不可迁移Space和命名删除确认保持。首页/日历默认Sheet仍保留原操作区。键盘Escape/Tab/焦点恢复沿用原useImportantDateDialog；原Page业务handlers/右滑块、Sheet submit函数、共享Icon与既有CSS前缀逐段对HEAD相同（scope-review.json）。
+- 测试先RED（新增首批5项中4项预期失败）后GREEN，最终新增6项。`node --test tests/important-date*.test.ts tests/home-important-dates.test.ts tests/calendar-important-dates.test.ts tests/module-overview*.test.ts tests/mobile-gesture*.test.ts` **371/371 PASS**；全量 `node --test tests/*.test.ts tests/*.test.js` **878/878 PASS**，失败/取消/跳过0；`npm run build` PASS（1719模块，既有>500kB警告），`git diff --check` PASS。覆盖日期引擎跨年/月末/闰日/DST、年度anchor/Day1/周年、模块资格/刷新/晚响应、原CRUD/提醒及首页/日历/功能中心/其它模块回归。日志 `/private/tmp/calendar-slice10-{preflight-tests,red,related,full,build}.log`。
+- 最新实际React组件离线预览 `http://127.0.0.1:5176/slice10/index.html`，24状态；envFile=false、hooks/数据边界内存fixture，CSP connect-src none，无真实账号/数据库/Production连接。基准today明确固定，跨年/闰日页使用其明示基准。底栏只模拟离开回调，不宣称其它模块导航验收。真实CSS320/360/375/390/768/1024×24 **144/144 PASS**：要求main及相应Sheet真实渲染，无横向溢出，按钮/输入/选择器热区≥44px、输入16px、Sheet不超视口；验证期间console warn/error为0。
+- 浏览器离线交互通过：历史展开/折叠、真实编辑保存/新建与Personal默认、annual/none选择、提醒保留/切换、命名删除取消/确认、独立Space筛选、失败输入保留、Tab/Shift+Tab循环与Escape关闭，Focus2px。真实375×240缩短视口：顶栏位于16–85px，正文155px/scrollHeight636px/overflow auto，选择器单箭头16×16与右48px保留。仅证明CSS适配，非真实软键盘/非零Safe Area/设备验收。
+- 提供8类375×844完整内容JPEG（正常、空、历史展开、现有详情/编辑、新建、编辑、年度正计时、一次性编辑）及原底栏普通截图、失败截图；图片宽375且DOM内容高度844已核验，不缩放390图。capture=content仅离线省略固定底栏与其预留空间；正常预览保持原导航。六项source-manifest与当前源码相符，布局/尺寸/旧工作区证据见预览JSON。截图已目视核验。
+- 五轴审查PASS：仅展示与必要空状态入口，无新数据链路/查询/依赖，内容React转义、验证及权限保留。Important Dates本身的无active-view Realtime与canonical重读策略保持，未新增订阅。旧目录终查8661/8661且无新增/缺失，状态原样；未查看/打印秘密内容，指纹只读取字节不解析/输出.env，正常构建继续既有环境加载。临时测试/预览产物仅/private/tmp，无外部项目业务文件修改。
+- **LOCAL PASS / VISUAL ACCEPTANCE PENDING**；用户未验收本轮视觉。正式版本仍v0.1.20，真实账号/双账号、iOS/Android/软键盘/非零Safe Area、installed PWA、真实权限/刷新与Production均未验收，认证验收前遵守AGENTS环境对齐gate。当前6 modified + 1 untracked/index空，HEAD保持；未commit/push/deploy，不进入Slice11，停止等待用户视觉验收。Slice9字体栈/字重/行内排版的全局复核仍Deferred。
+
+
+
 
 
 

@@ -628,3 +628,51 @@ body:has(.ui-calendar-shell) {
 .ui-list-item .ui-list-inline-edit { grid-column: 3; }
 .ui-list-section-header > .ui-list-menu { margin-left: 0; }
 .ui-list-section-header > button { flex-basis: auto; }
+
+/* UI v2 Slice 10: Important Dates module only; other entry Sheet modes stay unchanged. */
+.ui-important-page, .ui-important-overlay { color: rgb(var(--ui-color-text)); }
+.ui-important-header { padding-top: calc(var(--ui-space-4) + env(safe-area-inset-top, 0px)); }
+.ui-important-page button, .ui-important-overlay button { min-height: var(--ui-touch-target); min-width: var(--ui-touch-target); }
+.ui-important-page :is(button, select):focus-visible, .ui-important-overlay :is(button, input, select):focus-visible {
+  outline: var(--ui-focus-width) solid rgb(var(--ui-color-focus)); outline-offset: var(--ui-focus-offset);
+}
+.ui-important-page .text-teal { color: rgb(var(--ui-color-accent)); }
+.ui-important-page .text-coral { color: rgb(var(--ui-color-danger)); }
+.ui-important-rows { display: grid; gap: var(--ui-space-2); }
+.ui-important-row { display: flex; align-items: flex-start; gap: var(--ui-space-3); width: 100%; min-width: 0; padding: var(--ui-space-3); text-align: left; border: var(--ui-border-width) solid rgb(var(--ui-color-border)); border-radius: var(--ui-radius-group); background: rgb(var(--ui-color-surface)); }
+.ui-important-row:disabled { opacity: 0.5; }
+.ui-important-row .break-words { overflow-wrap: anywhere; }
+.ui-important-icon { display: grid; flex: none; place-items: center; width: var(--ui-space-7); min-height: var(--ui-space-7); }
+.ui-important-icon .text-teal { color: rgb(var(--ui-color-accent)); }
+.ui-important-history { display: flex; align-items: center; justify-content: space-between; gap: var(--ui-space-3); width: 100%; padding: var(--ui-space-3); border: var(--ui-border-width) solid rgb(var(--ui-color-border)); border-radius: var(--ui-radius-control); background: rgb(var(--ui-color-surface)); color: rgb(var(--ui-color-muted)); text-align: left; font-size: var(--ui-text-meta); line-height: var(--ui-leading-meta); }
+.ui-important-empty { padding: var(--ui-space-7) var(--ui-space-3); text-align: center; }
+.ui-important-empty-current { padding: var(--ui-space-5) var(--ui-space-3); }
+.ui-important-overlay { position: fixed; inset: 0; z-index: 40; display: flex; align-items: flex-end; justify-content: center; background: rgb(var(--ui-color-text) / 0.35); }
+.ui-important-sheet { display: flex; flex-direction: column; width: 100%; max-width: 32rem; max-height: calc(100dvh - env(safe-area-inset-top, 0px) - var(--ui-space-4)); overflow: hidden; border-radius: var(--ui-radius-sheet) var(--ui-radius-sheet) 0 0; background: rgb(var(--ui-color-page)); }
+.ui-important-sheet-header { display: grid; grid-template-columns: var(--ui-touch-target) minmax(0, 1fr) auto; align-items: center; flex: none; gap: var(--ui-space-2); padding: var(--ui-space-3); border-bottom: var(--ui-border-width) solid rgb(var(--ui-color-border)); }
+.ui-important-sheet-header button { border-radius: var(--ui-radius-control); }
+.ui-important-sheet-body { overflow-y: auto; overscroll-behavior: contain; padding: 0 var(--ui-space-4) max(var(--ui-space-5), env(safe-area-inset-bottom, 0px)); overflow-wrap: anywhere; }
+.ui-important-sheet-body :is(input, select) { font-size: var(--ui-text-body); line-height: var(--ui-leading-body); min-height: var(--ui-touch-target); max-width: 100%; border-color: rgb(var(--ui-color-control)); border-radius: var(--ui-radius-control); background-color: rgb(var(--ui-color-surface)); }
+.ui-important-sheet-body :is(label, p:not([role="alert"])) { color: rgb(var(--ui-color-muted)); }
+.ui-important-sheet-body label { font-weight: var(--ui-weight-normal); }
+.ui-important-sheet-body .text-coral, .ui-important-confirm .text-coral { color: rgb(var(--ui-color-danger)); }
+.ui-important-confirm-overlay { padding: var(--ui-space-4); }
+.ui-important-confirm { max-height: calc(100dvh - var(--ui-space-7)); overflow-y: auto; border-radius: var(--ui-radius-sheet); box-shadow: var(--ui-shadow-sheet); }
+.ui-important-confirm .bg-mist { background: rgb(var(--ui-color-soft)); }
+.ui-important-confirm .bg-coral { background: rgb(var(--ui-color-danger)); }
+@media (min-width: 768px) {
+  .ui-important-overlay { align-items: center; padding: var(--ui-space-6); }
+  .ui-important-sheet { border-radius: var(--ui-radius-sheet); }
+}
+
+/* Module-only important-date Emoji choices; the default Sheet is unchanged. */
+.ui-important-sheet .ui-important-emoji-input-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.ui-important-sheet .ui-important-emoji-input-row input { flex: 1; min-width: 0; margin-top: 0; }
+.ui-important-sheet .ui-important-emoji-trigger { min-width: 60px; min-height: 44px; border: 1px solid rgb(var(--ui-color-border)); border-radius: var(--ui-radius-control); color: rgb(var(--ui-color-accent)); font-size: 14px; }
+.ui-important-sheet .ui-important-emoji-choices { margin-top: 8px; padding: 8px; border: 1px solid rgb(var(--ui-color-border)); border-radius: var(--ui-radius-control); }
+.ui-important-sheet .ui-important-emoji-grid { display: grid; grid-template-columns: repeat(6, minmax(44px, 1fr)); gap: 4px; }
+.ui-important-sheet .ui-important-emoji-choice { min-width: 44px; min-height: 44px; border: 1px solid transparent; border-radius: var(--ui-radius-control); font-size: 24px; line-height: 1; }
+.ui-important-sheet .ui-important-emoji-choice[aria-pressed="true"] { border-color: rgb(var(--ui-color-accent)); }
+.ui-important-sheet .ui-important-emoji-clear { display: block; min-height: 44px; min-width: 60px; margin-left: auto; color: rgb(var(--ui-color-muted)); font-size: 14px; }
+.ui-important-sheet .ui-important-emoji-field button:disabled { opacity: .5; }
+@media (max-width: 360px) { .ui-important-sheet .ui-important-emoji-grid { grid-template-columns: repeat(5, minmax(44px, 1fr)); } }

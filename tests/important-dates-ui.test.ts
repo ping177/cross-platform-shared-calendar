@@ -49,7 +49,7 @@ test('Important Dates content shows sorted date derivation, source context and c
   assert.match(markup, /第 1 天/);
   assert.match(markup, /距 1 周年还有 365 天/);
   assert.match(markup, /共同/);
-  assert.match(markup, /过去 · 1/);
+  assert.match(markup, /历史重要日 · 1/);
   assert.match(markup, /aria-expanded="false"/);
   assert.doesNotMatch(markup, /旅行|提醒|08:00|20:00|reminder/i);
 }));

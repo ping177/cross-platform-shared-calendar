@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
+import { X } from 'lucide-react';
 import { canSaveImportantDateTarget, normalizeImportantDateDraft, type ImportantDateDraft } from '../lib/important-dates';
 import { allDayReminderOptions, defaultReminderKind } from '../lib/reminder';
 import type { CurrentSpace, ImportantDate } from '../types';
+
+const commonEmojis = ['🎂', '🎉', '❤️', '💍', '🎁', '🏡', '✈️', '🎓', '🌸', '⭐', '🥂', '👶'];
 
 function useImportantDateDialog(onCancel: () => void, busy: boolean) {
   const container = useRef<HTMLDivElement>(null);
@@ -26,9 +29,9 @@ function useImportantDateDialog(onCancel: () => void, busy: boolean) {
   return container;
 }
 
-export function ImportantDateSheet({ date, memberSpaces, eligibleSpaces, initialTargetId, canAct, onSubmit, onCancel, onDelete }: {
+export function ImportantDateSheet({ date, memberSpaces, eligibleSpaces, initialTargetId, canAct, onSubmit, onCancel, onDelete, moduleView = false }: {
   date?: ImportantDate; memberSpaces: CurrentSpace[]; eligibleSpaces: CurrentSpace[]; initialTargetId?: string | null; canAct: boolean;
-  onSubmit: (draft: ImportantDateDraft, spaceId: string) => Promise<void>; onCancel: () => void; onDelete: () => void;
+  onSubmit: (draft: ImportantDateDraft, spaceId: string) => Promise<void>; onCancel: () => void; onDelete: () => void; moduleView?: boolean;
 }) {
   // Initialization only: background filter/eligibility changes never rewrite this target.
   const [targetId, setTargetId] = useState(date?.space_id ?? initialTargetId ?? '');
@@ -41,6 +44,9 @@ export function ImportantDateSheet({ date, memberSpaces, eligibleSpaces, initial
   const [reminder, setReminder] = useState<ImportantDate['reminder_kind']>(date ? date.reminder_kind : defaultReminderKind(true) as ImportantDate['reminder_kind']);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [emojiExpanded, setEmojiExpanded] = useState(false);
+  const emojiTrigger = useRef<HTMLButtonElement>(null);
+  const emojiComposing = useRef(false);
   const lock = useRef(false);
   const container = useImportantDateDialog(onCancel, busy);
   const target = memberSpaces.find((space) => space.id === targetId);
@@ -60,13 +66,36 @@ export function ImportantDateSheet({ date, memberSpaces, eligibleSpaces, initial
     finally { lock.current = false; setBusy(false); }
   }
 
-  return <div ref={container} className="fixed inset-0 z-40 flex items-end bg-ink/50 p-4 md:items-center" role="dialog" aria-modal="true" aria-labelledby="important-date-editor-title">
-    <form className="mx-auto max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-lg bg-white p-5 shadow-soft safe-bottom" onSubmit={(event) => void submit(event)}>
-      <h2 id="important-date-editor-title" className="text-lg font-bold">{date ? '编辑重要日' : '新建重要日'}</h2>
+  return <div ref={container} className={moduleView ? "ui-important-overlay font-ui" : "fixed inset-0 z-40 flex items-end bg-ink/50 p-4 md:items-center"} role="dialog" aria-modal="true" aria-labelledby="important-date-editor-title">
+    <form className={moduleView ? "ui-important-sheet" : "mx-auto max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-lg bg-white p-5 shadow-soft safe-bottom"} onSubmit={(event) => void submit(event)}>
+      {moduleView ? <header className="ui-important-sheet-header">
+        <button className="ui-focus grid h-11 w-11 place-items-center text-ui-muted" type="button" aria-label="关闭重要日表单" disabled={busy} onClick={onCancel}><X size={20} aria-hidden="true" /></button>
+        <h2 id="important-date-editor-title" className="min-w-0 text-center text-ui-bar">{date ? '编辑重要日' : '新建重要日'}</h2>
+        <button className="ui-focus min-h-11 rounded-ui-control px-ui-3 text-ui-meta font-ui-semibold text-ui-accent disabled:opacity-50" type="submit" disabled={busy || !canAct || !targetEnabled || !name.trim()}>{busy ? '保存中…' : '保存'}</button>
+      </header> : <h2 id="important-date-editor-title" className="text-lg font-bold">{date ? '编辑重要日' : '新建重要日'}</h2>}
+      <div className={moduleView ? 'ui-important-sheet-body' : undefined}>
       <label className="mt-4 block text-sm font-semibold" htmlFor="important-date-name">名称</label>
       <input id="important-date-name" className="mt-2 min-h-11 w-full rounded-lg border border-ink/20 px-3" value={name} disabled={busy} required onChange={(event) => setName(event.target.value)} />
       <label className="mt-4 block text-sm font-semibold" htmlFor="important-date-emoji">Emoji（可选）</label>
-      <input id="important-date-emoji" className="mt-2 min-h-11 w-full rounded-lg border border-ink/20 px-3" value={emoji} disabled={busy} onChange={(event) => setEmoji(event.target.value)} />
+      {moduleView ? <div className="ui-important-emoji-field" onKeyDownCapture={(event) => {
+        // Capture before the dialog's native Escape listener so only the chooser closes.
+        if (event.key !== 'Escape' || !emojiExpanded) return;
+        event.stopPropagation();
+        if (emojiComposing.current || event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;
+        event.preventDefault();
+        if (!busy) { setEmojiExpanded(false); emojiTrigger.current?.focus(); }
+      }}>
+        <div className="ui-important-emoji-input-row">
+          <input id="important-date-emoji" className="mt-2 min-h-11 w-full rounded-lg border border-ink/20 px-3" value={emoji} disabled={busy} onChange={(event) => setEmoji(event.target.value)} onCompositionStart={() => { emojiComposing.current = true; }} onCompositionEnd={() => { emojiComposing.current = false; }} />
+          <button ref={emojiTrigger} className="ui-focus ui-important-emoji-trigger" type="button" aria-controls="important-date-emoji-choices" aria-expanded={emojiExpanded} disabled={busy} onClick={() => setEmojiExpanded(!emojiExpanded)}>选择</button>
+        </div>
+        {emojiExpanded && <div id="important-date-emoji-choices" className="ui-important-emoji-choices" role="group" aria-label="常用 Emoji">
+          <div className="ui-important-emoji-grid">
+            {commonEmojis.map((value) => <button key={value} className="ui-focus ui-important-emoji-choice" type="button" aria-label={`选择 ${value}`} aria-pressed={emoji === value} disabled={busy} onClick={() => { setEmoji(value); setEmojiExpanded(false); emojiTrigger.current?.focus(); }}>{value}</button>)}
+          </div>
+          <button className="ui-focus ui-important-emoji-clear" type="button" disabled={busy} onClick={() => { setEmoji(''); setEmojiExpanded(false); emojiTrigger.current?.focus(); }}>清除</button>
+        </div>}
+      </div> : <input id="important-date-emoji" className="mt-2 min-h-11 w-full rounded-lg border border-ink/20 px-3" value={emoji} disabled={busy} onChange={(event) => setEmoji(event.target.value)} />}
       <label className="mt-4 block text-sm font-semibold" htmlFor="important-date-space">空间</label>
       {date ? <p id="important-date-space" className="mt-2 break-words text-sm">{target?.kind === 'personal' ? '我的空间' : target?.name ?? '空间不可用'}</p> : <select id="important-date-space" className="mt-2 min-h-11 w-full min-w-0 rounded-lg border border-ink/20 bg-white px-3" value={targetId} disabled={busy} onChange={(event) => { setTargetId(event.target.value); setError(''); }}>
         <option value="">请主动选择空间</option>
@@ -89,19 +118,20 @@ export function ImportantDateSheet({ date, memberSpaces, eligibleSpaces, initial
       {error && <p className="mt-3 text-sm text-coral" role="alert">{error}</p>}
       <div className="mt-5 flex flex-wrap justify-end gap-2">
         {date && <button className="mr-auto min-h-11 rounded-lg px-2 font-semibold text-coral disabled:opacity-50" type="button" disabled={busy || !canAct || !targetEnabled} onClick={onDelete}>删除重要日</button>}
-        <button className="min-h-11 rounded-lg bg-mist px-4 font-semibold" type="button" disabled={busy} onClick={onCancel}>取消</button>
-        <button className="min-h-11 rounded-lg bg-teal px-4 font-semibold text-white disabled:opacity-50" type="submit" disabled={busy || !canAct || !targetEnabled || !name.trim()}>{busy ? '保存中…' : date ? '保存修改' : '创建重要日'}</button>
+        {!moduleView && <><button className="min-h-11 rounded-lg bg-mist px-4 font-semibold" type="button" disabled={busy} onClick={onCancel}>取消</button>
+        <button className="min-h-11 rounded-lg bg-teal px-4 font-semibold text-white disabled:opacity-50" type="submit" disabled={busy || !canAct || !targetEnabled || !name.trim()}>{busy ? '保存中…' : date ? '保存修改' : '创建重要日'}</button></>}
+      </div>
       </div>
     </form>
   </div>;
 }
 
-export function ImportantDateDeleteDialog({ date, space, busy, canAct, error, onCancel, onConfirm }: {
-  date: ImportantDate; space: CurrentSpace; busy: boolean; canAct: boolean; error: string; onCancel: () => void; onConfirm: () => void;
+export function ImportantDateDeleteDialog({ date, space, busy, canAct, error, onCancel, onConfirm, moduleView = false }: {
+  date: ImportantDate; space: CurrentSpace; busy: boolean; canAct: boolean; error: string; onCancel: () => void; onConfirm: () => void; moduleView?: boolean;
 }) {
   const container = useImportantDateDialog(onCancel, busy);
-  return <div ref={container} className="fixed inset-0 z-40 flex items-end bg-ink/50 p-4 md:items-center" role="dialog" aria-modal="true" aria-labelledby="important-date-delete-title">
-    <div className="mx-auto w-full max-w-md rounded-lg bg-white p-5 shadow-soft safe-bottom">
+  return <div ref={container} className={moduleView ? "ui-important-overlay ui-important-confirm-overlay font-ui" : "fixed inset-0 z-40 flex items-end bg-ink/50 p-4 md:items-center"} role="dialog" aria-modal="true" aria-labelledby="important-date-delete-title">
+    <div className={`${moduleView ? 'ui-important-confirm ' : ''}mx-auto w-full max-w-md rounded-lg bg-white p-5 shadow-soft safe-bottom`}>
       <h2 id="important-date-delete-title" className="text-lg font-bold">确认删除重要日</h2>
       <p className="mt-3 break-words text-sm leading-6">重要日：<strong>{date.name}</strong><br />空间：<strong>{space.kind === 'personal' ? '我的空间' : space.name}</strong></p>
       <p className="mt-3 text-sm">这会永久删除此重要日，无法恢复。</p>
