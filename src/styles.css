@@ -557,3 +557,74 @@ body:has(.ui-calendar-shell) {
 
 .ui-review-content + .ui-review-content { border-top: var(--ui-border-width) solid rgb(var(--ui-color-border)); }
 .ui-review-content { overflow-wrap: anywhere; }
+
+/* UI v2 Slice 9: existing Lists surfaces only; drag props and data flows remain intact. */
+.ui-lists-page, .ui-list-detail { background: rgb(var(--ui-color-page)); color: rgb(var(--ui-color-text)); }
+.ui-lists-page > div > header, .ui-list-detail > header { padding-top: calc(var(--ui-space-4) + env(safe-area-inset-top, 0px)); }
+.ui-lists-page button, .ui-list-detail button, .ui-list-overlay button { min-height: var(--ui-touch-target); min-width: var(--ui-touch-target); }
+.ui-lists-page :is(button, input, select):focus-visible,
+.ui-list-detail :is(button, input, [data-rfd-drag-handle-draggable-id]):focus-visible,
+.ui-list-overlay :is(button, input, select):focus-visible {
+  outline: var(--ui-focus-width) solid rgb(var(--ui-color-focus)); outline-offset: var(--ui-focus-offset);
+}
+.ui-lists-page .text-teal, .ui-list-detail .text-teal, .ui-list-overlay .text-teal { color: rgb(var(--ui-color-accent)); }
+.ui-lists-page .text-coral, .ui-list-detail .text-coral, .ui-list-overlay .text-coral { color: rgb(var(--ui-color-danger)); }
+.ui-list-detail .bg-teal, .ui-list-overlay .bg-teal { background: rgb(var(--ui-color-accent)); color: rgb(var(--ui-color-on-accent)); }
+.ui-list-overlay .bg-coral { background: rgb(var(--ui-color-danger)); }
+.ui-list-detail .bg-mist, .ui-list-overlay .bg-mist { background: rgb(var(--ui-color-page)); }
+.ui-lists-page .rounded-lg, .ui-list-detail .rounded-lg, .ui-list-overlay .rounded-lg { border-radius: var(--ui-radius-control); }
+.ui-lists-page select, .ui-list-overlay :is(input, select), .ui-list-detail input:not([type="checkbox"]) {
+  min-height: var(--ui-touch-target); font-size: 1rem; border: var(--ui-border-width) solid rgb(var(--ui-color-border)); box-shadow: none;
+}
+.ui-lists-rows, .ui-list-panel { border: var(--ui-border-width) solid rgb(var(--ui-color-border)); border-radius: var(--ui-radius-group); background: rgb(var(--ui-color-surface)); }
+.ui-lists-row { padding: var(--ui-space-3); min-width: 0; }
+.ui-lists-row + .ui-lists-row { border-top: var(--ui-border-width) solid rgb(var(--ui-color-border)); }
+.ui-lists-open { position: relative; padding-right: var(--ui-space-6); }
+.ui-lists-name { font-size: var(--ui-text-list); line-height: var(--ui-leading-list); overflow-wrap: anywhere; }
+.ui-lists-chevron { position: absolute; right: 0; top: var(--ui-space-3); color: rgb(var(--ui-color-control)); }
+.ui-lists-empty { padding: var(--ui-space-7) var(--ui-space-3); text-align: center; }
+.ui-lists-body > section > button { border: var(--ui-border-width) solid rgb(var(--ui-color-border)); border-radius: var(--ui-radius-group); color: rgb(var(--ui-color-muted)); }
+.ui-list-detail h1, .ui-list-detail [data-section-id], .ui-list-confirm, .ui-list-sheet { overflow-wrap: anywhere; }
+.ui-list-progress { display: flex; align-items: center; gap: var(--ui-space-3); padding-top: var(--ui-space-2); border-top: var(--ui-border-width) solid rgb(var(--ui-color-border)); }
+.ui-list-progress progress { width: 100%; flex: 1; min-width: 0; height: var(--ui-space-1); appearance: none; border: 0; border-radius: var(--ui-radius-control); overflow: hidden; background: rgb(var(--ui-color-accent-soft)); color: rgb(var(--ui-color-accent)); }
+.ui-list-progress progress::-webkit-progress-bar { background: rgb(var(--ui-color-accent-soft)); }
+.ui-list-progress progress::-webkit-progress-value { background: rgb(var(--ui-color-accent)); }
+.ui-list-progress progress::-moz-progress-bar { background: rgb(var(--ui-color-accent)); }
+.ui-list-progress > span { flex: none; }
+.ui-list-item { display: grid; grid-template-columns: var(--ui-touch-target) var(--ui-touch-target) minmax(0, 1fr) auto; align-items: start; min-width: 0; gap: var(--ui-space-1); padding-block: var(--ui-space-2); border-bottom: var(--ui-border-width) solid rgb(var(--ui-color-border)); background: rgb(var(--ui-color-surface)); }
+.ui-list-item:last-child { border-bottom: 0; }
+.ui-list-item-text { overflow-wrap: anywhere; line-height: var(--ui-leading-list); }
+.ui-list-item input[type="checkbox"] { accent-color: rgb(var(--ui-color-accent)); }
+.ui-list-item input[type="checkbox"]:focus-visible { outline-offset: var(--ui-space-1); }
+.ui-list-inline-edit { grid-column: 3 / -1; }
+.ui-list-inline-edit input { flex-basis: 100%; }
+.ui-list-section-header > button > span:last-child { white-space: nowrap; }
+.ui-list-overlay { position: fixed; inset: 0; z-index: 40; display: flex; align-items: flex-end; justify-content: center; background: rgb(var(--ui-color-text) / 0.35); }
+.ui-list-sheet { display: flex; flex-direction: column; width: 100%; max-width: 32rem; max-height: calc(100dvh - env(safe-area-inset-top, 0px) - var(--ui-space-4)); border-radius: var(--ui-radius-sheet) var(--ui-radius-sheet) 0 0; background: rgb(var(--ui-color-page)); color: rgb(var(--ui-color-text)); overflow: hidden; }
+.ui-list-sheet-header { display: flex; flex: none; align-items: center; justify-content: space-between; gap: var(--ui-space-2); padding: var(--ui-space-3); border-bottom: var(--ui-border-width) solid rgb(var(--ui-color-border)); }
+.ui-list-sheet-body { overflow-y: auto; overscroll-behavior: contain; padding: 0 var(--ui-space-5) max(var(--ui-space-6), env(safe-area-inset-bottom, 0px)); }
+.ui-list-sheet-body label { color: rgb(var(--ui-color-muted)); }
+.ui-list-sheet-body input, .ui-list-sheet-body select { background-color: rgb(var(--ui-color-surface)); border-radius: var(--ui-radius-control); }
+.ui-list-confirm-overlay { padding: var(--ui-space-4); }
+.ui-list-confirm { max-height: calc(100dvh - var(--ui-space-7)); overflow-y: auto; border-radius: var(--ui-radius-sheet); color: rgb(var(--ui-color-text)); }
+@media (max-width: 390px) {
+  .ui-list-section-header { flex-wrap: wrap; }
+  .ui-list-section-header > button { flex-basis: 100%; }
+  .ui-list-section-header > div { margin-left: auto; }
+}
+@media (min-width: 768px) {
+  .ui-list-overlay { align-items: center; padding: var(--ui-space-6); }
+  .ui-list-sheet { border-radius: var(--ui-radius-sheet); }
+}
+
+/* Slice 9 interaction refinement: scoped List/Section popovers and direct item editing. */
+.ui-list-summary-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--ui-space-3); margin-bottom: var(--ui-space-3); }
+.ui-list-menu { position: relative; flex: none; }
+.ui-list-menu-popover { position: absolute; right: 0; top: calc(var(--ui-touch-target) + var(--ui-space-1)); z-index: 20; min-width: 9rem; padding: var(--ui-space-1); border: var(--ui-border-width) solid rgb(var(--ui-color-border)); border-radius: var(--ui-radius-control); background: rgb(var(--ui-color-surface)); box-shadow: var(--ui-shadow-sheet); }
+.ui-list-menu-popover button { display: block; width: 100%; padding: var(--ui-space-2) var(--ui-space-3); text-align: left; border-radius: var(--ui-radius-control); }
+.ui-list-menu-popover button:hover { background: rgb(var(--ui-color-page)); }
+.ui-list-item { grid-template-columns: var(--ui-touch-target) var(--ui-touch-target) minmax(0, 1fr); }
+.ui-list-item-text { min-height: var(--ui-touch-target); border-radius: var(--ui-radius-control); }
+.ui-list-item .ui-list-inline-edit { grid-column: 3; }
+.ui-list-section-header > .ui-list-menu { margin-left: 0; }
+.ui-list-section-header > button { flex-basis: auto; }

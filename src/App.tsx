@@ -475,6 +475,7 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
   const [listDetail, setListDetail] = useState<ListDetailTarget | null>(null);
   const [listNotice, setListNotice] = useState('');
   const reviewDetailDirty = useRef(false);
+  const listDetailLeaveGuard = useRef<(() => boolean) | null>(null);
   const [navigation, setNavigation] = useState(initialNavigation);
   const [spaceListStatus, setSpaceListStatus] = useState<'loading' | 'ready' | 'error'>('ready');
   const [spaceActionBusy, setSpaceActionBusy] = useState(false);
@@ -669,6 +670,7 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
 
   function changeTab(tab: TopLevelTab) {
     if (spaceActionBusy) return;
+    if (navigation.tab === 'modules' && navigation.moduleScreen === 'lists-detail' && listDetailLeaveGuard.current && !listDetailLeaveGuard.current()) return;
     if (!canChangeTabFromReviewDetail(navigation, reviewDetailDirty.current, () => window.confirm('有未保存的回顾内容，确定离开吗？'))) return;
     reviewDetailDirty.current = false;
     requestGuard.current.invalidate();
@@ -762,7 +764,7 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
         : navigation.moduleScreen === 'lists'
           ? <ListsOverviewPage swipeClickGuard={swipeClickGuard} key={userId} userId={userId} entry={listsEntry} entryPending={moduleAvailability.refreshing} initialData={retainedLists?.data} initialFilter={retainedLists?.filter} onValidated={(data, filter) => { if (sameModuleScope(listsEntry, data.memberSpaces, data.eligibleSpaces)) listsSnapshot.current = { userId, data, filter }; }} onInvalidateEligibility={() => { listsSnapshot.current = null; moduleAvailability.invalidate(); void moduleAvailability.refresh(true); }} initialNotice={listNotice} onOpenDetail={(list) => { setListNotice(''); setListDetail({ spaceId: list.space_id, listId: list.id }); setNavigation((current) => openListDetail(current)); }} onHubBack={() => setNavigation((current) => selectTab(current, 'modules'))} onNoEligible={() => { listsSnapshot.current = null; void moduleAvailability.refresh(); setNavigation((current) => selectTab(current, 'modules')); }} />
         : navigation.moduleScreen === 'lists-detail'
-          ? listDetail ? <ListDetailPage key={`${userId}:${listDetail.spaceId}:${listDetail.listId}`} userId={userId} target={listDetail} onBack={() => { setListDetail(null); setNavigation((current) => openListsModule(current)); }} onUnavailable={(result) => { listsSnapshot.current = null; void moduleAvailability.refresh(); setListNotice(result.status === 'deleted' ? '此清单已删除，列表已刷新。' : '清单空间资格已变化，列表已刷新。'); setListDetail(null); setNavigation((current) => result.eligibleSpaces.length ? openListsModule(current) : selectTab(current, 'modules')); }} />
+          ? listDetail ? <ListDetailPage key={`${userId}:${listDetail.spaceId}:${listDetail.listId}`} userId={userId} target={listDetail} onLeaveGuardChange={(guard) => { listDetailLeaveGuard.current = guard; }} onBack={() => { setListDetail(null); setNavigation((current) => openListsModule(current)); }} onUnavailable={(result) => { listsSnapshot.current = null; void moduleAvailability.refresh(); setListNotice(result.status === 'deleted' ? '此清单已删除，列表已刷新。' : '清单空间资格已变化，列表已刷新。'); setListDetail(null); setNavigation((current) => result.eligibleSpaces.length ? openListsModule(current) : selectTab(current, 'modules')); }} />
             : <main className="mx-auto max-w-3xl px-4 py-6"><p>此清单暂不可访问。</p><button className="mt-3 min-h-11 font-semibold text-teal" type="button" onClick={() => setNavigation((current) => openListsModule(current))}>返回清单总览</button></main>
         : navigation.moduleScreen === 'review'
           ? <ReviewHistoryPage swipeClickGuard={swipeClickGuard} userId={userId} entry={reviewEntry} entryPending={moduleAvailability.refreshing} initialSnapshot={retainedReview} onValidated={(history) => { if (reviewEntry && reviewSpaceId === history.selectedSpaceId) reviewSnapshot.current = { userId, memberSpaces: reviewEntry.memberSpaces, eligibleSpaces: reviewEntry.eligibleSpaces, history }; }} onInvalidateEligibility={() => { reviewSnapshot.current = null; moduleAvailability.invalidate(); void moduleAvailability.refresh(true); }} currentSpaceId={reviewSpaceId} onSpaceChange={(id) => { if (id !== reviewSpaceId) reviewSnapshot.current = null; setReviewSpaceId(id); }} onOpenDetail={(target) => { reviewDetailDirty.current = false; setReviewDetail(target); setNavigation((current) => openReviewDetail(current)); }} onHubBack={() => setNavigation((current) => selectTab(current, 'modules'))} onNoEligible={() => { reviewSnapshot.current = null; void moduleAvailability.refresh(); setReviewSpaceId(null); setNavigation((current) => selectTab(current, 'modules')); }} />

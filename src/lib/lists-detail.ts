@@ -8,7 +8,7 @@ export type ListDetailUiState = {
   foldOpen: Record<string, boolean>;
   collapsed: Record<string, boolean>;
   sectionCreateDraft: string | null;
-  editing: { kind: 'section' | 'item'; id: string; draft: string } | null;
+  editing: { kind: 'section' | 'item'; id: string; draft: string; original?: string } | null;
   recovered: string[];
 };
 
@@ -82,12 +82,19 @@ export function reconcileListDetailUiState(state: ListDetailUiState, sections: L
     if (key === ungroupedKey || sectionIds.has(key)) quickDrafts[key] = value;
     else if (value.trim()) recovered.push(value);
   }
+  const editingExists = state.editing && (state.editing.kind === 'section' ? sectionIds.has(state.editing.id) : itemIds.has(state.editing.id));
+  if (state.editing && !editingExists && state.editing.draft.trim()) recovered.push(state.editing.draft);
+  const editedItem = state.editing?.kind === 'item' ? items.find((item) => item.id === state.editing?.id) : undefined;
+  const foldOpen = Object.fromEntries(Object.entries(state.foldOpen).filter(([key]) => key === ungroupedKey || sectionIds.has(key)));
+  const collapsed = Object.fromEntries(Object.entries(state.collapsed).filter(([key]) => sectionIds.has(key)));
+  if (editedItem?.completed) foldOpen[editedItem.section_id ?? ungroupedKey] = true;
+  if (editedItem?.section_id && collapsed[editedItem.section_id]) collapsed[editedItem.section_id] = false;
   return {
     ...state,
     quickDrafts,
-    foldOpen: Object.fromEntries(Object.entries(state.foldOpen).filter(([key]) => key === ungroupedKey || sectionIds.has(key))),
-    collapsed: Object.fromEntries(Object.entries(state.collapsed).filter(([key]) => sectionIds.has(key))),
-    editing: state.editing && (state.editing.kind === 'section' ? sectionIds.has(state.editing.id) : itemIds.has(state.editing.id)) ? state.editing : null,
+    foldOpen,
+    collapsed,
+    editing: editingExists ? state.editing : null,
     recovered,
   };
 }

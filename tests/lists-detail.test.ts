@@ -46,7 +46,7 @@ test('ordinary canonical reread preserves local drafts and folds but recovers on
     assert.deepEqual(reconcileListDetailUiState(state, sections, items), state);
     const removed = reconcileListDetailUiState(state, [sections[1]], items.filter((item) => item.section_id !== 's2'));
     assert.deepEqual(removed.quickDrafts, { ungrouped: '豆腐', s1: '香蕉' });
-    assert.deepEqual(removed.recovered, ['睡衣']);
+    assert.deepEqual(removed.recovered, ['睡衣', '外套 × 2']);
     assert.deepEqual(removed.foldOpen, { ungrouped: true });
     assert.deepEqual(removed.collapsed, { s1: true });
     assert.equal(removed.editing, null);
@@ -169,7 +169,7 @@ test('confirmed Section deletes render before reread, preserve stable ungrouped 
     assert.equal(ui.foldOpen.s1, true);
     assert.equal(ui.collapsed.s1, true);
     assert.equal(ui.editing, null);
-    assert.deepEqual(ui.recovered, []);
+    assert.deepEqual(ui.recovered, ['袜子编辑中']);
   } finally { await vite.close(); }
 });
 

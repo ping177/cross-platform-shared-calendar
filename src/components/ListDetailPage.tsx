@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { DragDropContext, Draggable, Droppable, type DraggableProvided, type DropResult } from '@hello-pangea/dnd';
-import { ChevronDown, ChevronLeft, GripVertical, Plus } from 'lucide-react';
+import { ChevronDown, ChevronLeft, GripVertical, MoreHorizontal, Plus } from 'lucide-react';
 import { deleteList, renameList } from '../lib/lists-data';
 import { commitConfirmedDetailMutation, commitConfirmedItemReorder, deriveListDetail, initialListDetailUiState, itemGroupKey, normalizeDetailText, planListItemReorder, reconcileListDetailUiState, settleQuickAddDraft, ungroupedKey, type DetailRegion, type ListDetailUiState } from '../lib/lists-detail';
 import { createListItem, createListSection, deleteListItem, deleteListSection, editListItem, renameListSection, reorderListItems, setListItemCompleted, type ListDetailRead, type ListDetailTarget } from '../lib/lists-detail-data';
@@ -11,38 +11,65 @@ import { useListDetail } from './useListDetail';
 
 type Ready = Extract<ListDetailRead, { status: 'ready' }>;
 
-function QuickAdd({ label, value, busy, disabled, onInput, onChange, onSubmit }: {
+export function ListActionsMenu({ label, disabled, onRename, onDelete, menuId }: {
+  label: string; disabled: boolean; onRename: () => void; onDelete: () => void; menuId?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const root = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const first = useRef<HTMLButtonElement>(null);
+  function close(restoreFocus = true) { setOpen(false); if (restoreFocus) trigger.current?.focus(); }
+  useEffect(() => { if (disabled) close(false); }, [disabled]);
+  useEffect(() => {
+    if (!open) return;
+    first.current?.focus();
+    const outside = (event: PointerEvent) => { if (!root.current?.contains(event.target as Node)) close(!(event.target as Element).closest?.('button, input, textarea, select, a, [tabindex]')); };
+    document.addEventListener('pointerdown', outside);
+    return () => document.removeEventListener('pointerdown', outside);
+  }, [open]);
+  return <div ref={root} className="ui-list-menu" data-no-swipe onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) close(false); }} onKeyDown={(event) => {
+    if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); close(); }
+  }}>
+    <button id={menuId} ref={trigger} className="ui-focus grid h-11 w-11 shrink-0 place-items-center rounded-ui-control text-ui-muted" type="button" aria-label={`${label}更多操作`} aria-expanded={open && !disabled} disabled={disabled} onClick={() => open ? close() : setOpen(true)}><MoreHorizontal size={20} aria-hidden="true" /></button>
+    {open && !disabled && <div className="ui-list-menu-popover" role="group" aria-label={`${label}管理操作`}>
+      <button ref={first} type="button" onClick={() => { close(); onRename(); }}>{label === '清单' ? '重命名清单' : '改名'}</button>
+      <button type="button" className="text-ui-danger" onClick={() => { close(); onDelete(); }}>{label === '清单' ? '删除清单' : '删除'}</button>
+    </div>}
+  </div>;
+}
+
+export function QuickAdd({ label, value, busy, disabled, onInput, onChange, onSubmit }: {
   label: string; value: string; busy: boolean; disabled: boolean;
   onInput: (input: HTMLInputElement | null) => void; onChange: (value: string) => void; onSubmit: () => void;
 }) {
-  return <form className="flex min-w-0 items-center gap-2" onSubmit={(event) => { event.preventDefault(); onSubmit(); }}>
-    <input ref={onInput} className="min-h-11 min-w-0 flex-1 rounded-lg border border-ink/15 bg-white px-3 outline-none focus-visible:border-teal" aria-label={label} placeholder="＋ 添加一项…" value={value} readOnly={busy} onChange={(event) => onChange(event.target.value)} />
+  const composing = useRef(false);
+  return <form className="ui-list-quick flex min-w-0 items-center gap-2" onSubmit={(event) => { event.preventDefault(); if (!composing.current) onSubmit(); }}>
+    <input ref={onInput} onCompositionStart={() => { composing.current = true; }} onCompositionEnd={() => { composing.current = false; }} onKeyDown={(event) => { if (event.key === 'Enter' && (event.nativeEvent.isComposing || composing.current || event.keyCode === 229)) event.preventDefault(); }} className="min-h-11 min-w-0 flex-1 rounded-lg border border-ink/15 bg-white px-3 outline-none focus-visible:border-teal" aria-label={label} placeholder="添加一项…" value={value} readOnly={busy} onChange={(event) => onChange(event.target.value)} />
     <button className="min-h-11 shrink-0 rounded-lg bg-teal px-4 font-semibold text-white disabled:opacity-50" type="submit" disabled={disabled || busy || !value.trim()}>添加</button>
   </form>;
 }
 
-function ItemRow({ item, editing, busy, disabled, drag, onToggle, onEdit, onEditChange, onSave, onCancel, onDelete }: {
+export function ItemRow({ item, editing, busy, disabled, drag, onToggle, onEdit, onEditChange, onSave, onCancel, onDelete }: {
   item: ListItem; editing: ListDetailUiState['editing']; busy: boolean; disabled: boolean; drag: DraggableProvided;
   onToggle: () => void; onEdit: () => void; onEditChange: (value: string) => void;
   onSave: () => void; onCancel: () => void; onDelete: () => void;
 }) {
   const isEditing = editing?.kind === 'item' && editing.id === item.id;
-  return <div ref={drag.innerRef} {...drag.draggableProps} className="flex min-w-0 flex-wrap items-start gap-2 border-b border-ink/5 bg-white py-2 last:border-0" data-item-id={item.id} role="listitem">
+  const composing = useRef(false);
+  return <div ref={drag.innerRef} {...drag.draggableProps} className="ui-list-item" data-item-id={item.id} role="listitem">
     <label className="grid min-h-11 w-11 shrink-0 place-items-center" aria-label={`${item.completed ? '重新打开' : '完成'} ${item.content}`}>
-      <input className="h-5 w-5 accent-teal" type="checkbox" checked={item.completed} disabled={disabled || busy} onChange={onToggle} />
+      <input className="h-5 w-5 accent-teal" type="checkbox" checked={item.completed} disabled={disabled || busy || isEditing} onChange={onToggle} />
     </label>
     <span {...drag.dragHandleProps} className="grid min-h-11 w-11 shrink-0 place-items-center rounded-lg text-ink/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal" aria-label={`排序 ${item.content}`}><GripVertical size={18} aria-hidden="true" /></span>
-    {isEditing ? <form className="flex min-w-0 flex-1 flex-wrap gap-2" onSubmit={(event) => { event.preventDefault(); onSave(); }}>
-      <input className="min-h-11 min-w-0 flex-1 rounded-lg border border-ink/15 px-3" aria-label="编辑项目内容" value={editing.draft} disabled={disabled || busy} onChange={(event) => onEditChange(event.target.value)} />
-      <button className="min-h-11 rounded-lg px-3 font-semibold text-teal" type="submit" disabled={disabled || busy || !editing.draft.trim()}>保存</button>
-      <button className="min-h-11 rounded-lg px-3" type="button" disabled={busy} onClick={onCancel}>取消</button>
-    </form> : <>
-      <span className={`min-w-0 flex-1 break-words py-2.5 ${item.completed ? 'text-ink/50 line-through' : ''}`}>{item.content}</span>
-      <div className="ml-auto flex shrink-0 gap-1">
-        <button className="min-h-11 rounded-lg px-2 text-sm font-semibold text-teal" type="button" disabled={disabled || busy} onClick={onEdit} aria-label={`编辑 ${item.content}`}>编辑</button>
-        <button className="min-h-11 rounded-lg px-2 text-sm font-semibold text-coral" type="button" disabled={disabled || busy} onClick={onDelete} aria-label={`删除 ${item.content}`}>删除</button>
-      </div>
-    </>}
+    {isEditing ? <form className="ui-list-inline-edit flex min-w-0 flex-1 flex-wrap gap-2" onSubmit={(event) => { event.preventDefault(); if (!composing.current) onSave(); }}>
+      <input autoFocus onCompositionStart={() => { composing.current = true; }} onCompositionEnd={() => { composing.current = false; }} onKeyDown={(event) => {
+        if (event.nativeEvent.isComposing || composing.current || event.keyCode === 229) { if (event.key === 'Enter') event.preventDefault(); return; }
+        if (event.key === 'Escape') { event.preventDefault(); onCancel(); }
+      }} className="min-h-11 min-w-0 flex-1 rounded-lg border border-ink/15 px-3" aria-label="编辑项目内容" value={editing.draft} disabled={disabled || busy} onChange={(event) => onEditChange(event.target.value)} />
+      <button className="min-h-11 rounded-lg px-3 text-sm leading-5 font-semibold text-ui-accent" type="submit" disabled={disabled || busy || !editing.draft.trim()}>保存</button>
+      <button className="min-h-11 rounded-lg px-3 text-sm leading-5 font-normal text-ui-muted" type="button" disabled={busy} onClick={onCancel}>取消</button>
+      <button className="min-h-11 rounded-lg px-3 text-sm leading-5 font-normal text-ui-danger" type="button" disabled={disabled || busy} onClick={onDelete}>删除</button>
+    </form> : <button className={`ui-list-item-text min-w-0 text-left py-2.5 ${item.completed ? 'text-ink/50 line-through' : ''}`} id={`list-edit-${item.id}`} type="button" disabled={disabled || busy} onClick={onEdit} aria-label={`编辑 ${item.content}`}>{item.content}</button>}
   </div>;
 }
 
@@ -68,7 +95,7 @@ export function ListDetailRegion({ regionKey, regionLabel, region, ui, busy, dis
   return <div data-region={regionKey}>
     {region.active.length > 0 && group(region.active, false)}
     {region.completed.length > 0 && <div className="mt-2">
-      <button className="flex min-h-11 w-full items-center justify-between rounded-lg bg-mist px-3 text-left text-sm font-semibold text-ink/65" type="button" aria-expanded={Boolean(ui.foldOpen[regionKey])} aria-label={`${regionLabel}已完成 ${region.completedCount} 项`} onClick={onToggleFold}>
+      <button className="flex min-h-11 w-full items-center justify-between rounded-lg bg-mist px-3 text-left text-sm font-semibold text-ink/65" type="button" disabled={busy} aria-expanded={Boolean(ui.foldOpen[regionKey])} aria-label={`${regionLabel}已完成 ${region.completedCount} 项`} onClick={onToggleFold}>
         <span>已完成 {region.completedCount}</span><ChevronDown size={18} className={ui.foldOpen[regionKey] ? 'rotate-180' : ''} aria-hidden="true" />
       </button>
       {ui.foldOpen[regionKey] && <div id={`completed-${regionKey}`} className="mt-1">{group(region.completed, true)}</div>}
@@ -76,8 +103,9 @@ export function ListDetailRegion({ regionKey, regionLabel, region, ui, busy, dis
   </div>;
 }
 
-export function ListDetailPage({ userId, target, onBack, onUnavailable }: {
+export function ListDetailPage({ userId, target, onBack, onUnavailable, onLeaveGuardChange }: {
   userId: string; target: ListDetailTarget; onBack: () => void;
+  onLeaveGuardChange?: (guard: (() => boolean) | null) => void;
   onUnavailable: (result: Extract<ListDetailRead, { status: 'ineligible' | 'deleted' }>) => void;
 }) {
   const { state, syncError, refresh, reconnect, applyConfirmed, startDrag, finishDrag } = useListDetail(userId, target, onUnavailable);
@@ -93,6 +121,49 @@ export function ListDetailPage({ userId, target, onBack, onUnavailable }: {
   const listDeleteLock = useRef(false);
   const data: Ready | null = state.status === 'ready' ? state.data : null;
   const disabled = state.degraded || !data;
+  const alive = useRef(true);
+  const live = useRef({ ui, data, disabled });
+  live.current = { ui, data, disabled };
+  const sectionComposing = useRef(false);
+  const editSession = useRef(0);
+  const leaveGuard = useRef(() => {
+    if (mutationLock.current || listDeleteLock.current) return false;
+    const current = live.current;
+    const edit = current.ui.editing;
+    const original = edit?.original ?? (edit?.kind === 'item' ? current.data?.items.find((row) => row.id === edit.id)?.content : current.data?.sections.find((row) => row.id === edit?.id)?.name);
+    const dirty = Boolean(edit && edit.draft !== original)
+      || Object.values(current.ui.quickDrafts).some((text) => text.trim())
+      || Boolean(current.ui.sectionCreateDraft?.trim()) || current.ui.recovered.length > 0;
+    return !dirty || window.confirm('有未保存的清单内容，确定离开吗？');
+  });
+  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
+  useEffect(() => { onLeaveGuardChange?.(leaveGuard.current); return () => onLeaveGuardChange?.(null); }, [onLeaveGuardChange]);
+  function allowEditChange() {
+    if (mutationLock.current || listDeleteLock.current) return false;
+    const current = live.current;
+    const edit = current.ui.editing;
+    const original = edit?.original ?? (edit?.kind === 'item' ? current.data?.items.find((row) => row.id === edit.id)?.content : current.data?.sections.find((row) => row.id === edit?.id)?.name);
+    return !edit || edit.draft === original || window.confirm('有未保存的编辑内容，确定放弃吗？');
+  }
+  function cancelEdit() { if (allowEditChange()) { const id = live.current.ui.editing?.id; editSession.current++; setUi((current) => ({ ...current, editing: null })); requestAnimationFrame(() => document.getElementById(`list-edit-${id}`)?.focus()); } }
+  function beginEdit(kind: 'item' | 'section', id: string, draft: string) {
+    if (live.current.disabled || !allowEditChange()) return;
+    editSession.current++;
+    setUi((current) => ({ ...current, editing: { kind, id, draft, original: draft } }));
+  }
+  function editedRegion() {
+    const current = live.current;
+    if (current.ui.editing?.kind !== 'item') return null;
+    const item = current.data?.items.find((row) => row.id === current.ui.editing?.id);
+    return item ? { key: item.section_id ?? ungroupedKey, completed: item.completed } : null;
+  }
+  function toggleSection(id: string) {
+    const affected = live.current.ui.editing?.kind === 'section' && live.current.ui.editing.id === id || editedRegion()?.key === id;
+    if (mutationLock.current || (affected && !live.current.ui.collapsed[id] && !allowEditChange())) return;
+    if (affected && !live.current.ui.collapsed[id]) { editSession.current++; setUi((current) => ({ ...current, editing: null })); }
+    setUi((current) => ({ ...current, collapsed: { ...current.collapsed, [id]: !current.collapsed[id] } }));
+  }
+
 
   useEffect(() => {
     if (!data) return;
@@ -107,18 +178,20 @@ export function ListDetailPage({ userId, target, onBack, onUnavailable }: {
   }
 
   async function runMutation<T>(key: string, action: () => Promise<T>, onSuccess?: (result: T) => void) {
-    if (mutationLock.current || disabled) return;
+    if (mutationLock.current || listDeleteLock.current || live.current.disabled || !alive.current) return;
     mutationLock.current = true;
     setBusyKey(key);
     setMutationError('');
     try {
-      await commitConfirmedDetailMutation(action, (result) => onSuccess?.(result), refresh);
+      await commitConfirmedDetailMutation(action, (result) => { if (alive.current && !live.current.disabled) onSuccess?.(result); }, () => alive.current ? refresh() : Promise.resolve(null));
     } catch (error) {
-      setMutationError(errorMessage(error, '操作失败，请检查网络或空间资格后重试。'));
-      await refresh();
+      if (alive.current) {
+        setMutationError(errorMessage(error, '操作失败，请检查网络或空间资格后重试。'));
+        await refresh();
+      }
     } finally {
       mutationLock.current = false;
-      setBusyKey(null);
+      if (alive.current) setBusyKey(null);
     }
   }
 
@@ -154,6 +227,7 @@ export function ListDetailPage({ userId, target, onBack, onUnavailable }: {
   function saveEdit() {
     if (!data || !ui.editing) return;
     const edit = ui.editing;
+    const session = editSession.current;
     void runMutation(`edit:${edit.id}`, async () => {
       if (edit.kind === 'section') {
         const section = data.sections.find((row) => row.id === edit.id);
@@ -166,23 +240,29 @@ export function ListDetailPage({ userId, target, onBack, onUnavailable }: {
         if (!row) throw new Error('项目当前不可访问或已删除。');
         return { kind: 'item' as const, row };
       }
-    }, (change) => { applyConfirmed(change); setUi((current) => ({ ...current, editing: null })); });
+    }, (change) => {
+      const currentEdit = live.current.ui.editing;
+      if (session !== editSession.current || currentEdit?.id !== edit.id || currentEdit.kind !== edit.kind) return;
+      applyConfirmed(change); setUi((current) => ({ ...current, editing: null }));
+      requestAnimationFrame(() => document.getElementById(`list-edit-${edit.id}`)?.focus());
+    });
   }
 
   async function saveListName(name: string) {
-    if (!data || disabled) throw new Error('清单资格尚未确认，请重试。');
+    if (!data || live.current.disabled) throw new Error('清单资格尚未确认，请重试。');
     const updated = await renameList(supabase, data.list, name);
     if (!updated) {
       await refresh();
       throw new Error('清单当前不可访问或已删除。');
     }
+    if (!alive.current || live.current.disabled) throw new Error('清单资格已变化，请重新读取后重试。');
     applyConfirmed({ kind: 'list', row: updated });
     setRenameOpen(false);
     void refresh();
   }
 
   async function confirmListDelete() {
-    if (!data || !listDelete || disabled || listDelete.busy || listDeleteLock.current) return;
+    if (!data || !listDelete || live.current.disabled || listDelete.busy || listDeleteLock.current) return;
     if (listDelete.step === 1) { setListDelete({ ...listDelete, step: 2, error: '' }); return; }
     listDeleteLock.current = true;
     setListDelete({ ...listDelete, step: 2, busy: true, error: '' });
@@ -196,6 +276,7 @@ export function ListDetailPage({ userId, target, onBack, onUnavailable }: {
   }
 
   function requestSectionDelete(section: ListSection, total: number) {
+    if (live.current.disabled || mutationLock.current) return;
     if (total === 0) {
       confirmSectionDelete(section.id, true);
     } else setSectionDeleteId(section.id);
@@ -210,6 +291,8 @@ export function ListDetailPage({ userId, target, onBack, onUnavailable }: {
   }
 
   const derived = data ? deriveListDetail(target.listId, target.spaceId, data.sections, data.items, data.projectedUngroupedOrder, data.projectedItemOrders) : null;
+  const totalItems = data?.items.length ?? 0;
+  const completedItems = data?.items.filter((item) => item.completed).length ?? 0;
   const sectionToDelete = derived?.sections.find((entry) => entry.section.id === sectionDeleteId) ?? null;
   function handleDragEnd(result: DropResult) {
     const destination = result.destination;
@@ -251,42 +334,51 @@ export function ListDetailPage({ userId, target, onBack, onUnavailable }: {
     })();
   }
   const editingChange = (draft: string) => setUi((current) => current.editing ? { ...current, editing: { ...current.editing, draft } } : current);
-  const toggleFold = (key: string) => setUi((current) => ({ ...current, foldOpen: { ...current.foldOpen, [key]: !current.foldOpen[key] } }));
+  const toggleFold = (key: string) => {
+    const region = editedRegion();
+    const affected = region?.key === key && region.completed && live.current.ui.foldOpen[key];
+    if (mutationLock.current || (affected && !allowEditChange())) return;
+    if (affected) { editSession.current++; setUi((current) => ({ ...current, editing: null })); }
+    setUi((current) => ({ ...current, foldOpen: { ...current.foldOpen, [key]: !current.foldOpen[key] } }));
+  };
   const itemRegion = (key: string, label: string, region: DetailRegion) => <ListDetailRegion regionKey={key} regionLabel={label} region={region} ui={ui} busy={busyKey !== null} disabled={disabled}
     onToggleFold={() => toggleFold(key)} onToggleItem={(item) => { void runMutation(`complete:${item.id}`, () => setListItemCompleted(supabase, target, item, !item.completed), (row) => applyConfirmed({ kind: 'item', row })); }}
-    onEditItem={(item) => setUi((current) => ({ ...current, editing: { kind: 'item', id: item.id, draft: item.content } }))}
-    onEditChange={editingChange} onSaveEdit={saveEdit} onCancelEdit={() => setUi((current) => ({ ...current, editing: null }))}
-    onDeleteItem={(item) => { void runMutation(`delete-item:${item.id}`, () => deleteListItem(supabase, target.listId, item.id), () => applyConfirmed({ kind: 'item-delete', id: item.id })); }} />;
+    onEditItem={(item) => beginEdit('item', item.id, item.content)}
+    onEditChange={editingChange} onSaveEdit={saveEdit} onCancelEdit={cancelEdit}
+    onDeleteItem={(item) => { if (!allowEditChange()) return; void runMutation(`delete-item:${item.id}`, () => deleteListItem(supabase, target.listId, item.id), () => { applyConfirmed({ kind: 'item-delete', id: item.id }); setUi((current) => ({ ...current, editing: null })); }); }} />;
   const quick = (key: string, label: string, sectionId: string | null) => <QuickAdd label={label} value={ui.quickDrafts[key] ?? ''} busy={busyKey === `quick:${key}`} disabled={disabled || (busyKey !== null && busyKey !== `quick:${key}`)}
     onInput={(input) => { if (input) inputRefs.current.set(key, input); else inputRefs.current.delete(key); }}
     onChange={(value) => setQuickDraft(key, value)} onSubmit={() => quickAdd(key, sectionId)} />;
 
-  return <main className="mx-auto min-h-screen w-full max-w-3xl px-4 py-4 safe-bottom">
+  return <main className="ui-list-detail mx-auto min-h-screen w-full max-w-3xl px-4 py-4 safe-bottom">
     <header className="flex min-h-11 items-center gap-3">
-      <button className="inline-flex min-h-11 items-center gap-1 font-semibold text-teal" type="button" onClick={onBack}><ChevronLeft size={18} aria-hidden="true" />清单总览</button>
+      <button className="inline-flex min-h-11 items-center gap-1 font-semibold text-teal" type="button" onClick={() => { if (leaveGuard.current()) onBack(); }}><ChevronLeft size={18} aria-hidden="true" />清单总览</button>
       <span className="text-sm text-ink/60">清单详情</span>
     </header>
     {state.status === 'loading' && <p className="mt-4 rounded-lg bg-white p-4" role="status">正在读取清单详情…</p>}
     {state.status === 'error' && <div className="mt-4 rounded-lg bg-white p-4" role="alert">{state.error}<button className="ml-2 min-h-11 font-semibold text-teal" type="button" onClick={() => void refresh()}>重试</button></div>}
     {data && derived && <DragDropContext onDragStart={startDrag} onDragEnd={handleDragEnd} dragHandleUsageInstructions="按空格开始排序，使用上下方向键移动；再次按空格确认，按 Escape 取消。">
-      <div className="mt-4 rounded-lg bg-white p-4 shadow-sm">
-        <p className="text-xs text-teal">{data.space.kind === 'personal' ? '我的空间' : data.space.name}</p>
-        <h1 className="mt-1 break-words text-xl font-bold">{data.list.name}</h1>
-        <div className="mt-2 flex gap-2">
-          <button className="min-h-11 rounded-lg px-2 text-sm font-semibold text-teal" type="button" disabled={disabled} onClick={() => setRenameOpen(true)}>清单改名</button>
-          <button className="min-h-11 rounded-lg px-2 text-sm font-semibold text-coral" type="button" disabled={disabled} onClick={() => setListDelete({ step: 1, busy: false, error: '', listName: data.list.name, spaceName: data.space.name })}>删除清单</button>
+      <div className="ui-list-panel ui-list-summary mt-4 bg-white p-4">
+        <div className="ui-list-summary-heading">
+          <div className="min-w-0"><p className="text-xs text-ui-muted">{data.space.kind === 'personal' ? '我的空间' : data.space.name}</p><h1 className="mt-1 break-words text-xl font-bold">{data.list.name}</h1></div>
+          <ListActionsMenu menuId="list-detail-menu" label="清单" disabled={disabled || busyKey !== null} onRename={() => { if (!live.current.disabled && allowEditChange()) { editSession.current++; setUi((current) => ({ ...current, editing: null })); setRenameOpen(true); } }} onDelete={() => { if (!live.current.disabled && allowEditChange()) { editSession.current++; setUi((current) => ({ ...current, editing: null })); setListDelete({ step: 1, busy: false, error: '', listName: data.list.name, spaceName: data.space.name }); } }} />
+        </div>
+        <div className="ui-list-progress">
+          <progress aria-label="清单完成进度" value={totalItems ? Math.round(completedItems / totalItems * 100) : 0} max={100} />
+          <span className="text-sm text-ui-muted">已完成 {completedItems} / {totalItems}</span>
         </div>
       </div>
       {(state.error || syncError || mutationError) && <div className="mt-3 rounded-lg bg-coral/10 p-3 text-sm text-coral" role="alert">{state.error || syncError || mutationError}<button className="ml-2 min-h-11 font-semibold text-teal" type="button" onClick={reconnect}>重试读取</button></div>}
       {busyKey === 'reorder' && <p className="mt-3 text-sm text-ink/60" role="status">正在保存顺序…</p>}
-      {ui.recovered.length > 0 && <div className="mt-3 rounded-lg bg-white p-3 text-sm" role="status">原分组已不可用，以下内容未添加，请复制后自行选择位置：{ui.recovered.map((text, index) => <p key={`${index}:${text}`} className="mt-2 break-words">{text}</p>)}<button className="mt-2 min-h-11 font-semibold text-teal" type="button" onClick={() => setUi((current) => ({ ...current, recovered: [] }))}>清除提示</button></div>}
-      <section className="mt-4 rounded-lg bg-white p-4 shadow-sm" aria-label="清单项目">
+      {ui.recovered.length > 0 && <div className="mt-3 rounded-lg bg-white p-3 text-sm" role="status">原项目或分组已不可用，以下输入未保存，请复制后自行处理：{ui.recovered.map((text, index) => <p key={`${index}:${text}`} className="mt-2 break-words">{text}</p>)}<button className="mt-2 min-h-11 font-semibold text-teal" type="button" onClick={() => { if (window.confirm('清除提示后将无法从此处复制这些输入，确定清除吗？')) setUi((current) => ({ ...current, recovered: [] })); }}>清除提示</button></div>}
+      <section className="ui-list-panel mt-4 bg-white p-3" aria-label="清单项目">
         {quick(ungroupedKey, '添加清单项目', null)}
+        {totalItems === 0 && <div className="ui-lists-empty" role="status"><p className="font-semibold">还没有清单项</p><p className="mt-2 text-sm text-ui-muted">从上方添加第一项，也可以按需要建立分组。</p></div>}
         <div className="mt-3">{itemRegion(ungroupedKey, '清单', derived.ungrouped)}</div>
       </section>
       <div className="mt-4">
-        {ui.sectionCreateDraft === null ? <button id="list-add-section" className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-white px-4 font-semibold text-teal shadow-sm" type="button" disabled={disabled || busyKey !== null} onClick={() => { setUi((current) => ({ ...current, sectionCreateDraft: '' })); setSectionCreateError(''); }}><Plus size={18} aria-hidden="true" />添加分组</button>
-          : <form className="rounded-lg bg-white p-4 shadow-sm" onSubmit={(event) => { event.preventDefault(); createSection(); }}>
+        {ui.sectionCreateDraft === null ? <button id="list-add-section" className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-white px-4 font-semibold text-teal" type="button" disabled={disabled || busyKey !== null} onClick={() => { setUi((current) => ({ ...current, sectionCreateDraft: '' })); setSectionCreateError(''); }}><Plus size={18} aria-hidden="true" />添加分组</button>
+          : <form className="rounded-lg bg-white p-4" onSubmit={(event) => { event.preventDefault(); createSection(); }}>
             <input autoFocus className="min-h-11 w-full rounded-lg border border-ink/15 px-3" aria-label="分组名称" placeholder="分组名称" value={ui.sectionCreateDraft} readOnly={busyKey === 'create-section'} disabled={disabled} onChange={(event) => setUi((current) => ({ ...current, sectionCreateDraft: event.target.value }))} />
             {sectionCreateError && <p className="mt-2 text-sm text-coral" role="alert">{sectionCreateError}</p>}
             <div className="mt-2 flex gap-2"><button className="min-h-11 rounded-lg bg-teal px-4 font-semibold text-white" type="submit" disabled={disabled || busyKey !== null || !ui.sectionCreateDraft.trim()}>创建分组</button><button className="min-h-11 rounded-lg px-4" type="button" disabled={busyKey !== null} onClick={() => setUi((current) => ({ ...current, sectionCreateDraft: null }))}>取消</button></div>
@@ -295,18 +387,18 @@ export function ListDetailPage({ userId, target, onBack, onUnavailable }: {
       <div className="mt-4 space-y-4">{derived.sections.map(({ section, region }) => {
         const collapsed = Boolean(ui.collapsed[section.id]);
         const editing = ui.editing?.kind === 'section' && ui.editing.id === section.id;
-        return <section key={section.id} className="rounded-lg bg-white p-4 shadow-sm" data-section-id={section.id}>
-          <div className="flex min-w-0 items-start justify-between gap-2">
-            {editing ? <form className="flex min-w-0 flex-1 flex-wrap gap-2" onSubmit={(event) => { event.preventDefault(); saveEdit(); }}><input className="min-h-11 min-w-0 flex-1 rounded-lg border border-ink/15 px-3" aria-label="编辑分组名称" value={ui.editing?.draft ?? ''} disabled={disabled || busyKey !== null} onChange={(event) => editingChange(event.target.value)} /><button className="min-h-11 font-semibold text-teal" type="submit" disabled={disabled || busyKey !== null}>保存</button><button className="min-h-11" type="button" onClick={() => setUi((current) => ({ ...current, editing: null }))}>取消</button></form>
-              : <button className="flex min-h-11 min-w-0 flex-1 items-center gap-2 text-left" type="button" aria-expanded={!collapsed} onClick={() => setUi((current) => ({ ...current, collapsed: { ...current.collapsed, [section.id]: !current.collapsed[section.id] } }))}><ChevronDown size={18} className={collapsed ? '-rotate-90 shrink-0' : 'shrink-0'} aria-hidden="true" /><span className="min-w-0 flex-1 break-words font-semibold">{section.name}</span><span className="shrink-0 text-sm text-ink/60">{region.completedCount} / {region.total}</span></button>}
-            {!editing && <div className="flex shrink-0 gap-1"><button className="min-h-11 rounded-lg px-2 text-sm font-semibold text-teal" type="button" disabled={disabled || busyKey !== null} onClick={() => setUi((current) => ({ ...current, editing: { kind: 'section', id: section.id, draft: section.name } }))} aria-label={`改名 ${section.name}`}>改名</button><button className="min-h-11 rounded-lg px-2 text-sm font-semibold text-coral" type="button" disabled={disabled || busyKey !== null} onClick={() => requestSectionDelete(section, region.total)} aria-label={`删除分组 ${section.name}`}>删除</button></div>}
+        return <section key={section.id} className="ui-list-panel bg-white p-3" data-section-id={section.id}>
+          <div className="ui-list-section-header flex min-w-0 items-start justify-between gap-2">
+            {editing ? <form className="ui-list-inline-edit flex min-w-0 flex-1 flex-wrap gap-2" onSubmit={(event) => { event.preventDefault(); if (!sectionComposing.current) saveEdit(); }}><input autoFocus onCompositionStart={() => { sectionComposing.current = true; }} onCompositionEnd={() => { sectionComposing.current = false; }} onKeyDown={(event) => { if (event.nativeEvent.isComposing || sectionComposing.current || event.keyCode === 229) { if (event.key === 'Enter') event.preventDefault(); return; } if (event.key === 'Escape') { event.preventDefault(); cancelEdit(); } }} className="min-h-11 min-w-0 flex-1 rounded-lg border border-ink/15 px-3" aria-label="编辑分组名称" value={ui.editing?.draft ?? ''} disabled={disabled || busyKey !== null} onChange={(event) => editingChange(event.target.value)} /><button className="min-h-11 font-semibold text-teal" type="submit" disabled={disabled || busyKey !== null}>保存</button><button className="min-h-11" type="button" disabled={busyKey !== null} onClick={cancelEdit}>取消</button></form>
+              : <button className="flex min-h-11 min-w-0 flex-1 items-center gap-2 text-left" type="button" disabled={busyKey !== null} aria-expanded={!collapsed} id={`list-edit-${section.id}`} onClick={() => toggleSection(section.id)}><ChevronDown size={18} className={collapsed ? '-rotate-90 shrink-0' : 'shrink-0'} aria-hidden="true" /><span className="min-w-0 flex-1 break-words font-semibold">{section.name}</span><span className="shrink-0 text-sm text-ink/60">{region.completedCount} / {region.total}</span></button>}
+            {!editing && <ListActionsMenu menuId={`list-group-menu-${section.id}`} label={`分组 ${section.name}`} disabled={disabled || busyKey !== null} onRename={() => beginEdit('section', section.id, section.name)} onDelete={() => { if (allowEditChange()) requestSectionDelete(section, region.total); }} />}
           </div>
           {!collapsed && <div className="mt-3">{itemRegion(section.id, section.name, region)}<div className="mt-3">{quick(section.id, `在${section.name}添加项目`, section.id)}</div></div>}
         </section>;
       })}</div>
     </DragDropContext>}
-    {renameOpen && data && <ListEditorSheet mode="rename" list={data.list} memberSpaces={[data.space]} eligibleSpaces={state.degraded ? [] : [data.space]} userId={userId} eligibilityStatus={state.degraded ? 'error' : 'ready'} eligibilityError={state.error} onRetryEligibility={() => { void refresh(); }} onSubmit={(name) => saveListName(name)} onCancel={() => setRenameOpen(false)} />}
-    {listDelete && data && <ListDeleteDialog list={data.list} space={data.space} step={listDelete.step} busy={listDelete.busy} canConfirm={!disabled} error={listDelete.error} eligibilityError={state.error} onRetryEligibility={() => { void refresh(); }} onCancel={() => setListDelete(null)} onConfirm={() => void confirmListDelete()} />}
-    {sectionToDelete && <div className="fixed inset-0 z-40 flex items-end bg-ink/50 p-4 md:items-center" role="dialog" aria-modal="true" aria-labelledby="section-delete-title"><div className="mx-auto w-full max-w-md rounded-lg bg-white p-5 shadow-soft safe-bottom"><h2 id="section-delete-title" className="text-lg font-bold">删除分组：{sectionToDelete.section.name}</h2><p className="mt-2 text-sm text-ink/65">其中有 {sectionToDelete.region.total} 项内容。请选择处理方式。</p><div className="mt-4 space-y-2"><button className="min-h-11 w-full rounded-lg bg-teal px-4 font-semibold text-white" type="button" disabled={disabled || busyKey !== null} onClick={() => confirmSectionDelete(sectionToDelete.section.id, true)}>仅删除分组</button><button className="min-h-11 w-full rounded-lg border border-coral px-4 font-semibold text-coral" type="button" disabled={disabled || busyKey !== null} onClick={() => confirmSectionDelete(sectionToDelete.section.id, false)}>删除分组及其中内容</button><button className="min-h-11 w-full rounded-lg px-4" type="button" disabled={busyKey !== null} onClick={() => setSectionDeleteId(null)}>取消</button></div></div></div>}
+    {renameOpen && data && <ListEditorSheet mode="rename" list={data.list} memberSpaces={[data.space]} eligibleSpaces={state.degraded ? [] : [data.space]} userId={userId} eligibilityStatus={state.degraded ? 'error' : 'ready'} eligibilityError={state.error} onRetryEligibility={() => { void refresh(); }} onSubmit={(name) => saveListName(name)} onCancel={() => { setRenameOpen(false); requestAnimationFrame(() => document.getElementById('list-detail-menu')?.focus()); }} />}
+    {listDelete && data && <ListDeleteDialog list={data.list} space={data.space} step={listDelete.step} busy={listDelete.busy} canConfirm={!disabled} error={listDelete.error} eligibilityError={state.error} onRetryEligibility={() => { void refresh(); }} onCancel={() => { setListDelete(null); requestAnimationFrame(() => document.getElementById('list-detail-menu')?.focus()); }} onConfirm={() => void confirmListDelete()} />}
+    {sectionToDelete && <div className="ui-list-overlay ui-list-confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="section-delete-title"><div className="ui-list-confirm mx-auto w-full max-w-md bg-white p-5 safe-bottom"><h2 id="section-delete-title" className="text-lg font-bold">删除分组：{sectionToDelete.section.name}</h2><p className="mt-2 text-sm text-ink/65">其中有 {sectionToDelete.region.total} 项内容。请选择处理方式。</p><div className="mt-4 space-y-2"><button className="min-h-11 w-full rounded-lg bg-teal px-4 font-semibold text-white" type="button" disabled={disabled || busyKey !== null} onClick={() => confirmSectionDelete(sectionToDelete.section.id, true)}>仅删除分组</button><button className="min-h-11 w-full rounded-lg border border-coral px-4 font-semibold text-coral" type="button" disabled={disabled || busyKey !== null} onClick={() => confirmSectionDelete(sectionToDelete.section.id, false)}>删除分组及其中内容</button><button className="min-h-11 w-full rounded-lg px-4" type="button" disabled={busyKey !== null} onClick={() => setSectionDeleteId(null)}>取消</button></div></div></div>}
   </main>;
 }

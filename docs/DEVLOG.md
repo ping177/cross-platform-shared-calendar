@@ -1,5 +1,57 @@
 # Development Log
 
+
+
+
+## 2026-10-12 — UI v2 Slice 9 最终审查与本地 Git Closeout — LOCAL PASS / VISUAL PROVISIONALLY ACCEPTED
+
+- 用户接受当前清单整体布局与交互：顶部/分组管理操作收纳到···，清单项名称直接原位编辑且无额外Sheet，快速连续添加、完成勾选、拖拽和未保存保护保留；保存/取消/删除均14px。用户对当前字体美观度及字重搭配仍有保留并表示“先这样吧”，因此记录 **VISUAL PROVISIONALLY ACCEPTED**，不记录为字体完全满意。
+- 最终范围严格为12个授权文件：3个清单组件、ListDetailPage相关展示/dirty状态协调、局部styles、App清单离开保护接线、lists-detail纯UI状态恢复、4个直接相关测试（含2个新增）及DEVLOG/PROJECT_STATE。未改BACKLOG、其他模块、数据模型/查询合同、数据库/RLS/RPC、权限规则或Realtime业务行为；正式版本保持v0.1.20。
+- 最终复核 `node --test tests/lists-*.test.ts` **59/59 PASS**，`node --test tests/*.test.ts tests/*.test.js` **872/872 PASS**，`npm run build` PASS（既有>500kB chunk提示），`git diff --check` PASS。真实CSS视口320/360/375/390/768/1024均无横向溢出；375px三个操作同排、14px/20px、52×44px，320px删除按钮换至下一行且热区保持44px。清单/分组菜单、dirty/IME/远端目标移除、快速添加、排序/折叠及其他已完成模块的回归由上述测试覆盖。
+- 多人回顾继续Deferred / Design Pending。全局视觉一致性检查阶段Deferred：统一复核中文字体栈、字重层级与行内操作按钮排版；当前字体和字重本轮未修改。真实账号/双账号、iOS/Android软键盘与Safe Area、installed PWA、Production仍未验收。
+- Closeout前确认新worktree基线、12文件精确清单及空暂存区；旧worktree仍28 modified + 1 untracked，8661/8661既有项目文件与符号链接指纹匹配。未读取/打印secret内容；无外部项目文件改动。按用户授权创建一个本地commit；不amend/force/push/deploy，不自动进入Slice10。正式版本v0.1.20保持。
+
+
+## 2026-10-12 — UI v2 Slice 9 行内编辑操作字号统一 — LOCAL PASS / FINAL ACCEPTANCE PENDING
+
+- Preflight PASS：design/ui-v2，HEAD `fc3b52538a47dbb4d7f3d8a37c31f5211e96b6db`，10 modified + 2 untracked/index空；保留Slice9全部现有修改与测试。
+- 实际计算差异来源：保存/取消16px、24px行高，删除text-sm为14px、20px；三者原内边距0px 12px、热区高44px一致。仅ListDetailPage ItemRow三个操作class统一text-sm/leading-5；保存ui-accent/600，取消ui-muted/400，删除ui-danger/400。没有局部或全局CSS修改，也没有任何handler、disabled条件、IME/dirty/导航/快速添加/完成/拖拽/分组行为变化。本轮增量3文件：ListDetailPage、DEVLOG、PROJECT_STATE。
+- `node --test tests/lists-*.test.ts` **59/59 PASS**；`npm run build` PASS（既有>500kB警告保持）；`git diff --check` PASS。前轮全量872/872为前轮证据，本轮按纯局部视觉范围运行受影响清单完整测试，未重复全量。
+- 最新真实组件预览 `http://127.0.0.1:5176/slice9-inline-font/index.html`；详情通过名称进入原位编辑。真实CSS375×844核验：三个操作font-size均14px、line-height均20px、padding均0px 12px、同一top值、尺寸均52×44px；input与按钮间隔8px，无遮挡或横向溢出，输入Focus2px solid。截图 `inline-edit-375.png` 原生宽375，未缩放；`font-checks.json`记录实际计算值，source-manifest与最新源码匹配。仅离线fixtures，无真实数据库/账号连接，复用5176，5175不变。
+- 保持LOCAL PASS / FINAL VISUAL AND INTERACTION ACCEPTANCE PENDING；正式v0.1.20不变。旧worktree原28 modified + 1 untracked与8661项项目文件/符号链接指纹一致（不恢复/清理共享.git）。无其他模块/依赖/后端变更，未打印secret内容。未暂存/commit/push/deploy，不进入Slice10；停止等待用户最终确认。
+
+
+## 2026-10-12 — UI v2 Slice 9 管理操作收纳与直接行内编辑 — LOCAL PASS / VISUAL AND INTERACTION ACCEPTANCE PENDING
+
+- 延续既有Slice9，用户明确确认交互方向后实施，无需再次计划审批。Preflight PASS：design/ui-v2，HEAD `fc3b52538a47dbb4d7f3d8a37c31f5211e96b6db`，精确6 modified + 1 untracked，index为空。既有修改及测试保留；旧worktree28 modified + 1 untracked和8661项项目文件/符号链接与原基线一致，共享.git元数据不作为业务指纹声明，不恢复/清理快照。
+- 清单顶部与分组管理统一局部轻量···，复用原重命名/删除回调与确认。弹出层为原生按钮组，键盘Tab可达，Escape/外部/失焦关闭；打开聚焦首项，关闭合理恢复触发器焦点，转入已有改名表单或分组行内输入后聚焦目标。资格禁用立即隐藏并关闭菜单。清单仍两步永久删除；空分组原删除、非空分组“仅删除分组”和“删除分组及其中内容”语义保持；分组名仍折叠展开。
+- 项目常态仅复选框、原位置独立拖拽柄、名称按钮；没有常驻编辑/删除文字，也没有项目···。点击名称复用原editing状态，保留原内容并autoFocus原位输入；明确保存/取消/删除仅编辑态出现，无新Sheet。编辑期间该项勾选及原拖拽资格禁用；普通操作保持。显式保存，失焦不提交或丢草稿；非组合输入Enter提交，Escape按取消规则处理；项目/分组编辑和独立快速添加的IME组合输入均防误提交。
+- 最小局部未保存保护：进入编辑记录原文本，仅为内存UI状态original，不是业务字段。未修改直接取消；修改后取消/切换目标/收起所在分组或已完成区需原生confirm。返回按钮与App底栏共用清单leave guard，包含编辑/快速添加/分组创建/恢复输入；保存期间同步lock阻止重复提交、错误切换或离开，局部折叠禁用。App只新增guard ref、changeTab清单分支检查及一处prop接线，没有全局导航/右滑重构。
+- 普通canonical/Realtime重读保留同ID编辑草稿；远端完成或移动保持编辑行可见。目标消失时将当前输入（包括尚未修改的原文本）加入已有recovered提示供复制，清除提示需确认；不报告保存成功、不重建项目。失败保留输入可重试；保存响应检查组件存活、当前资格和编辑会话/目标，失效或卸载时不应用旧成功；卸载后不再启动旧清单刷新。权限失效继续原资格处理，不拦截强制不可用导航，不伪造访问权。并发版本检测/系统浏览器退出拦截未新增。
+- 原快速添加链路完整保留：相同创建函数和section目标，确认成功后只清本次对应草稿、requestAnimationFrame聚焦原输入，连续Enter添加仍可用；失败/新文本/重复提交由原规则保持，只有IME防误提交展示交互补充。DnD refs/props/style、droppable身份/index/placeholder、handle及handleDragEnd的排序合同保持。拖拽仅指定手柄、同分组同完成状态；清单详情仍无应用右滑识别器，总览原右滑及尾随click guard源码未改，系统边缘返回不纳入本轮。
+- Slice9累计12文件：App、3清单组件、lists-detail局部UI协调、styles、lists-detail-ui/lists-detail测试、既有新增lists-ui-v2及本轮新增lists-interaction-ui、DEVLOG/PROJECT_STATE。当前10 modified + 2 untracked，index为空。ListSheets/ListsOverviewPage/既有lists-ui-v2本轮没有再改；lib业务数据层、useListDetail/useListsOverview、types、SQL/RPC/RLS/Edge/Push/Reminder/Realtime、依赖与其他模块业务源码保持。无Space Color System或多人回顾。
+- 新行为先RED，后真实组件handler/SSR测试GREEN。最终 `node --test tests/lists-*.test.ts` **59/59 PASS**；全量 `node --test tests/*.test.ts tests/*.test.js` **872/872 PASS**，失败/取消/跳过0；`npm run build` PASS，`git diff --check` PASS（既有Vite >500kB提示保留）。覆盖菜单行为/权限失效、原位编辑无Sheet、clean/dirty取消与切换/折叠/返回/parent guard、重复提交、失败重试、远端目标删除、晚保存/卸载/资格变化、IME、原连续快速添加和canonical排序/导航/手势/首页/任务/日历/回顾回归。既有测试仅更新常态无删除按钮及恢复已删除目标输入的预期，不删既有覆盖。日志 `/private/tmp/calendar-slice9-interaction-full.log`、`calendar-slice9-interaction-related.log`、`calendar-slice9-interaction-build.log`。
+- 最新真实React离线预览 `/slice9-interaction/index.html`，20状态，复用既有5176服务器，开发5175不变；envFile=false、数据/hooks边界内存fixture、CSP connect-src none，无真实账号/数据库/Production连接。菜单与原位编辑通过真实按钮进入；截图独立展示展开状态。底栏只模拟该清单leave guard，不执行其他模块导航。真实CSS320/360/375/390/768/1024×20 **120/120 PASS**，包括菜单展开/原位编辑/dirty/失败，无溢出、按钮/checkbox label/拖拽柄≥44px、输入16px，popover不超视口；最终验证期间console warn/error为0，源码六项SHA匹配。
+- 浏览器离线交互：菜单外部/Escape关闭与2px Focus、清单菜单原表单改名/两步删除确认取消、分组行内改名/空删除/两种非空删除、名称编辑无dialog/自动聚焦/Enter保存返回名称Focus、编辑态项目删除、保存失败保留输入、连续两次Enter添加并保持输入焦点、原手柄键盘排序通过。Dirty确认接受/拒绝、IME组合输入、远端删除/资格与晚响应使用真实handler自动测试；不宣称真实设备原生confirm/软键盘/IME/Realtime验收。375px六类最新截图及失败补充已提供，PNG均真实宽375；多分组完整图375×1245，仅离线capture=content省略固定底栏/预留空间，普通截图保留原导航。未缩放390图，截图目视核验。
+- 五轴审查通过：无新数据链路/依赖，文本React转义，原存储验证与权限保持；UI状态保护范围清晰，后台身份/顺序/刷新合同不变。终查旧worktree8661项项目字节/符号链接无变化；未读取/打印秘密内容，指纹校验读取字节但不解析/输出.env，Vite原配置环境加载保持。仅临时预览/测试产物在/private/tmp，无外部项目业务文件改动。
+- **LOCAL PASS / VISUAL AND INTERACTION ACCEPTANCE PENDING**。正式版本仍v0.1.20；用户尚未验收本次视觉与交互。真实账号/双账号、iOS/Android软键盘/IME/系统边缘返回/Safe Area、installed PWA、Production与真实Realtime仍待独立验收，认证前遵守AGENTS环境对齐gate。未暂存/commit/push/deploy，不进入Slice10，停止等待用户确认。
+
+
+## 2026-10-11 — UI v2 Slice 9 清单模块 — LOCAL PASS / VISUAL ACCEPTANCE PENDING
+
+- 用户批准最小方案后实施。Preflight PASS：`design/ui-v2`，HEAD `fc3b52538a47dbb4d7f3d8a37c31f5211e96b6db`，clean/index为空；旧worktree原28 modified + 1 untracked与8661项项目文件/符号链接指纹基线一致（不把共享.git快照元数据当作业务文件）。阅读AGENTS、实施规格、README/PROJECT_STATE/DEVLOG/DECISIONS/BACKLOG/TESTING及真实清单组件、hooks、数据与排序实现。核对已认可ZIP的 `11_清单_原始已认可五屏设计板.png`，未重新发明设计。
+- 业务审计：总览独立Space筛选、真实项目计数派生进行中/已完成（空清单仍进行中）、原排序与导航恢复；新建使用原Personal/筛选Space默认与启用资格，改名不迁移Space，清单删除两步确认。项目增改删、完成/恢复、分组增改删及折叠均真实支持。项目拖拽仅同分组且同完成状态，真实身份/完整有序ID/RPC与持久化slot保持；跨分组拖拽及分组拖拽仍Deferred。非空分组删除保留“仅删除分组”与“删除分组及其中内容”两种原操作。原成员资格、request guard、失败后重读、Realtime通知与canonical刷新保持。
+- 精确7文件：ListsOverviewPage/ListDetailPage/ListSheets、局部styles、新增 `tests/lists-ui-v2.test.ts`、DEVLOG/PROJECT_STATE。App、hooks、lib数据层、types、SQL/RLS/RPC/Edge/Realtime/Reminder/Push、依赖及其他已验收模块源码均未改；无Space Color System/多人回顾。后台处理块逐段与HEAD比较一致（详情仅增加展示计数，不改变业务处理）。
+- 总览采用暖白、连续轻量分组、细分隔线，保留真实名称/Space/计数与独立打开、改名、删除回调；进行中/已完成原分组及默认收起保持。创建+为18px灰绿图标、透明44×44热区与可见Focus；空状态CTA复用原openCreate资格回调，加载/失败/重试/禁用保留。详情轻量圆角分组、项目紧凑网格与长内容换行、克制完成视觉；真实总项目/完成数派生进度条，0/0为0%，无存储字段或查询改变。DnD root ref、draggableProps/style、dragHandleProps、droppable身份/index/placeholder全部保留。
+- 原Sheet只用名称与Space：名称在前，关闭/标题/唯一提交按钮在固定顶栏，正文内部滚动；X继续原取消回调，保存中禁关闭及同步submit ref保留。原normalize/200字符/单行验证、失败保留输入、资格禁用/重试与Personal禁用不得自动回退Shared的规则均保持；编辑Space只读。未加入参考图中的图标选择、描述或“创建后添加第一项”开关。局部CSS复用既有ui tokens、44px热区、16px输入、2px Focus和Safe Area；Slice7全局下拉箭头规则未改。
+- 新UI测试先RED后GREEN。基线清单37/37，最终 `node --test tests/lists-*.test.ts` **43/43 PASS**；全量受影响回归 `node --test tests/*.test.ts tests/*.test.js` **856/856 PASS**，失败/取消/跳过均0，涵盖Home/日历/Hub/任务/回顾/导航，以及清单canonical排序、资格与请求失效、确认后刷新/失败/晚响应。新增真实Sheet handler验证名称trim、选中Space、关闭、同步重复保存、失败保留输入及资格变化重试；真实React SSR覆盖空/单/多列表、Personal、唯一顶栏submit、各分组总进度。`npm run build` PASS（tsc-b + Vite，1719模块；既有>500kB chunk提示保留）；`git diff --check` PASS。日志 `calendar-slice9-green-tests.log`、`calendar-slice9-full-tests.log`、`calendar-slice9-build.log` 位于/private/tmp。
+- 最新真实3个React组件及原BottomNavigation编译为14个离线状态；envFile=false，数据/hooks边界使用明确标注的内存fixture，CSP connect-src none，无真实账号/数据库/Production连接。预览 `http://127.0.0.1:5176/slice9/index.html`；正式开发端口仍5175。真实CSS视口320/360/375/390/768/1024×14 **84/84 PASS**，强制要求main渲染可见，无横向溢出，控件及checkbox label/拖拽柄均至少44px，输入/选择器16px。初次空/Personal fixture未过滤其他List项目触发原一致性校验，布局检查遗漏了未渲染状态；仅修正离线数据、增加渲染门槛后全量重跑PASS，当前验证期间console warn/error为0，不将初次记录当验收证据。
+- 浏览器离线交互验证：总览打开/返回及Personal筛选、+原创建链路与Personal默认、Shared筛选默认创建、项目添加/编辑/删除/完成/恢复、键盘Space/方向键排序、改名保存、清单两步删除确认/取消、分组创建/折叠/删除保留内容、保存失败保留名称。普通完成/编辑操作与独立拖拽柄无接线冲突。Scope/权限/后端失败/真实持久化/晚响应由原相关自动测试保护，离线交互不替代真实环境验收。选择器实测单箭头16×16/padding-right48；375×240缩短视口实测顶栏可见且正文auto滚动；键盘Focus 2px。软键盘与非零Safe Area真机仍未验收。
+- 提供7类375px视口截图及完整截图：总览/总览空/详情/详情空/新建/编辑/完成与分组。全部真实CSS宽度及PNG宽度375，详情375×1005、展开完成375×1157，未缩放390图。截图工具native fullPage绘制宽度异常，改为固定375 CSS宽度、以完整内容高度捕获viewport截图；仅离线capture=content省略固定底栏及其预留空间，正常375×844截图和预览保留原导航。源码五项SHA匹配，尺寸/布局/旧worktree证据见预览目录json；截图已目视核验。
+- 五轴审查：最小组件/局部CSS展示改造，未新增数据提交链路/查询/依赖；名称和内容仍由React文本转义，原验证与权限保持，进度只读派生。旧worktree终查8661/8661项项目文件和符号链接完全匹配，28 modified + 1 untracked保持；未reset/stash/clean或为共享Git快照恢复元数据。未查看、打印或修改.env/secret内容；指纹校验读取文件字节但不解析/输出秘密，正常Vite构建按原配置加载环境。验证产物仅/private/tmp，无外部项目业务文件改动。
+- **LOCAL PASS / VISUAL ACCEPTANCE PENDING**。正式版本仍v0.1.20，用户尚未视觉验收Slice9；真实账号/双账号、iOS/Android、软键盘/非零Safe Area、installed PWA、Realtime与Production待独立验收，认证前遵守AGENTS环境对齐gate。HEAD保持、暂存区为空；未commit/push/deploy，不自动进入Slice10，停止等待用户视觉验收。
+
+
 ## 2026-10-11 — UI v2 Slice 8 最终审查与本地 Git Closeout — LOCAL PASS / VISUAL PASS
 
 - 用户已验收 Slice8 的历史列表、阅读详情、填写页面、草稿/已填写状态，以及回顾首页18px灰绿色透明 + 与44×44触控区：「可以了。」记录 **LOCAL PASS / VISUAL PASS**。正式版本仍为v0.1.20；真实账号、双账号、iOS/Android、installed PWA与Production仍待独立验收。

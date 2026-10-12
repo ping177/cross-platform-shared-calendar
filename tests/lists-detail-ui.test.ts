@@ -31,7 +31,7 @@ test('each completed region is closed by default, opens accessibly and has no un
     assert.match(open, /aria-label="排序 牛奶"/);
     assert.match(open, /aria-label="完成 牛奶"/);
     assert.match(open, /aria-label="编辑 牛奶"/);
-    assert.match(open, /aria-label="删除 牛奶"/);
+    assert.doesNotMatch(open, /aria-label="删除 牛奶"/);
     const empty = render({ ...props, region: { active: [], completed: [], completedCount: 0, total: 0 } });
     assert.doesNotMatch(empty, /已完成|未分组/);
   } finally { await vite.close(); }
