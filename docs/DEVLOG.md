@@ -1,12 +1,18 @@
 # Development Log
 
+## 2026-10-14 — Calendar Chevron Removal Pre-push Gate 修复与治理状态同步 — LOCAL PASS
+
+- 核对已安装的 `.githooks/pre-push` 与 `scripts/check-project-state-push.sh`：Gate 按本次被推分支的 tip 检查，要求恰好一个 `Project-State-Review` trailer；相对远端基线的 `docs/PROJECT_STATE.md` 有净变化时取值为 `updated`，无变化时为 `verified-current`。本地原Chevron提交缺少trailer，故按授权仅amend提交说明；新提交 `ecbe03d768d327e99afa347eceea3007f2078844` 保留原subject/body，tree仍为 `3fb86c4f9be1f375b80fb5ae6911996c1490c06e`，并带 `Project-State-Review: verified-current`。未改源码或测试内容。
+- 同步修正当前治理状态：UI v2已在Production发布并由用户验收；Calendar UI Patch已Push、部署成功并通过用户验收；Calendar Chevron Removal仅为LOCAL PASS / VISUAL ACCEPTED，仍待Push及Production验收。各Slice和Round当时的Pending状态、Deferred范围与版本历史继续保留为历史记录。
+- 本次仅更新 `docs/PROJECT_STATE.md` 与本日志，并创建单个docs-only本地提交；该提交需带 `Project-State-Review: updated`。没有Push、Deploy、Supabase/Vercel配置修改或worktree清理。完整Gate按远端基线的实际网络查询尚未执行；使用本地缓存 `origin/main` 做确定性脚本验证，后续Push前仍需重新独立核验远端。
+
 ## 2026-10-13 — Calendar UI Patch 最终审查与本地 Commit — LOCAL PASS / VISUAL ACCEPTED
 
 - 用户在真实浏览器完成最终视觉验收并明确满意，确认 **Calendar UI Patch = LOCAL PASS / VISUAL ACCEPTED**，授权本次五文件最终复审及单个本地提交；本轮未再修改已认可UI。Preflight：main / 58f52f6488e8525c9358b320325df60b470d56d9，五modified、index empty；归档design/ui-redesign / 84f0a087保持，辅助design/ui-v2 worktree clean且HEAD不变。
 - 最终实现：日/周/月共用头部结构与Typography；周副标题“起始年份+月日 — 结束月日”，无星期，跨月保留月份、跨年补结束年份。周正文七日左右两栏、日期/星期顶部对齐，区域随真实内容自然伸展；移除周视图空分组占位，并仅取消首条Event/重要日内容顶部padding，使左右首行协调，后续事件行距保持。此前垂直居中方案已被用户本次确认的顶部对齐替代。
 - 完整diff复审PASS：仅Calendar局部展示/CSS及直接测试，原日程/重要日排序与归属、Space/权限/创建编辑删除回调、导航/手势/日期引擎不变；日/月正文markup与提交基线逐字一致。无全局Token、其他模块、Supabase/环境/依赖/数据库修改，无假数据进入产品或旧UI恢复。农历不实现，未来位置暂定每日右上角小号浅灰右对齐。
 - 复用最终源码验证证据：直接121/121、全量919/919、build PASS；六宽度×三视图×十状态180/180 PASS，含普通/全天Event、重要日首条、多条和空态顶部对齐、无溢出及头部几何一致。源码SHA256与最新预览manifest匹配；375px多事件/普通/全天首条截图保持。日志/private/tmp/calendar-top-{focused,full,build}.log；本轮不重跑已通过且源码不变的测试/build，重新执行diff/cached diff检查。既有bundle大小警告非阻塞，不扩大范围处理。
-- UI v2基线已完成Production发布与用户验收；本Calendar Patch仅本地技术/视觉验收与Git提交，尚未Push/Production验收，不混淆两者。本地commit仅显式暂存App、styles、aggregate-calendar-ui测试、DEVLOG、PROJECT_STATE五文件；不含预览/截图/构建产物或环境凭证，未读取环境值。未push/deploy/merge，不清理worktree或删除分支；正式发布等待独立授权。
+- UI v2基线已完成Production发布与用户验收；Calendar Patch在本记录之后另获Push授权，已成功部署并由用户验收。本地commit仅显式暂存App、styles、aggregate-calendar-ui测试、DEVLOG、PROJECT_STATE五文件；不含预览/截图/构建产物或环境凭证，未读取环境值。该后续发布不改变本记录当时的本地验收范围。
 
 ## 2026-10-13 — Production 后日历局部视觉 Patch — LOCAL TECHNICAL PASS / VISUAL ACCEPTANCE PENDING
 

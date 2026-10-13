@@ -12,7 +12,7 @@ v0.1.20
 
 ## Current status
 
-UI v2已完成Production发布与用户验收；以下旧阶段Pending记录为历史。Calendar UI Patch = LOCAL PASS / VISUAL ACCEPTED：用户真实浏览器最终确认满意，三视图头部/日期副标题统一，周正文七日两栏、日期与首条内容顶部对齐，区域随内容伸展；日/月正文保持。最终源码对应121/121、919/919、build PASS、180/180响应式证据及diff检查通过，既有bundle警告非阻塞。仅本地Git提交，Calendar Patch尚未Push或Production验收；不执行最终治理收口或worktree清理，不新增正式版本。
+UI v2已完成Production发布并通过用户验收。Calendar UI Patch已Push并成功部署，用户已完成相应验收。Calendar Chevron Removal = LOCAL PASS / VISUAL ACCEPTED：用户确认日／周视图移除Event右侧箭头后视觉与点击交互正常；本地121/121直接测试、919/919全量测试、180/180响应式检查及build通过，当前待Push和Production验收。其余各Slice及Round记录中的Pending、未发布和v0.1.20描述均为当时历史检查点；Deferred范围继续保留，不新增正式版本。
 
 UI v2 Module Hub Refinement = LOCAL PASS / VISUAL ACCEPTED：用户在本地确认顶部四项概览视觉通过；本次最终复审仅四授权文件，真实数据/业务与下方导航保持。重跑36/36、918/918、build/diff-check PASS，既有42/42响应式/截图证据源码指纹一致。11个Slice、Round1/2及本次优化均已完成本地视觉验收，UI v2视觉开发阶段已完成；部分真实桌面检查已由用户进行，完整业务E2E、真机/PWA/Push/Realtime与Production验收仍Pending。仅本地Git收口，未push/deploy/merge；整体集成、合并和发布未完成，Production仍v0.1.20。
 
@@ -34,7 +34,9 @@ v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3�
 
 ## Latest completed
 
-2026-10-13 — Calendar UI Patch最终审查与授权本地Commit：LOCAL PASS / VISUAL ACCEPTED；121/121、919/919、build及180/180证据匹配，日/月正文保持；待独立Push授权及Patch Production验收，详见DEVLOG。
+2026-10-14 — Calendar Chevron Removal本地验收及Gate修复：LOCAL PASS / VISUAL ACCEPTED；用户确认日／周视图无箭头且点击正常。原提交仅补齐Project-State-Review trailer、源码tree保持不变；同步本治理状态并创建docs-only本地提交。待另行授权Push及Production验收，详见DEVLOG。
+
+2026-10-13 — Calendar UI Patch：LOCAL PASS / VISUAL ACCEPTED；随后已Push并成功部署，用户完成相应验收。源码验证证据为121/121、919/919、build及180/180响应式检查通过，日/月正文保持，详见DEVLOG。
 
 2026-10-13 — 功能中心视觉优化最终审查与授权本地Git Closeout：LOCAL PASS / VISUAL ACCEPTED；36/36、918/918、build/diff-check和证据指纹PASS，详见DEVLOG。
 
@@ -296,9 +298,9 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
-UI v2基线已完成Production发布及用户验收。当前Calendar UI Patch = LOCAL PASS / VISUAL ACCEPTED，仅本地提交，尚未Push/Production验收；下方未push或Pending叙述为旧阶段历史，不代表当前UI v2基线状态。
+UI v2已完成Production发布及用户验收；Calendar UI Patch已Push、Production部署成功并通过用户验收。当前Calendar Chevron Removal = LOCAL PASS / VISUAL ACCEPTED，仅本地提交，尚待Push及Production验收。下方Slice与历史部署段落记录的是各自当时状态。
 
-UI v2 11个Slice与Round1/2本地视觉开发完成，Round2 = LOCAL PASS / VISUAL ACCEPTED；仅本地Git收口，无push/deploy/merge。环境对齐、整体集成及Production验收Pending，正式Production仍v0.1.20。下方部署记录为既有历史。
+UI v2 11个Slice与Round1/2视觉开发已完成，UI v2已接入main、发布到Production并通过用户验收；本次Chevron Removal为其后的独立局部Patch。真实账号完整E2E、原生dirty确认、真机/PWA/Push/Realtime等更广验收仍按原记录Pending，P2字重审美、Space Color System、多人共享Space/回顾及跨Space投影等Deferred不自动实施。下方Slice部署段落为历史检查点。
 
 Slice11 = LOCAL PASS / VISUAL ACCEPTED，授权本地Git closeout已完成；新My/Space UI未push/deploy，Production v0.1.20保持。原生dirty确认E2E及真实账号/设备/PWA/Realtime/Production集成验收Pending；UI v2 11个Slice完成本地阶段，整体尚未完成集成验收或发布。
 Slice10已完成本地自动检查、离线视觉验收及本地Git closeout；用户已确认整体视觉。正式Production v0.1.20及线上部署不变，新重要日UI没有push/deploy。真实账号/双账号、设备/PWA/Realtime/Production验收留到UI v2最终集成阶段。
@@ -374,7 +376,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-等待用户另行授权Calendar UI Patch正式Push。此前UI v2 Production验收保持；本Patch已完成本地技术及用户视觉验收，尚未Push或Production验收。发布后由用户确认正式网站及设备交互；不自动Push/部署/合并或清理worktree。最终治理收口仍待独立授权，农历仅未来设计方向，其他Deferred保持。
+等待用户另行授权Calendar Chevron Removal正式Push。待推主线包含已补齐review trailer的Chevron本地提交及本次治理状态更新；Push后只读核验远端与Vercel部署SHA，再由用户完成Production验收。UI v2与Calendar UI Patch既有Production验收保持通过；不自动部署、合并或清理worktree。农历仅为未来设计方向，其他Deferred保持。
 
 ## Blockers
 
