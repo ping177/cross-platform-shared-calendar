@@ -1,5 +1,11 @@
 # Testing
 
+## UI v2 + Calendar Visual Updates — PRODUCTION ACCEPTED / CLOSED / 2026-10-14
+
+- 用户报告相关Production验收全部通过：UI v2已发布并验收；Calendar UI Patch三视图头部/周布局/日期对齐通过；Chevron Removal正式网站中日/周Event不再显示右侧箭头，整行点击正常。Calendar Patch Commit `391708f4efc2f6ae17f6f127b706f59f1a66c5e3`；Chevron Commit `ecbe03d768d327e99afa347eceea3007f2078844`，该补丁部署source HEAD为 `1fc7a3bdb6e9f9e253a2f5eedf5c7fd203c49cdc`。
+- 对应最终本地自动验证证据：完整Node测试 **919/919 PASS**，响应式检查 **180/180 PASS**，`npm run build` **PASS**。既有bundle大小警告保持为非阻塞项；最终治理改动为docs-only，没有更改业务代码。
+- 这些验收只覆盖本次UI改造及用户明确检查的生产页面与点击交互；不推断全部业务E2E、危险操作、Push或Realtime已覆盖。UI改造不需要新增Supabase migration。Deferred范围和既有风险保持原记录，正式应用版本仍v0.1.20。
+
 ## v0.1.20 Final Acceptance / Closeout — CLOSED / PASS / 2026-10-08
 
 - **User-reported real iPhone installed-PWA manual acceptance: 13/13 PASS.** The user confirms Calendar Today/Week/Month swipes, all five module-list returns, natural content/card/date-cell starts, accidental-click protection, vertical scrolling, Sheet blocking, normal taps and navigation buttons passed. The 13-item count is the user's report; no unprovided per-item results are invented. Codex did not drive logged-in or device sessions.

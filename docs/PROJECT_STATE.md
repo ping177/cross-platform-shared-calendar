@@ -12,7 +12,11 @@ v0.1.20
 
 ## Current status
 
-UI v2已完成Production发布并通过用户验收。Calendar UI Patch已Push并成功部署，用户已完成相应验收。Calendar Chevron Removal = LOCAL PASS / VISUAL ACCEPTED：用户确认日／周视图移除Event右侧箭头后视觉与点击交互正常；本地121/121直接测试、919/919全量测试、180/180响应式检查及build通过，当前待Push和Production验收。其余各Slice及Round记录中的Pending、未发布和v0.1.20描述均为当时历史检查点；Deferred范围继续保留，不新增正式版本。
+**UI v2 及后续 Calendar 视觉优化 = PRODUCTION ACCEPTED / CLOSED**（仅关闭 UI 改造及对应发布验收范围）。UI v2 的全部11个 Slice、Integration Round 1/2 与功能中心顶部概览优化已完成；UI v2 已发布 Production 并通过用户验收。Calendar UI Patch（统一日/周/月头部、重做周视图及日期对齐修正）Commit `391708f4…` 已发布并通过用户验收。Calendar Chevron Removal Commit `ecbe03d7…` 移除日/周视图日程右侧箭头并保留整行点击；该 Chevron 补丁部署 source HEAD `1fc7a3bd…`，用户再次确认正式网站箭头消失且点击正常。
+
+该范围的全量测试为919/919 PASS，响应式检查180/180 PASS，Build PASS；既有 bundle 大小警告为非阻塞项。上述 UI 改造不需要新增 Supabase migration。正式产品版本仍为 v0.1.20；这项关闭不表示所有完整业务 E2E、危险操作、Push 或 Realtime 场景均已覆盖。P2字重审美、Space Color System、多人共享空间/回顾、跨 Space 投影继续 Deferred；农历为未来候选，若实现优先放在周视图每日区域右上角。不新增下一版本或额外开发计划。旧版29项修改已保存在 `design/ui-redesign` 归档提交 `84f0a087…`；原项目目录现为日常 `main` 工作区。
+
+以下 Slice/Round 条目保留各自当时的实施与验证状态；其中“未发布 / 待验收”等文字均为历史检查点，以上方最终 Production 状态为准。详细实现和风险记录保留在 DEVLOG / TESTING。
 
 UI v2 Module Hub Refinement = LOCAL PASS / VISUAL ACCEPTED：用户在本地确认顶部四项概览视觉通过；本次最终复审仅四授权文件，真实数据/业务与下方导航保持。重跑36/36、918/918、build/diff-check PASS，既有42/42响应式/截图证据源码指纹一致。11个Slice、Round1/2及本次优化均已完成本地视觉验收，UI v2视觉开发阶段已完成；部分真实桌面检查已由用户进行，完整业务E2E、真机/PWA/Push/Realtime与Production验收仍Pending。仅本地Git收口，未push/deploy/merge；整体集成、合并和发布未完成，Production仍v0.1.20。
 
@@ -34,7 +38,9 @@ v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3�
 
 ## Latest completed
 
-2026-10-14 — Calendar Chevron Removal本地验收及Gate修复：LOCAL PASS / VISUAL ACCEPTED；用户确认日／周视图无箭头且点击正常。原提交仅补齐Project-State-Review trailer、源码tree保持不变；同步本治理状态并创建docs-only本地提交。待另行授权Push及Production验收，详见DEVLOG。
+2026-10-14 — UI v2 + Calendar视觉优化最终治理收口：PRODUCTION ACCEPTED / CLOSED（仅 UI 改造范围）。用户确认Chevron Production视觉及点击验收；记录11个Slice、Round1/2、功能中心优化、Calendar Patch及Chevron发布状态、919/919测试、180/180响应式检查与Build证据。旧版29项修改归档及原目录main日常工作区状态保持，详见DEVLOG / TESTING。
+
+以下记录为最终Production收口前的历史检查点；旧Pending状态由上方最终验收条目接续。
 
 2026-10-13 — Calendar UI Patch：LOCAL PASS / VISUAL ACCEPTED；随后已Push并成功部署，用户完成相应验收。源码验证证据为121/121、919/919、build及180/180响应式检查通过，日/月正文保持，详见DEVLOG。
 
@@ -298,9 +304,11 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
-UI v2已完成Production发布及用户验收；Calendar UI Patch已Push、Production部署成功并通过用户验收。当前Calendar Chevron Removal = LOCAL PASS / VISUAL ACCEPTED，仅本地提交，尚待Push及Production验收。下方Slice与历史部署段落记录的是各自当时状态。
+UI v2及后续 Calendar 视觉优化已完成 Production 发布与用户验收，状态为 **PRODUCTION ACCEPTED / CLOSED**（关闭范围仅限本次 UI 改造与相应验收）。UI v2全部11个Slice、两轮Integration、功能中心概览、Calendar UI Patch与Chevron Removal均已完成；Calendar Patch Commit `391708f4…`，Chevron Commit `ecbe03d7…`，Chevron已验收的部署 source HEAD 为 `1fc7a3bd…`。
 
-UI v2 11个Slice与Round1/2视觉开发已完成，UI v2已接入main、发布到Production并通过用户验收；本次Chevron Removal为其后的独立局部Patch。真实账号完整E2E、原生dirty确认、真机/PWA/Push/Realtime等更广验收仍按原记录Pending，P2字重审美、Space Color System、多人共享Space/回顾及跨Space投影等Deferred不自动实施。下方Slice部署段落为历史检查点。
+自动化证据：全量测试919/919、响应式检查180/180、Build PASS；已知 bundle 大小警告非阻塞。无需 Supabase migration，正式版本保持v0.1.20。此状态不扩大为完整业务E2E、危险操作、Push或Realtime全覆盖；P2字重审美、Space Color System、多人共享空间/回顾与跨Space投影等继续Deferred，农历为候选功能且未来周视图位置优先每日区域右上角。
+
+以下 Slice 部署段落保留为各自当时的历史记录，不表示当前 UI 未发布。
 
 Slice11 = LOCAL PASS / VISUAL ACCEPTED，授权本地Git closeout已完成；新My/Space UI未push/deploy，Production v0.1.20保持。原生dirty确认E2E及真实账号/设备/PWA/Realtime/Production集成验收Pending；UI v2 11个Slice完成本地阶段，整体尚未完成集成验收或发布。
 Slice10已完成本地自动检查、离线视觉验收及本地Git closeout；用户已确认整体视觉。正式Production v0.1.20及线上部署不变，新重要日UI没有push/deploy。真实账号/双账号、设备/PWA/Realtime/Production验收留到UI v2最终集成阶段。
@@ -376,13 +384,15 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-等待用户另行授权Calendar Chevron Removal正式Push。待推主线包含已补齐review trailer的Chevron本地提交及本次治理状态更新；Push后只读核验远端与Vercel部署SHA，再由用户完成Production验收。UI v2与Calendar UI Patch既有Production验收保持通过；不自动部署、合并或清理worktree。农历仅为未来设计方向，其他Deferred保持。
+本次 UI v2 与 Calendar 视觉改造治理收口已完成。主项目日常工作目录为 `/Users/wp/Projects/跨系统共享日历` 的 `main`。暂无新增版本或额外开发计划；Deferred 项目只有在另行明确范围并获授权后才启动。
 
 ## Blockers
 
 暂无明确阻塞。
 
 ## Important Context
+
+- Production验收通过仅覆盖本记录的 UI 改造与用户确认场景；不声称所有业务 E2E、危险操作、Push 或 Realtime 均已覆盖。对应的旧交互保护缺口、测试边界和 Deferred 项继续按各自历史记录保留。
 
 - Round2只统一表单展示：Task默认直接关闭、模块dirty/moduleMutation与重要日模块Emoji范围不变；默认重要日名称初始焦点保持。Event/默认Task同步防护非全覆盖、三表单通用IME缺口和既有焦点兜底局限未修复。预览为最新真实React+内存fixture，不代表真实账号/真机/PWA验收。
 

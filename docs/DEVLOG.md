@@ -1,5 +1,13 @@
 # Development Log
 
+## 2026-10-14 — UI v2 与 Calendar 视觉优化最终治理收口 — PRODUCTION ACCEPTED / CLOSED
+
+- 用户确认相关 Production 验收全部通过：UI v2 已发布并验收；Calendar UI Patch 的日/周/月统一头部、周视图改造及日期对齐已通过；Calendar Chevron Removal 在正式网站已看不到日/周日程右侧箭头，整行点击交互正常。本次关闭范围仅为 UI 改造与对应验收，不表示所有业务 E2E、危险操作、Push 或 Realtime 均已覆盖。
+- UI v2 的11个 Slice、两轮 Integration 和功能中心顶部概览优化均完成。Calendar UI Patch Commit `391708f4efc2f6ae17f6f127b706f59f1a66c5e3` 已部署并由用户验收；Chevron 补丁 Commit `ecbe03d768d327e99afa347eceea3007f2078844`，随最终治理 Commit `1fc7a3bdb6e9f9e253a2f5eedf5c7fd203c49cdc` 部署，用户再次完成正式网站验收。
+- 可复用的最终自动化证据：全量919/919 PASS、六个响应式宽度共180/180 PASS、`npm run build` PASS；既有 bundle 大小警告非阻塞。本次 UI 不需要新增 Supabase migration。正式版本保持v0.1.20。P2字重审美、Space Color System、多人共享空间/回顾、跨Space投影和农历继续Deferred；未来农历位置方向为周视图每日区域右上角。
+- 旧版29项改动完整归档在 `design/ui-redesign` / `84f0a0873af5164863a13f64e3f8a33633965510`；原项目目录 `main` 已恢复为日常工作区。未删除归档分支或辅助 Worktree。
+- 本轮只更新治理文档并创建docs-only提交；远端 `main` 经独立查询无新提交后正常Push，Gate通过，Push后本地与远端一致、工作区干净。自动部署状态和source SHA另见最终交付报告。辅助 Worktree 仅完成只读清理条件审计，未删除或搬动环境文件。
+
 ## 2026-10-14 — Calendar Chevron Removal Pre-push Gate 修复与治理状态同步 — LOCAL PASS
 
 - 核对已安装的 `.githooks/pre-push` 与 `scripts/check-project-state-push.sh`：Gate 按本次被推分支的 tip 检查，要求恰好一个 `Project-State-Review` trailer；相对远端基线的 `docs/PROJECT_STATE.md` 有净变化时取值为 `updated`，无变化时为 `verified-current`。本地原Chevron提交缺少trailer，故按授权仅amend提交说明；新提交 `ecbe03d768d327e99afa347eceea3007f2078844` 保留原subject/body，tree仍为 `3fb86c4f9be1f375b80fb5ae6911996c1490c06e`，并带 `Project-State-Review: verified-current`。未改源码或测试内容。
