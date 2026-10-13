@@ -676,3 +676,48 @@ body:has(.ui-calendar-shell) {
 .ui-important-sheet .ui-important-emoji-clear { display: block; min-height: 44px; min-width: 60px; margin-left: auto; color: rgb(var(--ui-color-muted)); font-size: 14px; }
 .ui-important-sheet .ui-important-emoji-field button:disabled { opacity: .5; }
 @media (max-width: 360px) { .ui-important-sheet .ui-important-emoji-grid { grid-template-columns: repeat(5, minmax(44px, 1fr)); } }
+
+/* UI v2 Slice 11: My / Space management; notification settings remain outside these surfaces. */
+.ui-my-page, .ui-spaces-page { padding-top: calc(var(--ui-space-4) + env(safe-area-inset-top, 0px)); }
+.ui-me-title { text-align: center; margin-bottom: var(--ui-space-5); }
+.ui-my-profile, .ui-space-group { padding: var(--ui-space-4); border: var(--ui-border-width) solid rgb(var(--ui-color-border)); border-radius: var(--ui-radius-group); background: rgb(var(--ui-color-surface)); }
+.ui-my-profile-heading { display: flex; align-items: center; gap: var(--ui-space-3); color: rgb(var(--ui-color-text)); }
+.ui-my-links, .ui-space-detail-groups { display: grid; gap: var(--ui-space-3); margin-top: var(--ui-space-4); }
+.ui-space-entry { display: flex; align-items: center; gap: var(--ui-space-3); width: 100%; min-height: 64px; padding: var(--ui-space-3) var(--ui-space-4); border: var(--ui-border-width) solid rgb(var(--ui-color-border)); border-radius: var(--ui-radius-group); background: rgb(var(--ui-color-surface)); text-align: left; color: rgb(var(--ui-color-text)); }
+.ui-space-entry > svg { flex: none; color: rgb(var(--ui-color-muted)); }
+.ui-space-entry > span { flex: 1; min-width: 0; overflow-wrap: anywhere; font-size: var(--ui-text-list); line-height: var(--ui-leading-list); }
+.ui-space-entry strong { display: block; font-weight: var(--ui-weight-medium); }
+.ui-space-entry small { display: block; margin-top: var(--ui-space-1); color: rgb(var(--ui-color-muted)); font-size: var(--ui-text-meta); line-height: var(--ui-leading-meta); }
+.ui-space-create-entries { display: grid; gap: var(--ui-space-3); margin-top: var(--ui-space-6); }
+.ui-space-field-label { display: block; margin-top: var(--ui-space-5); font-size: var(--ui-text-meta); line-height: var(--ui-leading-meta); color: rgb(var(--ui-color-muted)); }
+.ui-space-input { display: block; width: 100%; min-width: 0; min-height: var(--ui-touch-target); margin-top: var(--ui-space-2); padding: var(--ui-space-3); border: var(--ui-border-width) solid rgb(var(--ui-color-control)); border-radius: var(--ui-radius-control); background: rgb(var(--ui-color-surface)); font-size: var(--ui-text-body); line-height: var(--ui-leading-body); color: rgb(var(--ui-color-text)); }
+.ui-space-input:disabled { opacity: .6; }
+.ui-space-identity { display: flex; align-items: center; gap: var(--ui-space-3); }
+.ui-space-identity > svg { flex: none; color: rgb(var(--ui-color-muted)); }
+.ui-space-identity .break-words, .ui-space-member-row .break-words { overflow-wrap: anywhere; }
+.ui-space-member-row { display: flex; align-items: center; gap: var(--ui-space-3); min-height: 48px; padding: var(--ui-space-2) 0; }
+.ui-space-member-row + .ui-space-member-row, .ui-space-module-row + .ui-space-module-row { border-top: var(--ui-border-width) solid rgb(var(--ui-color-border)); }
+.ui-space-member-row > svg { flex: none; color: rgb(var(--ui-color-muted)); }
+.ui-space-module-row { padding: var(--ui-space-2) 0; }
+.ui-space-switch { display: inline-flex; justify-content: center; align-items: center; min-width: 56px; min-height: var(--ui-touch-target); border-radius: var(--ui-radius-control); }
+.ui-space-switch-track { display: block; position: relative; width: 42px; height: 24px; border: 1px solid rgb(var(--ui-color-control)); border-radius: 999px; background: rgb(var(--ui-color-border)); }
+.ui-space-switch-track > span { position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: rgb(var(--ui-color-surface)); }
+.ui-space-switch[aria-checked="true"] .ui-space-switch-track { background: rgb(var(--ui-color-accent)); border-color: rgb(var(--ui-color-accent)); }
+.ui-space-switch[aria-checked="true"] .ui-space-switch-track > span { transform: translateX(18px); }
+.ui-space-switch:disabled { opacity: .6; }
+.ui-space-secondary { display: inline-flex; align-items: center; justify-content: center; gap: var(--ui-space-2); min-height: var(--ui-touch-target); padding: 0 var(--ui-space-3); border: var(--ui-border-width) solid rgb(var(--ui-color-border)); border-radius: var(--ui-radius-control); font-size: var(--ui-text-meta); line-height: var(--ui-leading-meta); }
+.ui-space-danger .text-coral, .ui-space-confirm .text-coral { color: rgb(var(--ui-color-danger)); }
+.ui-space-danger .bg-coral, .ui-space-confirm .bg-coral { background: rgb(var(--ui-color-danger)); }
+.ui-space-confirm .bg-mist { background: rgb(var(--ui-color-soft)); }
+.ui-space-danger { border-color: rgb(var(--ui-color-danger) / .3); }
+.ui-space-confirm-overlay { position: fixed; inset: 0; z-index: 40; display: flex; align-items: flex-end; justify-content: center; padding: var(--ui-space-4); background: rgb(var(--ui-color-text) / .35); color: rgb(var(--ui-color-text)); }
+.ui-space-confirm { max-height: calc(100dvh - var(--ui-space-7)); overflow-y: auto; border-radius: var(--ui-radius-sheet); }
+.ui-space-form-view { position: fixed; inset: 0; z-index: 40; background: rgb(var(--ui-color-page)); color: rgb(var(--ui-color-text)); }
+.ui-space-form { display: flex; flex-direction: column; width: 100%; max-width: 48rem; height: 100dvh; margin: 0 auto; }
+.ui-space-form-header { flex: none; display: grid; grid-template-columns: var(--ui-touch-target) minmax(0,1fr) auto; align-items: center; gap: var(--ui-space-2); padding: calc(var(--ui-space-3) + env(safe-area-inset-top, 0px)) var(--ui-space-4) var(--ui-space-3); border-bottom: var(--ui-border-width) solid rgb(var(--ui-color-border)); }
+.ui-space-form-header h2 { text-align: center; }
+.ui-space-form-header button { min-height: var(--ui-touch-target); min-width: var(--ui-touch-target); border-radius: var(--ui-radius-control); }
+.ui-space-form-body { flex: 1; overflow-y: auto; padding: var(--ui-space-6) var(--ui-space-4) max(var(--ui-space-6), env(safe-area-inset-bottom, 0px)); }
+.ui-my-page button, .ui-spaces-page button, .ui-space-confirm button { min-height: var(--ui-touch-target); min-width: var(--ui-touch-target); }
+.ui-my-page :is(button,input):focus-visible, .ui-spaces-page :is(button,input):focus-visible, .ui-space-confirm :is(button,input):focus-visible { outline: var(--ui-focus-width) solid rgb(var(--ui-color-focus)); outline-offset: var(--ui-focus-offset); }
+@media (min-width:768px) { .ui-space-confirm-overlay { align-items: center; } }

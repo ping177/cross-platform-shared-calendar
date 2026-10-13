@@ -729,7 +729,7 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
   }
 
   return (
-    <div className={`min-h-screen text-ink pb-nav ${navigation.tab === 'home' ? 'bg-ui-page' : 'bg-mist'}`} onPointerDownCapture={swipeClickGuard.onPointerDownCapture} onClickCapture={swipeClickGuard.onClickCapture}>
+    <div className={`min-h-screen text-ink pb-nav ${navigation.tab === 'home' || navigation.tab === 'me' ? 'bg-ui-page' : 'bg-mist'}`} onPointerDownCapture={swipeClickGuard.onPointerDownCapture} onClickCapture={swipeClickGuard.onClickCapture}>
       {personalInitializationError && (
         <div className="bg-mist px-4 pt-4">
           <div className="mx-auto max-w-3xl rounded-lg border border-amber/40 bg-white px-4 py-3 text-sm text-ink shadow-soft" role="alert">
@@ -823,7 +823,7 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
               busy={spaceActionBusy}
               onBusyChange={setSpaceActionBusy}
             />
-          : <SpaceListPending status={spaceListStatus} onRetry={() => void refreshSpaces(false)} />
+          : <SpaceListPending mySpaces status={spaceListStatus} onRetry={() => void refreshSpaces(false)} />
       )}
       <BottomNavigation tab={navigation.tab} onChange={changeTab} disabled={spaceActionBusy} />
       {error && <p className="nav-alert fixed left-4 right-4 z-30 rounded-lg bg-coral px-4 py-3 text-sm text-white" role="alert">{error}</p>}
@@ -831,12 +831,12 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
   );
 }
 
-function SpaceListPending({ status, onRetry }: { status: 'loading' | 'error'; onRetry: () => void }) {
+function SpaceListPending({ status, onRetry, mySpaces = false }: { status: 'loading' | 'error'; onRetry: () => void; mySpaces?: boolean }) {
   return (
-    <main className="mx-auto min-h-screen max-w-3xl px-4 py-6">
-      <h1 className="text-xl font-bold">空间</h1>
+    <main className={mySpaces ? "ui-spaces-page mx-auto min-h-[100dvh] w-full max-w-3xl bg-ui-page px-ui-4 py-ui-6 font-ui text-ui-text" : "mx-auto min-h-screen max-w-3xl px-4 py-6"}>
+      <h1 className={mySpaces ? "text-ui-section" : "text-xl font-bold"}>{mySpaces ? '空间管理' : '空间'}</h1>
       <p className="mt-4">{status === 'loading' ? '正在确认空间成员列表…' : '空间列表刷新失败，请重试。'}</p>
-      {status === 'error' && <button className="mt-4 min-h-11 rounded-lg bg-teal px-4 font-semibold text-white" type="button" onClick={onRetry}>重试</button>}
+      {status === 'error' && <button className={mySpaces ? "ui-focus mt-ui-4 min-h-11 rounded-ui-control px-ui-3 text-ui-meta font-ui-semibold text-ui-accent" : "mt-4 min-h-11 rounded-lg bg-teal px-4 font-semibold text-white"} type="button" onClick={onRetry}>重试</button>}
     </main>
   );
 }

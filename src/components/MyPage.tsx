@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Bell, ChevronRight, LogOut } from 'lucide-react';
+import { Bell, ChevronRight, LogOut, UserRound, Layers } from 'lucide-react';
 import { memberDisplayNameMaxLength } from '../lib/member';
 import { createRequestGuard } from '../lib/request-guard';
 import { cleanupPushAndSignOut, disableCurrentPushInstallation, unsubscribeCurrentPushSubscription } from '../lib/push-notifications';
@@ -73,20 +73,23 @@ export function MyPage({ userId, onManageSpaces }: { userId: string; onManageSpa
     }
   }
 
-  return (
-    <main className="mx-auto min-h-screen w-full max-w-3xl px-4 py-4">
-      <h1 className="text-xl font-bold">我的</h1>
-      <form className="mt-4 rounded-lg bg-white p-4 shadow-sm" onSubmit={(event) => void saveName(event)}>
-        <label className="block text-sm font-semibold" htmlFor="my-display-name">显示名称</label>
-        <input id="my-display-name" className="mt-2 w-full rounded-lg border border-ink/15 px-4 py-3 outline-none focus:border-teal" value={displayName} onChange={(event) => setDisplayName(event.target.value)} autoComplete="nickname" disabled={loading || busy} maxLength={memberDisplayNameMaxLength} />
-        <button className="mt-3 min-h-11 rounded-lg bg-teal px-4 font-semibold text-white disabled:opacity-60" type="submit" disabled={loading || busy || displayName.trim() === savedName}>{busy ? '保存中' : '保存名称'}</button>
+  return <>
+    <main className="ui-my-page mx-auto min-h-[100dvh] w-full max-w-3xl px-ui-4 py-ui-4 bg-ui-page font-ui text-ui-text">
+      <h1 className="ui-me-title text-ui-section">我的</h1>
+      <form className="ui-my-profile" onSubmit={(event) => void saveName(event)}>
+        <div className="ui-my-profile-heading"><UserRound size={24} aria-hidden="true" /><h2 className="min-w-0 break-words text-ui-bar">{loading ? '正在读取资料…' : savedName || '我的资料'}</h2></div>
+        <label className="ui-space-field-label" htmlFor="my-display-name">显示名称</label>
+        <input id="my-display-name" className="ui-space-input" value={displayName} onChange={(event) => setDisplayName(event.target.value)} autoComplete="nickname" disabled={loading || busy} maxLength={memberDisplayNameMaxLength} />
+        <button className="ui-focus mt-ui-3 min-h-11 rounded-ui-control px-ui-3 text-ui-meta font-ui-semibold text-ui-accent disabled:opacity-50" type="submit" disabled={loading || busy || displayName.trim() === savedName}>{busy ? '保存中' : '保存名称'}</button>
       </form>
-      <button className="mt-4 flex min-h-14 w-full items-center justify-between gap-3 rounded-lg bg-white px-4 text-left font-semibold shadow-sm" type="button" onClick={onManageSpaces}><span>空间管理</span><ChevronRight size={18} className="text-ink/45" aria-hidden="true" /></button>
-      <button className="mt-4 flex min-h-14 w-full items-center gap-3 rounded-lg bg-white px-4 text-left font-semibold shadow-sm" type="button" onClick={() => setShowNotifications(true)}><Bell size={18} />此设备通知设置</button>
-      <button className="mt-4 flex min-h-14 w-full items-center gap-3 rounded-lg bg-white px-4 text-left font-semibold shadow-sm" type="button" onClick={() => void signOut()}><LogOut size={18} />退出登录</button>
-      {error && <p className="mt-4 rounded-lg bg-coral/10 px-4 py-3 text-sm text-coral" role="alert">{error}</p>}
-      {message && <p className="mt-4 rounded-lg bg-teal/10 px-4 py-3 text-sm text-teal" role="status">{message}</p>}
-      {showNotifications && <NotificationSettings onClose={() => setShowNotifications(false)} />}
+      <div className="ui-my-links">
+        <button className="ui-space-entry ui-focus" type="button" onClick={onManageSpaces}><Layers size={20} aria-hidden="true" /><span>空间管理</span><ChevronRight size={18} aria-hidden="true" /></button>
+        <button className="ui-space-entry ui-focus" type="button" onClick={() => setShowNotifications(true)}><Bell size={20} aria-hidden="true" /><span>此设备通知设置</span><ChevronRight size={18} aria-hidden="true" /></button>
+        <button className="ui-space-entry ui-focus" type="button" onClick={() => void signOut()}><LogOut size={20} aria-hidden="true" /><span>退出登录</span><ChevronRight size={18} aria-hidden="true" /></button>
+      </div>
+      {error && <p className="mt-ui-4 text-ui-meta text-ui-danger" role="alert">{error}</p>}
+      {message && <p className="mt-ui-4 text-ui-meta text-ui-accent" role="status">{message}</p>}
     </main>
-  );
+    {showNotifications && <NotificationSettings onClose={() => setShowNotifications(false)} />}
+  </>;
 }

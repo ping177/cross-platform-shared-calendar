@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, UserRound, Users } from 'lucide-react';
 import { memberDisplayName } from '../lib/member';
 import { createRequestGuard } from '../lib/request-guard';
 import { readSpaceMembers } from '../lib/space-members';
@@ -45,66 +45,42 @@ type DetailProps = {
 
 export function SpaceDetailContent({ space, members, moduleState, moduleError, moduleBusy, onModuleRetry, onModuleToggle, reviewModuleState = 'loading', reviewModuleError = '', reviewModuleBusy = false, onReviewModuleRetry = () => undefined, onReviewModuleToggle = () => undefined, listsModuleState = 'disabled', listsModuleError = '', listsModuleBusy = false, onListsModuleRetry = () => undefined, onListsModuleToggle = () => undefined, importantDatesModuleState = 'loading', importantDatesModuleError = '', importantDatesModuleBusy = false, onImportantDatesModuleRetry = () => undefined, onImportantDatesModuleToggle = () => undefined, onSpaceChange, lifecycleControls }: DetailProps) {
   const isOwner = space.membershipRole === 'owner';
-  return (
-    <div className="space-y-4">
-      <section className="rounded-lg bg-white p-4 shadow-sm">
-        <p className="text-xs font-semibold text-ink/55">{space.kind === 'personal' ? '个人空间' : '共享空间'}</p>
-        <h2 className="mt-1 break-all text-xl font-bold">{space.name}</h2>
+  return <div className="ui-space-detail-groups">
+    <section className="ui-space-group ui-space-identity">
+      {space.kind === 'personal' ? <UserRound size={24} aria-hidden="true" /> : <Users size={24} aria-hidden="true" />}
+      <div className="min-w-0"><p className="text-ui-label text-ui-muted">{space.kind === 'personal' ? '个人空间' : '共享空间'}</p><h2 className="mt-ui-1 break-words text-ui-bar">{space.name}</h2></div>
+    </section>
+    {space.kind === 'shared' && <>
+      <section className="ui-space-group">
+        <h2 className="text-ui-list font-ui-semibold">空间成员 · {members.length}</h2>
+        <div className="mt-ui-3">{members.map((member) => <div key={member.user_id} className="ui-space-member-row"><UserRound size={18} aria-hidden="true" /><span className="min-w-0 flex-1 break-words text-ui-body">{memberDisplayName(member)}</span><span className="shrink-0 text-ui-meta text-ui-muted">{member.role === 'owner' ? '所有者' : '成员'}</span></div>)}</div>
       </section>
-      {space.kind === 'shared' && (
-        <>
-          <section className="rounded-lg bg-white p-4 shadow-sm">
-            <h2 className="font-bold">空间成员</h2>
-            <div className="mt-3 space-y-2">
-              {members.map((member) => (
-                <div key={member.user_id} className="flex min-w-0 items-center justify-between gap-3 rounded-lg bg-mist px-3 py-3">
-                  <span className="min-w-0 break-all font-semibold">{memberDisplayName(member)}</span>
-                  <span className="shrink-0 text-sm text-ink/60">{member.role === 'owner' ? '所有者' : '成员'}</span>
-                </div>
-              ))}
-            </div>
-          </section>
-          <InvitePanel space={space} onSpaceChange={onSpaceChange} />
-        </>
-      )}
-      <section className="rounded-lg bg-white p-4 shadow-sm">
-        <h2 className="font-bold">使用的功能</h2>
-        <div className="mt-3 flex min-w-0 flex-wrap items-center justify-between gap-3">
-          <span className="font-semibold">任务</span>
-          {moduleState === 'loading' || moduleBusy ? <span className="text-sm text-ink/60">载入中…</span>
-            : moduleState === 'error' ? <button className="min-h-11 font-semibold text-teal" type="button" onClick={onModuleRetry}>重试</button>
-              : isOwner ? <button className="min-h-11 rounded-lg bg-mist px-4 text-sm font-semibold" type="button" role="switch" aria-label="任务模块" aria-checked={moduleState === 'enabled'} onClick={onModuleToggle}>{moduleState === 'enabled' ? '关闭任务模块' : '开启任务模块'}</button>
-                : <span className="text-sm text-ink/60">{moduleState === 'enabled' ? '已开启' : '已关闭'}</span>}
-        </div>
-        {moduleError && <p className="mt-2 text-sm text-coral" role="alert">{moduleError}</p>}
-        <div className="mt-3 flex min-w-0 flex-wrap items-center justify-between gap-3 border-t border-ink/10 pt-3">
-          <span className="font-semibold">回顾</span>
-          {reviewModuleState === 'loading' || reviewModuleBusy ? <span className="text-sm text-ink/60">载入中…</span>
-            : reviewModuleState === 'error' ? <button className="min-h-11 font-semibold text-teal" type="button" onClick={onReviewModuleRetry}>重试</button>
-              : isOwner ? <button className="min-h-11 rounded-lg bg-mist px-4 text-sm font-semibold" type="button" role="switch" aria-label="回顾模块" aria-checked={reviewModuleState === 'enabled'} onClick={onReviewModuleToggle}>{reviewModuleState === 'enabled' ? '关闭回顾模块' : '开启回顾模块'}</button>
-                : <span className="text-sm text-ink/60">{reviewModuleState === 'enabled' ? '已开启' : '已关闭'}</span>}
-        </div>
-        {reviewModuleError && <p className="mt-2 text-sm text-coral" role="alert">{reviewModuleError}</p>}
-        <div className="mt-3 flex min-w-0 flex-wrap items-center justify-between gap-3 border-t border-ink/10 pt-3">
-          <span className="font-semibold">清单</span>
-          {listsModuleState === 'loading' || listsModuleBusy ? <span className="text-sm text-ink/60">载入中…</span>
-            : listsModuleState === 'error' ? <button className="min-h-11 font-semibold text-teal" type="button" onClick={onListsModuleRetry}>重试</button>
-              : isOwner ? <button className="min-h-11 rounded-lg bg-mist px-4 text-sm font-semibold" type="button" role="switch" aria-label="清单模块" aria-checked={listsModuleState === 'enabled'} onClick={onListsModuleToggle}>{listsModuleState === 'enabled' ? '关闭清单模块' : '开启清单模块'}</button>
-                : <span className="text-sm text-ink/60">{listsModuleState === 'enabled' ? '已开启' : '已关闭'}</span>}
-        </div>
-        {listsModuleError && <p className="mt-2 text-sm text-coral" role="alert">{listsModuleError}</p>}
-        <div className="mt-3 flex min-w-0 flex-wrap items-center justify-between gap-3 border-t border-ink/10 pt-3">
-          <span className="font-semibold">重要日</span>
-          {importantDatesModuleState === 'loading' || importantDatesModuleBusy ? <span className="text-sm text-ink/60">载入中…</span>
-            : importantDatesModuleState === 'error' ? <button className="min-h-11 font-semibold text-teal" type="button" onClick={onImportantDatesModuleRetry}>重试</button>
-              : isOwner ? <button className="min-h-11 rounded-lg bg-mist px-4 text-sm font-semibold" type="button" role="switch" aria-label="重要日模块" aria-checked={importantDatesModuleState === 'enabled'} onClick={onImportantDatesModuleToggle}>{importantDatesModuleState === 'enabled' ? '关闭重要日模块' : '开启重要日模块'}</button>
-                : <span className="text-sm text-ink/60">{importantDatesModuleState === 'enabled' ? '已开启' : '已关闭'}</span>}
-        </div>
-        {importantDatesModuleError && <p className="mt-2 text-sm text-coral" role="alert">{importantDatesModuleError}</p>}
-      </section>
-      {space.kind === 'shared' && lifecycleControls}
+      <InvitePanel space={space} onSpaceChange={onSpaceChange} />
+    </>}
+    <section className="ui-space-group">
+      <h2 className="text-ui-list font-ui-semibold">使用的功能</h2>
+      <div className="mt-ui-2">
+        <SpaceModuleRow label="任务" state={moduleState} error={moduleError} busy={moduleBusy} owner={isOwner} onRetry={onModuleRetry} onToggle={onModuleToggle} />
+        <SpaceModuleRow label="回顾" state={reviewModuleState} error={reviewModuleError} busy={reviewModuleBusy} owner={isOwner} onRetry={onReviewModuleRetry} onToggle={onReviewModuleToggle} />
+        <SpaceModuleRow label="清单" state={listsModuleState} error={listsModuleError} busy={listsModuleBusy} owner={isOwner} onRetry={onListsModuleRetry} onToggle={onListsModuleToggle} />
+        <SpaceModuleRow label="重要日" state={importantDatesModuleState} error={importantDatesModuleError} busy={importantDatesModuleBusy} owner={isOwner} onRetry={onImportantDatesModuleRetry} onToggle={onImportantDatesModuleToggle} />
+      </div>
+    </section>
+    {space.kind === 'shared' && lifecycleControls}
+  </div>;
+}
+
+function SpaceModuleRow({ label, state, error, busy, owner, onRetry, onToggle }: { label: string; state: TasksModuleState; error: string; busy: boolean; owner: boolean; onRetry: () => void; onToggle: () => void }) {
+  const known = state === 'enabled' || state === 'disabled';
+  return <div className="ui-space-module-row">
+    <div className="flex min-h-11 items-center justify-between gap-ui-3">
+      <span className="text-ui-body">{label}</span>
+      {!known ? state === 'loading' || busy ? <span className="text-ui-meta text-ui-muted" role="status">{busy ? '更新中…' : '读取中…'}</span> : <button className="ui-focus min-h-11 px-ui-3 text-ui-meta text-ui-accent" type="button" onClick={onRetry}>重试</button>
+        : owner ? <div className="flex items-center gap-ui-2">{busy && <span className="text-ui-meta text-ui-muted" role="status">更新中…</span>}<button className="ui-space-switch ui-focus" type="button" role="switch" aria-label={`${label}模块`} aria-checked={state === 'enabled'} aria-busy={busy} disabled={busy} onClick={() => { if (!busy) onToggle(); }}><span className="ui-space-switch-track" aria-hidden="true"><span /></span><span className="sr-only">{state === 'enabled' ? `关闭${label}模块` : `开启${label}模块`}</span></button></div>
+          : <span className="text-ui-meta text-ui-muted">{state === 'enabled' ? '已开启' : '已关闭'}</span>}
     </div>
-  );
+    {error && <p className="mt-ui-1 text-ui-meta text-ui-danger" role="alert">{error}</p>}
+  </div>;
 }
 
 export function SpaceLifecycleControls({ space, members, userId, busy, onBusyChange, onSettled }: {
@@ -118,6 +94,27 @@ export function SpaceLifecycleControls({ space, members, userId, busy, onBusyCha
   const [pending, setPending] = useState<{ action: SpaceLifecycleAction; targetId?: string; label: string } | null>(null);
   const [deleteStep, setDeleteStep] = useState(1);
   const submitting = useRef(false);
+  const dialog = useRef<HTMLDivElement>(null);
+  const currentBusy = useRef(busy);
+  currentBusy.current = busy;
+  useEffect(() => {
+    if (!pending) return;
+    const previous = document.activeElement as HTMLElement | null;
+    const root = dialog.current;
+    root?.querySelector<HTMLButtonElement>('button')?.focus();
+    const keydown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !currentBusy.current && !submitting.current) { event.preventDefault(); setPending(null); }
+      if (event.key !== 'Tab') return;
+      const controls = Array.from(root?.querySelectorAll<HTMLButtonElement>('button:not(:disabled)') ?? []);
+      if (!controls.length) { event.preventDefault(); root?.focus(); return; }
+      const first = controls[0], last = controls[controls.length - 1];
+      if (!root?.contains(document.activeElement)) { event.preventDefault(); first?.focus(); return; }
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+      if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    };
+    document.addEventListener('keydown', keydown);
+    return () => { document.removeEventListener('keydown', keydown); previous?.focus(); };
+  }, [Boolean(pending)]);
   if (space.kind !== 'shared') return null;
   const otherMember = members.find((member) => member.user_id !== userId && member.role === 'member');
   const currentRole = members.find((member) => member.user_id === userId)?.role;
@@ -152,7 +149,7 @@ export function SpaceLifecycleControls({ space, members, userId, busy, onBusyCha
       onBusyChange(false);
     }
   };
-  return <section className="rounded-lg border border-coral/25 bg-white p-4 shadow-sm" aria-label="危险操作">
+  return <section className="ui-space-group ui-space-danger" aria-label="危险操作">
     <h2 className="font-bold text-coral">危险操作</h2>
     <p className="mt-1 text-sm leading-6 text-ink/65">这些操作会立即改变空间成员或永久删除数据。</p>
     {!owner && !ordinaryMember && <div className="mt-3 text-sm text-coral" role="alert">空间成员身份已变化。<button className="ml-2 min-h-11 font-semibold underline disabled:opacity-50" type="button" disabled={busy} onClick={() => void onSettled('leave', '空间成员身份已变化，请刷新后重试。')}>刷新空间列表</button></div>}
@@ -164,8 +161,8 @@ export function SpaceLifecycleControls({ space, members, userId, busy, onBusyCha
       </>}
       {owner && <button className="min-h-11 rounded-lg bg-coral px-4 font-semibold text-white disabled:opacity-50" type="button" disabled={busy} onClick={() => open('delete', '删除空间')}>删除空间</button>}
     </div>
-    {pending && <div className="fixed inset-0 z-40 flex items-end bg-ink/50 p-4 md:items-center" role="dialog" aria-modal="true" aria-labelledby="space-lifecycle-title">
-      <div className="mx-auto w-full max-w-md rounded-lg bg-white p-5 shadow-soft safe-bottom">
+    {pending && <div ref={dialog} tabIndex={-1} className="ui-space-confirm-overlay font-ui" role="dialog" aria-modal="true" aria-labelledby="space-lifecycle-title">
+      <div className="ui-space-confirm mx-auto w-full max-w-md rounded-lg bg-white p-5 shadow-soft safe-bottom">
         <h3 id="space-lifecycle-title" className="text-lg font-bold">确认{pending.label}</h3>
         <p className="mt-3 text-sm leading-6">{pending.action === 'leave' ? '退出后，你在此共享空间的个人日程将删除；共享日程保留。' : pending.action === 'remove' ? '该成员在此共享空间的个人日程将删除；共享日程和任务保留。' : pending.action === 'transfer' ? '转让后，对方成为所有者，你成为普通成员。' : deleteStep === 1 ? '此操作将永久删除整个共享空间及其中的日程、任务、回顾、清单和重要日，无法恢复。' : '请再次确认：整个共享空间及其中的日程、任务、回顾、清单和重要日将永久删除，所有成员都将失去访问权。'}</p>
         {(pending.action === 'remove' || pending.action === 'transfer') && <p className="mt-2 break-all text-sm font-semibold">目标成员：{members.find((member) => member.user_id === pending.targetId)?.profiles?.display_name || pending.targetId}</p>}
@@ -237,22 +234,22 @@ export function SpaceManagementPage({ spaces, selectedSpaceId, userId, detailRev
   const sharedNameCounts = new Map<string, number>();
   for (const space of shared) sharedNameCounts.set(space.name, (sharedNameCounts.get(space.name) ?? 0) + 1);
   return (
-    <main className="mx-auto min-h-screen w-full max-w-3xl px-4 py-4 safe-bottom">
-      <header className="flex min-h-11 items-center gap-3">
-        <button className="inline-flex min-h-11 items-center gap-1 font-semibold text-teal disabled:opacity-50" type="button" onClick={onBack} disabled={busy}><ChevronLeft size={18} />{selected ? '空间管理' : '我的'}</button>
-        <h1 className="min-w-0 break-all text-xl font-bold">{selected ? selected.name : '空间管理'}</h1>
+    <main className="ui-spaces-page mx-auto min-h-[100dvh] w-full max-w-3xl px-ui-4 py-ui-4 bg-ui-page font-ui text-ui-text safe-bottom">
+      <header className="ui-spaces-header flex min-h-11 items-center gap-ui-3">
+        <button className="ui-focus inline-flex min-h-11 items-center gap-1 text-ui-meta font-ui-semibold text-ui-accent disabled:opacity-50" type="button" onClick={onBack} disabled={busy}><ChevronLeft size={18} />{selected ? '空间管理' : '我的'}</button>
+        <h1 className="min-w-0 flex-1 break-all text-ui-section">{selected ? selected.name : '空间管理'}</h1>
       </header>
       {selected ? <div className="mt-4"><SpaceDetail key={`${selected.id}:${selected.membershipRole}:${detailRevision}`} space={selected} userId={userId} onSpaceChange={onSpaceChange} busy={busy} onBusyChange={onBusyChange} onLifecycleSettled={onLifecycleSettled} onModuleChanged={onModuleChanged} /></div> : (
         <>
           <section className="mt-4">
-            <h2 className="text-sm font-bold text-ink/60">个人空间</h2>
+            <h2 className="text-ui-meta text-ui-muted">个人空间</h2>
             <div className="mt-2 space-y-2">{personal.map((space) => <SpaceRow key={space.id} space={space} onSelect={onSelect} busy={busy} />)}</div>
-            {personal.length === 0 && <p className="mt-2 text-sm text-ink/60">个人空间暂不可用，请重试初始化。</p>}
+            {personal.length === 0 && <p className="mt-ui-2 text-ui-meta text-ui-muted">个人空间暂不可用，请重试初始化。</p>}
           </section>
           <section className="mt-5">
-            <h2 className="text-sm font-bold text-ink/60">共享空间</h2>
+            <h2 className="text-ui-meta text-ui-muted">共享空间</h2>
             <div className="mt-2 space-y-2">{shared.map((space, index) => <SpaceRow key={space.id} space={space} onSelect={onSelect} busy={busy} secondary={(sharedNameCounts.get(space.name) ?? 0) > 1 ? `共享空间 ${index + 1}` : undefined} />)}</div>
-            {shared.length === 0 && <p className="mt-2 text-sm text-ink/60">暂无共享空间</p>}
+            {shared.length === 0 && <p className="mt-ui-2 text-ui-meta text-ui-muted">暂无共享空间</p>}
           </section>
           <SharedSpaceForms onReady={onReady} busy={busy} onBusyChange={onBusyChange} />
         </>
@@ -262,8 +259,8 @@ export function SpaceManagementPage({ spaces, selectedSpaceId, userId, detailRev
 }
 
 function SpaceRow({ space, onSelect, busy, secondary }: { space: CurrentSpace; onSelect: (spaceId: string) => void; busy: boolean; secondary?: string }) {
-  return <button className="flex min-h-14 w-full min-w-0 items-center justify-between gap-3 rounded-lg bg-white px-4 text-left shadow-sm disabled:opacity-60" type="button" data-space-id={space.id} onClick={() => onSelect(space.id)} disabled={busy}>
-    <span className="min-w-0"><span className="block break-all font-semibold">{space.kind === 'personal' ? '我的空间' : space.name}</span>{secondary && <span className="block text-xs text-ink/55">{secondary}</span>}</span>
+  return <button className="ui-space-entry ui-focus min-h-14 w-full min-w-0 disabled:opacity-50" type="button" data-space-id={space.id} onClick={() => onSelect(space.id)} disabled={busy}>
+    <>{space.kind === 'personal' ? <UserRound size={22} aria-hidden="true" /> : <Users size={22} aria-hidden="true" />}<span className="min-w-0 flex-1"><span className="block break-all font-ui-semibold">{space.kind === 'personal' ? '我的空间' : space.name}</span><span className="mt-ui-1 block text-ui-meta text-ui-muted">{space.kind === 'personal' ? '仅我可见' : space.membershipRole === 'owner' ? '所有者' : '成员'}</span>{secondary && <span className="block text-ui-label text-ui-muted">{secondary}</span>}</span></>
     <ChevronRight size={18} className="shrink-0 text-ink/45" aria-hidden="true" />
   </button>;
 }

@@ -1,5 +1,18 @@
 # Development Log
 
+## 2026-10-13 — UI v2 Slice 11 最终审查与本地 Git Closeout — LOCAL PASS / VISUAL ACCEPTED
+
+- 用户批准只读审计A–I及最小实施范围后执行。Preflight：design/ui-v2，HEAD `6d9ea251f70db900f20c7d7dd8e98b54829687f3`，clean/index空；旧worktree28 modified + 1 untracked及8661项项目文件/符号链接指纹保持。参考为批准包第13张开关版，SHA/CRC一致；不加入未冻结插画、头像编辑、签名、邮箱编辑、邀请流程或空菜单。
+- 实际9文件：MyPage、SpaceManagementPage、SharedSpaceForms、InvitePanel、局部styles、App展示、新增me-spaces-ui-v2测试、DEVLOG/PROJECT_STATE；既有3个Space UI测试无需修改即通过。My姓名读取/1–20校验/保存/Push清理与退出函数逐段相同，通知组件放在局部样式边界之外，内部源码不改。Space总览保留Personal/Shared原顺序、同名区分和真实ID，不增加成员数查询；Shared详情成员数仅来自成功读取的members.length。
+- 创建/加入由两个入口打开局部全屏表单视图，无全局新路由/第二套Sheet；原字段、默认名称、邀请码规范化、completeSharedSpaceAction与onReady保留。新增同步锁、IME组合输入保护、局部dirty返回确认、忙碌关闭/切换限制和Focus/Tab/Escape处理。表单开启时后台创建/加入入口禁用；关闭修改草稿须明确确认，未改默认/空白可正常退出。RPC已成功而成员刷新失败时只缓存原返回ID并“重试刷新”，不再次创建/加入；不创建后端提交机制，明确已提交状态，不假装取消回滚云数据。
+- 四个模块采用右绿/左灰switch，aria-checked来自原权威读取；已知忙碌状态禁用并显示更新中，未知/失败/读取中不冒充关闭；成员只读。邀请码复制/失败回退及所有当前共享成员可轮换的权限保持，局部轮换锁和卸载响应保护不改RPC规则。
+- Personal危险入口全部隐藏，Shared Owner不提供退出，移除/转让的实际目标限制与删除两步确认保留。SpaceDetail读取/模块toggle块及Lifecycle open/confirm函数与HEAD逐段相同；原重读角色/RPC/清理/刷新链路保持。仅局部增强危险弹窗初始焦点、Tab/Escape及忙碌保护。App改动只为me背景、mySpaces默认false展示参数和My入口加载/失败样式；选择、refreshSpaces、changeTab、managedSpaceReady、lifecycleSettled及BottomNavigation函数均相同。
+- 测试先RED后GREEN，新增12项覆盖真实提交/草稿/重复/刷新ID/IME/名称校验/权限/两步删除/键盘及复制轮换。直接12/12、Space UI26/26、相关91/91、全量895/895 PASS，失败/跳过/取消0；npm run build PASS（1719模块，保留既有>500kB警告），git diff --check PASS。日志 `/private/tmp/slice11-{direct-final,ui-final,related,full,build}.log`。核心数据层、hooks、SQL/RPC/RLS、Push、日期引擎、依赖、MemberSheet及其它已验收模块未修改；原CSS前缀完全保持。
+- 最新实际React与构建CSS离线入口 `http://127.0.0.1:5176/slice11/index.html`，25场景。hooks/数据/设备IO使用内存fixture，envFile=false、CSP connect-src none；通知只验证入口，不提供内部UI验收。离线构建临时导出原私有SpaceListPending验证加载/失败组件，源文件不新增导出。原5176服务复用，5175不改。预览隐藏桌面根滚动条以对应手机CSS视口；普通截图保持375×844原尺寸，不缩放390图，不把全页拼接产生的360px图片当375证据。
+- 六真实CSS宽度320/360/375/390/768/1024：页面/状态84项+局部表单/危险确认18项，102/102 PASS；六宽度×320px短视口12/12 PASS。无横向溢出，热区≥44×44、输入16px；表单固定操作区和正文滚动适配。已生成My/总览/创建/加入/Owner/Member/Personal/两步危险确认/模块异常与忙碌等375px截图。只模拟短视口，不宣称真实软键盘或非零Safe Area验收。
+- 浏览器验证四个模块开关回读、Member无switch但可轮换邀请码、失败保留原状态、RPC成功后刷新重试、错误表单保留文字、两步删除与Escape/焦点恢复、Focus2px、空间读取失败重试；console warn/error为空。原生dirty window.confirm在内嵌浏览器驱动时出现Input.dispatchKeyEvent超时、getJsDialog未暴露确认，文字保留；接受/拒绝分支有自动测试，**不将该原生确认的完整浏览器交互记为PASS**，列入最终集成验收清单。
+- 最终范围复审只涉及授权9文件；无数据库、RLS/RPC、Push、Realtime、依赖或其他模块业务变更。用户已确认整体视觉，记录 `Slice 11 = LOCAL PASS / VISUAL ACCEPTED`；该视觉结论不覆盖原生dirty确认完整E2E，也不覆盖真实账号/双账号、Push、手机软键盘、PWA、Realtime或Production。11个UI v2 Slice均完成本地阶段，整体仍待集成验收，未合并或发布。Production仍为v0.1.20。
+
 ## 2026-10-12 — Slice 10 最终审查与本地 Git Closeout — LOCAL PASS / VISUAL ACCEPTED
 
 - 用户批准低频重试后等待30秒，审批恢复，复用已有5176服务和已生成真实React预览。未改组件、CSS、测试或业务文件；source-manifest六项源码哈希与当前文件一致。原审批429记录保留，以下验证替代此前“新增视觉验证未完成”状态。
