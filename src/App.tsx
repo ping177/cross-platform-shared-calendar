@@ -1494,7 +1494,7 @@ function EventCard({ variant, spaceDotClasses = {}, occurrence, members, sourceS
         {occurrence.occurrence_ends_at && !occurrence.all_day && <span className="mt-ui-1 block text-ui-label text-ui-muted">{formatTime(occurrence.occurrence_ends_at, false)}</span>}
       </span>
       <span className="ui-calendar-event-content min-w-0 py-ui-2">
-        <span className="flex min-w-0 items-start gap-ui-2"><span className="min-w-0 flex-1 break-words text-ui-list font-ui-semibold text-ui-text line-clamp-2">{occurrence.title}</span><ChevronRight size={16} className="mt-ui-1 shrink-0 text-ui-muted" aria-hidden="true" /></span>
+        <span className="flex min-w-0 items-start gap-ui-2"><span className="min-w-0 flex-1 break-words text-ui-list font-ui-semibold text-ui-text line-clamp-2">{occurrence.title}</span>{variant === 'month' && <ChevronRight size={16} className="mt-ui-1 shrink-0 text-ui-muted" aria-hidden="true" />}</span>
         {occurrence.description && <span className="mt-ui-1 block break-words text-ui-meta text-ui-muted line-clamp-2">{occurrence.description}</span>}
         {crossesDate && <span className="mt-ui-1 block break-words text-ui-label text-ui-muted">跨日期 · {formatDay(new Date(occurrence.occurrence_starts_at))} — {formatDay(new Date(occurrence.occurrence_ends_at!))}</span>}
         <span className="mt-ui-1 flex flex-wrap gap-x-ui-2 text-ui-label text-ui-muted">

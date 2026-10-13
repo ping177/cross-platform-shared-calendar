@@ -261,8 +261,10 @@ test('v2 day/week retain exact event and Important Date click identities, all-da
     const dateButton = expand(tree).find(el => el.type === 'button' && el.props['data-important-date-id']); dateButton.props.onClick(); assert.equal(clicks.at(-1), important);
     const html = renderToStaticMarkup(React.createElement(CalendarViews, { ...common, viewMode: 'today' }));
     for (const content of ['全天','跨日期','本人姓名','保留原描述','纪念日','我的空间','共享空间 · 旅行']) assert.ok(html.includes(content), content);
+    assert.doesNotMatch(html, /lucide-chevron-right/);
     const week = renderToStaticMarkup(React.createElement(CalendarViews, { ...common, viewMode: 'week' }));
     assert.equal((week.match(/data-calendar-day=/g) ?? []).length, 7); assert.doesNotMatch(week, /grid-cols-7/);
+    assert.doesNotMatch(week, /lucide-chevron-right/);
     assert.equal((week.match(/class="ui-week-date/g) ?? []).length, 7);
     assert.equal((week.match(/class="ui-week-content min-w-0"/g) ?? []).length, 7);
     assert.match(week, /ui-week-sunday/);
