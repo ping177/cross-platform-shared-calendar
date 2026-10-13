@@ -12,6 +12,8 @@ v0.1.20
 
 ## Current status
 
+UI v2 Module Hub Refinement = LOCAL PASS / VISUAL ACCEPTED：用户在本地确认顶部四项概览视觉通过；本次最终复审仅四授权文件，真实数据/业务与下方导航保持。重跑36/36、918/918、build/diff-check PASS，既有42/42响应式/截图证据源码指纹一致。11个Slice、Round1/2及本次优化均已完成本地视觉验收，UI v2视觉开发阶段已完成；部分真实桌面检查已由用户进行，完整业务E2E、真机/PWA/Push/Realtime与Production验收仍Pending。仅本地Git收口，未push/deploy/merge；整体集成、合并和发布未完成，Production仍v0.1.20。
+
 UI v2 Integration Round 2 = LOCAL PASS / VISUAL ACCEPTED。用户明确确认日程、任务、重要日三个共享表单视觉满意，最终范围/业务复审通过；本轮直接相关64/64、全量918/918、build/diff-check PASS，既有六真实CSS视口144/144、短视口30/30及13张375px截图源码指纹匹配。三个共享表单视觉整合完成；按本轮最终确认，11个Slice及Round1/2均完成本地视觉验收，计划中的UI v2视觉开发阶段结束。仅授权12文件本地Git收口，未push/deploy/merge。UI v2整体集成验收、合并和发布仍Pending，Production保持v0.1.20。环境对齐Gate、真实账号/双账号E2E、原生dirty confirm、真机软键盘/IME/Safe Area、iOS/Android PWA、Push/Realtime及Production验收均Pending；P2字重审美、Space Color System、多人Shared Space/回顾与跨Space投影等Deferred不自动实施。
 
 UI v2 Slices 1–11均完成本地阶段；Slice11 = LOCAL PASS / VISUAL ACCEPTED。我的名称行内编辑、空间分组及创建/加入、成员/邀请码/模块开关与原生命周期流程本地完成。直接12/12、Space UI26/26、相关91/91、全量895/895、build/diff-check、六视口102/102和短视口12/12通过。已获用户视觉确认并完成本地Git closeout。原生dirty确认接受/拒绝完整E2E仍待人工验收；真实账号/双账号、Push、手机软键盘、PWA、Realtime及Production验收也待最终集成阶段。UI v2整体尚未完成集成验收、合并或发布；正式Production仍为v0.1.20。
@@ -29,6 +31,8 @@ UI v2 Slice6 = LOCAL PASS / VISUAL PASS：用户已认可四张居中概览卡�
 v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3为LOCAL PASS / VISUAL PASS；Slice4为LOCAL PASS / VISUAL PROVISIONALLY ACCEPTED。Slice5月视图本地验证与离线视觉验收通过：两条短标题/准确+N、六色圆点与日期浮层，261/261相关测试、build/diff-check、28组四宽度离线检查PASS；用户确认普通月、密集月、空月及浮层满意。已授权本地commit；不代表真实账号、真机、installed PWA或Production验收。Space Color System继续Deferred；真实账号/真机/installed PWA/Production未验收。正式版本仍v0.1.20。
 
 ## Latest completed
+
+2026-10-13 — 功能中心视觉优化最终审查与授权本地Git Closeout：LOCAL PASS / VISUAL ACCEPTED；36/36、918/918、build/diff-check和证据指纹PASS，详见DEVLOG。
 
 2026-10-13 — Integration Round 2最终审查与授权本地Git Closeout：LOCAL PASS / VISUAL ACCEPTED；用户确认三表单视觉满意，64/64、918/918、build/diff-check及证据指纹PASS。11个Slice与Round1/2本地视觉阶段完成，计划视觉开发结束；整体集成/发布仍Pending，下一步等待另行授权环境对齐Gate。详见DEVLOG。
 
@@ -364,7 +368,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-等待用户另行授权UI v2前后端环境对齐Gate；先只读核验当前前端实际backend目标、schema/RPC/Edge能力与feature-version兼容，再决定真实账号/双账号及设备/PWA验收安排。Codex不操作已登录真实会话；本轮只本地Git收口，不自动开始Gate、认证验收、合并、push或部署。P2、Space Color System、多人Shared Space/回顾、跨Space投影及其他Deferred保持。
+等待用户另行授权安全合并准备的只读审查：核对目标分支差异、潜在冲突、发布范围与前后端兼容证据，并明确完整业务E2E及设备/Push/Realtime/Production验收安排。用户可在新版工作区npm run dev（固定5175）后亲自完成真实桌面验收，Codex不操作已登录会话。不自动merge/push/Vercel部署；Production保持v0.1.20，P2、Space Color System与其他Deferred保持。
 
 ## Blockers
 

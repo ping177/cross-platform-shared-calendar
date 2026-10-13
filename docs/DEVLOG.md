@@ -1,5 +1,21 @@
 # Development Log
 
+## 2026-10-13 — 功能中心视觉优化最终审查与本地 Git Closeout — LOCAL PASS / VISUAL ACCEPTED
+
+- 用户已在本地确认新版功能中心顶部四项概览视觉通过，授权最终复审、治理更新及单个本地提交。Preflight：design/ui-v2，HEAD efdb86d20537f2938c1c8214b482517313afb160，恰好4 modified、staged empty；精确范围为ModuleHub.tsx、styles.css、DEVLOG、PROJECT_STATE。本轮未继续修改已认可UI。
+- 完整diff/业务复审PASS：ModuleHub相对提交基线仅三处展示类名变化；统一暖白圆角细边框、2×2十字分隔、图标/标题/数据左对齐和减少留白符合已批准布局。四项统计、Space/权限/日期、加载/失败/刷新与回调逐字保持，下方四入口及概览区域以外CSS保持；无功能、依赖、数据层或环境配置变更。
+- 本次重跑直接相关36/36、全量TS+JS918/918 PASS（失败/取消/跳过0）；npm run build、git diff --check PASS。既有>500kB bundle警告保持（JS812.33kB）；日志为/private/tmp/hub-closeout-{direct,full,build}.log。复用七状态六真实CSS视口42/42及375px/1024px截图，源码SHA256核验一致，不重生成。
+- 正式结论：**UI v2 Module Hub Refinement = LOCAL PASS / VISUAL ACCEPTED**。11个Slice、Round1/2及本次功能中心优化均已完成本地视觉验收，UI v2视觉开发阶段已完成。部分真实桌面检查已由用户进行，但完整业务E2E仍未完成；真机、PWA、Push、Realtime与Production验收仍Pending。整体集成、合并和发布仍Pending，Production保持v0.1.20，不标记RELEASED；Deferred不自动实施。
+- 本地提交仅显式暂存四授权文件，核对cached清单、diff-check与完整staged diff；不含.env.local、截图、预览或构建产物。未主动读取/输出/修改环境值；仅核验忽略/未跟踪元数据，正常构建使用Vite既有环境加载。旧worktree原28 modified +1 untracked、29项既有变更文件SHA256及8661项项目文件/符号链接基线保持。未push/deploy/merge/amend/force，不自动启动下一阶段。
+
+## 2026-10-13 — 功能中心顶部概览局部视觉优化 — LOCAL TECHNICAL PASS / VISUAL ACCEPTANCE PENDING
+
+- 用户批准统一暖白圆角细边框容器、2×2网格、十字浅色分隔与左对齐；仅调整ModuleHubContent展示类名和局部CSS，移除独立卡片边框/居中及固定空白行，改为内容自适应和7rem最小区域高度。图标沿用灰绿/暖棕，无图标底框；下方导航列表逐字保持。
+- 四项真实统计、Space资格/范围、加载/失败/刷新、回顾空态、重要日名称/日期及所有回调保持；无假数据进入产品、无查询/RPC/依赖/环境配置修改。既有名称两行截断、辅助信息单行截断及完整title提示保持。
+- 直接相关36/36、全量TS+JS918/918 PASS；npm run build、git diff --check PASS。保留既有>500kB bundle提示（JS812.33kB），不扩大范围处理。
+- 最新React源码SSR离线fixtures七状态（normal/long/empty/loading/error/partial/eligibility-error）×320/360/375/390/768/1024真实CSS宽度42/42 PASS：左对齐、2×2、圆角细边框、十字分隔及无横向溢出；生成normal/long/empty三张375px及normal1024px截图与源码指纹。预览：http://127.0.0.1:5176/hub-overview/index.html。envFile=false、connect-src none；仅视觉证据，不代替真实账号/设备验收。
+- 本次局部调整等待用户视觉确认；不覆盖已完成Round2验收、不宣称UI v2整体发布。Production仍v0.1.20；Deferred保持。未commit/push/deploy/merge，旧worktree与本机.env.local保持。
+
 ## 2026-10-13 — UI v2 Integration Round 2 最终审查与本地 Git Closeout — LOCAL PASS / VISUAL ACCEPTED
 
 - 用户明确确认日程、任务、重要日三个共享表单视觉满意，授权最终审查、验证、治理记录及一个本地commit。Preflight：design/ui-v2，HEAD `d6f4c04d8c8193b11896beee372b7406adae4a25`，11 modified +1 untracked，index空；精确12授权文件。已认可UI和测试本轮均未再修改，只更新DEVLOG/PROJECT_STATE验收与下一步记录。

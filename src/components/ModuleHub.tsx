@@ -123,14 +123,14 @@ export function ModuleHubContent({ loading, tasksAvailable, tasksError, reviewAv
     <h1 className="text-ui-page-title">功能中心</h1>
     <p className="mt-ui-1 text-ui-meta text-ui-muted">快速进入各项功能</p>
     <section aria-label="功能概览" aria-live="polite" className="mt-ui-6">
-      <dl className="ui-module-overview grid grid-cols-2 gap-ui-3">
+      <dl className="ui-module-overview grid grid-cols-2 overflow-hidden rounded-ui-group bg-ui-surface">
         {rows.map(({ key, Icon, available, error, color }) => {
           const state = loading ? 'loading' : error ? 'error' : !available ? 'unavailable' : overview[key].state;
           const value = state === 'ready' ? text[key]![0] : state === 'loading' ? '加载中…' : state === 'error' ? '读取失败' : '当前不可用';
           const detail = state === 'ready' ? text[key]![1] : state === 'unavailable' ? '暂无已开启的空间' : '';
           const name = { tasks: '未完成任务', review: '最近回顾', lists: '清单总数', importantDates: '下个重要日' }[key];
-          return <div key={key} className="ui-module-metric min-w-0 rounded-ui-control bg-ui-surface text-center" data-overview-metric={key} data-overview-state={state}>
-            <dt className="flex items-center justify-center gap-ui-2 text-ui-meta font-ui-medium"><Icon size={18} className={'shrink-0 ' + color} aria-hidden="true" />{name}</dt>
+          return <div key={key} className="ui-module-metric min-w-0 text-left" data-overview-metric={key} data-overview-state={state}>
+            <dt className="flex items-center gap-ui-2 text-ui-meta font-ui-medium"><Icon size={18} className={'shrink-0 ' + color} aria-hidden="true" />{name}</dt>
             <dd className="ui-module-metric-content mt-ui-2 w-full min-w-0"><span className="ui-module-metric-value font-ui-semibold" title={value}>{value}</span>{detail && <span className="block truncate text-ui-label text-ui-muted" title={detail}>{detail}</span>}</dd>
           </div>;
         })}

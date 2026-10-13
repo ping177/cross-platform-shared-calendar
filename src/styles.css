@@ -500,26 +500,31 @@ body:has(.ui-calendar-shell) {
   border-top: var(--ui-border-width) solid rgb(var(--ui-color-border));
 }
 .ui-module-entry:focus-visible { outline-offset: calc(-1 * var(--ui-focus-width)); }
-.ui-module-overview { min-width: 0; }
+.ui-module-overview {
+  min-width: 0;
+  border: var(--ui-border-width) solid rgb(var(--ui-color-border) / 0.6);
+}
 .ui-module-hub .ui-module-entry { min-height: 5.25rem; }
 
 .ui-module-hub { padding-top: calc(var(--ui-space-6) + env(safe-area-inset-top, 0px)); }
 
-/* Compact, equal-height overview cards; module entry rows stay unchanged. */
+/* One compact overview group; module entry rows stay unchanged. */
 .ui-module-metric {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 8.5rem;
-  padding: var(--ui-space-3);
-  border: var(--ui-border-width) solid rgb(var(--ui-color-border) / 0.6);
+  align-items: flex-start;
+  min-height: 7rem;
+  padding: var(--ui-space-3) var(--ui-space-4);
+}
+.ui-module-metric:nth-child(even) {
+  border-left: var(--ui-border-width) solid rgb(var(--ui-color-border) / 0.6);
+}
+.ui-module-metric:nth-child(n + 3) {
+  border-top: var(--ui-border-width) solid rgb(var(--ui-color-border) / 0.6);
 }
 .ui-module-metric-content {
   display: grid;
-  grid-template-rows: 3rem 1.125rem;
   row-gap: var(--ui-space-1);
-  align-items: center;
 }
 .ui-module-metric-value {
   display: -webkit-box;
