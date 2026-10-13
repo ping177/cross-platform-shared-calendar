@@ -55,7 +55,9 @@ test('module Sheet has one header submit and close, preserves all actual fields 
     assert.doesNotMatch(html, /添加到日历|备注|生日类型|每月|每周|每天/);
   }
   const original = renderToStaticMarkup(React.createElement(ImportantDateSheet, { date, memberSpaces: [shared], eligibleSpaces: [shared], canAct: true, onSubmit: async () => undefined, onCancel: noop, onDelete: noop }));
-  assert.doesNotMatch(original, /ui-important-sheet-header/); assert.match(original, /保存修改/); assert.match(original, /取消/);
+  assert.match(original, /ui-important-sheet-header/); assert.match(original, /aria-label="关闭重要日表单"/);
+  assert.equal((original.match(/type="submit"/g) ?? []).length, 1);
+  assert.doesNotMatch(original, /ui-important-emoji-field|保存修改/);
 }));
 
 async function sheetRuntime(run: (env: any) => Promise<void>) {

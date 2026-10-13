@@ -92,7 +92,7 @@ test('disabled Personal default remains selected in the TaskSheet and cannot be 
     assert.match(markup, /value="personal" disabled="" selected=""/);
     assert.match(markup, /value="shared-a"/);
     assert.match(markup, /未启用任务，请主动选择其他已启用任务的空间/);
-    assert.match(markup, /type="submit" disabled=""/);
+    assert.match(markup, /type="submit" form="task-sheet-form" disabled=""/);
   } finally { await vite.close(); }
 });
 
@@ -106,7 +106,7 @@ test('an open TaskSheet keeps its draft but blocks save when module eligibility 
       onClose: () => undefined, onSaved: async () => undefined,
     }));
     assert.match(markup, /value="draft"/);
-    assert.match(markup, /type="submit" disabled=""/);
+    assert.match(markup, /type="submit" form="task-sheet-form" disabled=""/);
     assert.match(markup, /disabled="" aria-label="删除任务"/);
   } finally { await vite.close(); }
 });

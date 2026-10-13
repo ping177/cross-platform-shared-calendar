@@ -34,7 +34,7 @@ test('Home has direct section create actions and no old title action or type cho
   } finally { await vite.close(); }
 });
 
-test('global create mode shows a target selector and named save action; local create keeps its short action', async () => {
+test('global create keeps target selection with one header save; local create keeps its Space constraint', async () => {
   const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
   try {
     const { EventSheet } = await vite.ssrLoadModule('/src/App.tsx');
@@ -44,14 +44,16 @@ test('global create mode shows a target selector and named save action; local cr
     const globalEvent = renderToStaticMarkup(React.createElement(EventSheet, { ...eventProps, createTarget: control }));
     const localEvent = renderToStaticMarkup(React.createElement(EventSheet, eventProps));
     assert.match(globalEvent, /保存到.*<select[^>]*id="event-create-target"/);
-    assert.match(globalEvent, /保存到「我的空间」/);
+    assert.match(globalEvent, /type="submit" form="event-sheet-form"[^>]*>保存<\/button>/);
+    assert.match(globalEvent, /<option value="personal"[^>]*selected="">我的空间/);
     assert.doesNotMatch(localEvent, /event-create-target|确认保存/);
     assert.match(localEvent, />保存<\/button>/);
     const taskProps = { task: null, spaceId: personal.id, spaceKind: personal.kind, userId: 'me', members, onClose: noop, onSaved: async () => undefined };
     const globalTask = renderToStaticMarkup(React.createElement(TaskSheet, { ...taskProps, createTarget: control, validateGlobalCreate: async () => undefined }));
     const localTask = renderToStaticMarkup(React.createElement(TaskSheet, taskProps));
     assert.match(globalTask, /保存到.*<select[^>]*id="task-create-target"/);
-    assert.match(globalTask, /保存到「我的空间」/);
+    assert.match(globalTask, /type="submit" form="task-sheet-form"[^>]*>保存<\/button>/);
+    assert.match(globalTask, /<option value="personal"[^>]*selected="">我的空间/);
     assert.doesNotMatch(localTask, /task-create-target|确认保存/);
     assert.match(localTask, />保存<\/button>/);
     const loadingShared = { ...control, selectedId: shared.id, state: 'loading' as const };

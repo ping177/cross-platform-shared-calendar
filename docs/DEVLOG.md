@@ -1,5 +1,33 @@
 # Development Log
 
+## 2026-10-13 — UI v2 Integration Round 2 最终审查与本地 Git Closeout — LOCAL PASS / VISUAL ACCEPTED
+
+- 用户明确确认日程、任务、重要日三个共享表单视觉满意，授权最终审查、验证、治理记录及一个本地commit。Preflight：design/ui-v2，HEAD `d6f4c04d8c8193b11896beee372b7406adae4a25`，11 modified +1 untracked，index空；精确12授权文件。已认可UI和测试本轮均未再修改，只更新DEVLOG/PROJECT_STATE验收与下一步记录。
+- 最终五轴Scope/业务复审PASS：Event唯一顶栏保存、只读无保存/删除、确认与occurrence chooser状态正确；Task默认/模块共享视觉但moduleView原dirty/moduleMutation范围保持；Important Date网格仍仅模块启用、默认名称焦点保持。保存/删除函数、payload、状态/effects、App的EventSheet外部及全部调用入口逐字比对保持；Emoji JSX/DeleteDialog与所有原CSS（含Round1字体、对比度、44px热区、Focus与顶部Safe Area）不变。无新增Props/字段/业务框架、依赖或后端/权限/日期/提醒/Push/Realtime修改。
+- 本次重新运行直接相关7文件 **64/64 PASS**（含shared-form新增13项、任务/重要日UI、原模态键盘、全局创建及aggregate资格断言）；完整 `node --test tests/*.test.ts tests/*.test.js` **918/918 PASS**，失败/取消/跳过0；`npm run build` PASS（1719模块，JS812.29kB，既有>500kB提示仅记录），`git diff --check` PASS。日志 `/private/tmp/round2-closeout-{direct,full,build}.log`。先前Event76/Task90/ImportantDate304定向结果保持历史证据，不冒充本次独立重跑计数。
+- 复用已有六真实CSS宽度144/144、短视口30/30、29项离线交互记录及13张原生375px截图；source-manifest六项源码SHA256及新构建CSS与证据匹配PASS，不重生成截图。预览仍 `http://127.0.0.1:5176/round2/index.html`；真实React+内存fixtures、envFile=false/connect-src none，不代替真实账号、设备/PWA/Push/Realtime验收。
+- 正式结论：**UI v2 Integration Round 2 = LOCAL PASS / VISUAL ACCEPTED**。三个共享表单视觉整合完成；按用户本轮最终确认，11个Slice及Round1/2均完成本地视觉验收，计划中的UI v2视觉开发阶段结束。保留此前Slice4/9的provisional历史及P2字重审美/Space Color System等Deferred，不由本轮验收解释为已实施。
+- UI v2整体集成验收、合并和发布仍Pending，不标记CLOSED/RELEASED；Production仍v0.1.20。下一步仅等待用户另行授权前后端环境对齐Gate：核验实际前端backend目标、schema/RPC/Edge能力及feature-version兼容，Gate通过后再安排由用户执行真实账号/双账号E2E、原生dirty confirm、真机软键盘/IME/Safe Area、iOS/Android PWA、Push/Realtime与Production验收。本轮不启动Gate或上述验收，不push/deploy/merge。
+- 本地Git收口仅显式暂存12授权文件，核对cached清单/check及完整diff；不包含预览、截图、dist或其他产物，不amend/force。旧worktree保持28 modified +1 untracked及8661项项目文件/符号链接（排除.git），29个既有变更文件内容SHA256在本轮前后核验；不reset/stash/clean，不修改其他项目文件或主动读取/打印.env与密钥值。既有同步提交、通用IME与焦点兜底缺口继续如实保留。
+
+以下为实施时的历史验证与Pending记录，由上方最终验收结论接续。
+
+## 2026-10-13 — UI v2 Integration Round 2 共享表单视觉整合 — LOCAL TECHNICAL PASS / VISUAL ACCEPTANCE PENDING
+
+- 用户批准实施前只读核对A–J及最小方案后实施。Preflight：隔离worktree `/Users/wp/Projects/跨系统共享日历-ui-v2`，design/ui-v2，HEAD `d6f4c04d8c8193b11896beee372b7406adae4a25`，clean/index空。旧worktree保留28 modified +1 untracked及8661项项目文件/符号链接（排除.git）；未修改旧worktree。已核对批准包SHA/CRC及第14、15张设计板；仅P1-2，不增加展示Props，不改变任何入口moduleView。
+- 按Event → Task → Important Date三片先RED后GREEN实施。EventSheet左关闭/中标题/右唯一保存，原form新增稳定关联ID，正文独立滚动；普通底部保存移除，普通删除确认、重复occurrence范围选择、只读字段及原Space约束保留。只读无保存/删除，忙碌/确认/chooser禁用顶栏保存；原关闭、键盘和焦点处理保持，无新增dirty机制。
+- TaskSheet默认入口复用已验收模块顶栏/正文/Space标签及原task-sheet-form ID，移除旧底部保存。moduleView仍仅按原条件控制dirty确认与moduleMutation同步保护；默认关闭仍直接调用onClose，模块继续编辑/放弃更改保留。原目标Space确认、负责人清空、截止日期清除/date-only、无截止提醒null、历史提醒/时区和onSaved→关闭顺序保持。
+- ImportantDateSheet默认入口复用模块顶栏/正文；原form与submit复用，移除旧底部取消/保存。内部dialog hook仅增加初始化焦点选择：默认名称输入、模块关闭按钮；没有新增公共Props。Emoji JSX逐字相同，网格仍只在moduleView启用；默认手动输入、自定义Emoji、清空null、内容/长度校验、Space与年度/一次性年月日及提醒保持。ImportantDateDeleteDialog组件源码逐字相同，删除取消不恢复草稿的既有流程不变。
+- 精确12文件：4展示源码/局部样式；新增shared-form-ui-v2及5个直接相关既有测试（task-reminder-ui、important-dates-ui-v2、important-dates-ui、global-create-ui、aggregate-tasks-ui）；DEVLOG/PROJECT_STATE。额外既有测试仅调整被迁移的底部文案/容器或submit的form属性顺序预期，原资格/禁用/业务断言保留。没有入口组件/hooks/数据层/模型/数据库/RLS/RPC/日期引擎/Push/Realtime/backend/依赖/其他页面修改。
+- 保存/删除函数、payload、状态与业务effects逐段对照实施前源码PASS；App的EventSheet之外、全部调用入口、Important Date Emoji JSX和DeleteDialog逐字一致。既有CSS完整前缀保持，Round1字体继承、危险错误色、44px关闭/星期/重试、局部键盘保护及日历/任务顶部Safe Area规则未回退。只新增EventSheet命名空间样式，没有全局字体/下拉箭头/导航/Sheet框架改造。
+- 定向Event **76/76**、Task **90/90**、Important Date **304/304** PASS；共享新测试 **13/13**，包含原生required声明/form关联、模式保护差异、Space/确认/只读/忙碌、失败草稿与重试和默认/模块初始焦点。最终完整 `node --test tests/*.test.ts tests/*.test.js` **918/918 PASS**（Round1 905 + 新13，失败/取消/跳过0）；`npm run build` PASS（1719模块，JS812.29kB，既有>500kB提示不处理）；`git diff --check` PASS。日志 `/private/tmp/round2-{event-green,task-green,important-green,shared,full,build}.log`。
+- 最新真实React离线入口 `http://127.0.0.1:5176/round2/index.html`，24个入口/状态样例；业务I/O内存fixture、envFile=false、CSP connect-src none，无账号或后台连接。复用既有5176离线服务，正式开发端口5175不变。source-manifest六项源码哈希及candidate.css与本轮构建匹配，预览/截图不进入仓库。
+- 浏览器六真实CSS宽度320/360/375/390/768/1024 ×24场景 **144/144 PASS**：无横向/字段溢出，按钮≥44×44，输入16px、保存14px/20px/600、原form关联。六宽度×420px短视口长Space/每周展开/Emoji展开共 **30/30 PASS**，正文可滚动而顶栏不动、操作可达。13张原生375px JPEG（12张375×844、1张375×420），已查看关键表单/只读/Emoji截图；未缩放其他宽度冒充375px。
+- 浏览器29项交互记录：Event/Task空标题与Important Date缺月日的原生必填阻止提交、目标空间确认/取消保留输入、occurrence选择与Escape、Task默认直接关闭/模块dirty继续编辑、截止清除、默认重要日名称焦点/Emoji范围、模块选择/清空/局部Escape、三表单失败草稿/忙碌禁用及双向Tab/2px solid Focus通过；控制台warn/error为空。三表单暖白背景，保存文字对比度6.19:1、输入边界3.47:1。记录于预览目录layout/short/interaction/contrast/screenshot JSON；只验证离线fixture交互，不代表真实权限/设备/业务交付。
+- 既有保护缺口未修复或扩大：Event及默认Task同步mutation防护不是全覆盖；三表单无完整通用IME Escape/Enter保护，模块Emoji仅有原局部防护；原dirty差异及触发器卸载后的焦点兜底局限继续保留。真实系统IME、手机软键盘/Safe Area/PWA、真实账号/双账号、Push/Realtime/Production与其他原生dirty确认完整E2E仍Pending。未来认证验收须另轮执行环境对齐gate，本轮不启动。
+- 最终五轴代码/权限边界复审无新增范围内阻塞；Git精确11 modified +1 untracked、index空，branch/HEAD保持。旧worktreepostflight仍28 modified +1 untracked及8661项文件/符号链接，29个原modified/untracked文件SHA256与本轮preflight一致；未声称重新校验全部8661项内容哈希。临时预览/截图仅在/private/tmp，其他项目文件未改。未主动读取或打印.env/密钥值；测试/build使用项目既有配置。
+- 正式状态仅为 **Round 2 = LOCAL TECHNICAL PASS / VISUAL ACCEPTANCE PENDING**。等待用户视觉与交互验收；UI v2整体尚未集成验收、合并或发布，Production仍v0.1.20；P2、Space Color System、多人Shared Space/回顾、跨Space投影等Deferred保持。没有commit/push/deploy/merge，不提前Git closeout。
+
 ## 2026-10-13 — UI v2 Integration Round 1 最终审查与本地 Git Closeout — LOCAL PASS / VISUAL ACCEPTED
 
 - 用户明确确认Round 1视觉验收通过，并授权本轮单一本地Git closeout。Preflight：design/ui-v2，HEAD `7f25aa45b255a06ab9fc055dcc65a74d38749038`，12 modified、0 untracked、index空；授权范围精确为App/styles、ListsOverviewPage/ListDetailPage/ListSheets、TasksArea/RecurrenceControls/GlobalCreateControls、aggregate-calendar-ui/current-modules-interaction两个测试及DEVLOG/PROJECT_STATE。本轮只更新治理验收结论，未调整已认可的源码或视觉。

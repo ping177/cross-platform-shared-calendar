@@ -179,20 +179,15 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
   }
 
   return (
-    <div className={moduleView ? "ui-task-sheet fixed inset-0 z-20 flex items-end bg-ink/35 font-ui text-ui-text md:items-center md:px-4 md:py-6" : "fixed inset-0 z-20 flex items-end bg-ink/35 md:items-center md:px-4 md:py-6"}>
+    <div className="ui-task-sheet fixed inset-0 z-20 flex items-end bg-ink/35 font-ui text-ui-text md:items-center md:px-4 md:py-6">
       <section ref={dialog} className="mx-auto max-h-[92dvh] w-full max-w-md overflow-y-auto overscroll-contain rounded-t-2xl bg-white p-5 shadow-soft safe-bottom md:rounded-lg" role="dialog" aria-modal="true" aria-labelledby="task-sheet-title">
-        {moduleView ? <header className="ui-task-sheet-header">
-          <button className="ui-focus" type="button" onClick={requestClose} disabled={busy} aria-label="关闭任务表单"><X size={20} aria-hidden="true" /></button>
+        <header className="ui-task-sheet-header">
+          <button className="ui-focus" type="button" onClick={moduleView ? requestClose : onClose} disabled={busy} aria-label="关闭任务表单"><X size={20} aria-hidden="true" /></button>
           <h2 id="task-sheet-title" ref={createHeading} tabIndex={-1} className="text-ui-bar">{task ? '编辑任务' : '新建任务'}</h2>
           <button className="ui-focus text-ui-accent text-ui-meta font-ui-semibold" type="submit" form="task-sheet-form" disabled={busy || !actionsAllowed || !createReady || confirmingDelete || confirmingDiscard || Boolean(confirmingCreateTargetId)}>{busy ? '保存中' : '保存'}</button>
-        </header> : <div className="flex items-center justify-between gap-3">
-          <h2 id="task-sheet-title" ref={createHeading} tabIndex={-1} className="text-xl font-bold">{task ? '编辑任务' : '新建任务'}</h2>
-          <button className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-mist disabled:opacity-60" type="button" onClick={onClose} disabled={busy} aria-label="关闭任务表单">
-            <X size={20} />
-          </button>
-        </div>}
-        <div className={moduleView ? 'ui-task-sheet-body' : undefined}>
-        {sourceSpaceLabel && (moduleView ? <div className="ui-task-space-label"><span className="text-ui-label text-ui-muted">保存到</span><p className="mt-ui-1 break-words text-ui-body">{sourceSpaceLabel}</p></div> : <p className="mt-2 text-sm font-semibold text-teal">所属空间：{sourceSpaceLabel}</p>)}
+        </header>
+        <div className="ui-task-sheet-body">
+        {sourceSpaceLabel && <div className="ui-task-space-label"><span className="text-ui-label text-ui-muted">保存到</span><p className="mt-ui-1 break-words text-ui-body">{sourceSpaceLabel}</p></div>}
         {!task && createTarget && <div className="mt-4"><CreateTargetSelector control={{ ...createTarget, onSelect: (id) => { setAssignment(resetTaskAssignmentForTarget); setConfirmingCreateTargetId(null); createTarget.onSelect(id); } }} kind="task" disabled={busy} /></div>}
 
         {error && <p className="mt-4 rounded-lg bg-coral/10 px-4 py-3 text-sm text-coral" role="alert">{error}</p>}
@@ -222,10 +217,10 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
             </div>
           </div>
         ) : (
-          <form id={moduleView ? 'task-sheet-form' : undefined} className="mt-5 space-y-4" onSubmit={save}>
+          <form id="task-sheet-form" className="mt-5 space-y-4" onSubmit={save}>
             <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-ink/70">{moduleView ? '标题 *' : '标题'}</span>
-              <input className="w-full rounded-lg border border-ink/15 px-4 py-3 outline-none focus:border-teal" value={title} onChange={(event) => setTitle(event.target.value)} placeholder={moduleView ? '输入任务标题' : undefined} required />
+              <span className="mb-2 block text-sm font-semibold text-ink/70">标题 *</span>
+              <input className="w-full rounded-lg border border-ink/15 px-4 py-3 outline-none focus:border-teal" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="输入任务标题" required />
             </label>
             {spaceKind === 'shared' && (!createTarget || createReady) && <label className="block">
               <span className="mb-2 block text-sm font-semibold text-ink/70">分配给</span>
@@ -257,7 +252,6 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
                   <Trash2 size={20} />
                 </button>
               )}
-              {!moduleView && <button className="min-h-12 flex-1 break-words rounded-lg bg-teal px-2 py-2 font-semibold text-white disabled:opacity-60" type="submit" disabled={busy || !actionsAllowed || !createReady}>{busy ? '保存中' : createTarget && !task ? `保存到「${createTarget.spaces.find((item) => item.id === createTarget.selectedId)?.name ?? ''}」` : '保存'}</button>}
             </div>
           </form>
         )}

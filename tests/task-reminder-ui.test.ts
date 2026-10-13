@@ -109,8 +109,8 @@ test('module create retains target confirmation and qualification, including syn
  confirm();confirm();await new Promise(r=>setTimeout(r,0));
  assert.equal(checks,1);assert.equal(e.writes.length,1);assert.equal(e.writes[0][1].space_id,'s');assert.equal(e.saved(),1);assert.equal(e.closed(),1);
 }));
-test('home/default Sheet mode keeps its original close behavior and bottom submit',()=>ui(async e=>{
- e.title('首页输入');assert.equal(elements(e.render()).find(el=>el.type==='form').props.id,undefined);
+test('home/default Sheet mode shares the header form but keeps its original direct close behavior',()=>ui(async e=>{
+ e.title('首页输入');assert.equal(elements(e.render()).find(el=>el.type==='form').props.id,'task-sheet-form');
  assert.equal(elements(e.render()).filter(el=>el.type==='button'&&el.props.type==='submit').length,1);
  button(e,'关闭任务表单').props.onClick();assert.equal(e.closed(),1);assert.doesNotMatch(text(e.render()),/放弃未保存/);
 }));

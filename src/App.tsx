@@ -1830,14 +1830,16 @@ export function EventSheet({
   }
 
   return (
-    <div ref={dialog} className="fixed inset-0 z-20 flex items-end bg-ink/35 md:items-center md:px-4 md:py-6">
-      <div role="dialog" aria-modal="true" aria-labelledby="event-sheet-title" className="mx-auto max-h-[92dvh] w-full max-w-3xl overflow-y-auto overscroll-contain rounded-t-2xl bg-white p-5 shadow-soft safe-bottom md:max-h-[calc(100dvh-3rem)] md:rounded-lg">
-        <div className="flex items-center justify-between">
-          <h2 id="event-sheet-title" ref={createHeading} tabIndex={-1} className="text-xl font-bold">{event ? canManage ? editUi.isRecurringOccurrenceEdit ? '编辑此重复事件' : '编辑日程' : '日程详情' : '新建日程'}</h2>
-          <button className="ui-focus grid h-11 w-11 place-items-center rounded-lg bg-mist disabled:opacity-60" type="button" onClick={onClose} disabled={busy} aria-label="关闭">
-            <X size={20} />
+    <div ref={dialog} className="ui-event-sheet fixed inset-0 z-20 flex items-end bg-ink/35 font-ui text-ui-text md:items-center md:px-4 md:py-6">
+      <div role="dialog" aria-modal="true" aria-labelledby="event-sheet-title" className="ui-event-sheet-panel mx-auto max-h-[92dvh] w-full max-w-3xl md:max-h-[calc(100dvh-3rem)]">
+        <header className="ui-event-sheet-header">
+          <button className="ui-focus grid h-11 w-11 place-items-center disabled:opacity-60" type="button" onClick={onClose} disabled={busy} aria-label="关闭">
+            <X size={20} aria-hidden="true" />
           </button>
-        </div>
+          <h2 id="event-sheet-title" ref={createHeading} tabIndex={-1} className="min-w-0 text-ui-bar">{event ? canManage ? editUi.isRecurringOccurrenceEdit ? '编辑此重复事件' : '编辑日程' : '日程详情' : '新建日程'}</h2>
+          {canManage && <button className="ui-focus text-ui-accent text-ui-meta font-ui-semibold disabled:opacity-60" type="submit" form="event-sheet-form" disabled={busy || !createReady || confirmingDelete || Boolean(confirmingCreateTargetId) || Boolean(pendingOccurrenceAction)}>{busy ? '保存中' : '保存'}</button>}
+        </header>
+        <div className="ui-event-sheet-body">
 
         {error && <div className="mt-4"><Notice tone="error" message={error} /></div>}
         {event && showSourceSpace && <p className="mt-3 text-sm font-semibold text-teal">所属空间：{sourceSpaceLabel ?? spaceLabel(space)}</p>}
@@ -1874,7 +1876,7 @@ export function EventSheet({
             </div>
           </div>
         ) : (
-          <form className="mt-5 space-y-4" onSubmit={save}>
+          <form id="event-sheet-form" className="mt-5 space-y-4" onSubmit={save}>
           {editUi.isRecurringOccurrenceEdit ? (
             <p className="rounded-lg bg-teal/10 px-4 py-3 text-sm font-semibold text-teal">
               修改或删除时，可选择仅影响当前事件，或影响当前及未来事件。
@@ -1953,12 +1955,10 @@ export function EventSheet({
                 {editUi.isRecurringOccurrenceEdit ? '删除此事件' : <Trash2 size={20} />}
               </button>
             )}
-            <button className="h-12 flex-1 rounded-lg bg-teal font-semibold text-white disabled:opacity-60" type="submit" disabled={busy || !createReady}>
-              {busy ? '保存中' : createTarget && !event ? `保存到「${createTarget.spaces.find((item) => item.id === createTarget.selectedId)?.name ?? space.name}」` : '保存'}
-            </button>
           </div>
           </form>
         )}
+        </div>
       </div>
       {pendingOccurrenceAction && (
         <OccurrenceActionChooser

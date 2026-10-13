@@ -725,3 +725,50 @@ body:has(.ui-calendar-shell) {
 /* UI v2 integration Round 1: only audited header insets and weekday touch targets. */
 .ui-calendar-header, .ui-tasks-header { padding-top: calc(var(--ui-space-4) + env(safe-area-inset-top, 0px)); }
 .ui-event-weekdays { grid-template-columns: repeat(auto-fit, minmax(var(--ui-touch-target), 1fr)); }
+
+/* UI v2 integration Round 2: EventSheet presentation only. */
+.ui-event-sheet-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--ui-radius-sheet) var(--ui-radius-sheet) 0 0;
+  background: rgb(var(--ui-color-page));
+  box-shadow: var(--ui-shadow-sheet);
+}
+.ui-event-sheet-header {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr) 4rem;
+  align-items: center;
+  flex: none;
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-3) var(--ui-space-4);
+  border-bottom: 1px solid rgb(var(--ui-color-border));
+}
+.ui-event-sheet-header h2 { text-align: center; }
+.ui-event-sheet-header button { min-height: var(--ui-touch-target); min-width: var(--ui-touch-target); border-radius: var(--ui-radius-control); }
+.ui-event-sheet-body {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  overflow-wrap: anywhere;
+  padding: var(--ui-space-4) var(--ui-space-4) max(var(--ui-space-5), env(safe-area-inset-bottom, 0px));
+}
+.ui-event-sheet-body :is(input:not([type="checkbox"]), select, textarea) {
+  min-height: var(--ui-touch-target);
+  max-width: 100%;
+  border-color: rgb(var(--ui-color-control));
+  border-radius: var(--ui-radius-control);
+  background-color: rgb(var(--ui-color-surface));
+  color: rgb(var(--ui-color-text));
+  font-size: var(--ui-text-body);
+  line-height: var(--ui-leading-body);
+}
+.ui-event-sheet-body :is(input, select, textarea, button):focus-visible { outline: var(--ui-focus-width) solid rgb(var(--ui-color-focus)); outline-offset: -2px; }
+.ui-event-sheet-body button { min-height: var(--ui-touch-target); min-width: var(--ui-touch-target); }
+.ui-event-sheet-body label > span { color: rgb(var(--ui-color-muted)); }
+.ui-event-sheet-body .bg-teal { background-color: rgb(var(--ui-color-accent)); }
+.ui-event-sheet-body .text-teal { color: rgb(var(--ui-color-accent)); }
+.ui-event-sheet-body .bg-mist { background-color: rgb(var(--ui-color-soft)); }
+.ui-event-sheet-body .text-coral { color: rgb(var(--ui-color-danger)); }
+.ui-event-sheet-body .bg-coral { background-color: rgb(var(--ui-color-danger)); }
+@media (min-width: 768px) { .ui-event-sheet-panel { border-radius: var(--ui-radius-sheet); } }

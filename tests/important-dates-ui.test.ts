@@ -32,7 +32,7 @@ test('Important Date edit keeps Space immutable and allows Shared non-creator ac
     onSubmit: async () => undefined, onCancel: noop, onDelete: noop }));
   assert.doesNotMatch(markup, /<select[^>]*id="important-date-space"/);
   assert.match(markup, /删除重要日/);
-  assert.match(markup, /保存修改/);
+  assert.match(markup, /type="submit"[^>]*>保存<\/button>/);
   assert.match(markup, /<option value="" selected="">不提醒<\/option>/);
 }));
 test('Important Date delete dialog names exact object/Space and requires explicit confirmation', () => ui((_p, m) => {
@@ -87,7 +87,7 @@ test('Important Date reminder selector reuses all-day presets, preserves edits a
     for (const label of ['不提醒', '当天08:00', '前一天20:00']) assert.ok(selector.includes(label));
     assert.equal((selector.match(/<option /g) ?? []).length, 3);
     assert.match(selector, /min-h-11 w-full min-w-0/);
-    assert.match(markup, /max-h-\[90dvh\].*overflow-y-auto/);
+    assert.match(markup, /ui-important-sheet.*ui-important-sheet-body/);
     assert.match(markup, /flex flex-wrap justify-end/);
     assert.doesNotMatch(markup, /个人提醒|设备时区|全局时区/);
   }
