@@ -300,6 +300,36 @@ select:focus-visible {
 body:has(.ui-calendar-shell) {
   min-width: 0;
 }
+/* Shared header geometry for all three calendar modes. */
+.ui-calendar-header > div:first-child { min-height: 2.75rem; }
+.ui-calendar-subtitle { min-height: 2.5rem; }
+
+/* Week dates form one quiet vertical list; day/month content stays unchanged. */
+.ui-week-day {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr);
+  column-gap: var(--ui-space-3);
+  padding-block: var(--ui-space-4);
+  min-height: 6rem;
+}
+.ui-week-day + .ui-week-day { border-top: var(--ui-border-width) solid rgb(var(--ui-color-border) / 0.6); }
+.ui-week-date { align-self: start; text-align: center; color: rgb(var(--ui-color-muted)); }
+.ui-week-number { display: block; font-size: var(--ui-text-page); line-height: var(--ui-leading-page); font-weight: var(--ui-weight-semibold); }
+.ui-week-today { color: rgb(var(--ui-color-accent)); }
+.ui-week-sunday { color: rgb(var(--ui-color-danger)); }
+.ui-week-content { border-left: var(--ui-border-width) solid rgb(var(--ui-color-border) / 0.45); padding-left: var(--ui-space-3); }
+.ui-week-content .ui-calendar-event { grid-template-columns: 2.75rem minmax(0, 1fr); column-gap: var(--ui-space-3); }
+.ui-week-content .ui-calendar-time { font-size: var(--ui-text-meta); line-height: var(--ui-leading-meta); }
+.ui-week-content .ui-calendar-time::after { left: calc(100% + var(--ui-space-1)); width: var(--ui-space-1); height: var(--ui-space-1); }
+.ui-week-content .ui-calendar-event-content { overflow-wrap: anywhere; }
+/* Only the first visible week item shares the date column's top edge. */
+.ui-week-content > div:first-child > .ui-calendar-event:first-child .ui-calendar-time,
+.ui-week-content > div:first-child > .ui-calendar-event:first-child .ui-calendar-event-content,
+.ui-week-content > div:first-child > .ui-calendar-important-date:first-child > button { padding-top: 0; }
+.ui-week-content > div:first-child > .ui-calendar-event:first-child .ui-calendar-time::after,
+.ui-week-content > div:first-child > .ui-calendar-important-date:first-child::before { top: var(--ui-space-2); }
+
+
 .ui-calendar-controls {
   grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
 }

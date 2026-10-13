@@ -1068,21 +1068,27 @@ export function CurrentSpaceApp({ swipeClickGuard, session, spaces, allSpaces, i
     }
   }
 
+  const weekStart = startOfWeek(selectedDate);
+  const weekEnd = addDays(weekStart, 6);
+  const crossesYear = weekStart.getFullYear() !== weekEnd.getFullYear();
+  const dateSubtitle = viewMode === 'today' ? `${selectedDate.getFullYear()}年${formatDay(selectedDate)}`
+    : viewMode === 'week' ? `${weekStart.getFullYear()}年${weekStart.getMonth() + 1}月${weekStart.getDate()}日 — ${crossesYear ? `${weekEnd.getFullYear()}年` : ''}${weekEnd.getMonth() + 1}月${weekEnd.getDate()}日`
+    : formatMonth(selectedDate);
+
   return (
     <main {...calendarSwipe} className="ui-calendar-shell min-h-screen bg-ui-page text-ink">
       <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col">
         <header className="ui-calendar-header sticky top-0 z-10 border-b border-ui-border bg-ui-page/95 px-ui-4 pb-ui-3 pt-ui-4 font-ui text-ui-text backdrop-blur">
           <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <h1 className="text-ui-page-title">日历</h1>
-              <p className="mt-ui-1 break-words text-ui-meta text-ui-muted">{viewMode === 'today' ? `${selectedDate.getFullYear()}年${formatDay(selectedDate)}` : viewMode === 'week' ? `${formatDay(startOfWeek(selectedDate))} — ${formatDay(addDays(startOfWeek(selectedDate), 6))}` : formatMonth(selectedDate)}</p>
-            </div>
+            <h1 className="text-ui-page-title">日历</h1>
             <div className="flex items-center gap-2">
               {calendarFilter !== 'all' && <button className="ui-focus grid h-11 w-11 shrink-0 place-items-center text-ui-accent disabled:text-ui-muted" type="button" disabled={calendarStatus !== 'success'} onClick={() => void openNewEvent()} aria-label="新建日程">
                 <Plus size={18} aria-hidden="true" />
               </button>}
             </div>
           </div>
+
+          <p className="ui-calendar-subtitle mt-ui-1 break-words text-ui-meta text-ui-muted">{dateSubtitle}</p>
 
           <div className="ui-calendar-controls mt-ui-3 grid w-full items-center gap-ui-2">
             <div className="min-w-0">
@@ -1227,7 +1233,7 @@ export function CalendarViews({
   const spaceDotClasses = calendarSpaceDotClasses(Object.keys(spacesById));
 
   return (
-    <div className={`font-ui text-ui-text ${viewMode === 'week' ? 'ui-calendar-week space-y-ui-4' : 'ui-calendar-day'}`}>
+    <div className={`font-ui text-ui-text ${viewMode === 'week' ? 'ui-calendar-week' : 'ui-calendar-day'}`}>
       {days.map((day) => {
         const dayOccurrences = sortOccurrences(expansion.occurrences.filter((occurrence) => occurrenceFallsOnDay(occurrence, day)));
         return (
@@ -1433,21 +1439,30 @@ export function calendarSpaceDotClasses(spaceIds: string[]): Record<string, stri
 function DaySection({ variant, spaceDotClasses = {}, day, importantDatesComplete, importantDates, onOpenImportantDate, occurrences, membersBySpaceId, spacesById, showSpaceLabel, userId, onEdit }: { variant?: 'today' | 'week' | 'month'; spaceDotClasses?: Record<string, string>; day: Date; importantDatesComplete: boolean; importantDates: ImportantDateOccurrence[]; onOpenImportantDate: (item: ImportantDateOccurrence) => void; occurrences: CalendarEventPresentation[]; membersBySpaceId: Record<string, SpaceMember[]>; spacesById: Record<string, CurrentSpace>; showSpaceLabel: boolean; userId: string; onEdit: (occurrence: CalendarEventPresentation) => void }) {
   if (variant) {
     const empty = occurrences.length === 0 && importantDates.length === 0;
-    return <section data-calendar-day={toDateInputValue(day).slice(0, 10)}>
-      <div className={variant === 'week' && empty ? 'flex min-h-ui-touch items-center justify-between gap-ui-3 border-b border-ui-border' : 'mb-ui-2'}>
-        {variant !== 'month' && <h2 className={variant === 'today' ? 'sr-only' : 'text-ui-bar'}>{formatDay(day)}</h2>}
+    const content = <>
+      {(variant !== 'week' || empty) && <div className="mb-ui-2">
+        {variant !== 'month' && variant !== 'week' && <h2 className={variant === 'today' ? 'sr-only' : 'text-ui-bar'}>{formatDay(day)}</h2>}
         {empty && <p className={variant === 'week' ? 'text-ui-meta text-ui-muted' : 'py-ui-6 text-ui-meta text-ui-muted'}>{importantDatesComplete ? '暂无日程' : '重要日尚未完整确认'}</p>}
-      </div>
+      </div>}
       {!empty && <>
-        <div className="space-y-ui-2">
+        {(variant !== 'week' || importantDates.length > 0) && <div className="space-y-ui-2">
           {importantDates.map((item) => <div key={importantDateOccurrenceKey(item)} className={`ui-calendar-important-date mb-ui-2 ${spaceDotClasses[item.spaceId] ?? 'ui-calendar-space-green'}`}>
             <CalendarImportantDateCard item={item} space={spacesById[item.spaceId]} showSpaceLabel={showSpaceLabel} onOpen={onOpenImportantDate} />
           </div>)}
-        </div>
+        </div>}
         <div className={variant === 'today' ? 'ui-calendar-timeline space-y-ui-3' : 'space-y-ui-2'}>
           {occurrences.map((occurrence) => <EventCard key={occurrence.occurrence_id} variant={variant} spaceDotClasses={spaceDotClasses} occurrence={occurrence} members={membersBySpaceId[occurrence.source_event.space_id] ?? []} sourceSpace={spacesById[occurrence.source_event.space_id]} showSpaceLabel={showSpaceLabel} userId={userId} onEdit={onEdit} />)}
         </div>
       </>}
+    </>;
+    return <section data-calendar-day={toDateInputValue(day).slice(0, 10)} className={variant === 'week' ? 'ui-week-day' : undefined} aria-label={variant === 'week' ? formatDay(day) : undefined}>
+      {variant === 'week' && <h2 className={`ui-week-date ${isSameDay(day, new Date()) ? 'ui-week-today' : day.getDay() === 0 ? 'ui-week-sunday' : ''}`}>
+        <time dateTime={toDateInputValue(day).slice(0, 10)} aria-current={isSameDay(day, new Date()) ? 'date' : undefined}>
+          <span className="ui-week-number">{day.getDate()}</span>
+          <span className="block text-ui-label font-ui-medium">{['周日', '周一', '周二', '周三', '周四', '周五', '周六'][day.getDay()]}</span>
+        </time>
+      </h2>}
+      {variant === 'week' ? <div className="ui-week-content min-w-0">{content}</div> : content}
     </section>;
   }
   return (

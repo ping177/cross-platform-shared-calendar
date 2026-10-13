@@ -1,5 +1,23 @@
 # Development Log
 
+## 2026-10-13 — Calendar UI Patch 最终审查与本地 Commit — LOCAL PASS / VISUAL ACCEPTED
+
+- 用户在真实浏览器完成最终视觉验收并明确满意，确认 **Calendar UI Patch = LOCAL PASS / VISUAL ACCEPTED**，授权本次五文件最终复审及单个本地提交；本轮未再修改已认可UI。Preflight：main / 58f52f6488e8525c9358b320325df60b470d56d9，五modified、index empty；归档design/ui-redesign / 84f0a087保持，辅助design/ui-v2 worktree clean且HEAD不变。
+- 最终实现：日/周/月共用头部结构与Typography；周副标题“起始年份+月日 — 结束月日”，无星期，跨月保留月份、跨年补结束年份。周正文七日左右两栏、日期/星期顶部对齐，区域随真实内容自然伸展；移除周视图空分组占位，并仅取消首条Event/重要日内容顶部padding，使左右首行协调，后续事件行距保持。此前垂直居中方案已被用户本次确认的顶部对齐替代。
+- 完整diff复审PASS：仅Calendar局部展示/CSS及直接测试，原日程/重要日排序与归属、Space/权限/创建编辑删除回调、导航/手势/日期引擎不变；日/月正文markup与提交基线逐字一致。无全局Token、其他模块、Supabase/环境/依赖/数据库修改，无假数据进入产品或旧UI恢复。农历不实现，未来位置暂定每日右上角小号浅灰右对齐。
+- 复用最终源码验证证据：直接121/121、全量919/919、build PASS；六宽度×三视图×十状态180/180 PASS，含普通/全天Event、重要日首条、多条和空态顶部对齐、无溢出及头部几何一致。源码SHA256与最新预览manifest匹配；375px多事件/普通/全天首条截图保持。日志/private/tmp/calendar-top-{focused,full,build}.log；本轮不重跑已通过且源码不变的测试/build，重新执行diff/cached diff检查。既有bundle大小警告非阻塞，不扩大范围处理。
+- UI v2基线已完成Production发布与用户验收；本Calendar Patch仅本地技术/视觉验收与Git提交，尚未Push/Production验收，不混淆两者。本地commit仅显式暂存App、styles、aggregate-calendar-ui测试、DEVLOG、PROJECT_STATE五文件；不含预览/截图/构建产物或环境凭证，未读取环境值。未push/deploy/merge，不清理worktree或删除分支；正式发布等待独立授权。
+
+## 2026-10-13 — Production 后日历局部视觉 Patch — LOCAL TECHNICAL PASS / VISUAL ACCEPTANCE PENDING
+
+- 用户确认UI v2已在Production发布并完成人工验收；本次是其后的局部Patch，不撤销此前验收、不启动最终治理收口或worktree清理。Preflight：main / 58f52f6488e8525c9358b320325df60b470d56d9，clean/index empty；归档design/ui-redesign / 84f0a0873af5164863a13f64e3f8a33633965510保持。
+- 复用原有单一Calendar头部，不新增框架：标题、日期副标题、Space/日周月控件、周期导航与分隔线共用同一结构/CSS；副标题统一保留两行高度。日期使用既有格式器及startOfWeek/addDays，仅跨年周范围补充两端年份，周期导航与选择回调不变。
+- 周正文为周一到周日纵向七区，左侧日期数字/星期、右侧原事件与重要日内容，轻竖线/区域分隔线，无七张大卡片或彩色背景。今天灰绿、周日暖红，原事件/重要日组件、排序/日期归属/Space标记/辅助信息与点击身份保持；空态保留完整性条件，不把未知重要日写成空。
+- 新增头部真实日期/跨年回归，扩充周列表结构和点击原对象断言；相关Calendar/ImportantDate/gesture/dropdown121/121、完整TS+JS919/919 PASS；npm run build、git diff --check PASS。已有>500kB bundle警告保持。日志/private/tmp/calendar-patch-{focused,full,build}.log；新测试先验证旧头部失败再实施。测试期间发现React mock不提供命名Fragment，已采用既有JSX Fragment表达式，最终回归无该警告。
+- 最新React SSR离线预览三视图×九状态×320/360/375/390/768/1024真实CSS宽度162/162 PASS；各宽度三视图标题/副标题/控件/导航几何一致、周七日/今天样式与无横向溢出通过。日/月正文markup与HEAD逐字一致。生成日/周/月375px、周长内容375px、周1024px五张截图，源码SHA256记录。预览http://127.0.0.1:5176/calendar-patch/index.html，envFile=false/connect-src none，fixtures仅视觉验证，不代表真实账号/手机验收。
+- 农历本轮未实现，无依赖/查询/存储/占位。未来方向仅记录：每个日期区域右上角、小号浅灰、右对齐，不放日期数字下方、不预占整行高度。
+- 本次等待用户本地视觉确认；源码仅App局部展示与局部CSS，未改Supabase/业务层/手势/PWA/环境或其他模块，未commit/push/deploy/merge；辅助worktree与归档分支未改。
+
 ## 2026-10-13 — 功能中心视觉优化最终审查与本地 Git Closeout — LOCAL PASS / VISUAL ACCEPTED
 
 - 用户已在本地确认新版功能中心顶部四项概览视觉通过，授权最终复审、治理更新及单个本地提交。Preflight：design/ui-v2，HEAD efdb86d20537f2938c1c8214b482517313afb160，恰好4 modified、staged empty；精确范围为ModuleHub.tsx、styles.css、DEVLOG、PROJECT_STATE。本轮未继续修改已认可UI。

@@ -263,6 +263,12 @@ test('v2 day/week retain exact event and Important Date click identities, all-da
     for (const content of ['全天','跨日期','本人姓名','保留原描述','纪念日','我的空间','共享空间 · 旅行']) assert.ok(html.includes(content), content);
     const week = renderToStaticMarkup(React.createElement(CalendarViews, { ...common, viewMode: 'week' }));
     assert.equal((week.match(/data-calendar-day=/g) ?? []).length, 7); assert.doesNotMatch(week, /grid-cols-7/);
+    assert.equal((week.match(/class="ui-week-date/g) ?? []).length, 7);
+    assert.equal((week.match(/class="ui-week-content min-w-0"/g) ?? []).length, 7);
+    assert.match(week, /ui-week-sunday/);
+    const weekButtons = expand(CalendarViews({ ...common, viewMode: 'week' })).filter(el => el.props['data-calendar-event-id']);
+    for (const button of weekButtons) { button.props.onClick(); assert.equal(clicks.at(-1), events.find(e => e.occurrence_id === button.props['data-calendar-event-id'])); }
+    assert.doesNotMatch(week, /农历|初一|初二/);
     const month = renderToStaticMarkup(React.createElement(CalendarViews, { ...common, viewMode: 'month' }));
     assert.match(month, /grid-cols-7/); assert.match(month, /data-month-item/); assert.doesNotMatch(month, /border-l-4|role="dialog"/); assert.doesNotMatch(month, /data-calendar-event-id|ui-calendar-timeline|ui-calendar-week/);
   } finally { await vite.close(); }
@@ -343,5 +349,30 @@ test('month grid shows two real titles and an exact remainder across four, five 
     assert.deepEqual(Object.fromEntries(dots), palette);
     const html = renderToStaticMarkup(React.createElement(CalendarViews, { ...props, selectedDate: new Date(2026, 11, 31) }));
     assert.match(html, /data-month-date="2027-01-03"/);
+  } finally { await vite.close(); }
+});
+
+
+test('calendar patch uses one stable header and real cross-year week subtitles', async () => {
+  const vite = await createServer({ configFile: false, envFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
+  try {
+    const { CurrentSpaceApp } = await vite.ssrLoadModule('/src/App.tsx');
+    const noop = () => undefined;
+    const render = (mode: string, date: Date) => renderToStaticMarkup(React.createElement(CurrentSpaceApp, { session: { user: { id: 'user-a' } }, spaces: [shared], allSpaces: [personal, shared], calendarFilter: 'all', selectedDate: date, viewMode: mode, onSelectedDateChange: noop, onViewModeChange: noop, onCalendarFilterChange: noop }));
+    const day = render('today', new Date(2026, 9, 13));
+    const week = render('week', new Date(2026, 9, 13));
+    const month = render('month', new Date(2026, 9, 13));
+    for (const html of [day, week, month]) {
+      assert.match(html, /<h1 class="text-ui-page-title">日历<\/h1>/);
+      assert.match(html, /ui-calendar-subtitle/);
+      assert.ok(html.indexOf('ui-calendar-subtitle') < html.indexOf('ui-calendar-controls'));
+    }
+    assert.match(day, /2026年10月13日周二/);
+    assert.match(week, /2026年10月12日 — 10月18日/);
+    assert.match(month, /2026年10月/);
+    assert.match(render('week', new Date(2026, 9, 31)), /2026年10月26日 — 11月1日/);
+    const subtitle = week.match(/ui-calendar-subtitle[^>]*>([^<]+)/)?.[1];
+    assert.equal(subtitle, '2026年10月12日 — 10月18日');
+    assert.match(render('week', new Date(2026, 11, 31)), /2026年12月28日 — 2027年1月3日/);
   } finally { await vite.close(); }
 });
