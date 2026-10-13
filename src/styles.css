@@ -574,7 +574,7 @@ body:has(.ui-calendar-shell) {
 .ui-list-detail .bg-mist, .ui-list-overlay .bg-mist { background: rgb(var(--ui-color-page)); }
 .ui-lists-page .rounded-lg, .ui-list-detail .rounded-lg, .ui-list-overlay .rounded-lg { border-radius: var(--ui-radius-control); }
 .ui-lists-page select, .ui-list-overlay :is(input, select), .ui-list-detail input:not([type="checkbox"]) {
-  min-height: var(--ui-touch-target); font-size: 1rem; border: var(--ui-border-width) solid rgb(var(--ui-color-border)); box-shadow: none;
+  min-height: var(--ui-touch-target); font-size: 1rem; border: var(--ui-border-width) solid rgb(var(--ui-color-control)); box-shadow: none;
 }
 .ui-lists-rows, .ui-list-panel { border: var(--ui-border-width) solid rgb(var(--ui-color-border)); border-radius: var(--ui-radius-group); background: rgb(var(--ui-color-surface)); }
 .ui-lists-row { padding: var(--ui-space-3); min-width: 0; }
@@ -721,3 +721,7 @@ body:has(.ui-calendar-shell) {
 .ui-my-page button, .ui-spaces-page button, .ui-space-confirm button { min-height: var(--ui-touch-target); min-width: var(--ui-touch-target); }
 .ui-my-page :is(button,input):focus-visible, .ui-spaces-page :is(button,input):focus-visible, .ui-space-confirm :is(button,input):focus-visible { outline: var(--ui-focus-width) solid rgb(var(--ui-color-focus)); outline-offset: var(--ui-focus-offset); }
 @media (min-width:768px) { .ui-space-confirm-overlay { align-items: center; } }
+
+/* UI v2 integration Round 1: only audited header insets and weekday touch targets. */
+.ui-calendar-header, .ui-tasks-header { padding-top: calc(var(--ui-space-4) + env(safe-area-inset-top, 0px)); }
+.ui-event-weekdays { grid-template-columns: repeat(auto-fit, minmax(var(--ui-touch-target), 1fr)); }

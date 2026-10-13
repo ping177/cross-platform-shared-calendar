@@ -4,6 +4,51 @@ import { homeCreateTarget } from '../lib/global-create';
 import { canSaveListInSpace, normalizeListName } from '../lib/lists';
 import type { CurrentSpace, List } from '../types';
 
+// Local keyboard handling for the existing List modals; submission stays with each caller.
+export function useListModalKeyboard(open: boolean, busy: boolean, onCancel: () => void, initialFocus = 'input', submitLock?: { current: boolean }) {
+  const container = useRef<HTMLDivElement>(null);
+  const composing = useRef(false);
+  const current = useRef({ busy, onCancel });
+  current.current = { busy, onCancel };
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.activeElement as HTMLElement | null;
+    const root = container.current;
+    const initial = root?.querySelector<HTMLElement>(initialFocus);
+    if (initial && !(initial as HTMLButtonElement).disabled) initial.focus();
+    else (root?.querySelector<HTMLElement>('button:not(:disabled)') ?? root)?.focus();
+    const keydown = (event: KeyboardEvent) => {
+      if (event.isComposing || event.keyCode === 229 || composing.current) return;
+      if (event.key === 'Escape') {
+        event.preventDefault(); event.stopPropagation();
+        if (!current.current.busy && !submitLock?.current) current.current.onCancel();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      const controls = Array.from(root?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled)') ?? []);
+      const first = controls[0], last = controls[controls.length - 1];
+      if (!controls.length) { event.preventDefault(); root?.focus(); }
+      else if (!root?.contains(document.activeElement)) { event.preventDefault(); first.focus(); }
+      else if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    document.addEventListener('keydown', keydown);
+    return () => {
+      document.removeEventListener('keydown', keydown);
+      if (previous?.isConnected && !(previous as HTMLButtonElement).disabled) previous.focus();
+      else {
+        const fallback = document.querySelector<HTMLElement>('main h1') ?? document.querySelector<HTMLElement>('main');
+        if (fallback) {
+          const tabIndex = fallback.getAttribute('tabindex');
+          fallback.setAttribute('tabindex', '-1'); fallback.focus();
+          if (tabIndex === null) fallback.removeAttribute('tabindex'); else fallback.setAttribute('tabindex', tabIndex);
+        }
+      }
+    };
+  }, [open]);
+  return { container, composing };
+}
+
 type EditorProps = {
   mode: 'create' | 'rename';
   list?: List;
@@ -25,16 +70,15 @@ export function ListEditorSheet({ mode, list, memberSpaces, eligibleSpaces, user
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const submitting = useRef(false);
-  const nameInput = useRef<HTMLInputElement>(null);
+  const keyboard = useListModalKeyboard(true, busy, onCancel, 'input', submitting);
   const target = memberSpaces.find((space) => space.id === targetId);
   const targetEnabled = canSaveListInSpace(targetId, eligibleSpaces);
   const canSubmit = eligibilityStatus === 'ready' && targetEnabled;
 
-  useEffect(() => { nameInput.current?.focus(); }, []);
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
-    if (submitting.current || !canSubmit || !target) return;
+    if (keyboard.composing.current || submitting.current || !canSubmit || !target) return;
     let normalized: string;
     try { normalized = normalizeListName(name); }
     catch (validationError) {
@@ -51,8 +95,8 @@ export function ListEditorSheet({ mode, list, memberSpaces, eligibleSpaces, user
     } finally { submitting.current = false; setBusy(false); }
   }
 
-  return <div className="ui-list-overlay" role="dialog" aria-modal="true" aria-labelledby="list-editor-title">
-    <form className="ui-list-sheet" onSubmit={(event) => void submit(event)}>
+  return <div ref={keyboard.container} tabIndex={-1} onCompositionStartCapture={() => { keyboard.composing.current = true; }} onCompositionEndCapture={() => { keyboard.composing.current = false; }} className="ui-list-overlay font-ui" role="dialog" aria-modal="true" aria-labelledby="list-editor-title">
+    <form className="ui-list-sheet" onKeyDownCapture={(event) => { if (event.key === 'Enter' && (keyboard.composing.current || event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229)) event.preventDefault(); }} onSubmit={(event) => void submit(event)}>
       <header className="ui-list-sheet-header">
         <button className="ui-focus grid h-11 w-11 shrink-0 place-items-center rounded-ui-control text-ui-muted" type="button" aria-label="关闭清单表单" disabled={busy} onClick={onCancel}><X size={20} aria-hidden="true" /></button>
         <h2 id="list-editor-title" className="min-w-0 text-lg font-bold">{mode === 'create' ? '新建清单' : '清单改名'}</h2>
@@ -60,7 +104,7 @@ export function ListEditorSheet({ mode, list, memberSpaces, eligibleSpaces, user
       </header>
       <div className="ui-list-sheet-body">
         <label className="mt-4 block text-sm font-semibold" htmlFor="list-name">名称</label>
-        <input ref={nameInput} id="list-name" className="mt-2 min-h-11 w-full rounded-lg border border-ink/20 px-3" value={name} onChange={(event) => setName(event.target.value)} disabled={busy} required />
+        <input id="list-name" className="mt-2 min-h-11 w-full rounded-lg border border-ink/20 px-3" value={name} onChange={(event) => setName(event.target.value)} disabled={busy} required />
         {error && <p className="mt-3 text-sm text-coral" role="alert">{error}</p>}
         <label className="mt-4 block text-sm font-semibold" htmlFor="list-space">空间</label>
         {mode === 'create' ? <select id="list-space" className="mt-2 min-h-11 w-full min-w-0 rounded-lg border border-ink/20 bg-white px-3" value={targetId} disabled={busy} onChange={(event) => { setTargetId(event.target.value); setError(''); }}>
@@ -82,7 +126,8 @@ export function ListDeleteDialog({ list, space, step, busy, canConfirm = true, e
   eligibilityError?: string; onRetryEligibility?: () => void;
   onCancel: () => void; onConfirm: () => void;
 }) {
-  return <div className="ui-list-overlay ui-list-confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="list-delete-title">
+  const keyboard = useListModalKeyboard(true, busy, onCancel, '[data-list-confirm-cancel]');
+  return <div ref={keyboard.container} tabIndex={-1} className="ui-list-overlay ui-list-confirm-overlay font-ui" role="dialog" aria-modal="true" aria-labelledby="list-delete-title">
     <div className="ui-list-confirm mx-auto w-full max-w-md bg-white p-5 safe-bottom">
       <h2 id="list-delete-title" className="text-lg font-bold">{step === 1 ? '删除清单' : '再次确认删除清单'}</h2>
       <p className="mt-3 break-words text-sm leading-6">清单：<strong>{list.name}</strong><br />空间：<strong>{space.kind === 'personal' ? '我的空间' : space.name}</strong></p>
@@ -90,7 +135,7 @@ export function ListDeleteDialog({ list, space, step, busy, canConfirm = true, e
       {error && <p className="mt-3 text-sm text-coral" role="alert">{error}</p>}
       {eligibilityError && <p className="mt-3 text-sm text-coral" role="alert">{eligibilityError}<button className="ml-2 min-h-11 font-semibold text-teal" type="button" onClick={onRetryEligibility}>重新读取清单</button></p>}
       <div className="mt-5 flex justify-end gap-2">
-        <button className="min-h-11 rounded-lg bg-mist px-4 font-semibold" type="button" disabled={busy} onClick={onCancel}>取消</button>
+        <button data-list-confirm-cancel className="min-h-11 rounded-lg bg-mist px-4 font-semibold" type="button" disabled={busy} onClick={onCancel}>取消</button>
         <button className="min-h-11 rounded-lg bg-coral px-4 font-semibold text-white disabled:opacity-50" type="button" disabled={busy || !canConfirm} onClick={onConfirm}>{busy ? '删除中…' : step === 1 ? '继续确认' : '永久删除清单'}</button>
       </div>
     </div>

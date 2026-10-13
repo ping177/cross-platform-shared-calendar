@@ -12,6 +12,8 @@ v0.1.20
 
 ## Current status
 
+UI v2 Integration Round 1 = LOCAL PASS / VISUAL ACCEPTED。用户确认视觉通过；P1-1/3/4/5/6局部字体继承、对比度、44px热区、模态键盘与顶栏Safe Area修正完成。最终重跑键盘17/17、相关109/109、全量905/905、build/diff-check PASS，既有六视口72/72、短视口24/24及375px截图源码指纹匹配；授权12文件本地Git closeout。Round 2（P1-2共享表单视觉整合）尚未实施，P2、Space Color System等仍Deferred。真实账号/双账号、iOS/Android PWA、真机软键盘/Safe Area、原生dirty confirm完整E2E、Push/Realtime与Production仍Pending。UI v2整体未完成集成验收、合并或发布，Production仍v0.1.20；未push/deploy/merge，不自动启动环境对齐或Round 2。
+
 UI v2 Slices 1–11均完成本地阶段；Slice11 = LOCAL PASS / VISUAL ACCEPTED。我的名称行内编辑、空间分组及创建/加入、成员/邀请码/模块开关与原生命周期流程本地完成。直接12/12、Space UI26/26、相关91/91、全量895/895、build/diff-check、六视口102/102和短视口12/12通过。已获用户视觉确认并完成本地Git closeout。原生dirty确认接受/拒绝完整E2E仍待人工验收；真实账号/双账号、Push、手机软键盘、PWA、Realtime及Production验收也待最终集成阶段。UI v2整体尚未完成集成验收、合并或发布；正式Production仍为v0.1.20。
 
 UI v2 Slice10 = LOCAL PASS / VISUAL ACCEPTED：用户确认重要日模块与Emoji选择器整体视觉满意。最终相关376/376、全量883/883、build/diff-check PASS；六真实CSS视口24/24、短视口/滚动12/12、键盘/Escape/Focus及六张375px截图通过。范围精确7文件；真实账号、双账号、真机、PWA、Realtime与Production仍待UI v2最终集成验收；全局中文字体栈/字重检查Deferred。Production正式v0.1.20不变，UI v2整体未完成/未发布。已按授权完成单一本地commit，未push/deploy，不自动进入Slice11。
@@ -27,6 +29,8 @@ UI v2 Slice6 = LOCAL PASS / VISUAL PASS：用户已认可四张居中概览卡�
 v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3为LOCAL PASS / VISUAL PASS；Slice4为LOCAL PASS / VISUAL PROVISIONALLY ACCEPTED。Slice5月视图本地验证与离线视觉验收通过：两条短标题/准确+N、六色圆点与日期浮层，261/261相关测试、build/diff-check、28组四宽度离线检查PASS；用户确认普通月、密集月、空月及浮层满意。已授权本地commit；不代表真实账号、真机、installed PWA或Production验收。Space Color System继续Deferred；真实账号/真机/installed PWA/Production未验收。正式版本仍v0.1.20。
 
 ## Latest completed
+
+2026-10-13 — Integration Round 1最终审查与本地Git closeout：用户视觉确认，LOCAL PASS / VISUAL ACCEPTED；授权12文件，17/17、109/109、905/905及build/diff-check PASS，已有六视口72/72、短视口24/24与375px证据源码匹配。本地收口，不push/deploy/merge；Round 2未实施，真实业务/设备验收仍Pending，详见DEVLOG。
 
 2026-10-13 — Slice11最终审查与本地Git Closeout：用户确认视觉，记录 LOCAL PASS / VISUAL ACCEPTED；授权9文件，直接12/12、相关91/91、全量895/895、build/diff-check、六真实视口102/102及短视口12/12通过。本地commit完成。原生dirty确认完整E2E、真实账号/双账号、Push、手机软键盘、PWA、Realtime及Production仍待最终集成验收；UI v2 11个Slice均完成本地阶段，但整体尚未集成验收、合并或发布。详见DEVLOG。
 
@@ -350,11 +354,11 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Last verified
 
-2026-10-13（Slice11最终复核：直接12/12、Space UI26/26、相关91/91、全量895/895、build/diff-check PASS；六真实CSS宽度102/102、短视口12/12及375px截图。用户确认视觉；仅LOCAL PASS，原生dirty确认完整E2E和真实账号/设备/PWA/Realtime/Production未验收。）
+2026-10-13（Round 1：直接17/17、相关109/109、全量905/905、build/diff-check PASS；六真实CSS宽度72/72、短视口24/24与375px截图。用户视觉验收通过；真实账号/双账号、设备软键盘/Safe Area/PWA、Push/Realtime/Production及原生dirty确认完整E2E仍Pending。）
 
 ## Next Action
 
-UI v2 11个Slice的本地阶段已完成。下一步由用户安排最终集成验收：先执行AGENTS要求的前后端环境对齐gate，再验收真实账号/双账号、Push、手机软键盘、PWA、Realtime与Production；原生dirty确认的接受/拒绝路径也保持Pending。全局中文字体栈/字重、Slice9行内操作排版、多人Shared Space/多人回顾、Space Color System及其他既有Deferred继续保留。当前不自动开始全局视觉重构、合并或部署。
+等待用户另行启动已批准的Round 2（P1-2共享表单视觉整合）。Round 1已本地验证并获视觉验收，本轮不自动推进，不启动环境对齐、合并或部署。真实账号/双账号、iOS/Android PWA、软键盘/Safe Area、Push/Realtime/Production及原生dirty confirm完整E2E仍待最终集成验收；未来认证验收前另行执行AGENTS环境对齐gate。P2、Space Color System、多人Shared Space/多人回顾、跨Space投影及既有Deferred继续保留。
 
 ## Blockers
 
@@ -448,6 +452,8 @@ UI v2 11个Slice的本地阶段已完成。下一步由用户安排最终集成�
 - `v0.1.9 Shared Tasks` Slice 1/2/3 are CLOSED / PASS: backend applied/postflight verified, frontend deployed through Vercel, Desktop A/B Production acceptance and iPhone smoke passed. At the v0.1.13 closeout, Structured Review / Check-in and Shared Lists were future candidates; v0.1.14/14.1 subsequently closed, and Shared Lists was selected for v0.1.15. Its design is frozen and Slice 1 DB foundation is `CLOSED / PASS` after Production postflight.
 
 ## Handoff Prompt
+
+UI v2 Integration Round 1 = LOCAL PASS / VISUAL ACCEPTED。用户确认视觉通过；P1-1/3/4/5/6局部字体继承、对比度、44px热区、模态键盘与顶栏Safe Area修正完成。最终重跑键盘17/17、相关109/109、全量905/905、build/diff-check PASS，既有六视口72/72、短视口24/24及375px截图源码指纹匹配；授权12文件本地Git closeout。Round 2（P1-2共享表单视觉整合）尚未实施，P2、Space Color System等仍Deferred。真实账号/双账号、iOS/Android PWA、真机软键盘/Safe Area、原生dirty confirm完整E2E、Push/Realtime与Production仍Pending。UI v2整体未完成集成验收、合并或发布，Production仍v0.1.20；未push/deploy/merge，不自动启动环境对齐或Round 2。 旧worktree28 modified +1 untracked及8661项指纹保持。本轮只对授权12文件作单一本地Git closeout，提交状态以实时Git为准。以下Slice条目为历史。
 
 Slice11 My/Space UI已按用户批准方案完成本地实施与授权Git closeout，LOCAL PASS / VISUAL ACCEPTED；直接12/12、相关91/91、全量895/895、build/diff-check和响应式验证通过。原生dirty确认接受/拒绝完整E2E、真实账号/双账号、Push、手机软键盘、PWA、Realtime和Production仍待最终集成验收。UI v2 11个Slice均完成本地阶段，整体尚未完成集成验收、合并或发布；下一步先执行前后端环境对齐gate。旧worktree28 modified + 1 untracked及8661项指纹保持；正式v0.1.20不变。
 

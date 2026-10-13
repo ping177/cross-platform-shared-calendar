@@ -6,7 +6,7 @@ import { commitConfirmedDetailMutation, commitConfirmedItemReorder, deriveListDe
 import { createListItem, createListSection, deleteListItem, deleteListSection, editListItem, renameListSection, reorderListItems, setListItemCompleted, type ListDetailRead, type ListDetailTarget } from '../lib/lists-detail-data';
 import { supabase } from '../lib/supabase';
 import type { ListItem, ListSection } from '../types';
-import { ListDeleteDialog, ListEditorSheet } from './ListSheets';
+import { ListDeleteDialog, ListEditorSheet, useListModalKeyboard } from './ListSheets';
 import { useListDetail } from './useListDetail';
 
 type Ready = Extract<ListDetailRead, { status: 'ready' }>;
@@ -69,7 +69,7 @@ export function ItemRow({ item, editing, busy, disabled, drag, onToggle, onEdit,
       <button className="min-h-11 rounded-lg px-3 text-sm leading-5 font-semibold text-ui-accent" type="submit" disabled={disabled || busy || !editing.draft.trim()}>保存</button>
       <button className="min-h-11 rounded-lg px-3 text-sm leading-5 font-normal text-ui-muted" type="button" disabled={busy} onClick={onCancel}>取消</button>
       <button className="min-h-11 rounded-lg px-3 text-sm leading-5 font-normal text-ui-danger" type="button" disabled={disabled || busy} onClick={onDelete}>删除</button>
-    </form> : <button className={`ui-list-item-text min-w-0 text-left py-2.5 ${item.completed ? 'text-ink/50 line-through' : ''}`} id={`list-edit-${item.id}`} type="button" disabled={disabled || busy} onClick={onEdit} aria-label={`编辑 ${item.content}`}>{item.content}</button>}
+    </form> : <button className={`ui-list-item-text min-w-0 text-left py-2.5 ${item.completed ? 'text-ui-muted line-through' : ''}`} id={`list-edit-${item.id}`} type="button" disabled={disabled || busy} onClick={onEdit} aria-label={`编辑 ${item.content}`}>{item.content}</button>}
   </div>;
 }
 
@@ -350,7 +350,9 @@ export function ListDetailPage({ userId, target, onBack, onUnavailable, onLeaveG
     onInput={(input) => { if (input) inputRefs.current.set(key, input); else inputRefs.current.delete(key); }}
     onChange={(value) => setQuickDraft(key, value)} onSubmit={() => quickAdd(key, sectionId)} />;
 
-  return <main className="ui-list-detail mx-auto min-h-screen w-full max-w-3xl px-4 py-4 safe-bottom">
+  const sectionKeyboard = useListModalKeyboard(Boolean(sectionToDelete), busyKey !== null, () => setSectionDeleteId(null), '[data-list-confirm-cancel]', mutationLock);
+
+  return <main className="ui-list-detail mx-auto min-h-screen w-full max-w-3xl px-4 py-4 font-ui safe-bottom">
     <header className="flex min-h-11 items-center gap-3">
       <button className="inline-flex min-h-11 items-center gap-1 font-semibold text-teal" type="button" onClick={() => { if (leaveGuard.current()) onBack(); }}><ChevronLeft size={18} aria-hidden="true" />清单总览</button>
       <span className="text-sm text-ink/60">清单详情</span>
@@ -399,6 +401,6 @@ export function ListDetailPage({ userId, target, onBack, onUnavailable, onLeaveG
     </DragDropContext>}
     {renameOpen && data && <ListEditorSheet mode="rename" list={data.list} memberSpaces={[data.space]} eligibleSpaces={state.degraded ? [] : [data.space]} userId={userId} eligibilityStatus={state.degraded ? 'error' : 'ready'} eligibilityError={state.error} onRetryEligibility={() => { void refresh(); }} onSubmit={(name) => saveListName(name)} onCancel={() => { setRenameOpen(false); requestAnimationFrame(() => document.getElementById('list-detail-menu')?.focus()); }} />}
     {listDelete && data && <ListDeleteDialog list={data.list} space={data.space} step={listDelete.step} busy={listDelete.busy} canConfirm={!disabled} error={listDelete.error} eligibilityError={state.error} onRetryEligibility={() => { void refresh(); }} onCancel={() => { setListDelete(null); requestAnimationFrame(() => document.getElementById('list-detail-menu')?.focus()); }} onConfirm={() => void confirmListDelete()} />}
-    {sectionToDelete && <div className="ui-list-overlay ui-list-confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="section-delete-title"><div className="ui-list-confirm mx-auto w-full max-w-md bg-white p-5 safe-bottom"><h2 id="section-delete-title" className="text-lg font-bold">删除分组：{sectionToDelete.section.name}</h2><p className="mt-2 text-sm text-ink/65">其中有 {sectionToDelete.region.total} 项内容。请选择处理方式。</p><div className="mt-4 space-y-2"><button className="min-h-11 w-full rounded-lg bg-teal px-4 font-semibold text-white" type="button" disabled={disabled || busyKey !== null} onClick={() => confirmSectionDelete(sectionToDelete.section.id, true)}>仅删除分组</button><button className="min-h-11 w-full rounded-lg border border-coral px-4 font-semibold text-coral" type="button" disabled={disabled || busyKey !== null} onClick={() => confirmSectionDelete(sectionToDelete.section.id, false)}>删除分组及其中内容</button><button className="min-h-11 w-full rounded-lg px-4" type="button" disabled={busyKey !== null} onClick={() => setSectionDeleteId(null)}>取消</button></div></div></div>}
+    {sectionToDelete && <div ref={sectionKeyboard.container} tabIndex={-1} className="ui-list-overlay ui-list-confirm-overlay font-ui" role="dialog" aria-modal="true" aria-labelledby="section-delete-title"><div className="ui-list-confirm mx-auto w-full max-w-md bg-white p-5 safe-bottom"><h2 id="section-delete-title" className="text-lg font-bold">删除分组：{sectionToDelete.section.name}</h2><p className="mt-2 text-sm text-ink/65">其中有 {sectionToDelete.region.total} 项内容。请选择处理方式。</p><div className="mt-4 space-y-2"><button className="min-h-11 w-full rounded-lg bg-teal px-4 font-semibold text-white" type="button" disabled={disabled || busyKey !== null} onClick={() => confirmSectionDelete(sectionToDelete.section.id, true)}>仅删除分组</button><button className="min-h-11 w-full rounded-lg border border-coral px-4 font-semibold text-coral" type="button" disabled={disabled || busyKey !== null} onClick={() => confirmSectionDelete(sectionToDelete.section.id, false)}>删除分组及其中内容</button><button data-list-confirm-cancel className="min-h-11 w-full rounded-lg px-4" type="button" disabled={busyKey !== null} onClick={() => setSectionDeleteId(null)}>取消</button></div></div></div>}
   </main>;
 }

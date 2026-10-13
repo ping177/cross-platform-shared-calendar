@@ -826,7 +826,7 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
           : <SpaceListPending mySpaces status={spaceListStatus} onRetry={() => void refreshSpaces(false)} />
       )}
       <BottomNavigation tab={navigation.tab} onChange={changeTab} disabled={spaceActionBusy} />
-      {error && <p className="nav-alert fixed left-4 right-4 z-30 rounded-lg bg-coral px-4 py-3 text-sm text-white" role="alert">{error}</p>}
+      {error && <p className="nav-alert fixed left-4 right-4 z-30 rounded-lg bg-ui-danger px-4 py-3 font-ui text-sm text-ui-on-status" role="alert"><span className="font-semibold">错误：</span>{error}</p>}
     </div>
   );
 }
@@ -841,13 +841,13 @@ function SpaceListPending({ status, onRetry, mySpaces = false }: { status: 'load
   );
 }
 
-function calendarPickerSheet(title: string, titleId: string, onClose: () => void, choices: React.ReactNode) {
+function calendarPickerSheet(title: string, titleId: string, onClose: () => void, choices: React.ReactNode, container: React.RefObject<HTMLDivElement>) {
   const sheet = (
-    <div className="fixed inset-0 z-30 flex items-end bg-ink/35 md:items-center md:px-4" role="dialog" aria-modal="true" aria-labelledby={titleId} onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+    <div ref={container} tabIndex={-1} className="fixed inset-0 z-30 flex items-end bg-ink/35 font-ui md:items-center md:px-4" role="dialog" aria-modal="true" aria-labelledby={titleId} onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}>
       <section className="w-full min-w-0 max-h-[80dvh] overflow-y-auto overscroll-contain rounded-t-2xl bg-white p-5 shadow-soft safe-bottom md:mx-auto md:max-w-md md:rounded-lg">
         <div className="flex items-center justify-between gap-3">
           <h2 id={titleId} className="text-lg font-bold">{title}</h2>
-          <button type="button" className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-mist" aria-label={`关闭${title}`} onClick={onClose}><X size={20} /></button>
+          <button type="button" className="ui-focus grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-mist" aria-label={`关闭${title}`} onClick={onClose}><X size={20} /></button>
         </div>
         <div className="mt-4 space-y-1">{choices}</div>
       </section>
@@ -864,6 +864,39 @@ export function CalendarFilterPicker({ spaces, filter, open, onOpen, onClose, on
   onClose: () => void;
   onSelect: (filter: CalendarFilter) => void;
 }) {
+  const trigger = useRef<HTMLButtonElement>(null);
+  const dialog = useRef<HTMLDivElement>(null);
+  const close = useRef(onClose);
+  close.current = onClose;
+  useEffect(() => {
+    if (!open) return;
+    const root = dialog.current;
+    (root?.querySelector<HTMLElement>('button[aria-pressed="true"]') ?? root?.querySelector<HTMLElement>('button'))?.focus();
+    const keydown = (event: KeyboardEvent) => {
+      if (event.isComposing || event.keyCode === 229) return;
+      if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); close.current(); return; }
+      if (event.key !== 'Tab') return;
+      const controls = Array.from(root?.querySelectorAll<HTMLElement>('button:not(:disabled)') ?? []);
+      const first = controls[0], last = controls[controls.length - 1];
+      if (!controls.length) { event.preventDefault(); root?.focus(); }
+      else if (!root?.contains(document.activeElement)) { event.preventDefault(); first.focus(); }
+      else if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    document.addEventListener('keydown', keydown);
+    return () => {
+      document.removeEventListener('keydown', keydown);
+      if (trigger.current?.isConnected && !trigger.current.disabled) trigger.current.focus();
+      else {
+        const fallback = document.querySelector<HTMLElement>('main h1') ?? document.querySelector<HTMLElement>('main');
+        if (fallback) {
+          const tabIndex = fallback.getAttribute('tabindex');
+          fallback.setAttribute('tabindex', '-1'); fallback.focus();
+          if (tabIndex === null) fallback.removeAttribute('tabindex'); else fallback.setAttribute('tabindex', tabIndex);
+        }
+      }
+    };
+  }, [open]);
   const selectedName = filter === 'all' ? '全部空间' : spaces.find((item) => item.id === filter.spaceId)?.name ?? '全部空间';
   function choose(next: CalendarFilter) {
     onSelect(next);
@@ -871,21 +904,21 @@ export function CalendarFilterPicker({ spaces, filter, open, onOpen, onClose, on
   }
 
   const sheet = open && calendarPickerSheet('筛选日历', 'calendar-filter-title', onClose, <>
-    <button type="button" className="flex min-h-12 w-full min-w-0 items-center gap-3 rounded-lg px-3 text-left font-semibold hover:bg-mist" aria-label="筛选：全部空间" aria-pressed={filter === 'all'} onClick={() => choose('all')}>
+    <button type="button" className="ui-focus flex min-h-12 w-full min-w-0 items-center gap-3 rounded-lg px-3 text-left font-semibold hover:bg-mist" aria-label="筛选：全部空间" aria-pressed={filter === 'all'} onClick={() => choose('all')}>
       <Check size={18} className={`shrink-0 ${filter === 'all' ? 'text-teal' : 'invisible'}`} aria-hidden="true" />
       <span className="min-w-0 truncate">全部空间</span>
     </button>
     {spaces.map((item) => (
-      <button key={item.id} type="button" className="flex min-h-12 w-full min-w-0 items-center gap-3 rounded-lg px-3 text-left font-semibold hover:bg-mist" aria-label={`筛选：${item.name}`} aria-pressed={filter !== 'all' && filter.spaceId === item.id} onClick={() => choose({ spaceId: item.id })}>
+      <button key={item.id} type="button" className="ui-focus flex min-h-12 w-full min-w-0 items-center gap-3 rounded-lg px-3 text-left font-semibold hover:bg-mist" aria-label={`筛选：${item.name}`} aria-pressed={filter !== 'all' && filter.spaceId === item.id} onClick={() => choose({ spaceId: item.id })}>
         <Check size={18} className={`shrink-0 ${filter !== 'all' && filter.spaceId === item.id ? 'text-teal' : 'invisible'}`} aria-hidden="true" />
         <span className="min-w-0 break-all">{item.name}</span>
       </button>
     ))}
-  </>);
+  </>, dialog);
 
   return (
     <>
-      <button type="button" className="ui-dropdown-trigger ui-focus flex min-h-ui-touch w-full min-w-0 items-center gap-ui-2 rounded-ui-control bg-ui-surface px-ui-3 text-ui-label text-ui-text shadow-ui-group" aria-label="筛选日历" aria-haspopup="dialog" aria-expanded={open} onClick={onOpen}>
+      <button ref={trigger} type="button" className="ui-dropdown-trigger ui-focus flex min-h-ui-touch w-full min-w-0 items-center gap-ui-2 rounded-ui-control bg-ui-surface px-ui-3 text-ui-label text-ui-text shadow-ui-group" aria-label="筛选日历" aria-haspopup="dialog" aria-expanded={open} onClick={onOpen}>
         <span className="min-w-0 flex-1 truncate text-left">{selectedName}</span>
       </button>
       {sheet}
@@ -997,7 +1030,7 @@ export function CurrentSpaceApp({ swipeClickGuard, session, spaces, allSpaces, i
 
   useEffect(() => {
     if (!openCalendarSelector) return;
-    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') setOpenCalendarSelector(null); };
+    const closeOnEscape = (event: KeyboardEvent) => { if (!event.isComposing && event.keyCode !== 229 && event.key === 'Escape') setOpenCalendarSelector(null); };
     window.addEventListener('keydown', closeOnEscape);
     return () => window.removeEventListener('keydown', closeOnEscape);
   }, [openCalendarSelector]);
@@ -1038,7 +1071,7 @@ export function CurrentSpaceApp({ swipeClickGuard, session, spaces, allSpaces, i
   return (
     <main {...calendarSwipe} className="ui-calendar-shell min-h-screen bg-ui-page text-ink">
       <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col">
-        <header className="sticky top-0 z-10 border-b border-ui-border bg-ui-page/95 px-ui-4 pb-ui-3 pt-ui-4 font-ui text-ui-text backdrop-blur">
+        <header className="ui-calendar-header sticky top-0 z-10 border-b border-ui-border bg-ui-page/95 px-ui-4 pb-ui-3 pt-ui-4 font-ui text-ui-text backdrop-blur">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <h1 className="text-ui-page-title">日历</h1>
@@ -1121,7 +1154,7 @@ export function CurrentSpaceApp({ swipeClickGuard, session, spaces, allSpaces, i
 
 function Notice({ tone, message, ui = false }: { tone: 'error' | 'success'; message: string; ui?: boolean }) {
   return (
-    <p className={ui ? `mb-ui-3 rounded-ui-control px-ui-3 py-ui-3 font-ui text-ui-meta ${tone === 'error' ? 'bg-ui-danger-soft text-ui-danger' : 'bg-ui-success-soft text-ui-success'}` : `mb-4 rounded-lg px-4 py-3 text-sm ${tone === 'error' ? 'bg-coral/10 text-coral' : 'bg-teal/10 text-teal'}`}>
+    <p className={ui ? `mb-ui-3 rounded-ui-control px-ui-3 py-ui-3 font-ui text-ui-meta ${tone === 'error' ? 'bg-ui-danger-soft text-ui-danger' : 'bg-ui-success-soft text-ui-success'}` : `mb-4 rounded-lg px-4 py-3 text-sm ${tone === 'error' ? 'bg-ui-danger-soft text-ui-danger' : 'bg-teal/10 text-teal'}`}>
       {message}
     </p>
   );
@@ -1801,7 +1834,7 @@ export function EventSheet({
       <div role="dialog" aria-modal="true" aria-labelledby="event-sheet-title" className="mx-auto max-h-[92dvh] w-full max-w-3xl overflow-y-auto overscroll-contain rounded-t-2xl bg-white p-5 shadow-soft safe-bottom md:max-h-[calc(100dvh-3rem)] md:rounded-lg">
         <div className="flex items-center justify-between">
           <h2 id="event-sheet-title" ref={createHeading} tabIndex={-1} className="text-xl font-bold">{event ? canManage ? editUi.isRecurringOccurrenceEdit ? '编辑此重复事件' : '编辑日程' : '日程详情' : '新建日程'}</h2>
-          <button className="grid h-10 w-10 place-items-center rounded-lg bg-mist disabled:opacity-60" type="button" onClick={onClose} disabled={busy} aria-label="关闭">
+          <button className="ui-focus grid h-11 w-11 place-items-center rounded-lg bg-mist disabled:opacity-60" type="button" onClick={onClose} disabled={busy} aria-label="关闭">
             <X size={20} />
           </button>
         </div>

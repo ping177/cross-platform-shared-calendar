@@ -96,7 +96,7 @@ export function TasksArea({ swipeClickGuard, screen, onScreenChange, onHubBack, 
 
   return <main {...swipe} className="ui-tasks min-h-screen bg-ui-page font-ui text-ui-text">
     <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col">
-      <header className="sticky top-0 z-10 border-b border-ui-border bg-ui-page/95 px-4 pb-3 pt-4 backdrop-blur">
+      <header className="ui-tasks-header sticky top-0 z-10 border-b border-ui-border bg-ui-page/95 px-4 pb-3 pt-4 backdrop-blur">
         <div className="grid min-h-12 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
           <button className="inline-flex min-h-ui-touch min-w-0 items-center gap-1 rounded-ui-control text-ui-meta font-ui-semibold text-ui-accent ui-focus" type="button" onClick={back}>
             <ChevronLeft size={18} className="shrink-0" aria-hidden="true" />

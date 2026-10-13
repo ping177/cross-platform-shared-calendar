@@ -1,5 +1,28 @@
 # Development Log
 
+## 2026-10-13 — UI v2 Integration Round 1 最终审查与本地 Git Closeout — LOCAL PASS / VISUAL ACCEPTED
+
+- 用户明确确认Round 1视觉验收通过，并授权本轮单一本地Git closeout。Preflight：design/ui-v2，HEAD `7f25aa45b255a06ab9fc055dcc65a74d38749038`，12 modified、0 untracked、index空；授权范围精确为App/styles、ListsOverviewPage/ListDetailPage/ListSheets、TasksArea/RecurrenceControls/GlobalCreateControls、aggregate-calendar-ui/current-modules-interaction两个测试及DEVLOG/PROJECT_STATE。本轮只更新治理验收结论，未调整已认可的源码或视觉。
+- 五组修正复审通过：P1-1局部font-ui（全局root/body与字体Tokens保持）；P1-3控件边界、可编辑完成项与错误提示语义色（保留完成层级和文字错误说明）；P1-4原关闭/星期/资格重试44px热区；P1-5现有模态Tab/Shift+Tab、Escape原取消、IME/忙碌保护及焦点恢复；P1-6日历/任务局部顶部inset。Slice9行内操作仍14px/20px、600/400/400。原提交/验证、草稿、快速添加、拖拽、返回、资格、导航及数据权限保持；没有P1-2结构整合、P2优化或其他Deferred实现，没有数据库/RPC/RLS、日期引擎、Push/Realtime或依赖变更。
+- 本次重新运行：键盘17/17、相关109/109、完整TS+JS全量905/905 PASS，失败/取消/跳过均0；npm run build PASS（1719模块，JS813.72kB，既有>500kB警告仅记录）。git diff --check PASS；暂存仅授权12文件，并核对cached文件清单、cached diff/check，不包含dist、预览、截图或其他产物。日志 `/private/tmp/round1-closeout-{direct,related,full,build}.log`。
+- 复用已有真实CSS六视口320/360/375/390/768/1024的72/72、短视口24/24及8张375×844截图；source-manifest八项源码哈希与当前完全一致。无需重复生成或重试原生dirty confirm。最新离线预览仍为 `http://127.0.0.1:5176/round1/index.html`，fixtures不等于真实账号/权限/设备验收。
+- 旧worktree仍28 modified +1 untracked、8661项文件/符号链接指纹一致，SHA256 `04738b9aa82aaab184ea57eb5fea9f7d4e9e977090e9329f03ca83d15d3e9bde`；共享.git元数据排除沿用既有审计，不恢复/清理。没有reset/stash/clean，没有修改其他项目文件或输出密钥内容。
+- 正式结论：`UI v2 Integration Round 1 = LOCAL PASS / VISUAL ACCEPTED`。真实账号/双账号业务验收、iOS/Android PWA、真机软键盘/Safe Area、原生dirty confirm完整E2E、Push/Realtime与Production全部仍Pending。UI v2整体尚未完成集成验收、合并或发布，不标记CLOSED；Production仍v0.1.20。
+- 本地closeout仅包含上述12文件；不amend/force/push/deploy/merge。不自动启动环境对齐或Round 2。下一步等待用户另行启动已批准Round 2（P1-2共享表单视觉整合）；P2、中文字体/字重与行内排版审美、Space Color System、多人Shared Space/回顾、跨Space投影等仍Deferred。以下为Round 1实施时的历史记录。
+
+## 2026-10-13 — UI v2 最终整合 Round 1 — LOCAL TECHNICAL PASS / VISUAL ACCEPTANCE PENDING
+
+- 用户明确批准 P1-1、P1-3、P1-4、P1-5、P1-6 后实施。Preflight：design/ui-v2，HEAD `7f25aa45b255a06ab9fc055dcc65a74d38749038`，clean/index 空；旧 worktree 28 modified + 1 untracked，8661 项文件/符号链接指纹保持（排除已记录的共享 .git 元数据）。本轮不 commit/push/deploy/merge，不自动进入 Round 2。
+- 范围为 8 个展示源码/样式、2 个直接测试与 DEVLOG/PROJECT_STATE 共 12 文件。清单总览、详情、Sheet 与日历 Space Portal 显式接入既有 font-ui；全局 body/root 字体、字号、行高、字重 Tokens 不改。实际清单标题 20px/28px/700，正文 16px/24px/400，数字 14px/20px/400；保存/取消/删除继续 14px/20px、600/400/400，375px 三者 52×44px。未以字体继承修正宣称用户已满意中文字体或字重，P2 审美问题仍 Deferred。
+- 清单控件边界采用 control（rgb124/137/128 对白底 3.65:1，原 border rgb221/220/213 为 1.38:1）；可编辑完成项采用 muted（rgb99/111/103 对白底 5.25:1，原 ink/50 合成约 3.24:1），保留删除线与较弱层级。全局错误白字/danger 背景为 5.98:1（原 coral rgb249/115/91 为 2.75:1），增加“错误：”文字与原 alert 语义；旧 Notice 错误分支采用 danger/danger-soft rgb249/235/232 为 5.15:1，成功分支不改。共享月历/Event 错误样式已审查；资格错误/重试也使用 danger，未全局替换 coral 或提升全部辅助文字。
+- EventSheet 仅把原关闭热区 40×40 改为 44×44 并保留 20px 图标；重复星期按钮最小 44×44，窄屏按周一至周日原顺序换行，375px 约48.5×44；资格重试为44×44。星期选中状态/回调/表单 type=button 保持。未调整 EventSheet、TaskSheet 或 ImportantDateSheet 默认模式顶栏/保存结构；没有切换 moduleView。
+- 已有清单模态 Sheet/删除确认/非空分组处理弹层增加局部键盘处理：Tab/Shift+Tab 限制在当前弹层，Escape 使用原取消，忙碌与同步保存锁禁止关闭，初始焦点为输入或安全取消，关闭回到原触发器；触发器卸载时回退到页面标题。IME 组合期间不触发 Enter 提交或 Escape 关闭。日历 Space Portal 原本已有全屏遮罩、dialog/aria-modal=true，因此按真实模态处理并显式字体/Focus/选中初始焦点；父级原 Escape 监听同步忽略 isComposing/229。非模态清单更多菜单与日历分段视图不加模态循环。未建立通用 Dialog 框架，权限/提交/删除确认和路由不改。
+- 日历与任务顶栏局部使用 16px + env(safe-area-inset-top,0px)，零 inset 仍16px。临时预览 CSS 用44px变量替换 env 检查得到60px，无双重 inset；产品源码仍 env，底栏/滚动架构不改。这是布局模拟，不是 iOS/Android PWA 证据。
+- 测试先 RED 后 GREEN；新增10项键盘行为，直接17/17、清单/日历/任务/重要日相关109/109 PASS；完整 `node --test tests/*.test.ts tests/*.test.js` 905/905 PASS，失败/取消/跳过0（既有895+本轮10）。初次仅TS命令886/886不是全量，已补齐JS入口；旧日历测试直接调用带Hook组件的问题通过React SSR测试宿主修正，原scope/导航回调断言保留。npm run build PASS（1719模块，813.72kB JS及既有>500kB警告不处理）；git diff --check PASS。
+- 最新真实 React 离线预览 `http://127.0.0.1:5176/round1/index.html`：14场景、8张真实375×844截图、源码manifest、字体/对比度/布局/键盘JSON。所有数据/hooks IO在临时fixture边界，envFile=false、connect-src none；临时构建仅导出原私有 Notice 并提取原全局错误JSX，产品不新增导出或仿真组件。既有5176服务复用，5175不改。六真实CSS宽度320/360/375/390/768/1024×12状态72/72无横向溢出，六宽度×420px短视口24/24通过；星期点击/选中/键盘2px Focus与滚动、模态双向Tab/Escape/焦点返回、忙碌阻止关闭及分组确认浏览器通过。触发器消失与IME组合标志通过自动回归，未冒充真实系统中文输入法验收。
+- 最终范围复审：业务模型、数据层/hooks、数据库/RLS/RPC、日期引擎、Push/Realtime、Space生命周期/权限、依赖、首页3/2/2、全局下拉箭头、拖拽范围、快速添加与dirty导航路径均不改；只增加上述展示与键盘保护。旧worktree postflight仍28 modified +1 untracked、8661项指纹 SHA256 `04738b9aa82aaab184ea57eb5fea9f7d4e9e977090e9329f03ca83d15d3e9bde` 一致。
+- Round 1 = LOCAL TECHNICAL PASS / VISUAL ACCEPTANCE PENDING。等待用户视觉与交互验收，不宣称最终整合完成。原生dirty confirm接受/拒绝完整浏览器E2E、真实账号/双账号、系统IME/软键盘、Push、设备/PWA、Realtime与Production仍Pending；本轮未重试原生confirm。Production仍v0.1.20。Round 2 P1-2共享表单视觉整合需另轮启动，P2/Space Color System/多人Shared Space与回顾/跨Space投影等Deferred保留。
+
 ## 2026-10-13 — UI v2 Slice 11 最终审查与本地 Git Closeout — LOCAL PASS / VISUAL ACCEPTED
 
 - 用户批准只读审计A–I及最小实施范围后执行。Preflight：design/ui-v2，HEAD `6d9ea251f70db900f20c7d7dd8e98b54829687f3`，clean/index空；旧worktree28 modified + 1 untracked及8661项项目文件/符号链接指纹保持。参考为批准包第13张开关版，SHA/CRC一致；不加入未冻结插画、头像编辑、签名、邮箱编辑、邀请流程或空菜单。

@@ -20,6 +20,14 @@ function findButton(node: React.ReactNode, label: string): React.ReactElement<{ 
   return null;
 }
 
+// Capture handlers while React supplies the dispatcher for the Picker's local focus hooks.
+function renderTree(Component: (props: any) => React.ReactNode, props: any): React.ReactNode {
+  let tree: React.ReactNode;
+  function Capture() { tree = Component(props); return null; }
+  renderToStaticMarkup(React.createElement(Capture));
+  return tree;
+}
+
 test('all Calendar has filters and no create; single Space has create with explicit target', async () => {
   const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
   try {
@@ -76,12 +84,12 @@ test('Calendar filter selector opens as a bounded sheet and chooses all or one u
     assert.match(opened, /break-all/);
 
     const click = (filter: 'all' | { spaceId: string }, label: string) => {
-      const tree = CalendarFilterPicker({ ...props, filter, open: true });
+      const tree = renderTree(CalendarFilterPicker, { ...props, filter, open: true });
       const button = findButton(tree, label);
       assert.ok(button, `missing ${label}`);
       button.props.onClick();
     };
-    const opener = findButton(CalendarFilterPicker(props), '筛选日历');
+    const opener = findButton(renderTree(CalendarFilterPicker, props), '筛选日历');
     assert.ok(opener);
     opener.props.onClick();
     assert.equal(openCount, 1);
@@ -116,7 +124,7 @@ test('Calendar segmented views select all three modes without a modal and keep d
       assert.equal(view, mode); assert.deepEqual(filter, { spaceId: shared.id });
     }
     assert.equal(closes, 3);
-    findButton(CalendarFilterPicker({ spaces: [personal, shared], filter, open: true, onOpen: noop, onClose: noop, onSelect: (next: typeof filter) => { filter = next; } }), '筛选：私人')!.props.onClick();
+    findButton(renderTree(CalendarFilterPicker, { spaces: [personal, shared], filter, open: true, onOpen: noop, onClose: noop, onSelect: (next: typeof filter) => { filter = next; } }), '筛选：私人')!.props.onClick();
     assert.equal(view, 'month'); assert.deepEqual(filter, { spaceId: personal.id });
     assert.equal(selectedDate.getTime(), new Date(2026, 8, 24).getTime());
     for (const mode of ['today', 'week', 'month']) {

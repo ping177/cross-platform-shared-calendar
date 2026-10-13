@@ -149,7 +149,7 @@ export function ListsOverviewPage({ swipeClickGuard, userId, entry = null, entry
   const swipe = useMobileSwipe({ enabled: !editor && !deleting, scope: `${userId}:${filter === 'all' ? 'all' : filter.spaceId}`,
     direction: 'right', clickGuard: swipeClickGuard, onSwipe: onHubBack });
 
-  return <main {...swipe} className="ui-lists-page min-h-screen bg-ui-page text-ui-text">
+  return <main {...swipe} className="ui-lists-page min-h-screen bg-ui-page font-ui text-ui-text">
     <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col">
       <header className="sticky top-0 z-10 border-b border-ui-border bg-ui-page/95 px-4 pb-3 pt-4 backdrop-blur">
         <div className="flex min-h-12 items-center justify-between gap-3">

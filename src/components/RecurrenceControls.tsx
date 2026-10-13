@@ -58,12 +58,12 @@ export function RecurrenceControls({
           {recurrence.frequency === 'weekly' && (
             <div>
               <p className="text-sm font-semibold text-ink/70">重复日期</p>
-              <div className="mt-2 grid grid-cols-7 gap-1">
+              <div className="ui-event-weekdays mt-2 grid gap-1">
                 {weekdayLabels.map((label, index) => {
                   const day = index + 1;
                   const selected = recurrence.days_of_week.includes(day);
                   return (
-                    <button key={day} type="button" className={`h-9 rounded-md text-sm font-semibold ${selected ? 'bg-teal text-white' : 'bg-white text-ink/70'}`} onClick={() => toggleWeeklyDay(day)}>
+                    <button key={day} type="button" className={`ui-focus min-h-11 min-w-11 rounded-md text-sm font-semibold ${selected ? 'bg-teal text-white' : 'bg-white text-ink/70'}`} onClick={() => toggleWeeklyDay(day)}>
                       周{label}
                     </button>
                   );

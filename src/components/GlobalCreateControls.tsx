@@ -23,7 +23,7 @@ export function CreateTargetSelector({ control, kind, disabled }: { control: Cre
       {choices.map((space) => <option key={space.id} value={space.id} disabled={kind === 'task' && control.enabledIds !== undefined && !control.enabledIds.includes(space.id)}>{space.name}</option>)}
     </select>
     {control.state === 'loading' && <p className="text-sm text-ink/60" role="status">正在确认空间成员…</p>}
-    {control.state === 'blocked' && <p className="text-sm text-coral" role="alert">{control.spaces.find((space) => space.id === control.selectedId)?.kind === 'personal' ? '当前默认空间' : '当前空间'}未启用任务，请主动选择其他已启用任务的空间。</p>}
-    {control.state === 'error' && <p className="text-sm text-coral" role="alert">{control.error}<button className="ml-3 font-semibold underline" type="button" onClick={control.onRetry}>重试</button></p>}
+    {control.state === 'blocked' && <p className="text-sm text-ui-danger" role="alert">{control.spaces.find((space) => space.id === control.selectedId)?.kind === 'personal' ? '当前默认空间' : '当前空间'}未启用任务，请主动选择其他已启用任务的空间。</p>}
+    {control.state === 'error' && <p className="text-sm text-ui-danger" role="alert">{control.error}<button className="ui-focus ml-3 inline-flex min-h-ui-touch min-w-11 items-center justify-center rounded-ui-control font-semibold underline" type="button" onClick={control.onRetry}>重试</button></p>}
   </div>;
 }
