@@ -1,5 +1,9 @@
 # Backlog
 
+## Profile Card Compact + Avatar v1 — LOCAL / REAL-ACCOUNT PASS
+
+用户真实账号本地集成验收已通过：名称保存/取消；预设保存/刷新持久化；照片上传显示；同Space成员读取照片；切回预设后旧照片从Storage删除。12头像视觉已确认、猫F+02。该用户报告不等同Production新前端最终人工验收。未完整覆盖的跨设备、照片替换/默认恢复、真实失败/断网重试、退出最后共同Space后新签拒绝、5分钟续期与iOS/Android/PWA仍待记录；自动测试不替代人工证据。数据整理独立延期、不阻塞本次发布。
+
 ## v0.1.19 — Task Due-date Push Reminder — CLOSED / PASS
 
 Four bounded tasks/review/automatic verification, Production exact SQL/postflight, ACTIVE v4/Cron compatibility and frontend publication/target alignment PASS. User local and final Production/installed-PWA acceptance PASS; user confirms real Task Push on 2026-10-07 evening, accepted as manual PASS. Aggregate read-only ledger/Cron corroboration and limitations are in TESTING. Contract: [v0.1.19 spec](./v0.1.19_TASK_REMINDERS_SPEC.md). Overall CLOSED / PASS; final docs REMOTE_SYNCED awaits separately authorized push verification.

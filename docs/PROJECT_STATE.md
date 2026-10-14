@@ -12,9 +12,9 @@ v0.1.20
 
 ## Current status
 
-Space Rename功能已部署并由用户完成Production功能验收；最终治理收口尚未执行。本次空间详情名称行Pencil微调已通过用户本地视觉确认，相关38/38测试、TypeScript/Build及16组离线响应式/交互检查通过；当前正在执行获授权的main提交、Push与Vercel部署核验。Production中的本次视觉更新仍待确认部署及用户验收，不提前关闭Space Rename事项或新增版本。
+Profile Card Compact + Avatar v1：LOCAL TECHNICAL / VISUAL / REAL-ACCOUNT INTEGRATION PASS；Production前端最终人工验收仍待用户完成，整体事项未提前关闭。用户确认名称保存/取消、预设保存刷新持久化、上传个人照片、同Space成员读取以及切回预设后旧照片已从Storage删除。12原创SVG均视觉通过，猫采用F造型+02「陶粉与燕麦」，不新增版本。全量957/957、相关49/49、TypeScript/Build PASS；既有bundle警告非阻塞。跨设备、照片替换/默认恢复、真实失败重试、成员撤销新签拒绝、5分钟续期和真机/PWA边界未完整人工覆盖，详见TESTING。
 
-Space Rename本地实现、自动验证及功能Commit `633f9ac2…` 已完成；用户确认Production补丁已在Supabase SQL Editor执行，Postflight返回`spaces_validate_identity / enabled=O / PATCH_APPLIED`。状态为**DATABASE PATCH APPLIED / FRONTEND RELEASE AND ACCEPTANCE PENDING**。复用spaces.name更新，名称Trigger校验当前Owner/Personal本人、trim与1–80 Unicode字符；不新增Rename RPC、不全面收紧RLS。空间详情行内编辑保持UI v2风格。相关66/66、全量934/934、TypeScript/Build及本机隔离数据库验证通过。用户已授权Push；本次需核验GitHub Push及Vercel Production部署/source SHA，之后由用户真实账号验收。验收前不将功能标记为CLOSED/PASS；不新增正式版本，既有UI v2关闭状态保持。数据库结果来自用户报告，本轮没有独立Production连接。
+Space Rename：PRODUCTION ACCEPTED / PASS，用户已完成真实Production功能及最终Pencil UI验收；保留功能Commit633f9ac2与最终UI Commit3512e1f历史事实，不再要求重复已完成验收。Avatar Production增量补丁、Preflight及核心Postflight通过为用户报告；本地真实Vite与Production项目ximazjhxvmktpcdbypka对齐，新字段/成员关联零行查询与Storage服务独立HTTP检查通过。前端发布成功、Source SHA与正式资源以本轮独立发布核验结果为依据，不用本地PASS或Git状态推断Production人工验收。
 
 **UI v2 及后续 Calendar 视觉优化 = PRODUCTION ACCEPTED / CLOSED**（仅关闭 UI 改造及对应发布验收范围）。UI v2 的全部11个 Slice、Integration Round 1/2 与功能中心顶部概览优化已完成；UI v2 已发布 Production 并通过用户验收。Calendar UI Patch（统一日/周/月头部、重做周视图及日期对齐修正）Commit `391708f4…` 已发布并通过用户验收。Calendar Chevron Removal Commit `ecbe03d7…` 移除日/周视图日程右侧箭头并保留整行点击；该 Chevron 补丁部署 source HEAD `1fc7a3bd…`，用户再次确认正式网站箭头消失且点击正常。
 
@@ -42,7 +42,9 @@ v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3�
 
 ## Latest completed
 
-2026-10-14 — Space Rename：本地前端实现、功能Commit `633f9ac2…` 与934/934自动测试已完成；用户确认Production SQL Editor补丁执行成功，Postflight返回`spaces_validate_identity / enabled=O / PATCH_APPLIED`。用户已授权Push；本次核验GitHub Push及Vercel Production source，之后由用户完成真实账号验收。数据库结果依据用户报告，未独立连接复查；详见DEVLOG / TESTING。
+2026-10-14 — Profile Card Compact + Avatar v1：本地实现/视觉/用户真实账号集成验收通过；Production后端补丁与核心Postflight为用户确认通过。猫最终F+02，12正式资源确认。957/957、TypeScript/Build及真实Vite目标/API对齐通过。Production前端人工效果验收仍待用户；不清理现有测试数据、不扩大范围。
+
+2026-10-14 — Space Rename：用户真实Production功能及最终UI验收通过，最终UI提交3512e1f；既有UI v2/Calendar关闭事实保持。
 
 2026-10-14 — UI v2 + Calendar视觉优化最终治理收口：PRODUCTION ACCEPTED / CLOSED（仅 UI 改造范围）。用户确认Chevron Production视觉及点击验收；记录11个Slice、Round1/2、功能中心优化、Calendar Patch及Chevron发布状态、919/919测试、180/180响应式检查与Build证据。旧版29项修改归档及原目录main日常工作区状态保持，详见DEVLOG / TESTING。
 
@@ -310,7 +312,9 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
-Space Rename补丁`supabase/patches/2026-10-14-space-rename.sql`已由用户报告在Production SQL Editor执行成功，Postflight为`spaces_validate_identity / enabled=O / PATCH_APPLIED`；本轮未独立连接复查。前端功能Commit为`633f9ac2…`，Push已获用户授权；本次发布核验GitHub main与Vercel Production source SHA。不得仅凭Push推断部署成功。真实账号功能与权限验收待用户完成，验收前不关闭Space Rename。
+Avatar v1：Production项目ximazjhxvmktpcdbypka，增量补丁supabase/patches/2026-10-14-profile-avatar.sql已由用户执行并报告Preflight/Success/核心Postflight PASS（2字段、3validated约束、私有JPEG bucket、3Storage policies、RLS启用）；本轮不重放SQL、不修改数据库/Storage。旧前端兼容追加字段，新前端须使用已对齐后端。本条记录后端及发布验收边界；前端实际部署/Source SHA/正式域名资源须独立核验，以本轮最终发布报告为准，用户Production前端最终验收保持PENDING。测试数据整理独立延期，不阻塞发布。
+
+Space Rename：用户确认Production功能及最终UI已验收通过，补丁和既有数据权限保持；无需重新部署该后端补丁。Avatar签名URL最多5分钟；退出最后共同Space阻止新签，已签URL不即时撤销。照片切回预设后旧文件删除已由用户确认；不确定metadata响应保留上传文件供既有>24h未引用恢复，防止late commit误删。
 
 UI v2及后续 Calendar 视觉优化已完成 Production 发布与用户验收，状态为 **PRODUCTION ACCEPTED / CLOSED**（关闭范围仅限本次 UI 改造与相应验收）。UI v2全部11个Slice、两轮Integration、功能中心概览、Calendar UI Patch与Chevron Removal均已完成；Calendar Patch Commit `391708f4…`，Chevron Commit `ecbe03d7…`，Chevron已验收的部署 source HEAD 为 `1fc7a3bd…`。
 
@@ -392,15 +396,15 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-当前下一步：完成本次已授权的Space Rename Pencil微调Commit/Push及Vercel Production部署核验；之后由用户确认Production页面效果。最终治理收口仍待后续处理。
-
-下一步：由用户在真实账号中验收已发布的Space Rename（Owner/Personal可改名、Shared Member不可改名、保存后刷新仍保留新名称）；验收前保持**FRONTEND ACCEPTANCE PENDING**，不将功能标记为CLOSED/PASS。Production数据库补丁应用及Postflight为用户报告；UI v2及Calendar视觉改造保持关闭，Deferred项目不自动启动，不新增下一版本。
+由用户确认本轮正式网站Profile Card Compact + Avatar v1最终效果：紧凑资料卡/名称编辑、12预设（猫F+02）、照片入口与成员展示。发布证据需来自独立Vercel Source SHA和正式资源核验；不提前把Production人工验收写PASS。用户确认后再处理最终治理收口；跨设备/续期等未覆盖边界按TESTING跟踪。现有测试账号/Space/数据整理为独立延期待办，不在本次发布范围；不启动新功能或新版本。
 
 ## Blockers
 
 暂无明确阻塞。
 
 ## Important Context
+
+- Avatar本地/真实账号集成验收通过不等于Production前端人工验收通过；照片读写权限复用已审核私有Storage/本人Profile边界。本轮仅前端发布与治理记录，不重新执行后端补丁或清理数据。
 
 - Production验收通过仅覆盖本记录的 UI 改造与用户确认场景；不声称所有业务 E2E、危险操作、Push 或 Realtime 均已覆盖。对应的旧交互保护缺口、测试边界和 Deferred 项继续按各自历史记录保留。
 
@@ -493,7 +497,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Handoff Prompt
 
-Space Rename本地实现及Commit `633f9ac2…` 已完成；用户报告Production SQL Editor补丁与Postflight `PATCH_APPLIED` 成功。Push已获授权，本次核验GitHub main和Vercel Production source SHA；随后由用户真实账号验收Owner/Personal改名、Member拒绝及刷新持久性。验收前不标记Space Rename为CLOSED/PASS。Production SQL Editor结果尚无Codex独立连接复查。不新增Rename RPC、不全面修改RLS、不改变Lifecycle。现有UI v2/Calendar Production验收保持通过。以下旧Slice/Round handoff仅为历史。
+Profile Card Compact + Avatar v1本地/视觉/真实账号集成PASS，957/957与TypeScript/Build PASS；用户报告Production后端已部署和核心Postflight通过。12头像确认、猫F+02冻结。关注本轮独立前端发布报告的Source SHA/正式资源证据，等待用户Production页面最终验收；没有该用户确认不得整体关闭。Space RenameProduction功能/UI已PASS，不重开。未覆盖跨设备/撤销/续期/真机边界保留，数据清理延期独立处理。以下旧Slice/Round handoff仅为历史。
 
 UI v2 Integration Round 2 = LOCAL PASS / VISUAL ACCEPTED。用户明确确认日程、任务、重要日三个共享表单视觉满意，最终范围/业务复审通过；本轮直接相关64/64、全量918/918、build/diff-check PASS，既有六真实CSS视口144/144、短视口30/30及13张375px截图源码指纹匹配。三个共享表单视觉整合完成；按本轮最终确认，11个Slice及Round1/2均完成本地视觉验收，计划中的UI v2视觉开发阶段结束。仅授权12文件本地Git收口，未push/deploy/merge。UI v2整体集成验收、合并和发布仍Pending，Production保持v0.1.20。环境对齐Gate、真实账号/双账号E2E、原生dirty confirm、真机软键盘/IME/Safe Area、iOS/Android PWA、Push/Realtime及Production验收均Pending；P2字重审美、Space Color System、多人Shared Space/回顾与跨Space投影等Deferred不自动实施。 当前唯一下一步是等待用户另行授权环境对齐Gate，不自动推进。旧worktree保持28 modified +1 untracked及8661项项目文件/符号链接；以下旧轮/Slice条目仅为历史。
 

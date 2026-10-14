@@ -1,5 +1,9 @@
 # Decisions
 
+## Profile Card Compact + Avatar v1 — 2026-10-14
+
+冻结紧凑资料卡与轻量头像Sheet，不扩展范围。12原创头像为复古几何拼贴插画；猫固定F造型+02陶粉与燕麦。照片存于现有Supabase私有bucket，本人修改/管理，当前同Space成员读取当前照片；签名5分钟。上传immutable UUID→CAS metadata→已确认后清理旧照片；metadata响应不确定时延迟到既有>24h未引用恢复，不因即时回读旧值误删late commit照片。用户已确认切回预设后的旧照片删除。Production前端人工验收不提前PASS，测试数据清理独立延期，不新增版本。Space Rename真实Production功能/最终UI已PASS。
+
 ## Product Direction Freeze — 2026-10-09
 
 This is the user-confirmed next-stage direction after v0.1.20 CLOSED / PASS, not a new feature-version assignment or implementation authorization.

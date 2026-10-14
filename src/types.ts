@@ -65,6 +65,8 @@ export type SpaceMember = {
   joined_at: string;
   profiles?: {
     display_name: string | null;
+    avatar_preset?: string | null;
+    avatar_path?: string | null;
   } | null;
 };
 

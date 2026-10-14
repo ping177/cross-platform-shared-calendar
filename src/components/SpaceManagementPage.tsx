@@ -12,6 +12,7 @@ import type { ModuleKey } from '../lib/module-availability';
 import { InvitePanel } from './InvitePanel';
 import { SharedSpaceForms } from './SharedSpaceForms';
 import { SpaceNameEditor } from './SpaceNameEditor';
+import { ProfileAvatar } from './ProfileAvatar';
 import { useSpaceTasksModule } from './useSpaceTasksModule';
 import { useSpaceReviewModule } from './useSpaceReviewModule';
 import { useSpaceImportantDatesModule } from './useSpaceImportantDatesModule';
@@ -57,7 +58,7 @@ export function SpaceDetailContent({ space, members, moduleState, moduleError, m
     {space.kind === 'shared' && <>
       <section className="ui-space-group">
         <h2 className="text-ui-list font-ui-semibold">空间成员 · {members.length}</h2>
-        <div className="mt-ui-3">{members.map((member) => <div key={member.user_id} className="ui-space-member-row"><UserRound size={18} aria-hidden="true" /><span className="min-w-0 flex-1 break-words text-ui-body">{memberDisplayName(member)}</span><span className="shrink-0 text-ui-meta text-ui-muted">{member.role === 'owner' ? '所有者' : '成员'}</span></div>)}</div>
+        <div className="mt-ui-3">{members.map((member) => <div key={member.user_id} className="ui-space-member-row"><ProfileAvatar userId={member.user_id} preset={member.profiles?.avatar_preset} path={member.profiles?.avatar_path} size={32} /><span className="min-w-0 flex-1 break-words text-ui-body">{memberDisplayName(member)}</span><span className="shrink-0 text-ui-meta text-ui-muted">{member.role === 'owner' ? '所有者' : '成员'}</span></div>)}</div>
       </section>
       <InvitePanel space={space} onSpaceChange={onSpaceChange} />
     </>}

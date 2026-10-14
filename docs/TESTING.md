@@ -1,5 +1,66 @@
 # Testing
 
+## Profile Card Compact + Avatar v1 — 2026-10-14
+
+Status: LOCAL TECHNICAL + VISUAL PASS / BACKEND APPLIED (USER-REPORTED) / LOCAL TARGET + API ALIGNMENT PASS / USER-REPORTED REAL-ACCOUNT INTEGRATION PASS / PRODUCTION FRONTEND MANUAL PENDING. User confirmed card/Sheet/all 12 presets; cat F + 02. User reports Production patch Success, Preflight and core Postflight PASS; Codex performed no Production mutation and no real-login/device acceptance. Space Rename retains user-reported Production functional + final UI PASS. Contract and changed-file index: [Profile + Avatar spec](./PROFILE_CARD_AVATAR_SPEC.md). Exact SQL Editor Preflight/patch/Postflight: [Deployment preparation](./PROFILE_AVATAR_DEPLOYMENT.md).
+
+Deployment-preparation review found a lost-metadata-response / late-commit cleanup race. A new regression failed before the fix; unconfirmed metadata writes now retain their new photo for the existing >24h unused-file recovery rather than immediately deleting it. Confirmed conflicts and successful old-photo cleanup are unchanged. Because transport code changed, related49/49 and full957/957 were rerun and passed; TypeScript/Build/diff-check PASS. Avatar assets/UI/SQL remain unchanged. The following956/48 and222 SQL figures are the original implementation evidence; SQL was not rerun for the frontend-only corrective change.
+
+### User-reported real-account acceptance / release boundary — 2026-10-14
+
+用户真实账号本地集成验收已通过：名称保存/取消；预设保存/刷新持久化；照片上传显示；同Space成员读取照片；切回预设后旧照片从Storage删除。12头像视觉已确认、猫F+02。该用户报告不等同Production新前端最终人工验收。未完整覆盖的跨设备、照片替换/默认恢复、真实失败/断网重试、退出最后共同Space后新签拒绝、5分钟续期与iOS/Android/PWA仍待记录；自动测试不替代人工证据。数据整理独立延期、不阻塞本次发布。
+
+### Real local frontend alignment — 2026-10-14
+
+- Real Vite replaced the exact prior Python mock process on fixed5175; strictPort maintained. Served configuration/CLI link/recorded Production all match ximazjhxvmktpcdbypka. Root/Vite and new card/picker/member/helper/final-cat resources HTTP200; no mock.
+- Public client limit=0 queries for Profile avatar columns and member Profile relationships HTTP200, zero rows; Storage status HTTP200, unauthenticated bucket list200/zero rows. No schema cache error. Nonexistent object signing400/NoSuchKey is reachability evidence only, not proof of real-file RLS. Authenticated APIs/cross-device/mobile/renewal remain user-run.
+- Node direct outbound transport failed; system curl succeeded. Credentials were passed internally via stdin, not command arguments. An earlier Vite configuration JSON parse exception accidentally displayed the public publishable credential in tool output; acknowledged and parsing/error handling corrected. No service-role/auth-session credential used or printed. No .env edit or data mutation. Existing957/49/TypeScript/build evidence reused; docs-only alignment adds no business change.
+
+### Automated and isolated evidence
+
+- Node: full956/956; relevant Profile/Avatar/My/Space48/48. Coverage: default compact card, trim/blank/length/no-op, same-tick locks/IME/cancel/unmount/account mismatch, draft retry, photo/preset/default persistence, CAS conflict, ambiguous response safety, deferred/abandoned cleanup, strict paths/input caps, member object/array relationship metadata, preset/default rendering, signed URL 300s→240s renewal, focus/30s fallback retry and unmount cleanup.
+- `npm run build` (includes `tsc -b`) PASS; existing >500kB chunk warning remains. `git diff --check` PASS. No dependency installation.
+- `python3 supabase/tests/profile_avatar_local.py --red`: baseline missing avatar contract reproduced. Green harness: upgrade and fresh paths each27 Avatar +26 Space Rename +58 Lifecycle =222 SQL assertions PASS. It copies the real LOCAL Storage schema only into randomly named disposable DBs, uses authenticated/anon test roles and synthetic IDs, checks private bucket/MIME/1MiB cap, owner-only writes/deletion, active-file protection, current-member read, removed-member/outsider/anon rejection, exclusivity/preset/path constraints, immutable photos, public RLS unchanged, full public/Storage canonical+upgrade schema/ACL parity, patch replay/unknown-policy drift rejection. Generated DBs are removed in finally; the existing app DB is never modified.
+- Browser on fixed127.0.0.1:5175: isolated real React components and compiled product CSS, fixture-only transport, envFile=false and CSP connect-src none. Five widths320/375/390/768/1024×normal/long/Sheet/members=20 layout cases PASS; 375×480 and320×480 short Sheet scroll PASS. Baseline card214px vs compact82px; long name86px. Avatar48×48/Pencil44×44, no overlap/overflow, all12 preset assets render. Browser name/preset/default/photo selection and 512×512 crop, bad-image failure/retry, focus restore/Tab trap/Escape PASS; console errors/warnings absent. Photos are generated test pixels, not user images. These fixtures prove frontend processing/transport behavior, not live Supabase upload service or cross-device persistence.
+- Screenshots: `/private/tmp/profile-avatar-work/screenshots/profile-375.jpg`, `profile-edit-375.jpg`, `avatar-picker-375.jpg`, `presets-overview.jpg`, `long-375.jpg`, `members-375.jpg`, `photo-preview-375.jpg`, `photo-profile-375.jpg`. Complete12-preset overview is for human aesthetic review; automated geometry checks do not accept appearance.
+
+Commands:
+
+```sh
+node --experimental-strip-types --test tests/avatar.test.ts tests/avatar-ui.test.ts tests/profile-card-ui.test.ts tests/me-spaces-ui-v2.test.ts tests/space-rename-ui.test.ts tests/space-management.test.ts tests/space-ui.test.ts
+node --experimental-strip-types --test tests/*.test.ts tests/*.test.js
+npm run build
+python3 supabase/tests/profile_avatar_local.py --red
+python3 supabase/tests/profile_avatar_local.py
+git diff --check
+```
+
+### Backend rollout prerequisites — not authorized in this round
+
+The new frontend requires the two Profile fields and private bucket/policies. The old served frontend remains compatible with these additive fields. No live backend capability or frontend-target gate has been claimed; do not ask for authenticated local/PWA acceptance before alignment. Existing deployments must use only the reviewed forward patch `supabase/patches/2026-10-14-profile-avatar.sql`, never the complete bootstrap schema. The patch is atomic and rejects replay, missing/self-RLS baseline drift, existing avatar bucket or unknown permissive Storage policies; inspect drift rather than editing/apparently rolling back an applied migration.
+
+Under future explicit deployment authorization, first inspect the actual frontend target without exposing credentials and verify the intended backend. Read-only preflight should inspect Profile columns/self-update policy, Storage RLS and policies, and absence of an existing avatar bucket. After the reviewed backend patch, read-only postflight must verify:
+
+```sql
+select column_name from information_schema.columns
+where table_schema='public' and table_name='profiles'
+  and column_name in ('avatar_preset','avatar_path') order by column_name;
+select conname,pg_get_constraintdef(oid) from pg_constraint
+where conrelid='public.profiles'::regclass and conname like 'profiles_avatar_%';
+select id,public,file_size_limit,allowed_mime_types
+from storage.buckets where id='profile-avatars';
+select policyname,roles,cmd,qual,with_check from pg_policies
+where schemaname='storage' and tablename='objects' and policyname like 'avatars_%';
+select relrowsecurity from pg_class where oid='storage.objects'::regclass;
+```
+
+Expected: two columns/three constraints; private bucket,1048576 bytes, image/jpeg only; SELECT/INSERT/DELETE scoped policies, no avatar UPDATE; Storage RLS=true; prior Profile/Space RLS and Lifecycle remain unchanged. A valid signed URL remains usable until its five-minute expiry even after membership revocation; new signing must be denied after revocation.
+
+### Manual acceptance — pending
+
+First review the isolated card/Sheet/12-preset overview, long names and edit interaction. Only after separately authorized backend rollout/postflight and frontend/backend gate: A uploads/replaces a real photo, B as current co-member sees it on entering the member list; another device/account session for A reads the same photo/preset/default; failure preserves retry and old metadata; leave/remove blocks new signing; outsider/anon cannot view; wait beyond five minutes and foreground the app to check renewal. Verify iOS/Android file selection, keyboard/IME/Safe Area and installed-PWA behavior on real devices. JPEG/PNG/WebP are supported; HEIC/GIF/SVG are intentionally unsupported. No Realtime avatar synchronization is promised; reopening/re-entering the page loads current Profile/member data.
+
+
 ## Space Rename — DATABASE PATCH APPLIED / FRONTEND ACCEPTANCE PENDING / 2026-10-14
 
 - 新前端15项测试覆盖Shared当前Owner/Personal本人、成员拒绝、trim与80 Unicode边界、未修改零请求、仅name payload、登录身份变化、stale/canonical返回、失败草稿、同步重复提交、IME及卸载晚响应；相关Space suites66/66、完整TS+JS934/934、TypeScript/Build/diff-check PASS。Build保留既有大bundle警告。

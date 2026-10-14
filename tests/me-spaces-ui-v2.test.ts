@@ -21,9 +21,9 @@ test('owner switches preserve all four authoritative states; members are read-on
 test('personal detail has no invitation, other participants or lifecycle controls',()=>components(({SpaceDetailContent})=>{
  const html=renderToStaticMarkup(React.createElement(SpaceDetailContent,{...detailProps,space:personal,members:[],lifecycleControls:React.createElement('p',{},'危险操作')}));assert.match(html,/个人空间/);assert.doesNotMatch(html,/邀请码|同伴|危险操作|空间成员/);
 }));
-test('overview exposes two entries without mounted forms or fictional member counts; My retains inline name fields',()=>components(({SharedSpaceForms,MyPage})=>{
+test('overview exposes two entries without mounted forms or fictional member counts; My keeps a compact profile without permanent name fields',()=>components(({SharedSpaceForms,MyPage})=>{
  const forms=renderToStaticMarkup(React.createElement(SharedSpaceForms,{onReady:async()=>true,busy:false,onBusyChange:noop}));assert.match(forms,/创建共享空间|加入空间/);assert.doesNotMatch(forms,/<form|<input|2 位成员/);
- const me=renderToStaticMarkup(React.createElement(MyPage,{userId:'me',onManageSpaces:noop}));assert.match(me,/ui-my-page/);assert.match(me,/my-display-name/);assert.match(me,/maxLength="20"|maxlength="20"/);assert.match(me,/此设备通知设置|退出登录/);
+ const me=renderToStaticMarkup(React.createElement(MyPage,{userId:'me',onManageSpaces:noop}));assert.match(me,/ui-my-page/);assert.doesNotMatch(me,/<input|保存名称/);assert.match(me,/ui-profile-card/);assert.match(me,/此设备通知设置|退出登录/);
 }));
 async function runtime(file:string,run:(e:any)=>Promise<void>,exportName?:string){let cursor=0;const slots:any[]=[];const calls:any[]=[];const effects:any[]=[];
  (globalThis as any).__spaceUIHooks={useState(initial:any){const i=cursor++;if(!(i in slots))slots[i]=typeof initial==='function'?initial():initial;return[slots[i],(value:any)=>{slots[i]=typeof value==='function'?value(slots[i]):value;}];},useRef(initial:any){return slots[cursor++]??={current:initial};},useEffect(fn:any){effects.push(fn);}};
@@ -52,8 +52,8 @@ test('invitation rotation retains member access, blocks duplicate writes and pre
 test('successful create with failed membership refresh retries the exact returned ID without creating twice',()=>runtime('SharedSpaceForms.tsx',async({props,calls,click,submit,flush,html})=>{
  let refreshed=false;props.onReady=async(id:string)=>{calls.push({ready:id});return refreshed;};click('创建共享空间');submit();await flush();assert.equal(calls.filter((c:any)=>c.method).length,1);assert.match(html(),/重试刷新/);refreshed=true;submit();await flush();assert.equal(calls.filter((c:any)=>c.method).length,1);assert.deepEqual(calls.filter((c:any)=>c.ready).map((c:any)=>c.ready),['new-space','new-space']);assert.doesNotMatch(html(),/<form/);
 }));
-test('name read/save retains actual profile validation and notification/management callbacks',()=>runtime('MyPage.tsx',async({props,calls,client,render,change,submit,effects,flush,html})=>{
- props.userId='me';props.onManageSpaces=()=>calls.push('management');client.from=(table:string)=>{let draft:any;const chain:any={eq:()=>chain,update:(d:any)=>{draft=d;return chain;},select:()=>draft?(calls.push({table,draft}),Promise.resolve({data:[{id:'me'}],error:null})):chain,maybeSingle:async()=>({data:{display_name:'阿林'},error:null})};return chain;};render();effects[0]();await flush();assert.match(html(),/value="阿林"/);change('my-display-name','  更新名称  ');submit();await flush();assert.equal(calls[0].draft.display_name,'更新名称');change('my-display-name','');submit();await flush();assert.equal(calls.length,1);assert.match(html(),/1–20/);change('my-display-name','字'.repeat(21));submit();await flush();assert.equal(calls.length,1);
+test('My reads canonical profile and preserves notification/management callbacks',()=>runtime('MyPage.tsx',async({props,calls,client,render,effects,flush})=>{
+ props.userId='me';props.onManageSpaces=()=>calls.push('management');client.from=()=>{const chain:any={eq:()=>chain,select:()=>chain,maybeSingle:async()=>({data:{display_name:'阿林',avatar_preset:null,avatar_path:null},error:null})};return chain;};render();effects[0]();await flush();const card=nodes(render()).find(n=>n.type?.name==='ProfileCard');assert.equal(card.props.profile.display_name,'阿林');
  nodes(render()).find(n=>n.type==='button'&&n.props.onClick===props.onManageSpaces).props.onClick();assert.equal(calls.at(-1),'management');nodes(render()).find(n=>n.type==='button'&&nodes(n).some(c=>c.props.children==='此设备通知设置')).props.onClick();assert.ok(nodes(render()).some(n=>n.type?.name==='NotificationSettings'));
 }));
 

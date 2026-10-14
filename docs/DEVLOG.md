@@ -1,5 +1,104 @@
 # Development Log
 
+## 2026-10-14 — Avatar v1 正式发布前治理与内容审查 — REAL-ACCOUNT PASS / PRODUCTION MANUAL PENDING
+
+- 用户授权正式Commit/正常Push origin/main/Vercel核验，禁止后端变更与数据清理。基线main3512e1f，原36待提交文件全部保留；正式SVG仅12个，无候选/临时预览/日志/.env入库。12头像及猫F+02冻结，无UI/业务调整。
+- 用户明确真实账号名称保存/取消、预设刷新持久化、照片上传、同Space读图、切回预设后旧图Storage删除PASS；记录证据边界不声称新Production前端人工验收完成。Space Rename真实Production功能/最终UI验收PASS已纠正陈旧治理状态。PROJECT_STATE保留v0.1.20与Version Index、无新版本；Next Action为用户正式网站最终验收，不写正在Commit/Push过程状态。
+- 复用实际修正后的957/957、相关49/49、TypeScript/Build与222历史本机SQL；源码/资产未变因此不重复全量测试。清理不确定响应late commit问题已修正、回归先Red后Green；旧图确认后清理/失败保留与>24h恢复机制记录。Production项目对齐与新字段/Storage可达性通过，后端Preflight/核心Postflight为用户报告，无后端操作。
+- 本轮只更新PROJECT_STATE/DEVLOG/TESTING/spec/部署说明/BACKLOG/DECISIONS，明确未覆盖跨设备/替换默认/撤销新签/续期/真实失败/真机PWA与独立延期数据整理。无外部项目修改，无新增密钥读取/输出；前轮publishable异常披露事实保留。diff-check和待提交范围检查通过。实际Push、Source SHA、正式资源及clean状态以本轮独立最终报告为准；不提前写部署成功或Production人工PASS。
+
+
+## 2026-10-14 — Avatar 真实本地前端集成准备 — ENVIRONMENT ALIGNED / MANUAL AUTH ACCEPTANCE PENDING
+
+- 用户报告正确Production项目Preflight通过、准确Avatar patch返回Success、Postflight核心2字段/3已验证约束/私有JPEG bucket/3Storage policies/RLS全部启用。保留数据，不作清理；该报告不是Codex独立目录查询。Space Rename既有Production功能/最终UI通过保持，整体Avatar未关闭。
+- main HEAD3512e1f、36待提交文件、暂存为空；保留全部修改。确认PID30700对应`python -m http.server 5175 --directory /private/tmp/profile-avatar-work/site`后TERM停止；真正npm run dev启动Vite5.4.21、strictPort5175，PID58425（session33613）。未改端口/配置/依赖。http://127.0.0.1:5175/以及同网LAN http://192.168.10.14:5175/；LAN HTTP不作installed-PWA/secure-context验收依据。
+- Vite实际served环境、CLI link、既有Production记录均ximazjhxvmktpcdbypka。Profile新字段与成员关联limit=0公开客户端查询均HTTP200/0行，Storage status200、匿名bucket list200/0行，无schema cache错误；虚构不存在路径的sign请求400/NoSuchKey未返回URL，仅证明可达，不推断真实照片权限。Root/@vite与新ProfileCard/AvatarPicker/MemberSheet/avatar-data/cat资源200、无mock。签名成功/上传/成员撤销/跨设备由用户登录后验收。
+- 一次核验脚本JSON解析异常意外在tool输出显示公开publishable客户端凭据；已向用户说明并修正解析与错误输出，后续仅项目标识/布尔/状态。没有打印service-role或session密钥，未改.env。Node直连网络失败后使用系统curl路由完成检查，headers通过stdin非命令参数。没有读取真实Profile数据或操作真实登录态。
+- 本轮仅更新DEVLOG/TESTING/spec/部署说明中的报告与环境证据；无业务代码/12头像/SQL/测试改变，复用957/957及TypeScript/Build，不重复测试。PROJECT_STATE按用户要求延后最终治理收口，后续Git发布gate必须核对其陈旧状态。无外部项目修改、Production数据/Storage变更、清理、Commit/Push/Vercel；git diff --check PASS。停止等待用户真实浏览器手动验收反馈。
+
+
+## 2026-10-14 — Profile / Avatar 上线准备审核 — PREPARED / PRODUCTION PREFLIGHT PENDING
+
+- 用户授权有边界上线准备，明确卡/Sheet及12正式预设已通过视觉验收、猫F+02；禁止Production SQL、Commit/Push/Vercel部署。核对main HEAD3512e1f89fea066a8366d54aee802ae7ed0e4a44，进入本轮35文件未提交、暂存为空。Space Rename既有Production功能及最终UI通过事实保持，不关闭本轮功能或新建版本。
+- 使用shipping-and-launch/security-and-hardening/code-review-and-quality审阅规格、canonical/增量SQL、既有Profile/成员RLS/helper、前端upload/CAS/cleanup/签名续期与本地证据。补丁为单transaction、nullable追加、不改旧Profile数据/公共RLS/Lifecycle；互斥允许default；私有bucket1MiB/JPEG、本人INSERT/未引用DELETE、本人/当前同Space成员SELECT、无UPDATE。退出最后共同Space后不能新签，已有签名最多5分钟仍有效；这不是即时撤销承诺。全部Storage与Profile policies及实际前端目标仍待Production只读Preflight/环境对齐，不把本地审核当线上通过。
+- 发现并修正实际清理阻塞：metadata请求丢响应时服务端可能晚提交，即时回读旧值并删除新文件会留下缺失头像。新增回归先Red，随后只改avatar-data：metadata结果不确定则不立即清理/不放入即时重试列表，保留到既有>24h未引用扫描；确认CAS冲突仍可立即清理，成功替换清理旧图不变。无新框架/RPC/SQL/UI。相关49/49、全量957/957、npm run build（含tsc-b）PASS，保留既有bundle警告；因实际代码修正才重跑。SQL未改，不重复222本机SQL检查。
+- 新增docs/PROFILE_AVATAR_DEPLOYMENT.md：只读SQL Editor Preflight、准确补丁路径与SHA256、只读Postflight及逐项预期/停止条件，backend先→postflight/实际目标对齐→用户authenticated本地验收→另获Git/Vercel授权→Production验收。失败保留additive后端，暂停新前端，不删bucket/回滚数据。现有5175为mock隔离预览，后续真实联调需使用同端口Vite而非将fixture当成Production连接。
+- 本轮改avatar-data、avatar regression与DEVLOG/TESTING/spec，新增部署说明；12资产/UI/canonical与增量SQL/hash保持。spec/Testing修正已通过视觉状态与最新证据，未修改PROJECT_STATE（按用户延后最终收口要求；后续发布授权前必须纠正陈旧治理状态）。无外部项目文件修改，无主动读取/输出.env或密钥，无Production查询/操作、依赖安装、Commit/Push/部署。停止等待Production变更授权及只读Preflight结果，不提前宣称线上ready/pass或关闭事项。
+
+
+## 2026-10-14 — Avatar 猫最终 F + 02 / 本地最终复验 — LOCAL PASS / RELEASE AUTHORIZATION PENDING
+
+- 用户明确选定猫F造型与02「陶粉与燕麦」配色。正式`public/avatars/cat.svg`逐字替换为已确认候选；与F的非颜色属性、全部路径/构图/比例/圆形clip/grain保持一致。其余11个预设既有视觉确认保留，12个最终预设现全部确定；正式目录恰好12个SVG，应用仍仅引用cat.svg，不接入其他候选。独立历史候选仅为Chat视觉档案，不作为正式资源。
+- 本轮仓库仅改cat.svg并追加DEVLOG；开始时文件hash核对确认其他11头像、ProfileCard/AvatarPicker/成员组件、业务逻辑、SQL、测试及测试策略逐字不变。未新增依赖/版本或扩大Avatar v1范围；Space Rename真实Production功能及最终UI通过事实保持。
+- 重新执行全量Node测试956/956 PASS（零失败/跳过/取消）；npm run build PASS（含tsc -b TypeScript），保留既有>500kB bundle警告。正式构建dist头像与选定源文件一致；git diff --check PASS。未重跑未改变的SQL，沿用此前隔离本机222 SQL assertions证据，不标作新的Production验证。
+- 使用既有envFile=false、mock Supabase、connect-src none真实源码隔离预览，375px资料卡82px、默认无input、48px正式猫加载正常；Pencil名称trim保存并退出编辑态正常。长名称卡86px，名称右界286/Pencil左界298、44px点击区域，不重叠无横向溢出。Sheet12预设均加载；本地测试PNG选择/裁剪预览/确认、JPEG2297bytes保存与签名图片显示正常（仅内存mock）。成员列表32px猫与成员弹层猫/枝叶加载，均无头像编辑入口/横向溢出。
+- 最终12资源总览全部加载，预览与375px卡/Sheet/长名称/成员截图保存在本Chat visualizations `avatar-final/`；入口http://127.0.0.1:5175/?view=overview。临时隔离fixture增加MemberSheet视图和最终已确认标注；未修改产品UI或外部项目文件。
+- 本地视觉/自动验证完成，可在用户另行确认上线阶段后进入后端部署preflight。既有增量补丁仍未部署，未连接/修改Production DB或Storage；跨设备持久化、真实成员权限、真实设备上传与五分钟签名续期人工验收仍待后端授权部署/postflight/环境对齐后进行。未读取/输出密钥，未Commit/Push/部署；PROJECT_STATE按用户要求暂不进行最终治理收口，整轮功能不提前标作关闭。停止等待用户确认Avatar v1进入上线阶段。
+
+
+## 2026-10-14 — Avatar 猫 F 造型通过 / 三组配色候选 — COLOR CHOICE PENDING
+
+- 用户明确确认F造型通过，不再修改头/耳/口鼻/肩颈/身体/构图/视觉尺度；本轮解除此前指定绿/暖灰褐/奶茶的颜色限制，授权自主配色。其余11个头像视觉通过事实保持；F形态通过不等于最终猫色彩、后端/Production或整轮功能验收完成。
+- 制作3种仅fill/stroke配色候选：01雾蓝与象牙（推荐，蓝灰毛色/象牙胸前/暖灰耳部）；02陶粉与燕麦（温暖柔和）；03墨灰与亚麻（安静、较强对比）。选择01的理由：为暖色狐狸/兔/熊与灰绿狗/鸟补入克制蓝灰，猫有自己的色彩身份，又保持复古纸感和冷暖协调。最终选择仍由用户决定。
+- 三SVG相对已确认F各仅8处color属性变化；所有path d、坐标、stroke width、circle clip、viewBox、元素结构及grain逐一相同。已确认F原文件及12个应用SVG、此前UI/data/SQL源码hash保持；未替换正式猫或接入面板。
+- 浏览器完成3组96px/实际48px，以及三排猫/狐狸/兔/熊/狗/鸟18个96px系列对照，均加载正常。窄预览以行内滚动保留原生尺寸；独立SVG、palette JSON、96/48截图及系列截图位于本Chat visualizations `avatar-cat-candidates/f-colors/`，本地入口`http://127.0.0.1:5175/cat-f-colors/`。
+- 本轮仓库仅追加DEVLOG，新增独立候选/预览资源；其他11头像、F造型、头像面板/资料卡/UI/逻辑/数据/测试、PROJECT_STATE均未改。color-only/geometry/尺寸与范围检查及git diff --check通过，不重跑业务测试/build。无外部项目修改、密钥读取/输出、依赖安装、Commit/Push/部署；停止等待用户最终选择，不宣称颜色验收或治理收口完成。
+
+
+## 2026-10-14 — Avatar 猫 F 同尺度家猫候选 — VISUAL CHOICE PENDING
+
+- 用户明确拒绝E：小巧指家猫体态，不是缩小圆内主体；猫必须与狐狸/兔/熊保持占比与视觉尺度，不能比兔子小。本轮只制作F独立候选，其余11个预设审美通过事实保持；整体Avatar/Production状态不关闭。
+- F恢复与同组动物相近的原生128×128圆内主体宽度与填充占比；没有transform或整体缩放。以较低肩部、短但不粗的肩颈连接、短口鼻与柔和颊部表现家猫体态，保持向右纯侧脸半身；采用中浅暖灰褐、米色胸前切面，避免深绿色造成沉重感。原版7处path d及7处color属性调整，原SVG结构/圆形clip/grain不变。
+- 主体占比用浏览器SVG fill几何在圆内按1单位采样、去除背景/纹理近似核对：F32.4% / 狐狸34.1% / 兔32.1% / 熊37.2%；裁切后主体宽度F94 / 狐狸95 / 兔88 / 熊97（128坐标）。兔子长耳使高度不同，不将包围盒高度或同为48px图片误当成相同视觉占比。F主体面积和宽度均未小于兔子，属于同档占比；这只是尺寸/范围验证，不等于用户审美验收。
+- 原版/D/E/F并排、F/狐狸/兔/熊并排及8个实际48×48px小图已在浏览器检查，资源加载正常且无横向溢出。独立SVG/比较页/截图与占比JSON位于本Chat visualizations `avatar-cat-candidates/f/`；本地入口`http://127.0.0.1:5175/cat-f/`。比较页测量JS仅为独立预览辅助，不是应用代码或测试文件。
+- F未替换应用cat.svg或接入面板；12个应用SVG及此前UI/data/SQL源码hash逐一保持。本轮仓库仅追加DEVLOG，其他头像/头像面板/资料卡/UI/逻辑/数据/测试与PROJECT_STATE未改。SVG结构/占比/48px渲染及git diff --check通过，不重跑业务测试/build。无外部项目修改、密钥读取/输出、依赖安装、Commit/Push/部署；停止等待用户确认F，不宣称视觉验收或治理收口完成。
+
+
+## 2026-10-14 — Avatar 猫 E 小巧家猫候选 — VISUAL CHOICE PENDING
+
+- 用户指出D虽更像猫，但魁梧/厚重，不像小巧家猫；明确授权本轮猫毛色调整。其余11个预设及Mid-century Geometric Editorial Illustration风格继续保持视觉通过事实；E仍待用户审美确认，未关闭整体Avatar功能。
+- 单一E继续向右纯侧脸半身，身体横向体块从原/D约97单位收至70单位，肩部降低、胸前浅色块收窄，整体高度收短；头部略小且轮廓柔和，保留短口鼻、小眼线与适中的直立猫耳，不新增大眼/胡须，不做大型猫科体态、正/斜正脸或圆脸Q版。
+- 配色选择浅暖灰褐taupe `#AEA191`，搭配奶茶耳部与浅米色胸前切面；以同组兔/熊的暖灰褐为参照，减轻原深绿的视觉重量。共调整原版7处path d及8处color属性，圆形clip、grain、元素数量与结构保持。
+- 原版/C/D/E并排、E/狐狸/兔/熊并排及8个实际48×48px小图已在浏览器检查，资源加载正常且无横向溢出。独立SVG/比较页/截图位于本Chat visualizations `avatar-cat-candidates/e/`；本地入口`http://127.0.0.1:5175/cat-e/`。E未替换应用cat.svg或接入面板；12个应用SVG及此前UI/data/SQL源码hash逐一保持。
+- 本轮仓库只追加DEVLOG记录，新增独立候选与预览资源；头像面板、资料卡、UI/逻辑/数据/测试、另外11头像与PROJECT_STATE均未修改。SVG结构/范围、48px渲染和git diff --check通过，不重跑业务测试/build。无外部项目修改、密钥读取/输出、依赖安装、Commit/Push/部署；停止等待用户确认，不宣称视觉验收或治理收口完成。
+
+
+## 2026-10-14 — Avatar 猫 D 紧凑侧脸候选 — VISUAL CHOICE PENDING
+
+- 用户肯定C的猫辨识度，但指出轮廓瘦/长/直、脖子较长，与已接受系列的短脖子、紧凑、略圆润气质不协调。本轮仅制作单一D，不采用或发布C，不改变其余11个头像审美通过事实。
+- D基于C保留向右纯侧脸、短口鼻、直立尖耳与小眼线；头部下移约5–6 viewBox单位，头后/肩部连接抬高，原直线颈部改为短弧形过渡；脸颊与下颌略加宽、肩部更饱满。调整7处path d（含相应位置同步），palette/grain/圆形裁切/元素数量结构保持，不新增大眼睛或夸张胡须，不做正/斜正脸、圆脸Q版或面具色块。
+- 原版/C/D并排以及D/狐狸/兔/熊系列对比已完成；3个主对比小图和4个系列小图均在浏览器实际48×48px渲染且加载正常，无横向溢出。独立SVG/比较页/截图位于本Chat visualizations `avatar-cat-candidates/d/`，本地入口`http://127.0.0.1:5175/cat-d/`。
+- D仍为待确认候选，未替换public/avatars/cat.svg；原12个应用SVG及之前UI/data/SQL源码hash逐一保持。本轮仓库仅追加DEVLOG记录，UI/逻辑/数据/测试/其他11头像与PROJECT_STATE均未修改；SVG结构/范围、48px渲染和git diff --check通过，不重跑业务测试/build。无外部项目文件修改、密钥读取/输出、依赖安装、Commit/Push/部署。停止等待用户判断D，不宣称审美通过或最终治理关闭。
+
+
+## 2026-10-14 — Avatar 猫 C 侧脸候选 — VISUAL CHOICE PENDING
+
+- 用户拒绝A（辨识度变化不足）与B（正/斜正脸破坏侧脸系列），两者不采用。其余11个头像与正式确认的Mid-century Geometric Editorial Illustration风格保持，猫继续等待视觉确认。
+- 本轮单一C回到向右纯侧脸半身：缩短鼻梁/口鼻前伸，头部主体更竖向紧凑，尖耳更直立；用短鼻尖与略柔和下颌连接保留几何切面，不新增眼睛/胡须、不做圆脸或面具式脸部色块。仍只改原猫6处path d，原palette/grain/圆形裁切/元素结构一致；身体半身布局保持。
+- C、原版并排，以及C/狐狸/兔/熊系列并排展示完成；浏览器确认6个小图均为实际48×48px且加载成功。独立候选SVG/比较页/截图位于本Chat的visualizations `avatar-cat-candidates/c/`，本地入口`http://127.0.0.1:5175/cat-c/`。候选没有替换应用cat.svg或接入选择器；12个应用SVG与之前UI/data/SQL源码hash逐一不变。
+- 本轮只新增候选预览资源并追加此DEVLOG记录；UI/逻辑/数据/测试/其他11头像与PROJECT_STATE均未修改，不重跑业务测试/build。SVG结构与范围检查、48px渲染检查及git diff --check通过。无外部项目修改、密钥读取/输出、Commit/Push/部署。停止等待用户判断C，未作审美通过或治理关闭声明。
+
+
+## 2026-10-14 — Avatar 猫头像两候选 — VISUAL CHOICE PENDING
+
+- 用户正式确认Avatar v1视觉风格为「复古几何拼贴插画（Mid-century Geometric Editorial Illustration）」；另外11个预设头像视觉通过，猫仍待调整与选定。此为预设资源审美事实，不表示头像持久化、Production或整个功能已验收/关闭。
+- 本轮只制作独立猫SVG候选：A收窄直立耳朵、缩短侧面口鼻；B使用更紧凑的斜侧面、几何颊部与贴近面部的口鼻。均只改变原版6处path d，元素数量、fill/stroke palette、grain、圆形裁切和身体结构保留，不新增大眼睛/明显胡须，不接入应用选择器。
+- 原版/A/B并排放大及实际48×48px圆形浏览器预览完成，附既有狐狸/兔/熊作为系列参照；三个48px图像均加载正常，12个应用SVG SHA256与本轮开始时逐一一致。候选和截图保存在本Chat的visualizations目录`avatar-cat-candidates`，本地比较入口`http://127.0.0.1:5175/cat-candidates/`。SVG结构/范围检查及git diff --check通过；无业务代码改动，因此不重跑TypeScript/build或业务测试。
+- 仓库仅追加本条DEVLOG记录；其他11个头像、原猫、UI/数据/业务、PROJECT_STATE均未改变。未读取/输出密钥、未安装依赖、未改外部项目、未Commit/Push/部署。停止等待用户选择A/B或继续调整；不作最终治理收口。
+
+
+## 2026-10-14 — Profile Card Compact + Avatar v1 — LOCAL TECHNICAL PASS / VISUAL ACCEPTANCE PENDING
+
+- 批准基线：main / `3512e1f89fea066a8366d54aee802ae7ed0e4a44`，初始工作区 clean；基线相关36/36与TypeScript/Build通过。Space Rename已由用户完成真实Production功能及最终UI验收，本轮保留这一事实，不重开或提前治理收口，不新增正式版本。
+- 紧凑资料卡：默认48px圆形头像、名称、16px Pencil（44×44点击区域）；只有点击后显示输入与保存/取消，编辑时不重复名称。沿用trim与1–20规则，新增同步提交锁、未修改no-op、IME与焦点保护，失败保留草稿。375px实际浏览器基线214px → 82px（约62%收缩）；长名称86px且不重叠。
+- Avatar：12个原创SVG插画，6动物/6自然，统一低饱和纸感，共11,859 bytes；Sheet支持上传、照片裁剪预览/确认、预设与默认恢复。JPEG/PNG/WebP输入≤10 MiB，原生Canvas居中裁剪/512px/JPEG重编码，输出≤1 MiB，不保留原文件元数据。共同组件用于我的、空间详情成员行与MemberSheet；成员无头像编辑入口。
+- 数据与安全：新增互斥nullable `profiles.avatar_preset/avatar_path`，私有`profile-avatars` bucket；只增加该bucket的本人上传/删除与本人/当前同空间成员读取策略，现有public RLS逐字保持。成员只能读当前引用照片，本人可清理未引用照片；没有Storage UPDATE政策。先上传immutable UUID文件，CAS更新metadata后清理旧文件；不确定失败先回读，禁止删当前引用。清理失败可独立重试，重开时最多扫描100个最旧自身文件，仅将超过24小时的未引用文件列为恢复清理候选，避免影响其他设备在途上传。没有本地持久化照片或清理数据库。
+- 签名链接仅存组件内存，5分钟有效，提前1分钟、前台/focus时续期；失败/图片错误30秒重试并显示默认占位，卸载清理监听/timer。已发出的链接是短期bearer URL，成员资格撤销后不能新签，但原链接在剩余有效期内仍可能使用；这是明确的签名链接边界。
+- 测试与复审：名称/头像/签名续期/Space相关48项；全量956项（包括新增22项），TypeScript/Build与diff-check通过。独立本机Docker随机临时DB使用真实Storage schema（仅schema，无用户资料/文件拷贝）；upgrade/fresh各27 Avatar + 26 Rename + 58 Lifecycle，共222 SQL assertions通过，public/Storage全schema+ACL parity、public RLS未变、未知Storage政策drift与重放拒绝通过；临时DB已回收，未写现有本机业务库或Production。focused correctness/security/structure复审通过，无新增依赖；既有bundle警告保持，增量JS约13.6kB/gzip4.2kB。
+- 浏览器：真实源码React隔离预览（envFile=false、mock Supabase、connect-src none）在320/375/390/768/1024×正常/长名称/Sheet/成员20组布局通过，另375×480与320×480短屏滚动通过。实际输入/保存trim、取消/focus恢复、Tab闭环/Escape、预设/默认、真实文件选择→居中512px照片处理、坏图错误/重试入口通过；无console warning/error。375px卡片/编辑/Sheet/长名称/成员/照片截图与768px完整12头像总览保存在`/private/tmp/profile-avatar-work/screenshots/`，不进入Git。自动布局PASS不等于用户审美PASS。
+- 边界：没有主动读取/输出/修改.env或密钥；正式build按现有配置加载环境，隔离预览不加载环境文件。没有修改外部项目文件；临时预览/日志/截图在private/tmp。没有Commit/Push/部署、Production数据库或Storage配置操作。PROJECT_STATE本轮按用户要求暂不收口、未改；真实账号跨设备/双账号/真机/PWA与Production上传验收尚未执行，必须另获后端部署授权并通过环境对齐Gate后再进行。当前停止等待用户视觉与交互确认。
+
+
 ## 2026-10-14 — Space Rename Pencil入口微调 — LOCAL PASS / VISUAL ACCEPTED
 
 - 用户确认Space Rename已通过Production功能验收；本轮仅优化空间详情顶部卡片，最终治理收口仍待后续授权。

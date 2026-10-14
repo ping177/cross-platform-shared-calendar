@@ -1,6 +1,7 @@
 import { X } from 'lucide-react';
 import { memberDisplayName } from '../lib/member';
 import type { SpaceMember } from '../types';
+import { ProfileAvatar } from './ProfileAvatar';
 
 type MemberSheetProps = {
   members: SpaceMember[];
@@ -29,6 +30,7 @@ export function MemberSheet({ members, userId, onClose }: MemberSheetProps) {
                   <p className="min-w-0 truncate font-semibold text-ink">
                     {memberDisplayName(member)}{isCurrentUser ? '（我）' : ''}
                   </p>
+                  <ProfileAvatar userId={member.user_id} preset={member.profiles?.avatar_preset} path={member.profiles?.avatar_path} size={32} />
                 </div>
               </div>
             );
