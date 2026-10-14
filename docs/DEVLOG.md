@@ -1,5 +1,26 @@
 # Development Log
 
+## 2026-10-15 — 日期/表单修复正式发布审查 — MAC PASS / IPHONE MANUAL PENDING
+
+- 用户确认Mac本地视觉正常，明确授权统一Commit/正常Push origin/main/现有Vercel Production自动部署及Source核验。基线main/origin/main/Production0fe85e8，刷新远端一致；六文件范围仅src/styles.css的19行、tests/sheet-date-layout.test.ts的3项以及PROJECT_STATE/DEVLOG/TESTING/BACKLOG。完整diff审查无只读筛选器审计/可行性评估产生的实现、依赖、临时截图、环境或无关文件。
+- 发布前按用户要求重跑967/967、npx tsc -b、npm run build/diff-check PASS，包含Event创建Space回归7项与日期/边界3项；既有bundle大小警告非阻塞。业务TSX逐字保持0fe85e8，Task Sheet结构不变；CSS只匹配Event datetime-local/Task date和Event正文横向边界，其他select/筛选器完全不变。
+- 保留日历自定义底部Sheet，任务/清单/回顾/重要日原生select；A/B仅独立未来决策，未实施、未冻结，不因技术推荐写成产品选择。本轮无Event创建/编辑逻辑、日期数据、提醒、后端、数据库、RLS/RPC/Edge/Cron、生产配置或用户内容变更。
+- Project State Gate复核版本/状态/Next Action/Blockers/Version Index/Deployment；保持v0.1.20，不增版本条目。Next Action为用户iPhone Safari与安装PWA复验，不写正在提交等立即过期状态；采用Project-State-Review: updated trailer，Push后执行只读freshness审查。具体部署及SHA以最终实测报告为准，不能预写成功或CLOSED。
+- Mac视觉、桌面375/430/短视口及宽度压力模型不能证明真实iPhone修复PASS。发布后用户自行刷新Safari、重启PWA，核验四类表单/日期选择/横纵滚动/键盘安全区域及Space草稿归属；状态保持已发布后真机验收待完成。无真实登录态继承，未读取.env或输出密钥、无外部项目修改；不安装依赖、不重放SQL。以下FAIL/本地未发布内容为历史实施记录。
+
+## 2026-10-15 — iPhone PWA Event/Task 日期与横向溢出定向修复 — LOCAL PASS / PRODUCTION FAIL
+
+- 用户报告Production0fe85e8在iPhone PWA：Event新建/编辑整体内容可上下左右移动、日期居中，Task日期亦居中；Production验收FAIL/修复中，不能CLOSED。main/origin/main原本clean，未修改已验收的Space创建或我的标题。
+- 只读比较26777a1→0fe85e8：唯一CSS变更是ui-me-title居中→左；Event/Task容器/日期样式未改，编辑结构未改。0fe85e8增加createTarget选择控件，增加必要表单高度但不能解释编辑/Task日期变化。没有发现transform/zoom覆盖；SW仅Push/通知点击，无资产缓存handler。未以此断言iOS/PWA缓存绝不存在。
+- 当前桌面IAB的375/430真实组件未复现原生横向溢出/日期居中；Event面板max92dvh且正文滚动、Task短表单自然更矮，这本身不是异常。Safari原生自动化尝试超时，未访问用户登录态。真实iPhone/系统版本/本地化与键盘未复现。
+- 官方WebKit源码证据：[html.css](https://github.com/WebKit/WebKit/blob/main/Source/WebCore/css/html.css)的iOS `::-webkit-date-and-time-value`默认center；[RenderThemeIOS.mm](https://github.com/WebKit/WebKit/blob/main/Source/WebCore/rendering/ios/RenderThemeIOS.mm)的adjustInputElementButtonStyle对非固定宽度日期强制本地化最小宽度/content-box。原Event/Task未显式取消这些theme约束；Event overflow-y:auto让未声明overflow-x的计算值为auto。日期居中原因有源码证据；用户设备布局异常与该机制吻合，但尚不是精确设备根因复现。
+- 最小修复src/styles.css：仅Event datetime-local/Task date的appearance:none（含webkit）、min-width0/max-width100%/border-box及外层/内部值left；保留type和picker，不改padding、字号、固定层/高度/Task布局；Event正文min-width0/overflow-x:hidden保留overflow-y:auto/contain/safe-bottom。其余模块日期、表单和全App文字不受选择器影响。
+- 新tests/sheet-date-layout.test.ts三项先Red再Green：限定日期规则与原生type、内部值左对齐非全局、Event纵向滚动/横向边界。相关10/10（含Calendar创建7项）、全量967/967、npx tsc-b、npm run build/diff-check PASS；既有bundle warning保留，未安装依赖。
+- 离线真实组件+正式CSS，envFile=false/CSP connect-src none：375/430×Event create/edit和Task create/edit，修复后日期left且无横溢、Task面板445/493高度保持；375×480四类表单max92dvh/内部滚动通过；长描述滚动到正文底部时panel固定、window scroll0；Task清除/原生Event日期picker打开通过。Calendar真实组件Space切换保留标题，mock保存Shared一次且all筛选保留；业务源码完全未变。
+- 明确声明的宽度压力模型（非真实iPhone模拟器）：按源码机制施加380px原生最小宽度/content-box/center，375旧Event body可视345/scroll430/input414，修复body345/scroll345/input313/left；375/430四表单共8项模型检查通过。这是机制/收缩测试，不能证明iPhone具体最小宽度为380或真机修复PASS。
+- 修复前后同375/430、同内容截图及模型截图：本Chat event-task-fix/{before/after}-{event-create,event-edit,task-create,task-edit}-{375,430}.png；webkit-sizing-model-before/after-375.png与validation.json。真机软键盘、iPhone datepicker、真实safe-area/dynamic viewport仍需用户验收。
+- 本轮仅CSS、测试与治理，无业务/后端/Schema/RLS/提醒/Avatar或外部项目改动；临时fixture/截图在仓库外。不读取.env/打印密钥，不继承登录，不Commit/Push/部署。固定5175隔离检查后恢复真实Vite，实际served/CLI linked均ximazjhxvmktpcdbypka，Event/member limit0 HTTP200/零行；公开配置仅内部使用、未输出。用户确认后才进入后续授权发布/复验。
+
 ## 2026-10-15 — 日历创建与我的标题统一发布审查 — LOCAL USER PASS / PRODUCTION MANUAL PENDING
 
 - 用户明确确认日历创建真实账号与我的标题视觉PASS，并授权统一Commit/正常Push origin/main/Vercel自动Production发布核验。基线main/origin/main26777a1；完整12文件范围：App、MyPage、styles，calendar-create新测试、两UI回归测试和六治理文档。没有后端/Avatar/依赖/环境/临时截图或无关文件。

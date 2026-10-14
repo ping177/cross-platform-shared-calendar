@@ -112,6 +112,23 @@ select {
   font-size: 16px;
 }
 
+/* iOS date controls otherwise impose a localized intrinsic width/content-box
+   and center their internal value. Preserve the native picker, style only
+   Event/Task fields, and leave Task's flex row/clear button unchanged. */
+.ui-event-sheet-body input[type="datetime-local"],
+.ui-task-sheet-body input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  text-align: left;
+}
+.ui-event-sheet-body input[type="datetime-local"]::-webkit-date-and-time-value,
+.ui-task-sheet-body input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+}
+
 /* One decoration for native single selects and the Calendar Space trigger.
    The icon is Lucide's 24px chevron path in a 16px box, using ui-muted (#636F67).
    It is decorative: native options, popup UI and keyboard behavior stay intact. */
@@ -811,6 +828,8 @@ body:has(.ui-calendar-shell) {
 .ui-event-sheet-header button { min-height: var(--ui-touch-target); min-width: var(--ui-touch-target); border-radius: var(--ui-radius-control); }
 .ui-event-sheet-body {
   min-height: 0;
+  min-width: 0;
+  overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
   overflow-wrap: anywhere;

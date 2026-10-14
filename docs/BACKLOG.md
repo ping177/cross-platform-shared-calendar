@@ -1,8 +1,8 @@
 # Backlog
 
-## Final pre-trial calendar create UX — LOCAL USER ACCEPTED / PRODUCTION MANUAL PENDING
+## Final pre-trial corrective work — MAC ACCEPTED / IPHONE ACCEPTANCE PENDING
 
-唯一当前开发例外：日历右上角唯一44×44「+」直接打开既有完整EventSheet，不再有前置空间选择Sheet。全部空间默认当前用户Personal Space，具体筛选默认当前Space；两种模式均显示可交互的「保存到」选择控件，可改为其他合法Space。切换保留标题、日期时间、重复、提醒和描述，仅重置空间相关归属；保存使用最终选中的Space，保存前重验Auth/成员。无合法目标或读取失败禁用保存并提示/重试；取消保留日历日期、视图、筛选。已有Event编辑/转移、任务清单及后端不变。 本地964/964与TypeScript/Build通过，日历真实账号功能已验收PASS；「我的」标题视觉已确认、统一发布已授权；等待Production/PWA真实人工验收。Production验收后暂停常规功能开发，进入约两周真实试用观察；用户报告测试数据清理完成，不重做清理。
+当前唯一发布范围：Event正文宽度/滚动边界、Event/Task日期WebKit外观/尺寸/左对齐，3项回归与治理；用户Mac本地视觉PASS，967/967及TS/Build通过，Git→Vercel发布已授权。iPhone Safari/PWA真实复验待完成，未CLOSED；上一版0fe85e8的FAIL为问题历史。Event已验收Space逻辑和五模块现有筛选器保持，筛选器统一A/B为独立未来决策，未实施或冻结。最终真机PASS后暂停常规开发、真实试用观察；用户报告数据清理完成，不重做。
 
 ## Prior observation plan — superseded by the final pre-trial UX exception
 

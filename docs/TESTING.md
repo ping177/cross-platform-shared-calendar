@@ -1,5 +1,16 @@
 # Testing
 
+## iPhone PWA Sheet/date corrective work — MAC ACCEPTED / IPHONE ACCEPTANCE PENDING / 2026-10-15
+
+- 本轮用户Mac本地视觉PASS并明确授权Git→Vercel发布；发布前重新执行全量967/967、npx tsc -b、npm run build/diff-check PASS。保持3项日期/布局与7项Event空间创建回归；没有TSX、筛选器、业务或后端改动。
+- 发布后人工：自行刷新iPhone Safari、完全退出并重开安装PWA；四类新建/编辑表单日期左对齐、原生日期选择、无横向移动且纵向滚动可用，软键盘与安全区域正常；抽查Event Space切换保留草稿和最终归属。真实iPhone仍NOT RUN，未CLOSED；部署成功不替代用户验收。筛选器审计仅只读，A/B不在本次测试/发布范围。
+- 用户明确Production验收FAIL：Event新建/编辑内容可上下左右移动，Event/Task日期居中。0fe85e8未变日期或Sheet样式；日期居中及固有宽度机制见DEVLOG官方WebKit源码，不无证据归因My标题CSS或缓存。
+- 3项新增CSS/type契约Red→Green；相关10/10，full967/967、TypeScript、Build/diff-check PASS。Calendar创建7项及所有既有业务测试保留。只改src/styles.css，没有TSX/业务/后端变更。
+- 375/430真实组件8场景：无横溢，输入及内部值left，Task原445/493px面板不变；375×480四场景max92dvh及纵向滚动保持；长内容panel坐标不变/window scroll0；原生Event picker能打开，Task清除正常，Calendar切换/最终Shared模拟保存一次且filter all保持。console error/warn为空；safe-area表达式、字号16/type/native选择器保留。
+- 宽度压力模型另8场景PASS：施加380px最小宽度/content-box/center，旧body345/scroll430 vs修复body345/scroll345；这是声明的源码机制模型，不是iPhone模拟器或真实iOS复现。普通桌面修复前没有复现，截图不能伪称iPhone效果。
+- 图片：Chat event-task-fix/before-及after-四种表单375/430.png；webkit-sizing-model-before/after-375.png。真实iPhone/PWA、键盘、系统日期picker、安全区域仍NOT RUN，用户复验通过前不CLOSED。后续发布需要另行授权。
+- Commands: `node --test tests/sheet-date-layout.test.ts tests/calendar-create.test.ts`; `node --test tests/*.test.ts tests/*.test.js`; `npx tsc -b`; `npm run build`; `git diff --check`.
+
 ## 我的标题一致性 — LOCAL PASS / USER VISUAL ACCEPTED / 2026-10-15
 
 - 首页/日历/My均复用text-ui-page-title：26px、34px行高、700字重、16px水平边距；My左对齐/44px标题行，原顶部safe-area与20px卡片间距保持。375px真实组件隔离截图my-title-375.png；无横向溢出，底部导航375×49、console error/warn为空。用户已确认标题视觉PASS，Production/PWA待验收。
