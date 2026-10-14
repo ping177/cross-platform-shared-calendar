@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Pencil } from 'lucide-react';
 import { canRenameSpace, renameSpace, spaceRenameError } from '../lib/space-rename';
 import { supabase } from '../lib/supabase';
 import type { CurrentSpace, Space } from '../types';
@@ -32,7 +33,7 @@ export function SpaceNameEditor({ space, userId, busy, onBusyChange, onSpaceChan
     else if (wasEditing.current) trigger.current?.focus();
     wasEditing.current = editing;
   }, [editing]);
-  if (!canRenameSpace(space, userId)) return null;
+  const canEdit = canRenameSpace(space, userId);
 
   function cancel() {
     if (submitting.current || live.current.busy) return;
@@ -68,11 +69,15 @@ export function SpaceNameEditor({ space, userId, busy, onBusyChange, onSpaceChan
   }
   const disabled = busy || saving;
   const actionClass = 'ui-focus min-h-11 rounded-ui-control px-ui-3 text-ui-meta font-ui-semibold disabled:opacity-50';
-  return <div className="mt-ui-2">
-    {!editing ? <button ref={trigger} className={`${actionClass} text-ui-accent`} type="button" disabled={disabled} onClick={() => {
+  return <div className="mt-ui-1 min-w-0">
+    <div className="flex items-center gap-ui-2">
+      <h2 className="min-w-0 flex-1 break-words text-ui-bar">{space.name}</h2>
+      {canEdit && !editing && <button ref={trigger} className="ui-focus flex min-h-11 w-11 shrink-0 items-center justify-center rounded-ui-control text-ui-accent disabled:opacity-50" aria-label="修改名称" title="修改名称" type="button" disabled={disabled} onClick={() => {
       if (submitting.current || live.current.busy) return;
       setDraft(live.current.space.name); setError(''); setMessage(''); setEditing(true);
-    }}>修改名称</button> : <form onSubmit={(event) => void save(event)} aria-busy={saving} onKeyDownCapture={(event) => {
+    }}><Pencil size={16} aria-hidden="true" /></button>}
+    </div>
+    {canEdit && editing && <form className="mt-ui-2" onSubmit={(event) => void save(event)} aria-busy={saving} onKeyDownCapture={(event) => {
       const ime = composing.current || event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229;
       if (event.key === 'Enter' && ime) event.preventDefault();
       if (event.key === 'Escape' && !ime) { event.preventDefault(); cancel(); }

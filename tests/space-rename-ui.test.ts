@@ -21,17 +21,19 @@ async function runtime(run: (e: any) => Promise<void>) {
     const { SpaceNameEditor } = await vite.ssrLoadModule('/src/components/SpaceNameEditor.tsx');
     const props: any = { space, userId: 'me', busy: false, onBusyChange(busy: boolean) { props.busy = busy; }, onSpaceChange(updated: any) { saved.push(updated); props.space = { ...props.space, ...updated }; } };
     const render = () => { cursor = 0; return SpaceNameEditor(props); };
-    const click = (label: string) => nodes(render()).find(n => n.type === 'button' && n.props.children === label).props.onClick();
+    const click = (label: string) => nodes(render()).find(n => n.type === 'button' && (n.props.children === label || n.props['aria-label'] === label)).props.onClick();
     const change = (value: string) => nodes(render()).find(n => n.type === 'input').props.onChange({ target: { value } });
     const submit = () => nodes(render()).find(n => n.type === 'form').props.onSubmit({ preventDefault() {} });
     await run({ props, render, click, change, submit, calls, saved, client, query, response, effects, html: () => renderToStaticMarkup(render()), flush: () => new Promise(r => setImmediate(r)) });
   } finally { await vite.close(); delete (globalThis as any).__renameHooks; delete (globalThis as any).__renameClient; }
 }
 test('only current owners have the inline edit entry; Personal additionally requires creator identity', () => runtime(async ({ props, html }) => {
-  assert.match(html(), /修改名称|ui-focus|min-h-11/);
-  props.space = { ...space, membershipRole: 'member' }; assert.equal(html(), '');
+  assert.match(html(), /aria-label="修改名称"/);
+  assert.match(html(), /min-h-11 w-11/);
+  assert.match(html(), /lucide-pencil/);
+  props.space = { ...space, membershipRole: 'member' }; assert.match(html(), /共同空间/); assert.doesNotMatch(html(), /<button|<form/);
   props.space = { ...space, kind: 'personal', created_by: 'me' }; assert.match(html(), /修改名称/);
-  props.space = { ...props.space, created_by: 'other' }; assert.equal(html(), '');
+  props.space = { ...props.space, created_by: 'other' }; assert.doesNotMatch(html(), /<button|<form/);
 }));
 test('prefilled required input and unchanged submit do not send a mutation', () => runtime(async ({ click, submit, calls, render, html, flush }) => {
   click('修改名称'); const input = nodes(render()).find(n => n.type === 'input');

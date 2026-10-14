@@ -1,5 +1,12 @@
 # Development Log
 
+## 2026-10-14 — Space Rename Pencil入口微调 — LOCAL PASS / VISUAL ACCEPTED
+
+- 用户确认Space Rename已通过Production功能验收；本轮仅优化空间详情顶部卡片，最终治理收口仍待后续授权。
+- 将名称与16px Pencil图标放入同一行，删除独立文字按钮行；保留原名称Typography、类型图标/文案及卡片风格。图标具有44×44触控区域、可访问名称与键盘焦点；长名称自然换行，Member只读名称。沿用行内编辑、权限、保存/失败/重复提交及IME逻辑，不改数据层、SQL或其他卡片。
+- 相关前端38/38、TypeScript/Build、diff-check通过；既有bundle大小警告保持。最新React离线Chrome在320/375/768/1024宽度下Shared Owner/Personal/Member/长名称共16组布局与初始/恢复焦点、失败重试、保存锁检查通过，无console错误。375px截图生成于/private/tmp，不进入Git；离线模拟不替代真实账号验收。
+- 用户已确认本地视觉效果。当前获授权执行Commit/Push及Vercel Production核验；Production视觉验收及Space Rename最终治理收口仍待完成，不提前关闭Space Rename。
+
 ## 2026-10-14 — Space Rename — DATABASE PATCH APPLIED / FRONTEND ACCEPTANCE PENDING
 
 - 基线：main / b69251c08142b686db48a1dd817f56688252a874，与缓存origin/main一致，clean/index empty。用户批准在现有名称更新能力上增加Owner名称保护；UI v2与Calendar视觉关闭状态不撤销，不分配新版本。

@@ -51,9 +51,8 @@ export function SpaceDetailContent({ space, members, moduleState, moduleError, m
     <section className="ui-space-group">
       <div className="ui-space-identity">
         {space.kind === 'personal' ? <UserRound size={24} aria-hidden="true" /> : <Users size={24} aria-hidden="true" />}
-        <div className="min-w-0 flex-1"><p className="text-ui-label text-ui-muted">{space.kind === 'personal' ? '个人空间' : '共享空间'}</p><h2 className="mt-ui-1 break-words text-ui-bar">{space.name}</h2></div>
+        <div className="min-w-0 flex-1"><p className="text-ui-label text-ui-muted">{space.kind === 'personal' ? '个人空间' : '共享空间'}</p>{nameEditor ?? <h2 className="mt-ui-1 break-words text-ui-bar">{space.name}</h2>}</div>
       </div>
-      {nameEditor}
     </section>
     {space.kind === 'shared' && <>
       <section className="ui-space-group">

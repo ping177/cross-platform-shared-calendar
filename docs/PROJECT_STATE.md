@@ -12,6 +12,8 @@ v0.1.20
 
 ## Current status
 
+Space Rename功能已部署并由用户完成Production功能验收；最终治理收口尚未执行。本次空间详情名称行Pencil微调已通过用户本地视觉确认，相关38/38测试、TypeScript/Build及16组离线响应式/交互检查通过；当前正在执行获授权的main提交、Push与Vercel部署核验。Production中的本次视觉更新仍待确认部署及用户验收，不提前关闭Space Rename事项或新增版本。
+
 Space Rename本地实现、自动验证及功能Commit `633f9ac2…` 已完成；用户确认Production补丁已在Supabase SQL Editor执行，Postflight返回`spaces_validate_identity / enabled=O / PATCH_APPLIED`。状态为**DATABASE PATCH APPLIED / FRONTEND RELEASE AND ACCEPTANCE PENDING**。复用spaces.name更新，名称Trigger校验当前Owner/Personal本人、trim与1–80 Unicode字符；不新增Rename RPC、不全面收紧RLS。空间详情行内编辑保持UI v2风格。相关66/66、全量934/934、TypeScript/Build及本机隔离数据库验证通过。用户已授权Push；本次需核验GitHub Push及Vercel Production部署/source SHA，之后由用户真实账号验收。验收前不将功能标记为CLOSED/PASS；不新增正式版本，既有UI v2关闭状态保持。数据库结果来自用户报告，本轮没有独立Production连接。
 
 **UI v2 及后续 Calendar 视觉优化 = PRODUCTION ACCEPTED / CLOSED**（仅关闭 UI 改造及对应发布验收范围）。UI v2 的全部11个 Slice、Integration Round 1/2 与功能中心顶部概览优化已完成；UI v2 已发布 Production 并通过用户验收。Calendar UI Patch（统一日/周/月头部、重做周视图及日期对齐修正）Commit `391708f4…` 已发布并通过用户验收。Calendar Chevron Removal Commit `ecbe03d7…` 移除日/周视图日程右侧箭头并保留整行点击；该 Chevron 补丁部署 source HEAD `1fc7a3bd…`，用户再次确认正式网站箭头消失且点击正常。
@@ -389,6 +391,8 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 2026-10-13（Round2最终收口：本次直接相关64/64、完整TS+JS918/918、build/diff-check PASS；复用144/144、30/30及13张375px截图，源码指纹与构建CSS匹配。用户三表单视觉验收通过；环境对齐、真实账号/设备/PWA/Production集成验收仍Pending。）
 
 ## Next Action
+
+当前下一步：完成本次已授权的Space Rename Pencil微调Commit/Push及Vercel Production部署核验；之后由用户确认Production页面效果。最终治理收口仍待后续处理。
 
 下一步：由用户在真实账号中验收已发布的Space Rename（Owner/Personal可改名、Shared Member不可改名、保存后刷新仍保留新名称）；验收前保持**FRONTEND ACCEPTANCE PENDING**，不将功能标记为CLOSED/PASS。Production数据库补丁应用及Postflight为用户报告；UI v2及Calendar视觉改造保持关闭，Deferred项目不自动启动，不新增下一版本。
 
