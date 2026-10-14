@@ -1,5 +1,15 @@
 # Development Log
 
+## 2026-10-14 — Space Rename — DATABASE PATCH APPLIED / FRONTEND ACCEPTANCE PENDING
+
+- 基线：main / b69251c08142b686db48a1dd817f56688252a874，与缓存origin/main一致，clean/index empty。用户批准在现有名称更新能力上增加Owner名称保护；UI v2与Calendar视觉关闭状态不撤销，不分配新版本。
+- 后端：原spaces_update_member允许成员更新，因此先在本机重现Shared Member直接改名可绕过前端。只扩展validate_space_identity的OLD/NEW.name变化分支；Shared以当前membership owner、Personal以created_by本人且owner校验。ECMAScript trim字符集与1–80 Unicode code point限制仅用于改名，不改历史名称；kind/created_by/Personal invite不变量保持。函数仍security invoker，显式pg_catalog/pg_temp search_path及schema-qualified表/身份函数；没有新RPC、RLS/ACL重构。canonical schema与新forward patch一致，补丁检查原trigger/search_path基线，drift与重放拒绝。
+- 前端：Space详情身份区复用UI v2现有输入/操作样式，具备资格者才显示修改名称；预填、未修改无请求、同步重复提交锁、IME Enter保护、取消与初始/恢复焦点、失败保留原名称及草稿。仅发送{name}，按Space ID和原名称定位；服务端canonical返回记录通过现有onSpaceChange更新根列表，名称改变时清除复制旧名称的页面快照，invite-only更新不影响快照。固定Personal/Shared类型标签、导航、成员、邀请码及Lifecycle保持原规则。
+- 自动检查：相关Node66/66、全量TS+JS934/934、TypeScript和Build PASS；既有bundle大小警告非阻塞。独立本机Supabase容器临时DB（upgrade/canonical两路径）各26项Rename、58项多空间、58项Lifecycle断言，共284项通过；观察到4次真实PostgreSQL锁等待，验证Transfer前后旧/新Owner权限；全public schema/ACL parity及历史名称不变。临时DB已回收，未写原本机业务库或Production。
+- 真React离线Chrome：320/375/768/1024 × Shared Owner/Personal Owner/Member/长名称16组布局通过，初始与关闭焦点、保存锁、失败保留、重试及canonical标题更新通过，无console错误；截图与临时fixture在/private/tmp，未进入仓库。离线与自动化证据不替代真实账号/PWA验收。
+- Production数据库：用户确认在Supabase SQL Editor手动执行唯一补丁成功；Postflight返回`spaces_validate_identity / enabled=O / PATCH_APPLIED`。这是用户提供的执行结果；本轮未使用CLI或独立连接再次查询。没有为验收改写业务数据。
+- 当前状态：数据库补丁已应用，前端仍未Push/部署，用户真实账号验收待前端发布后进行。此前计划中的数据库Preflight/patch步骤已完成；Git Push Gate及Production前端发布仍须另行授权。本轮未主动读取或输出真实凭证、未执行数据库操作、未登录、未Push/Deploy。
+
 ## 2026-10-14 — UI v2 与 Calendar 视觉优化最终治理收口 — PRODUCTION ACCEPTED / CLOSED
 
 - 用户确认相关 Production 验收全部通过：UI v2 已发布并验收；Calendar UI Patch 的日/周/月统一头部、周视图改造及日期对齐已通过；Calendar Chevron Removal 在正式网站已看不到日/周日程右侧箭头，整行点击交互正常。本次关闭范围仅为 UI 改造与对应验收，不表示所有业务 E2E、危险操作、Push 或 Realtime 均已覆盖。

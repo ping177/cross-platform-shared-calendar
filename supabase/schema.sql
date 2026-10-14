@@ -232,7 +232,8 @@ $$;
 create or replace function public.validate_space_identity()
 returns trigger
 language plpgsql
-set search_path = public
+security invoker
+set search_path = pg_catalog, pg_temp
 as $$
 begin
   if new.kind is distinct from old.kind then
@@ -243,6 +244,22 @@ begin
   end if;
   if old.kind = 'personal' and new.invite_code is distinct from old.invite_code then
     raise exception 'Personal Space invite code is immutable';
+  end if;
+  if new.name is distinct from old.name then
+    if auth.uid() is null
+      or (old.kind = 'personal' and old.created_by is distinct from auth.uid())
+      or not exists (
+        select 1 from public.space_members
+        where space_id = old.id and user_id = auth.uid() and role = 'owner'
+      ) then
+      raise exception using errcode = '42501', message = 'Only the Space owner may change its name';
+    end if;
+    -- Exactly the ECMAScript trim() character set; char_length counts code points.
+    new.name := pg_catalog.btrim(new.name,
+      U&'\0009\000A\000B\000C\000D\0020\00A0\1680\2000\2001\2002\2003\2004\2005\2006\2007\2008\2009\200A\2028\2029\202F\205F\3000\FEFF');
+    if new.name is null or pg_catalog.char_length(new.name) not between 1 and 80 then
+      raise exception using errcode = '22023', message = 'Space name must contain 1–80 Unicode characters';
+    end if;
   end if;
   return new;
 end;

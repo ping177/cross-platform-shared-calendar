@@ -12,6 +12,8 @@ v0.1.20
 
 ## Current status
 
+Space Rename本地实现与自动验证通过；用户确认Production补丁已在Supabase SQL Editor执行，Postflight返回`spaces_validate_identity / enabled=O / PATCH_APPLIED`。状态为**DATABASE PATCH APPLIED / FRONTEND ACCEPTANCE PENDING**。复用spaces.name更新，名称Trigger校验当前Owner/Personal本人、trim与1–80 Unicode字符；不新增Rename RPC、不全面收紧RLS。空间详情行内编辑保持UI v2风格。相关66/66、全量934/934、TypeScript/Build及本机隔离数据库验证通过。前端尚未Push/部署，真实账号验收待发布后由用户执行；不新增正式版本，既有UI v2关闭状态保持。数据库结果来自用户报告，本轮没有独立Production连接。
+
 **UI v2 及后续 Calendar 视觉优化 = PRODUCTION ACCEPTED / CLOSED**（仅关闭 UI 改造及对应发布验收范围）。UI v2 的全部11个 Slice、Integration Round 1/2 与功能中心顶部概览优化已完成；UI v2 已发布 Production 并通过用户验收。Calendar UI Patch（统一日/周/月头部、重做周视图及日期对齐修正）Commit `391708f4…` 已发布并通过用户验收。Calendar Chevron Removal Commit `ecbe03d7…` 移除日/周视图日程右侧箭头并保留整行点击；该 Chevron 补丁部署 source HEAD `1fc7a3bd…`，用户再次确认正式网站箭头消失且点击正常。
 
 该范围的全量测试为919/919 PASS，响应式检查180/180 PASS，Build PASS；既有 bundle 大小警告为非阻塞项。上述 UI 改造不需要新增 Supabase migration。正式产品版本仍为 v0.1.20；这项关闭不表示所有完整业务 E2E、危险操作、Push 或 Realtime 场景均已覆盖。P2字重审美、Space Color System、多人共享空间/回顾、跨 Space 投影继续 Deferred；农历为未来候选，若实现优先放在周视图每日区域右上角。不新增下一版本或额外开发计划。旧版29项修改已保存在 `design/ui-redesign` 归档提交 `84f0a087…`；原项目目录现为日常 `main` 工作区。
@@ -37,6 +39,8 @@ UI v2 Slice6 = LOCAL PASS / VISUAL PASS：用户已认可四张居中概览卡�
 v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3为LOCAL PASS / VISUAL PASS；Slice4为LOCAL PASS / VISUAL PROVISIONALLY ACCEPTED。Slice5月视图本地验证与离线视觉验收通过：两条短标题/准确+N、六色圆点与日期浮层，261/261相关测试、build/diff-check、28组四宽度离线检查PASS；用户确认普通月、密集月、空月及浮层满意。已授权本地commit；不代表真实账号、真机、installed PWA或Production验收。Space Color System继续Deferred；真实账号/真机/installed PWA/Production未验收。正式版本仍v0.1.20。
 
 ## Latest completed
+
+2026-10-14 — Space Rename数据库阶段：用户确认Production SQL Editor补丁执行成功，Postflight返回`spaces_validate_identity / enabled=O / PATCH_APPLIED`。本地前端实现及934/934自动测试已完成；前端Push/部署与用户真实账号验收仍待后续授权，详见DEVLOG / TESTING。
 
 2026-10-14 — UI v2 + Calendar视觉优化最终治理收口：PRODUCTION ACCEPTED / CLOSED（仅 UI 改造范围）。用户确认Chevron Production视觉及点击验收；记录11个Slice、Round1/2、功能中心优化、Calendar Patch及Chevron发布状态、919/919测试、180/180响应式检查与Build证据。旧版29项修改归档及原目录main日常工作区状态保持，详见DEVLOG / TESTING。
 
@@ -304,6 +308,8 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
+Space Rename补丁`supabase/patches/2026-10-14-space-rename.sql`已由用户报告在Production SQL Editor执行成功，Postflight为`spaces_validate_identity / enabled=O / PATCH_APPLIED`；本轮未独立连接复查。前端尚未Commit/Push/部署，用户真实账号验收待后续前端发布并通过环境兼容Gate后进行。
+
 UI v2及后续 Calendar 视觉优化已完成 Production 发布与用户验收，状态为 **PRODUCTION ACCEPTED / CLOSED**（关闭范围仅限本次 UI 改造与相应验收）。UI v2全部11个Slice、两轮Integration、功能中心概览、Calendar UI Patch与Chevron Removal均已完成；Calendar Patch Commit `391708f4…`，Chevron Commit `ecbe03d7…`，Chevron已验收的部署 source HEAD 为 `1fc7a3bd…`。
 
 自动化证据：全量测试919/919、响应式检查180/180、Build PASS；已知 bundle 大小警告非阻塞。无需 Supabase migration，正式版本保持v0.1.20。此状态不扩大为完整业务E2E、危险操作、Push或Realtime全覆盖；P2字重审美、Space Color System、多人共享空间/回顾与跨Space投影等继续Deferred，农历为候选功能且未来周视图位置优先每日区域右上角。
@@ -384,11 +390,11 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-本次 UI v2 与 Calendar 视觉改造治理收口已完成。主项目日常工作目录为 `/Users/wp/Projects/跨系统共享日历` 的 `main`。暂无新增版本或额外开发计划；Deferred 项目只有在另行明确范围并获授权后才启动。
+下一步：等待用户单独授权Push/前端部署；部署后完成适用的环境对齐检查，再由用户真实账号验收改名及权限。Space Rename数据库补丁已由用户报告应用且Postflight通过；UI v2及Calendar视觉改造保持关闭，Deferred项目不自动启动，不新增下一版本。
 
 ## Blockers
 
-暂无明确阻塞。
+Space Rename前端尚未Commit/Push/部署，用户真实账号验收尚未完成。Production数据库补丁应用与Postflight状态依据用户报告记录，尚无Codex独立连接证据。
 
 ## Important Context
 
@@ -482,6 +488,8 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 - `v0.1.9 Shared Tasks` Slice 1/2/3 are CLOSED / PASS: backend applied/postflight verified, frontend deployed through Vercel, Desktop A/B Production acceptance and iPhone smoke passed. At the v0.1.13 closeout, Structured Review / Check-in and Shared Lists were future candidates; v0.1.14/14.1 subsequently closed, and Shared Lists was selected for v0.1.15. Its design is frozen and Slice 1 DB foundation is `CLOSED / PASS` after Production postflight.
 
 ## Handoff Prompt
+
+Space Rename = LOCAL TECHNICAL PASS / DATABASE PATCH APPLIED（用户报告Postflight为PATCH_APPLIED）/ FRONTEND ACCEPTANCE PENDING；不新增Rename RPC，不全面修改RLS，不改变Lifecycle。前端已完成本地实现与验证；下一步等待用户单独授权Push/部署，随后由用户真实账号验收。Production SQL Editor结果尚无Codex独立连接复查。现有UI v2/Calendar Production验收保持通过。以下旧Slice/Round handoff仅为历史。
 
 UI v2 Integration Round 2 = LOCAL PASS / VISUAL ACCEPTED。用户明确确认日程、任务、重要日三个共享表单视觉满意，最终范围/业务复审通过；本轮直接相关64/64、全量918/918、build/diff-check PASS，既有六真实CSS视口144/144、短视口30/30及13张375px截图源码指纹匹配。三个共享表单视觉整合完成；按本轮最终确认，11个Slice及Round1/2均完成本地视觉验收，计划中的UI v2视觉开发阶段结束。仅授权12文件本地Git收口，未push/deploy/merge。UI v2整体集成验收、合并和发布仍Pending，Production保持v0.1.20。环境对齐Gate、真实账号/双账号E2E、原生dirty confirm、真机软键盘/IME/Safe Area、iOS/Android PWA、Push/Realtime及Production验收均Pending；P2字重审美、Space Color System、多人Shared Space/回顾与跨Space投影等Deferred不自动实施。 当前唯一下一步是等待用户另行授权环境对齐Gate，不自动推进。旧worktree保持28 modified +1 untracked及8661项项目文件/符号链接；以下旧轮/Slice条目仅为历史。
 

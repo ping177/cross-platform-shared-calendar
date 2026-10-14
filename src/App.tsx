@@ -706,6 +706,18 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
   }
 
   function updateSpace(updated: Space) {
+    // Retained page data can contain copied Space names. Invite-only updates keep retention.
+    if (spaces.some((space) => space.id === updated.id && space.name !== updated.name)) {
+      tasksSnapshot.current = null;
+      listsSnapshot.current = null;
+      importantDatesSnapshot.current = null;
+      reviewSnapshot.current = null;
+      homeEventsSnapshot.current = null;
+      homeTasksSnapshot.current = null;
+      homeImportantDatesSnapshot.current = null;
+      calendarEventsSnapshot.current = null;
+      calendarImportantDatesSnapshot.current = null;
+    }
     setSpaces((current) => current.map((space) => space.id === updated.id ? { ...space, ...updated } : space));
   }
 

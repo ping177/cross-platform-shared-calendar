@@ -1,5 +1,12 @@
 # Testing
 
+## Space Rename — DATABASE PATCH APPLIED / FRONTEND ACCEPTANCE PENDING / 2026-10-14
+
+- 新前端15项测试覆盖Shared当前Owner/Personal本人、成员拒绝、trim与80 Unicode边界、未修改零请求、仅name payload、登录身份变化、stale/canonical返回、失败草稿、同步重复提交、IME及卸载晚响应；相关Space suites66/66、完整TS+JS934/934、TypeScript/Build/diff-check PASS。Build保留既有大bundle警告。
+- `python3 -B supabase/tests/space_rename_local.py`只使用desktop-linux Unix-socket Docker context中固定本机Supabase容器的随机独立DB。旧schema Red重现成员直接UPDATE可改名；upgrade与canonical各26项Rename+58项多空间+58项Lifecycle，共284项SQL assertions PASS。全public schema/ACL parity、历史名称不改写、migration drift/replay拒绝及4次真实观察到的Transfer/Rename锁等待PASS。直接authenticated表更新、Personal RLS、Transfer后的当前Owner而非created_by、非名称UPDATE/邀请码规则保持均已验证。临时DB已回收。
+- 真React/内存客户端离线Chrome：四宽度320/375/768/1024 × 四种权限/长名状态16/16布局PASS，无横向溢出；required输入、初始/恢复焦点、保存中disabled、失败原名/草稿与成功canonical标题刷新PASS，无pageerror。没有真实用户登录或数据库请求。
+- Production SQL Editor步骤依据用户报告：Space Rename补丁执行成功，Postflight显示`spaces_validate_identity / enabled=O / PATCH_APPLIED`。Codex本轮没有Production连接或独立Postflight查询；本机SQL/fixture不是Production验证。前端Push/部署及用户真实账号验收仍待完成。
+
 ## UI v2 + Calendar Visual Updates — PRODUCTION ACCEPTED / CLOSED / 2026-10-14
 
 - 用户报告相关Production验收全部通过：UI v2已发布并验收；Calendar UI Patch三视图头部/周布局/日期对齐通过；Chevron Removal正式网站中日/周Event不再显示右侧箭头，整行点击正常。Calendar Patch Commit `391708f4efc2f6ae17f6f127b706f59f1a66c5e3`；Chevron Commit `ecbe03d768d327e99afa347eceea3007f2078844`，该补丁部署source HEAD为 `1fc7a3bdb6e9f9e253a2f5eedf5c7fd203c49cdc`。

@@ -11,6 +11,7 @@ import type { TasksModuleState } from '../lib/space-modules';
 import type { ModuleKey } from '../lib/module-availability';
 import { InvitePanel } from './InvitePanel';
 import { SharedSpaceForms } from './SharedSpaceForms';
+import { SpaceNameEditor } from './SpaceNameEditor';
 import { useSpaceTasksModule } from './useSpaceTasksModule';
 import { useSpaceReviewModule } from './useSpaceReviewModule';
 import { useSpaceImportantDatesModule } from './useSpaceImportantDatesModule';
@@ -41,14 +42,18 @@ type DetailProps = {
   onImportantDatesModuleToggle?: () => void;
   onSpaceChange: (space: Space) => void;
   lifecycleControls?: React.ReactNode;
+  nameEditor?: React.ReactNode;
 };
 
-export function SpaceDetailContent({ space, members, moduleState, moduleError, moduleBusy, onModuleRetry, onModuleToggle, reviewModuleState = 'loading', reviewModuleError = '', reviewModuleBusy = false, onReviewModuleRetry = () => undefined, onReviewModuleToggle = () => undefined, listsModuleState = 'disabled', listsModuleError = '', listsModuleBusy = false, onListsModuleRetry = () => undefined, onListsModuleToggle = () => undefined, importantDatesModuleState = 'loading', importantDatesModuleError = '', importantDatesModuleBusy = false, onImportantDatesModuleRetry = () => undefined, onImportantDatesModuleToggle = () => undefined, onSpaceChange, lifecycleControls }: DetailProps) {
+export function SpaceDetailContent({ space, members, moduleState, moduleError, moduleBusy, onModuleRetry, onModuleToggle, reviewModuleState = 'loading', reviewModuleError = '', reviewModuleBusy = false, onReviewModuleRetry = () => undefined, onReviewModuleToggle = () => undefined, listsModuleState = 'disabled', listsModuleError = '', listsModuleBusy = false, onListsModuleRetry = () => undefined, onListsModuleToggle = () => undefined, importantDatesModuleState = 'loading', importantDatesModuleError = '', importantDatesModuleBusy = false, onImportantDatesModuleRetry = () => undefined, onImportantDatesModuleToggle = () => undefined, onSpaceChange, lifecycleControls, nameEditor }: DetailProps) {
   const isOwner = space.membershipRole === 'owner';
   return <div className="ui-space-detail-groups">
-    <section className="ui-space-group ui-space-identity">
-      {space.kind === 'personal' ? <UserRound size={24} aria-hidden="true" /> : <Users size={24} aria-hidden="true" />}
-      <div className="min-w-0"><p className="text-ui-label text-ui-muted">{space.kind === 'personal' ? '个人空间' : '共享空间'}</p><h2 className="mt-ui-1 break-words text-ui-bar">{space.name}</h2></div>
+    <section className="ui-space-group">
+      <div className="ui-space-identity">
+        {space.kind === 'personal' ? <UserRound size={24} aria-hidden="true" /> : <Users size={24} aria-hidden="true" />}
+        <div className="min-w-0 flex-1"><p className="text-ui-label text-ui-muted">{space.kind === 'personal' ? '个人空间' : '共享空间'}</p><h2 className="mt-ui-1 break-words text-ui-bar">{space.name}</h2></div>
+      </div>
+      {nameEditor}
     </section>
     {space.kind === 'shared' && <>
       <section className="ui-space-group">
@@ -211,7 +216,7 @@ function SpaceDetail({ space, userId, onSpaceChange, busy, onBusyChange, onLifec
   if (space.kind === 'shared' && membersStatus !== 'ready') {
     return <div role={membersStatus === 'error' ? 'alert' : 'status'}>{membersStatus === 'loading' ? '正在读取空间成员…' : '空间成员读取失败。'}{membersStatus === 'error' && <button className="ml-3 min-h-11 font-semibold text-teal" type="button" onClick={() => void loadMembers()}>重试</button>}</div>;
   }
-  return <SpaceDetailContent space={space} members={members} moduleState={module.state} moduleError={module.error} moduleBusy={module.busy} onModuleRetry={() => void module.retry()} onModuleToggle={() => void toggleModule('tasks', module.toggle)} reviewModuleState={reviewModule.state} reviewModuleError={reviewModule.error} reviewModuleBusy={reviewModule.busy} onReviewModuleRetry={() => void reviewModule.retry()} onReviewModuleToggle={() => void toggleModule('review', reviewModule.toggle)} listsModuleState={listsModule.state} listsModuleError={listsModule.error} listsModuleBusy={listsModule.busy} onListsModuleRetry={() => void listsModule.retry()} onListsModuleToggle={() => void toggleModule('lists', listsModule.toggle)} importantDatesModuleState={importantDatesModule.state} importantDatesModuleError={importantDatesModule.error} importantDatesModuleBusy={importantDatesModule.busy} onImportantDatesModuleRetry={() => void importantDatesModule.retry()} onImportantDatesModuleToggle={() => void toggleModule('important_dates', importantDatesModule.toggle)} onSpaceChange={onSpaceChange} lifecycleControls={<SpaceLifecycleControls space={space} members={members} userId={userId} busy={busy} onBusyChange={onBusyChange} onSettled={onLifecycleSettled} />} />;
+  return <SpaceDetailContent space={space} members={members} moduleState={module.state} moduleError={module.error} moduleBusy={module.busy} onModuleRetry={() => void module.retry()} onModuleToggle={() => void toggleModule('tasks', module.toggle)} reviewModuleState={reviewModule.state} reviewModuleError={reviewModule.error} reviewModuleBusy={reviewModule.busy} onReviewModuleRetry={() => void reviewModule.retry()} onReviewModuleToggle={() => void toggleModule('review', reviewModule.toggle)} listsModuleState={listsModule.state} listsModuleError={listsModule.error} listsModuleBusy={listsModule.busy} onListsModuleRetry={() => void listsModule.retry()} onListsModuleToggle={() => void toggleModule('lists', listsModule.toggle)} importantDatesModuleState={importantDatesModule.state} importantDatesModuleError={importantDatesModule.error} importantDatesModuleBusy={importantDatesModule.busy} onImportantDatesModuleRetry={() => void importantDatesModule.retry()} onImportantDatesModuleToggle={() => void toggleModule('important_dates', importantDatesModule.toggle)} onSpaceChange={onSpaceChange} nameEditor={(space.kind === 'personal' || members.some((member) => member.user_id === userId && member.role === 'owner')) ? <SpaceNameEditor key={`${space.id}:${userId}`} space={space} userId={userId} busy={busy} onBusyChange={onBusyChange} onSpaceChange={onSpaceChange} /> : null} lifecycleControls={<SpaceLifecycleControls space={space} members={members} userId={userId} busy={busy} onBusyChange={onBusyChange} onSettled={onLifecycleSettled} />} />;
 }
 
 export function SpaceManagementPage({ spaces, selectedSpaceId, userId, detailRevision, onSelect, onBack, onReady, onSpaceChange, onLifecycleSettled, onModuleChanged, busy, onBusyChange }: {
