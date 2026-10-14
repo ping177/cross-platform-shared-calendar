@@ -1,8 +1,12 @@
 # Decisions
 
+## Real-use observation after closeout — 2026-10-14
+
+暂停常规功能开发，进入约两周真实使用观察（2026-10-14起，约至2026-10-28）；记录实际使用问题与未完整覆盖的边界，再决定是否需要后续修正。未来独立待办：整理测试数据，三个测试账号保留两个；保留账号选择与清理需另行确认，本轮不执行，也不是当前阻塞项。不创建新版本或启动新功能。
+
 ## Profile Card Compact + Avatar v1 — 2026-10-14
 
-冻结紧凑资料卡与轻量头像Sheet，不扩展范围。12原创头像为复古几何拼贴插画；猫固定F造型+02陶粉与燕麦。照片存于现有Supabase私有bucket，本人修改/管理，当前同Space成员读取当前照片；签名5分钟。上传immutable UUID→CAS metadata→已确认后清理旧照片；metadata响应不确定时延迟到既有>24h未引用恢复，不因即时回读旧值误删late commit照片。用户已确认切回预设后的旧照片删除。Production前端人工验收不提前PASS，测试数据清理独立延期，不新增版本。Space Rename真实Production功能/最终UI已PASS。
+冻结紧凑资料卡与轻量头像Sheet，不扩展范围。12原创头像为复古几何拼贴插画；猫固定F造型+02陶粉与燕麦。照片存于现有Supabase私有bucket，本人修改/管理，当前同Space成员读取当前照片；签名5分钟。上传immutable UUID→CAS metadata→已确认后清理旧照片；metadata响应不确定时延迟到既有>24h未引用恢复，不因即时回读旧值误删late commit照片。用户已确认切回预设后的旧照片删除。用户确认Production前端人工验收PASS，Avatar和Space Rename最终CLOSED / PASS；未完整验证的边界保留，不新增版本。测试数据清理独立延期，三个测试账号未来保留两个，不在本轮执行。
 
 ## Product Direction Freeze — 2026-10-09
 

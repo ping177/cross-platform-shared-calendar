@@ -1,5 +1,13 @@
 # Development Log
 
+## 2026-10-14 — Space Rename / Profile Card Compact + Avatar v1 最终治理收口 — CLOSED / PASS
+
+- 用户确认Profile Card Compact + Avatar v1正式Production人工验收PASS，最终状态CLOSED / PASS；Space Rename真实Production功能及最终UI也为CLOSED / PASS。Avatar已验收功能发布Source SHA：fcd3c8ad1b91bd7ec137c331e3d721ea8fae6cac。12预设及猫F+02「陶粉与燕麦」保持冻结。该整体验收不扩大为跨设备、照片替换/默认恢复、真实失败/断网重试、退出最后共同Space的新签拒绝、5分钟签名续期及iOS/Android/PWA全部边界已通过；未完整验证项继续在观察期记录。
+- 已验收功能发布为Vercel Production7063583427 / 9CJitJKsrtz1TRo9iYRfoW6491qa，独立Source SHA/正式资源核验与用户最终人工PASS共同建立关闭；不由clean/main/trailer推断验收，不重放后端SQL。功能Source与docs-only收口提交身份分开。
+- 更新PROJECT_STATE、DEVLOG、TESTING、BACKLOG、DECISIONS、Profile/Avatar spec与部署历史说明共7治理文件；Version保持v0.1.20、Version Index不变。暂停常规功能开发，进入约两周真实使用观察（2026-10-14起，约至2026-10-28）；记录实际使用问题与未完整覆盖的边界，再决定是否需要后续修正。未来独立待办：整理测试数据，三个测试账号保留两个；保留账号选择与清理需另行确认，本轮不执行，也不是当前阻塞项。不创建新版本或启动新功能。
+- 无业务代码/头像/SQL/Storage/RLS/RPC改动、无外部项目变更、无密钥读取或输出、不创建新版本，不重跑957测试/TypeScript/Build或主动部署功能。docs-only diff-check与范围核验通过；本轮按用户明确授权正常Commit/Push，遵守Project-State-Review Gate；Push后的状态审查只读，操作结果以最终报告为准。
+
+
 ## 2026-10-14 — Avatar v1 正式发布前治理与内容审查 — REAL-ACCOUNT PASS / PRODUCTION MANUAL PENDING
 
 - 用户授权正式Commit/正常Push origin/main/Vercel核验，禁止后端变更与数据清理。基线main3512e1f，原36待提交文件全部保留；正式SVG仅12个，无候选/临时预览/日志/.env入库。12头像及猫F+02冻结，无UI/业务调整。

@@ -1,6 +1,6 @@
 # Profile Card Compact + Avatar v1 — Production deployment preparation
 
-Status: BACKEND APPLIED (USER-REPORTED) / LOCAL TARGET + API ALIGNMENT PASS / USER-REPORTED REAL-ACCOUNT INTEGRATION PASS / PRODUCTION FRONTEND MANUAL PENDING. Local UI and all 12 presets are user-approved; cat is F + 02「陶粉与燕麦」. Space Rename Production functional and final UI acceptance remain passed. User reports Production Preflight, exact patch Success and core Postflight PASS. This document does not close the feature or authorize further Production mutations or Git/frontend deployment actions.
+Status: CLOSED / PASS — user-confirmed Production manual acceptance. No new formal version.
 
 ## Reviewed scope
 
@@ -133,6 +133,14 @@ If postflight/acceptance fails, pause the new frontend release; the old served f
 
 ## Release checkpoint
 
-用户真实账号本地集成验收已通过：名称保存/取消；预设保存/刷新持久化；照片上传显示；同Space成员读取照片；切回预设后旧照片从Storage删除。12头像视觉已确认、猫F+02。该用户报告不等同Production新前端最终人工验收。未完整覆盖的跨设备、照片替换/默认恢复、真实失败/断网重试、退出最后共同Space后新签拒绝、5分钟续期与iOS/Android/PWA仍待记录；自动测试不替代人工证据。数据整理独立延期、不阻塞本次发布。
+用户真实账号本地集成验收已通过：名称保存/取消；预设保存/刷新持久化；照片上传显示；同Space成员读取照片；切回预设后旧照片从Storage删除。12头像视觉已确认、猫F+02。用户随后明确确认Production新前端最终人工验收PASS，功能CLOSED / PASS。未完整覆盖的跨设备、照片替换/默认恢复、真实失败/断网重试、退出最后共同Space后新签拒绝、5分钟续期与iOS/Android/PWA仍待记录；自动测试不替代人工证据。数据整理独立延期、不阻塞本次发布。
 
 本轮Git/前端发布已获明确授权，按Project-State-Review Gate执行正常Commit/Push与Vercel核验；不重新执行上面的后端部署步骤。该操作授权不扩大为数据库变更/清理或Production前端人工PASS。实际发布SHA与资源验证以独立最终发布报告为准。
+
+## Final governance closeout — 2026-10-14
+
+用户确认Profile Card Compact + Avatar v1正式Production人工验收PASS，最终状态CLOSED / PASS；Space Rename真实Production功能及最终UI也为CLOSED / PASS。Avatar已验收功能发布Source SHA：fcd3c8ad1b91bd7ec137c331e3d721ea8fae6cac。12预设及猫F+02「陶粉与燕麦」保持冻结。该整体验收不扩大为跨设备、照片替换/默认恢复、真实失败/断网重试、退出最后共同Space的新签拒绝、5分钟签名续期及iOS/Android/PWA全部边界已通过；未完整验证项继续在观察期记录。
+
+暂停常规功能开发，进入约两周真实使用观察（2026-10-14起，约至2026-10-28）；记录实际使用问题与未完整覆盖的边界，再决定是否需要后续修正。未来独立待办：整理测试数据，三个测试账号保留两个；保留账号选择与清理需另行确认，本轮不执行，也不是当前阻塞项。不创建新版本或启动新功能。
+
+Prior preparation/test checkpoints above are historical; their pending wording does not reopen the completed release. Existing957/957,49/49,TypeScript/Build and222 local SQL evidence retained; docs-only closeout runs diff-check only.

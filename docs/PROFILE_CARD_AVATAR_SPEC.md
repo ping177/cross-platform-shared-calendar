@@ -1,6 +1,6 @@
 # Profile Card Compact + Avatar v1
 
-Status: LOCAL TECHNICAL + VISUAL PASS / BACKEND APPLIED (USER-REPORTED) / LOCAL TARGET + API ALIGNMENT PASS / USER-REPORTED REAL-ACCOUNT INTEGRATION PASS / PRODUCTION FRONTEND MANUAL PENDING. No new formal version.
+Status: CLOSED / PASS — user-confirmed Production manual acceptance. No new formal version.
 Space Rename has passed user-reported Production functional and final UI acceptance.
 
 ## Objective and scope
@@ -36,9 +36,9 @@ Commands: `node --experimental-strip-types --test tests/*.test.ts tests/*.test.j
 
 Always validate both UI and server boundaries, keep secrets out of output, show major diffs and provide 375px screenshots plus a complete 12-preset preview. Automated geometry checks do not establish aesthetic acceptance.
 
-No dependency installation, repo file deletion, Commit/Push/deployment, Production database/Storage mutation or final PROJECT_STATE closeout. The approved task includes necessary avatar-object cleanup. No new persistent filesystem runtime data.
+Original implementation boundaries excluded Commit/Push/deployment and governance closeout; later explicit release and docs-only closeout authorizations superseded those workflow restrictions. No new dependencies or persistent filesystem data; this closeout makes no business/avatar/backend changes.
 
-The user has approved the compact card, Sheet and all 12 presets; cat uses F geometry + 02「陶粉与燕麦」. Local delivery is accepted; release and authenticated cross-device/device/PWA acceptance remain pending until the actual backend has the reviewed patch/bucket/policies and the frontend/backend alignment gate passes under separate deployment authorization. Exact SQL Editor steps: [Deployment preparation](./PROFILE_AVATAR_DEPLOYMENT.md).
+The user has approved the compact card, Sheet and all 12 presets; cat uses F geometry + 02「陶粉与燕麦」. Local/real-account integration and the formal Production frontend are user-accepted; release and alignment have completed. Cross-device/device/PWA edge coverage remains incomplete and is retained separately. Exact SQL Editor steps: [Deployment preparation](./PROFILE_AVATAR_DEPLOYMENT.md).
 
 ## Implementation file index
 
@@ -47,8 +47,16 @@ The user has approved the compact card, Sheet and all 12 presets; cat uses F geo
 - Assets: `public/avatars/{cat,rabbit,bear,fox,dog,bird,flower,leaf,moon,star,cloud,sun}.svg` (12 original resources; cat F + 02).
 - Backend: `supabase/schema.sql`, `supabase/patches/2026-10-14-profile-avatar.sql`, `supabase/tests/2026-10-14-profile-avatar.test.sql`, `supabase/tests/profile_avatar_local.py`.
 - Tests: `tests/avatar.test.ts`, `avatar-ui.test.ts`, `profile-card-ui.test.ts`, updated `me-spaces-ui-v2.test.ts`.
-- Documentation: this spec, `docs/DEVLOG.md`, `docs/TESTING.md`. `PROJECT_STATE.md` remains untouched under the user-requested deferral of governance closeout.
+- Documentation: this spec, `docs/DEVLOG.md`, `docs/TESTING.md`. `PROJECT_STATE.md` is updated under the subsequent explicit docs-only closeout authorization.
 
 ## Confirmed acceptance / release boundary
 
-用户真实账号本地集成验收已通过：名称保存/取消；预设保存/刷新持久化；照片上传显示；同Space成员读取照片；切回预设后旧照片从Storage删除。12头像视觉已确认、猫F+02。该用户报告不等同Production新前端最终人工验收。未完整覆盖的跨设备、照片替换/默认恢复、真实失败/断网重试、退出最后共同Space后新签拒绝、5分钟续期与iOS/Android/PWA仍待记录；自动测试不替代人工证据。数据整理独立延期、不阻塞本次发布。
+用户真实账号本地集成验收已通过：名称保存/取消；预设保存/刷新持久化；照片上传显示；同Space成员读取照片；切回预设后旧照片从Storage删除。12头像视觉已确认、猫F+02。用户随后明确确认Production新前端最终人工验收PASS，功能CLOSED / PASS。未完整覆盖的跨设备、照片替换/默认恢复、真实失败/断网重试、退出最后共同Space后新签拒绝、5分钟续期与iOS/Android/PWA仍待记录；自动测试不替代人工证据。数据整理独立延期、不阻塞本次发布。
+
+## Final governance closeout — 2026-10-14
+
+用户确认Profile Card Compact + Avatar v1正式Production人工验收PASS，最终状态CLOSED / PASS；Space Rename真实Production功能及最终UI也为CLOSED / PASS。Avatar已验收功能发布Source SHA：fcd3c8ad1b91bd7ec137c331e3d721ea8fae6cac。12预设及猫F+02「陶粉与燕麦」保持冻结。该整体验收不扩大为跨设备、照片替换/默认恢复、真实失败/断网重试、退出最后共同Space的新签拒绝、5分钟签名续期及iOS/Android/PWA全部边界已通过；未完整验证项继续在观察期记录。
+
+暂停常规功能开发，进入约两周真实使用观察（2026-10-14起，约至2026-10-28）；记录实际使用问题与未完整覆盖的边界，再决定是否需要后续修正。未来独立待办：整理测试数据，三个测试账号保留两个；保留账号选择与清理需另行确认，本轮不执行，也不是当前阻塞项。不创建新版本或启动新功能。
+
+Prior preparation/test checkpoints above are historical; their pending wording does not reopen the completed release. Existing957/957,49/49,TypeScript/Build and222 local SQL evidence retained; docs-only closeout runs diff-check only.

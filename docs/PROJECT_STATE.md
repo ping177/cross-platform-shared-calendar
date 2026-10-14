@@ -12,9 +12,9 @@ v0.1.20
 
 ## Current status
 
-Profile Card Compact + Avatar v1：LOCAL TECHNICAL / VISUAL / REAL-ACCOUNT INTEGRATION PASS；Production前端最终人工验收仍待用户完成，整体事项未提前关闭。用户确认名称保存/取消、预设保存刷新持久化、上传个人照片、同Space成员读取以及切回预设后旧照片已从Storage删除。12原创SVG均视觉通过，猫采用F造型+02「陶粉与燕麦」，不新增版本。全量957/957、相关49/49、TypeScript/Build PASS；既有bundle警告非阻塞。跨设备、照片替换/默认恢复、真实失败重试、成员撤销新签拒绝、5分钟续期和真机/PWA边界未完整人工覆盖，详见TESTING。
+用户确认Profile Card Compact + Avatar v1正式Production人工验收PASS，最终状态CLOSED / PASS；Space Rename真实Production功能及最终UI也为CLOSED / PASS。Avatar已验收功能发布Source SHA：fcd3c8ad1b91bd7ec137c331e3d721ea8fae6cac。12预设及猫F+02「陶粉与燕麦」保持冻结。该整体验收不扩大为跨设备、照片替换/默认恢复、真实失败/断网重试、退出最后共同Space的新签拒绝、5分钟签名续期及iOS/Android/PWA全部边界已通过；未完整验证项继续在观察期记录。
 
-Space Rename：PRODUCTION ACCEPTED / PASS，用户已完成真实Production功能及最终Pencil UI验收；保留功能Commit633f9ac2与最终UI Commit3512e1f历史事实，不再要求重复已完成验收。Avatar Production增量补丁、Preflight及核心Postflight通过为用户报告；本地真实Vite与Production项目ximazjhxvmktpcdbypka对齐，新字段/成员关联零行查询与Storage服务独立HTTP检查通过。前端发布成功、Source SHA与正式资源以本轮独立发布核验结果为依据，不用本地PASS或Git状态推断Production人工验收。
+全量957/957、相关49/49、TypeScript/Build已PASS；本轮docs-only不重跑测试。Production后端增量补丁/Preflight/核心Postflight通过为用户报告，独立前端目标/API及发布Source/正式资源核验通过；本轮不改后端。进入真实使用观察，现有数据暂时保留。
 
 **UI v2 及后续 Calendar 视觉优化 = PRODUCTION ACCEPTED / CLOSED**（仅关闭 UI 改造及对应发布验收范围）。UI v2 的全部11个 Slice、Integration Round 1/2 与功能中心顶部概览优化已完成；UI v2 已发布 Production 并通过用户验收。Calendar UI Patch（统一日/周/月头部、重做周视图及日期对齐修正）Commit `391708f4…` 已发布并通过用户验收。Calendar Chevron Removal Commit `ecbe03d7…` 移除日/周视图日程右侧箭头并保留整行点击；该 Chevron 补丁部署 source HEAD `1fc7a3bd…`，用户再次确认正式网站箭头消失且点击正常。
 
@@ -42,9 +42,7 @@ v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3�
 
 ## Latest completed
 
-2026-10-14 — Profile Card Compact + Avatar v1：本地实现/视觉/用户真实账号集成验收通过；Production后端补丁与核心Postflight为用户确认通过。猫最终F+02，12正式资源确认。957/957、TypeScript/Build及真实Vite目标/API对齐通过。Production前端人工效果验收仍待用户；不清理现有测试数据、不扩大范围。
-
-2026-10-14 — Space Rename：用户真实Production功能及最终UI验收通过，最终UI提交3512e1f；既有UI v2/Calendar关闭事实保持。
+2026-10-14 — 用户确认Profile Card Compact + Avatar v1正式Production人工验收PASS，最终状态CLOSED / PASS；Space Rename真实Production功能及最终UI也为CLOSED / PASS。Avatar已验收功能发布Source SHA：fcd3c8ad1b91bd7ec137c331e3d721ea8fae6cac。12预设及猫F+02「陶粉与燕麦」保持冻结。该整体验收不扩大为跨设备、照片替换/默认恢复、真实失败/断网重试、退出最后共同Space的新签拒绝、5分钟签名续期及iOS/Android/PWA全部边界已通过；未完整验证项继续在观察期记录。 本轮最终治理记录收口，未新增版本。
 
 2026-10-14 — UI v2 + Calendar视觉优化最终治理收口：PRODUCTION ACCEPTED / CLOSED（仅 UI 改造范围）。用户确认Chevron Production视觉及点击验收；记录11个Slice、Round1/2、功能中心优化、Calendar Patch及Chevron发布状态、919/919测试、180/180响应式检查与Build证据。旧版29项修改归档及原目录main日常工作区状态保持，详见DEVLOG / TESTING。
 
@@ -312,9 +310,9 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
-Avatar v1：Production项目ximazjhxvmktpcdbypka，增量补丁supabase/patches/2026-10-14-profile-avatar.sql已由用户执行并报告Preflight/Success/核心Postflight PASS（2字段、3validated约束、私有JPEG bucket、3Storage policies、RLS启用）；本轮不重放SQL、不修改数据库/Storage。旧前端兼容追加字段，新前端须使用已对齐后端。本条记录后端及发布验收边界；前端实际部署/Source SHA/正式域名资源须独立核验，以本轮最终发布报告为准，用户Production前端最终验收保持PENDING。测试数据整理独立延期，不阻塞发布。
+Profile Card Compact + Avatar v1功能发布：Vercel Production成功，GitHub deployment7063583427 / Vercel9CJitJKsrtz1TRo9iYRfoW6491qa，Source SHA精确匹配fcd3c8ad1b91bd7ec137c331e3d721ea8fae6cac。正式域名HTML/JS/CSS/12SVG/manifest/SW HTTP200，新Profile/Avatar标识存在，CSS与本地build一致，12头像逐字匹配（猫F+02）；JS与本地构建字节完全相等未建立，不扩大该证据。用户现确认正式网站人工PASS，Avatar与Space Rename均CLOSED / PASS。此SHA标识已验收的功能发布，不声称docs-only提交也为同一部署SHA。
 
-Space Rename：用户确认Production功能及最终UI已验收通过，补丁和既有数据权限保持；无需重新部署该后端补丁。Avatar签名URL最多5分钟；退出最后共同Space阻止新签，已签URL不即时撤销。照片切回预设后旧文件删除已由用户确认；不确定metadata响应保留上传文件供既有>24h未引用恢复，防止late commit误删。
+Production项目ximazjhxvmktpcdbypka；Avatar准确补丁已由用户报告执行Success，Preflight/核心Postflight通过。本轮不执行SQL、Storage/RLS/RPC变更或数据清理。旧照片切回预设后删除已获用户确认；不确定metadata响应保留上传文件，依既有>24h未引用恢复。签名最多5分钟，撤销最后共同Space阻止新签的真实边界未完整人工验证，不承诺已有签名即时撤销。
 
 UI v2及后续 Calendar 视觉优化已完成 Production 发布与用户验收，状态为 **PRODUCTION ACCEPTED / CLOSED**（关闭范围仅限本次 UI 改造与相应验收）。UI v2全部11个Slice、两轮Integration、功能中心概览、Calendar UI Patch与Chevron Removal均已完成；Calendar Patch Commit `391708f4…`，Chevron Commit `ecbe03d7…`，Chevron已验收的部署 source HEAD 为 `1fc7a3bd…`。
 
@@ -396,7 +394,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-由用户确认本轮正式网站Profile Card Compact + Avatar v1最终效果：紧凑资料卡/名称编辑、12预设（猫F+02）、照片入口与成员展示。发布证据需来自独立Vercel Source SHA和正式资源核验；不提前把Production人工验收写PASS。用户确认后再处理最终治理收口；跨设备/续期等未覆盖边界按TESTING跟踪。现有测试账号/Space/数据整理为独立延期待办，不在本次发布范围；不启动新功能或新版本。
+暂停常规功能开发，进入约两周真实使用观察（2026-10-14起，约至2026-10-28）；记录实际使用问题与未完整覆盖的边界，再决定是否需要后续修正。未来独立待办：整理测试数据，三个测试账号保留两个；保留账号选择与清理需另行确认，本轮不执行，也不是当前阻塞项。不创建新版本或启动新功能。
 
 ## Blockers
 
@@ -404,7 +402,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Important Context
 
-- Avatar本地/真实账号集成验收通过不等于Production前端人工验收通过；照片读写权限复用已审核私有Storage/本人Profile边界。本轮仅前端发布与治理记录，不重新执行后端补丁或清理数据。
+- Avatar正式Production人工验收已由用户确认PASS；照片权限复用已审核私有Storage/本人Profile边界。未完整验证的跨设备/续期/撤销等边界继续保留，不以整体关闭推断全部场景通过。
 
 - Production验收通过仅覆盖本记录的 UI 改造与用户确认场景；不声称所有业务 E2E、危险操作、Push 或 Realtime 均已覆盖。对应的旧交互保护缺口、测试边界和 Deferred 项继续按各自历史记录保留。
 
@@ -497,7 +495,11 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Handoff Prompt
 
-Profile Card Compact + Avatar v1本地/视觉/真实账号集成PASS，957/957与TypeScript/Build PASS；用户报告Production后端已部署和核心Postflight通过。12头像确认、猫F+02冻结。关注本轮独立前端发布报告的Source SHA/正式资源证据，等待用户Production页面最终验收；没有该用户确认不得整体关闭。Space RenameProduction功能/UI已PASS，不重开。未覆盖跨设备/撤销/续期/真机边界保留，数据清理延期独立处理。以下旧Slice/Round handoff仅为历史。
+用户确认Profile Card Compact + Avatar v1正式Production人工验收PASS，最终状态CLOSED / PASS；Space Rename真实Production功能及最终UI也为CLOSED / PASS。Avatar已验收功能发布Source SHA：fcd3c8ad1b91bd7ec137c331e3d721ea8fae6cac。12预设及猫F+02「陶粉与燕麦」保持冻结。该整体验收不扩大为跨设备、照片替换/默认恢复、真实失败/断网重试、退出最后共同Space的新签拒绝、5分钟签名续期及iOS/Android/PWA全部边界已通过；未完整验证项继续在观察期记录。
+
+暂停常规功能开发，进入约两周真实使用观察（2026-10-14起，约至2026-10-28）；记录实际使用问题与未完整覆盖的边界，再决定是否需要后续修正。未来独立待办：整理测试数据，三个测试账号保留两个；保留账号选择与清理需另行确认，本轮不执行，也不是当前阻塞项。不创建新版本或启动新功能。
+
+以下旧Slice/Round handoff仅为历史，不作为当前开发或待验收任务。
 
 UI v2 Integration Round 2 = LOCAL PASS / VISUAL ACCEPTED。用户明确确认日程、任务、重要日三个共享表单视觉满意，最终范围/业务复审通过；本轮直接相关64/64、全量918/918、build/diff-check PASS，既有六真实CSS视口144/144、短视口30/30及13张375px截图源码指纹匹配。三个共享表单视觉整合完成；按本轮最终确认，11个Slice及Round1/2均完成本地视觉验收，计划中的UI v2视觉开发阶段结束。仅授权12文件本地Git收口，未push/deploy/merge。UI v2整体集成验收、合并和发布仍Pending，Production保持v0.1.20。环境对齐Gate、真实账号/双账号E2E、原生dirty confirm、真机软键盘/IME/Safe Area、iOS/Android PWA、Push/Realtime及Production验收均Pending；P2字重审美、Space Color System、多人Shared Space/回顾与跨Space投影等Deferred不自动实施。 当前唯一下一步是等待用户另行授权环境对齐Gate，不自动推进。旧worktree保持28 modified +1 untracked及8661项项目文件/符号链接；以下旧轮/Slice条目仅为历史。
 

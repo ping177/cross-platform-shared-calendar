@@ -2,13 +2,13 @@
 
 ## Profile Card Compact + Avatar v1 — 2026-10-14
 
-Status: LOCAL TECHNICAL + VISUAL PASS / BACKEND APPLIED (USER-REPORTED) / LOCAL TARGET + API ALIGNMENT PASS / USER-REPORTED REAL-ACCOUNT INTEGRATION PASS / PRODUCTION FRONTEND MANUAL PENDING. User confirmed card/Sheet/all 12 presets; cat F + 02. User reports Production patch Success, Preflight and core Postflight PASS; Codex performed no Production mutation and no real-login/device acceptance. Space Rename retains user-reported Production functional + final UI PASS. Contract and changed-file index: [Profile + Avatar spec](./PROFILE_CARD_AVATAR_SPEC.md). Exact SQL Editor Preflight/patch/Postflight: [Deployment preparation](./PROFILE_AVATAR_DEPLOYMENT.md).
+Status: CLOSED / PASS — user-confirmed Production manual acceptance. No new formal version.
 
 Deployment-preparation review found a lost-metadata-response / late-commit cleanup race. A new regression failed before the fix; unconfirmed metadata writes now retain their new photo for the existing >24h unused-file recovery rather than immediately deleting it. Confirmed conflicts and successful old-photo cleanup are unchanged. Because transport code changed, related49/49 and full957/957 were rerun and passed; TypeScript/Build/diff-check PASS. Avatar assets/UI/SQL remain unchanged. The following956/48 and222 SQL figures are the original implementation evidence; SQL was not rerun for the frontend-only corrective change.
 
 ### User-reported real-account acceptance / release boundary — 2026-10-14
 
-用户真实账号本地集成验收已通过：名称保存/取消；预设保存/刷新持久化；照片上传显示；同Space成员读取照片；切回预设后旧照片从Storage删除。12头像视觉已确认、猫F+02。该用户报告不等同Production新前端最终人工验收。未完整覆盖的跨设备、照片替换/默认恢复、真实失败/断网重试、退出最后共同Space后新签拒绝、5分钟续期与iOS/Android/PWA仍待记录；自动测试不替代人工证据。数据整理独立延期、不阻塞本次发布。
+用户真实账号本地集成验收已通过：名称保存/取消；预设保存/刷新持久化；照片上传显示；同Space成员读取照片；切回预设后旧照片从Storage删除。12头像视觉已确认、猫F+02。用户随后明确确认Production新前端最终人工验收PASS，功能CLOSED / PASS。未完整覆盖的跨设备、照片替换/默认恢复、真实失败/断网重试、退出最后共同Space后新签拒绝、5分钟续期与iOS/Android/PWA仍待记录；自动测试不替代人工证据。数据整理独立延期、不阻塞本次发布。
 
 ### Real local frontend alignment — 2026-10-14
 
@@ -61,7 +61,9 @@ Expected: two columns/three constraints; private bucket,1048576 bytes, image/jpe
 First review the isolated card/Sheet/12-preset overview, long names and edit interaction. Only after separately authorized backend rollout/postflight and frontend/backend gate: A uploads/replaces a real photo, B as current co-member sees it on entering the member list; another device/account session for A reads the same photo/preset/default; failure preserves retry and old metadata; leave/remove blocks new signing; outsider/anon cannot view; wait beyond five minutes and foreground the app to check renewal. Verify iOS/Android file selection, keyboard/IME/Safe Area and installed-PWA behavior on real devices. JPEG/PNG/WebP are supported; HEIC/GIF/SVG are intentionally unsupported. No Realtime avatar synchronization is promised; reopening/re-entering the page loads current Profile/member data.
 
 
-## Space Rename — DATABASE PATCH APPLIED / FRONTEND ACCEPTANCE PENDING / 2026-10-14
+## Space Rename — CLOSED / PASS / 2026-10-14
+
+用户确认Production功能及最终UI验收PASS，功能提交633f9ac2及最终Pencil UI提交3512e1f保持历史事实。以下实现测试/补丁/发布前描述为当时检查点，不代表当前待验收。
 
 - 新前端15项测试覆盖Shared当前Owner/Personal本人、成员拒绝、trim与80 Unicode边界、未修改零请求、仅name payload、登录身份变化、stale/canonical返回、失败草稿、同步重复提交、IME及卸载晚响应；相关Space suites66/66、完整TS+JS934/934、TypeScript/Build/diff-check PASS。Build保留既有大bundle警告。
 - `python3 -B supabase/tests/space_rename_local.py`只使用desktop-linux Unix-socket Docker context中固定本机Supabase容器的随机独立DB。旧schema Red重现成员直接UPDATE可改名；upgrade与canonical各26项Rename+58项多空间+58项Lifecycle，共284项SQL assertions PASS。全public schema/ACL parity、历史名称不改写、migration drift/replay拒绝及4次真实观察到的Transfer/Rename锁等待PASS。直接authenticated表更新、Personal RLS、Transfer后的当前Owner而非created_by、非名称UPDATE/邀请码规则保持均已验证。临时DB已回收。
@@ -1907,3 +1909,11 @@ where (scope = 'shared' and owner_user_id is not null)
 - Add it to the home screen.
 - Launch from the home screen.
 - Confirm the app opens with standalone PWA presentation where supported.
+
+## Final governance closeout — 2026-10-14
+
+用户确认Profile Card Compact + Avatar v1正式Production人工验收PASS，最终状态CLOSED / PASS；Space Rename真实Production功能及最终UI也为CLOSED / PASS。Avatar已验收功能发布Source SHA：fcd3c8ad1b91bd7ec137c331e3d721ea8fae6cac。12预设及猫F+02「陶粉与燕麦」保持冻结。该整体验收不扩大为跨设备、照片替换/默认恢复、真实失败/断网重试、退出最后共同Space的新签拒绝、5分钟签名续期及iOS/Android/PWA全部边界已通过；未完整验证项继续在观察期记录。
+
+暂停常规功能开发，进入约两周真实使用观察（2026-10-14起，约至2026-10-28）；记录实际使用问题与未完整覆盖的边界，再决定是否需要后续修正。未来独立待办：整理测试数据，三个测试账号保留两个；保留账号选择与清理需另行确认，本轮不执行，也不是当前阻塞项。不创建新版本或启动新功能。
+
+Prior preparation/test checkpoints above are historical; their pending wording does not reopen the completed release. Existing957/957,49/49,TypeScript/Build and222 local SQL evidence retained; docs-only closeout runs diff-check only.
