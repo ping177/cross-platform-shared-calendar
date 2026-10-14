@@ -54,7 +54,7 @@ import {
   type OccurrenceScope,
 } from './lib/event-edit-mutation';
 import { eventEditTargetForEvent, eventEditTargetForOccurrence } from './lib/event-edit-target';
-import { canConfirmCreate, canUseCreateTarget, createSubmitLock, resetEventAudienceForTarget } from './lib/global-create';
+import { canConfirmCreate, canUseCreateTarget, createSubmitLock, resetEventAudienceForTarget, targetMembersValid } from './lib/global-create';
 import { eventEditUiState, occurrenceActionCopy, type OccurrenceAction } from './lib/event-edit-ui';
 import { memberDisplayNameForUser } from './lib/member';
 import { defaultRecurrenceDraft, recurrenceDraftFromRule, recurrenceRuleFromDraft, recurrenceSummary, type RecurrenceDraft } from './lib/recurrence';
@@ -1012,17 +1012,21 @@ export function CurrentSpaceApp({ swipeClickGuard, session, spaces, allSpaces, i
   const eventOpening = useRef(createRequestGuard());
   const createGuard = useRef(createRequestGuard());
   const eventContext = useRef('');
+  const creatingEvent = useRef(false);
+  const createTargetId = useRef('');
   const contextKey = calendarEventViewKey(calendarEventScopeKey(userId, allSpaces, spaces, calendarFilter), viewMode, selectedDate);
-  if (eventContext.current !== contextKey) { eventOpening.current.invalidate(); createGuard.current.invalidate(); eventContext.current = contextKey; }
+  if (eventContext.current !== contextKey) { eventOpening.current.invalidate(); createGuard.current.invalidate(); creatingEvent.current = false; eventContext.current = contextKey; }
   const [editingTarget, setEditingTarget] = useState<EventEditTarget | null>(null);
-  const [showNewEvent, setShowNewEvent] = useState(false);
+  const [newEventTarget, setNewEventTarget] = useState<{ space: CurrentSpace; members: SpaceMember[]; spaces: CurrentSpace[]; state: CreateTargetControl['state']; error: string; selectedId: string; contextKey: string } | null>(null);
+  const showNewEvent = newEventTarget?.contextKey === contextKey;
+  const createBusy = showNewEvent && newEventTarget.state === 'loading';
   const [monthPopoverRequest, setMonthPopoverRequest] = useState<{ dateKey: string; contextKey: string } | null>(null);
   const [openCalendarSelector, setOpenCalendarSelector] = useState<'space' | 'view' | null>(null);
   const importantDates = useCalendarImportantDates(userId, allSpaces, spaces, viewMode, selectedDate, importantDatesEntry, calendarFilter === 'all' ? 'all' : calendarFilter.spaceId,
     { initialData: initialCalendarImportantDates, onValidated: onCalendarImportantDatesValidated, onInvalidate: onCalendarImportantDatesInvalidate });
 
   const calendarSwipe = useMobileSwipe({
-    enabled: !openCalendarSelector && !editingTarget && !showNewEvent && !importantDates.editor.editor
+    enabled: !openCalendarSelector && !createBusy && !editingTarget && !showNewEvent && !importantDates.editor.editor
       && !importantDates.editor.deleting && !importantDates.editor.busy && !importantDates.editor.targetRead.loading,
     scope: contextKey, direction: 'both', clickGuard: swipeClickGuard,
     onSwipe: (direction) => onSelectedDateChange(navigateCalendarPeriod(selectedDate, viewMode, direction === 'right' ? -1 : 1)),
@@ -1030,15 +1034,15 @@ export function CurrentSpaceApp({ swipeClickGuard, session, spaces, allSpaces, i
 
   const sheetSpace = editingTarget
     ? allSpaces.find((item) => item.id === editingTarget.event.space_id) ?? null
-    : calendarFilter === 'all' ? null : allSpaces.find((item) => item.id === calendarFilter.spaceId) ?? null;
-  const sheetMembers = sheetSpace ? eventView.membersBySpaceId[sheetSpace.id] ?? [] : [];
+    : showNewEvent ? newEventTarget.space : null;
+  const sheetMembers = editingTarget && sheetSpace ? eventView.membersBySpaceId[sheetSpace.id] ?? [] : showNewEvent ? newEventTarget.members : [];
   const sheetPartner = sheetMembers.find((member) => member.user_id !== userId) ?? null;
   const visibleExpansion = { occurrences: eventView.presentation?.items ?? [], errors: [] };
   useEffect(() => () => { eventOpening.current.invalidate(); createGuard.current.invalidate(); }, []);
   useEffect(() => {
     if (monthPopoverRequest && monthPopoverRequest.contextKey !== contextKey) setMonthPopoverRequest(null);
   }, [contextKey, monthPopoverRequest]);
-  useEffect(() => { setShowNewEvent(false); setEditingTarget(null); setEventNotice(''); setCalendarError(''); }, [contextKey]);
+  useEffect(() => { setNewEventTarget(null); setEditingTarget(null); setEventNotice(''); setCalendarError(''); }, [contextKey]);
 
   useEffect(() => {
     if (!openCalendarSelector) return;
@@ -1048,7 +1052,7 @@ export function CurrentSpaceApp({ swipeClickGuard, session, spaces, allSpaces, i
   }, [openCalendarSelector]);
 
   async function openEvent(row: CalendarEventPresentation) {
-    importantDates.editor.close(); createGuard.current.invalidate(); setShowNewEvent(false);
+    importantDates.editor.close(); createGuard.current.invalidate(); setNewEventTarget(null);
     const request = eventOpening.current.begin();
     setEventNotice(calendarStatus === 'loading' ? '正在确认日程…' : '');
     const fresh = await eventView.qualify(row);
@@ -1059,26 +1063,66 @@ export function CurrentSpaceApp({ swipeClickGuard, session, spaces, allSpaces, i
       ? eventEditTargetForEvent(fresh.occurrence.source_event) : eventEditTargetForOccurrence(fresh.occurrence));
   }
 
-  async function verifyCreateTarget(spaceId: string) {
+  async function verifiedCreateSpace(spaceId: string, relatedUserId?: string | null) {
+    const { data, error } = await supabase.auth.getUser();
+    if (error || data.user?.id !== userId) throw new Error('登录状态已变化，请重新登录。');
     const listed = await listCurrentSpaces(userId);
-    return listed.some((item) => item.id === spaceId);
+    const space = listed.find((item) => item.id === spaceId && (item.kind === 'shared' || item.created_by === userId));
+    if (!space?.id) throw new Error('此空间已不在你的成员列表中，请重新选择。');
+    const members = await readSpaceMembers(space.id);
+    if (!targetMembersValid(members, space.id, userId, relatedUserId)) throw new Error('空间成员资料已变化，请重试。');
+    const current = await supabase.auth.getUser();
+    if (current.error || current.data.user?.id !== userId) throw new Error('登录状态已变化，请重新登录。');
+    return { space, members, listed };
   }
 
-  async function openNewEvent() {
-    if (calendarFilter === 'all' || calendarStatus !== 'success' || !eventView.isFresh()) return;
-    eventOpening.current.invalidate();
-    importantDates.editor.close();
-    const targetId = calendarFilter.spaceId;
+  async function verifyCreateTarget(spaceId: string, relatedUserId?: string | null) {
     const request = createGuard.current.begin();
     try {
-      if (!await verifyCreateTarget(targetId)) throw new Error('此空间已不在你的成员列表中，请重新选择。');
-      if (createGuard.current.isCurrent(request) && eventContext.current === contextKey && eventView.isFresh()) setShowNewEvent(true);
-    } catch (createError) {
-      if (createGuard.current.isCurrent(request)) {
-        setCalendarError(getErrorMessage(createError));
-      }
+      await verifiedCreateSpace(spaceId, relatedUserId);
+      return createGuard.current.isCurrent(request) && eventContext.current === contextKey && createTargetId.current === spaceId;
+    } catch { return false; }
+  }
+
+  function cancelCreate() {
+    createGuard.current.invalidate(); creatingEvent.current = false; createTargetId.current = '';
+    setNewEventTarget(null);
+  }
+
+  async function loadCreateTarget(spaceId: string) {
+    createTargetId.current = spaceId;
+    const request = createGuard.current.begin();
+    const isCurrent = () => createGuard.current.isCurrent(request) && eventContext.current === contextKey && createTargetId.current === spaceId;
+    setNewEventTarget((current) => current && ({ ...current, selectedId: spaceId, state: 'loading', error: '' }));
+    try {
+      const target = await verifiedCreateSpace(spaceId);
+      const listed = target.listed.filter((item) => item.id && (item.kind === 'shared' || item.created_by === userId));
+      if (!listed.some((item) => item.id === spaceId)) throw new Error('此空间已不在你的成员列表中，请重新选择。');
+      if (isCurrent()) setNewEventTarget((current) => current && ({ ...current, ...target, spaces: listed, state: 'ready', error: '' }));
+    } catch (error) {
+      if (isCurrent()) setNewEventTarget((current) => current && ({ ...current, members: [], state: 'error', error: getErrorMessage(error) }));
     }
   }
+
+  function openNewEvent() {
+    if (creatingEvent.current || showNewEvent || eventView.authLost) return;
+    const choices = allSpaces.filter((item) => item.id && (item.kind === 'shared' || item.created_by === userId));
+    const initial = calendarFilter === 'all' ? choices.find((item) => item.kind === 'personal') : choices.find((item) => item.id === calendarFilter.spaceId);
+    const anchor = initial ?? choices[0];
+    if (!anchor) { setCalendarError('没有可用空间，暂时无法创建日程。'); return; }
+    creatingEvent.current = true; setCalendarError('');
+    eventOpening.current.invalidate(); importantDates.editor.close(); setEditingTarget(null);
+    createTargetId.current = initial?.id ?? '';
+    setNewEventTarget({ space: anchor, members: [], spaces: choices, selectedId: initial?.id ?? '', contextKey,
+      state: initial ? 'loading' : 'error', error: initial ? '' : '默认空间不可用，请选择合法的保存空间。' });
+    if (initial) void loadCreateTarget(initial.id);
+  }
+
+  const calendarCreateTarget: CreateTargetControl | undefined = showNewEvent ? {
+    spaces: newEventTarget.spaces, selectedId: newEventTarget.selectedId, state: newEventTarget.state, error: newEventTarget.error,
+    onSelect: (id) => { if (newEventTarget.spaces.some((item) => item.id === id)) void loadCreateTarget(id); },
+    onRetry: () => { if (createTargetId.current) void loadCreateTarget(createTargetId.current); },
+  } : undefined;
 
   const weekStart = startOfWeek(selectedDate);
   const weekEnd = addDays(weekStart, 6);
@@ -1094,9 +1138,9 @@ export function CurrentSpaceApp({ swipeClickGuard, session, spaces, allSpaces, i
           <div className="flex items-center justify-between gap-3">
             <h1 className="text-ui-page-title">日历</h1>
             <div className="flex items-center gap-2">
-              {calendarFilter !== 'all' && <button className="ui-focus grid h-11 w-11 shrink-0 place-items-center text-ui-accent disabled:text-ui-muted" type="button" disabled={calendarStatus !== 'success'} onClick={() => void openNewEvent()} aria-label="新建日程">
+              <button className="ui-focus grid h-11 w-11 shrink-0 place-items-center text-ui-accent disabled:text-ui-muted" type="button" disabled={createBusy || showNewEvent || eventView.authLost || allSpaces.length === 0} onClick={() => void openNewEvent()} aria-label="新建日程">
                 <Plus size={18} aria-hidden="true" />
-              </button>}
+              </button>
             </div>
           </div>
 
@@ -1115,6 +1159,8 @@ export function CurrentSpaceApp({ swipeClickGuard, session, spaces, allSpaces, i
         </header>
 
         <section className={`flex-1 px-4 py-4 safe-bottom ${viewMode === 'month' ? 'ui-month-content' : ''}`}>
+          {allSpaces.length === 0 && <p role="status" className="font-ui text-ui-meta text-ui-muted">没有可用空间，暂时无法创建日程。</p>}
+          {createBusy && <p role="status" className="font-ui text-ui-meta text-ui-muted">正在确认保存空间…</p>}
           {eventView.syncError && <Notice ui={viewMode !== 'month'} tone="error" message={eventView.syncError} />}
           {calendarStatus === 'loading' && !eventView.presentation && <p role="status" className={viewMode === 'month' ? undefined : 'font-ui text-ui-meta text-ui-muted'}>正在读取日程…</p>}
           {eventNotice && <p role="status" className={viewMode === 'month' ? 'text-sm text-ink/60' : 'font-ui text-ui-meta text-ui-muted'}>{eventNotice}</p>}
@@ -1129,7 +1175,7 @@ export function CurrentSpaceApp({ swipeClickGuard, session, spaces, allSpaces, i
             importantDates={importantDates.items}
             importantDatesComplete={importantDates.state.calendarComplete === true}
             onOpenImportantDate={(item) => {
-              eventOpening.current.invalidate(); setEventNotice(''); createGuard.current.invalidate(); setShowNewEvent(false); setEditingTarget(null);
+              eventOpening.current.invalidate(); setEventNotice(''); createGuard.current.invalidate(); setNewEventTarget(null); setEditingTarget(null);
               importantDates.open(item);
             }}
             membersBySpaceId={eventView.presentation?.membersBySpaceId ?? {}}
@@ -1148,20 +1194,21 @@ export function CurrentSpaceApp({ swipeClickGuard, session, spaces, allSpaces, i
       </div>
 
       <CalendarImportantDateSheets interaction={importantDates} />
-      {(showNewEvent || editingTarget) && !eventView.authLost && sheetSpace && sheetMembers.length > 0 && (
+      {(showNewEvent || editingTarget) && !eventView.authLost && sheetSpace && (showNewEvent || sheetMembers.length > 0) && (
         <EventSheet
           target={editingTarget}
+          createTarget={calendarCreateTarget}
           space={sheetSpace}
           userId={userId}
           members={sheetMembers}
           partnerId={sheetPartner?.user_id ?? null}
           onClose={() => {
             eventOpening.current.invalidate();
-            setShowNewEvent(false);
+            cancelCreate();
             setEditingTarget(null);
           }}
           onSaved={eventView.refresh}
-          validateCreateTarget={() => verifyCreateTarget(sheetSpace.id)}
+          validateCreateTarget={(ownerId) => verifyCreateTarget(sheetSpace.id, ownerId)}
           showSourceSpace={calendarFilter === 'all'}
         />
       )}
@@ -1754,9 +1801,10 @@ export function EventSheet({
     if (!event && createTarget) {
       if (!createReady) { setError('请先确认保存空间及成员。'); return; }
       if (!confirmed) { setConfirmingCreateTargetId(space.id); return; }
-      if (!canConfirmCreate(confirmingCreateTargetId, createTarget.selectedId, space.id) || !submitLock.current.acquire()) return;
+      if (!canConfirmCreate(confirmingCreateTargetId, createTarget.selectedId, space.id)) return;
     }
 
+    if (!event && !submitLock.current.acquire()) return;
     setBusy(true);
     let createdSuccessfully = false;
 
@@ -1827,7 +1875,7 @@ export function EventSheet({
       setConfirmingCreateTargetId(null);
       setError(createTarget ? '保存失败，请确认目标空间及成员后重试。' : getErrorMessage(saveError));
     } finally {
-      if (createTarget && confirmed && !createdSuccessfully) submitLock.current.release();
+      if (!event && !createdSuccessfully) submitLock.current.release();
     }
   }
 

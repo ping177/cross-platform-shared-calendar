@@ -54,7 +54,7 @@ export function MyPage({ userId, onManageSpaces }: { userId: string; onManageSpa
 
   return <>
     <main className="ui-my-page mx-auto min-h-[100dvh] w-full max-w-3xl px-ui-4 py-ui-4 bg-ui-page font-ui text-ui-text">
-      <h1 className="ui-me-title text-ui-section">我的</h1>
+      <h1 className="ui-me-title flex min-h-11 items-center text-ui-page-title">我的</h1>
       <ProfileCard key={userId} userId={userId} profile={profile} loading={loading} onProfileChange={setProfile} />
       {!loading && !profile && <button className="ui-focus min-h-11 px-ui-3 text-ui-meta text-ui-accent" type="button" onClick={() => setRetry((value) => value + 1)}>重试读取资料</button>}
       <div className="ui-my-links">

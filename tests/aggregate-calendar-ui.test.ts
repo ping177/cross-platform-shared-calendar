@@ -28,7 +28,7 @@ function renderTree(Component: (props: any) => React.ReactNode, props: any): Rea
   return tree;
 }
 
-test('all Calendar has filters and no create; single Space has create with explicit target', async () => {
+test('all Calendar and single Space each expose one unified create entry with explicit target', async () => {
   const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
   try {
     const { CurrentSpaceApp, EventSheet } = await vite.ssrLoadModule('/src/App.tsx');
@@ -38,7 +38,7 @@ test('all Calendar has filters and no create; single Space has create with expli
     const single = renderToStaticMarkup(React.createElement(CurrentSpaceApp, { ...common, calendarFilter: { spaceId: personal.id } }));
     assert.match(all, /aria-label="筛选日历"[^>]*>.*全部空间/);
     assert.doesNotMatch(all, /筛选：我的空间|筛选：旅行/);
-    assert.doesNotMatch(all, /aria-label="新建日程"/);
+    assert.equal((all.match(/aria-label="新建日程"/g) ?? []).length, 1);
     assert.match(single, /aria-label="新建日程"/);
     assert.match(single, /aria-label="筛选日历"[^>]*>.*私人/);
     const createSheet = (space: CurrentSpace) => renderToStaticMarkup(React.createElement(EventSheet, { target: null, space, userId: 'user-a', members: [], partnerId: null, onClose: noop, onSaved: noop, validateCreateTarget: async () => true }));

@@ -12,9 +12,13 @@ v0.1.20
 
 ## Current status
 
+日历创建交互与「我的」标题一致性：LOCAL AUTOMATED / REAL-ACCOUNT FUNCTIONAL / USER VISUAL PASS。用户已验收本轮最终行为和标题，统一Git发布已授权；Production/PWA真实人工验收仍为PENDING，尚未CLOSED。全量964/964、TypeScript/Build/diff-check PASS；无新版本、无后端变更。最终交互规则与验证边界见DECISIONS/TESTING。
+
+用户报告Production测试数据已清理，目前保留两个账号及各自Personal Space；本轮未执行该清理或独立读取账号数据。此前整理测试数据/三个账号保留两个的计划已由用户报告接续，不再列作当前待执行任务。
+
 用户确认Profile Card Compact + Avatar v1正式Production人工验收PASS，最终状态CLOSED / PASS；Space Rename真实Production功能及最终UI也为CLOSED / PASS。Avatar已验收功能发布Source SHA：fcd3c8ad1b91bd7ec137c331e3d721ea8fae6cac。12预设及猫F+02「陶粉与燕麦」保持冻结。该整体验收不扩大为跨设备、照片替换/默认恢复、真实失败/断网重试、退出最后共同Space的新签拒绝、5分钟签名续期及iOS/Android/PWA全部边界已通过；未完整验证项继续在观察期记录。
 
-全量957/957、相关49/49、TypeScript/Build已PASS；本轮docs-only不重跑测试。Production后端增量补丁/Preflight/核心Postflight通过为用户报告，独立前端目标/API及发布Source/正式资源核验通过；本轮不改后端。进入真实使用观察，现有数据暂时保留。
+Avatar阶段全量957/957、相关49/49、TypeScript/Build已PASS，后端增量补丁/Preflight/核心Postflight通过为用户报告；独立前端目标/API及发布Source/正式资源核验通过。该阶段已关闭；本轮新增前端范围仍按上方Production/PWA待验收规则执行，不改后端。
 
 **UI v2 及后续 Calendar 视觉优化 = PRODUCTION ACCEPTED / CLOSED**（仅关闭 UI 改造及对应发布验收范围）。UI v2 的全部11个 Slice、Integration Round 1/2 与功能中心顶部概览优化已完成；UI v2 已发布 Production 并通过用户验收。Calendar UI Patch（统一日/周/月头部、重做周视图及日期对齐修正）Commit `391708f4…` 已发布并通过用户验收。Calendar Chevron Removal Commit `ecbe03d7…` 移除日/周视图日程右侧箭头并保留整行点击；该 Chevron 补丁部署 source HEAD `1fc7a3bd…`，用户再次确认正式网站箭头消失且点击正常。
 
@@ -41,6 +45,12 @@ UI v2 Slice6 = LOCAL PASS / VISUAL PASS：用户已认可四张居中概览卡�
 v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3为LOCAL PASS / VISUAL PASS；Slice4为LOCAL PASS / VISUAL PROVISIONALLY ACCEPTED。Slice5月视图本地验证与离线视觉验收通过：两条短标题/准确+N、六色圆点与日期浮层，261/261相关测试、build/diff-check、28组四宽度离线检查PASS；用户确认普通月、密集月、空月及浮层满意。已授权本地commit；不代表真实账号、真机、installed PWA或Production验收。Space Color System继续Deferred；真实账号/真机/installed PWA/Production未验收。正式版本仍v0.1.20。
 
 ## Latest completed
+
+2026-10-15 — 日历创建与我的标题用户验收通过，完成统一发布范围审查及964/964、TypeScript/Build验证。正式发布的部署状态与Source SHA以本轮发布核验报告为准；Production/PWA真实人工验收待用户完成。
+
+2026-10-15 — 用户确认日历创建真实账号功能PASS；「我的」标题复用日历text-ui-page-title、左对齐与44px标题行，16px边距和safe-area保持；相关25/25（含Event创建7项）、TypeScript/Build/diff-check及375px隔离真实组件截图通过。等待标题视觉确认及单独统一发布授权。
+
+2026-10-15 — 日历最终创建交互本地完成：7项交互测试、全量964/964、TypeScript/Build/diff-check通过；375px真实组件检查两种默认目标均可修改，草稿保留、最终目标模拟保存、单空间/空空间与取消通过。用户验收/发布未完成，后端与Avatar不变。
 
 2026-10-14 — 用户确认Profile Card Compact + Avatar v1正式Production人工验收PASS，最终状态CLOSED / PASS；Space Rename真实Production功能及最终UI也为CLOSED / PASS。Avatar已验收功能发布Source SHA：fcd3c8ad1b91bd7ec137c331e3d721ea8fae6cac。12预设及猫F+02「陶粉与燕麦」保持冻结。该整体验收不扩大为跨设备、照片替换/默认恢复、真实失败/断网重试、退出最后共同Space的新签拒绝、5分钟签名续期及iOS/Android/PWA全部边界已通过；未完整验证项继续在观察期记录。 本轮最终治理记录收口，未新增版本。
 
@@ -310,6 +320,8 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
+本轮日历创建与我的标题沿用origin/main → Vercel自动Production部署；部署成功、精确Source SHA和公开资源以发布核验报告的实测结果为准。Production/PWA真实人工验收PENDING，不能由部署成功推断PASS。真实Vite固定5175与Production项目ximazjhxvmktpcdbypka已对齐，既有Event/成员契约limit0 HTTP200；无新Schema/RPC/Edge要求、不改后端。正式域名：https://cross-platform-shared-calendar.vercel.app/ 。
+
 Profile Card Compact + Avatar v1功能发布：Vercel Production成功，GitHub deployment7063583427 / Vercel9CJitJKsrtz1TRo9iYRfoW6491qa，Source SHA精确匹配fcd3c8ad1b91bd7ec137c331e3d721ea8fae6cac。正式域名HTML/JS/CSS/12SVG/manifest/SW HTTP200，新Profile/Avatar标识存在，CSS与本地build一致，12头像逐字匹配（猫F+02）；JS与本地构建字节完全相等未建立，不扩大该证据。用户现确认正式网站人工PASS，Avatar与Space Rename均CLOSED / PASS。此SHA标识已验收的功能发布，不声称docs-only提交也为同一部署SHA。
 
 Production项目ximazjhxvmktpcdbypka；Avatar准确补丁已由用户报告执行Success，Preflight/核心Postflight通过。本轮不执行SQL、Storage/RLS/RPC变更或数据清理。旧照片切回预设后删除已获用户确认；不确定metadata响应保留上传文件，依既有>24h未引用恢复。签名最多5分钟，撤销最后共同Space阻止新签的真实边界未完整人工验证，不承诺已有签名即时撤销。
@@ -390,11 +402,11 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Last verified
 
-2026-10-13（Round2最终收口：本次直接相关64/64、完整TS+JS918/918、build/diff-check PASS；复用144/144、30/30及13张375px截图，源码指纹与构建CSS匹配。用户三表单视觉验收通过；环境对齐、真实账号/设备/PWA/Production集成验收仍Pending。）
+2026-10-15 — 统一发布前全量964/964、npx tsc -b、npm run build、git diff --check PASS；此前375px真实组件截图和相关25/25通过。用户已确认日历真实账号功能与我的标题视觉；本轮Production/PWA人工验收PENDING，发布结果见最终核验报告。
 
 ## Next Action
 
-暂停常规功能开发，进入约两周真实使用观察（2026-10-14起，约至2026-10-28）；记录实际使用问题与未完整覆盖的边界，再决定是否需要后续修正。未来独立待办：整理测试数据，三个测试账号保留两个；保留账号选择与清理需另行确认，本轮不执行，也不是当前阻塞项。不创建新版本或启动新功能。
+由用户在已核验的新Production及PWA完成最小人工验收：唯一+、两种筛选默认目标及可切换、草稿保留和最终归属、取消保留日历状态、我的标题。用户确认PASS后才正式CLOSED / PASS，随后暂停常规功能开发，进入约两周真实使用观察。不新增版本/功能、不重做已由用户报告完成的数据清理。
 
 ## Blockers
 
@@ -494,6 +506,8 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 - `v0.1.9 Shared Tasks` Slice 1/2/3 are CLOSED / PASS: backend applied/postflight verified, frontend deployed through Vercel, Desktop A/B Production acceptance and iPhone smoke passed. At the v0.1.13 closeout, Structured Review / Check-in and Shared Lists were future candidates; v0.1.14/14.1 subsequently closed, and Shared Lists was selected for v0.1.15. Its design is frozen and Slice 1 DB foundation is `CLOSED / PASS` after Production postflight.
 
 ## Handoff Prompt
+
+由用户在已核验的新Production及PWA完成最小人工验收：唯一+、两种筛选默认目标及可切换、草稿保留和最终归属、取消保留日历状态、我的标题。用户确认PASS后才正式CLOSED / PASS，随后暂停常规功能开发，进入约两周真实使用观察。不新增版本/功能、不重做已由用户报告完成的数据清理。 本轮日历真实账号/我的视觉已PASS，统一发布已授权；964/964与Build通过，既有Space Rename/Avatar CLOSED/PASS保持；后续旧内容为历史。
 
 用户确认Profile Card Compact + Avatar v1正式Production人工验收PASS，最终状态CLOSED / PASS；Space Rename真实Production功能及最终UI也为CLOSED / PASS。Avatar已验收功能发布Source SHA：fcd3c8ad1b91bd7ec137c331e3d721ea8fae6cac。12预设及猫F+02「陶粉与燕麦」保持冻结。该整体验收不扩大为跨设备、照片替换/默认恢复、真实失败/断网重试、退出最后共同Space的新签拒绝、5分钟签名续期及iOS/Android/PWA全部边界已通过；未完整验证项继续在观察期记录。
 

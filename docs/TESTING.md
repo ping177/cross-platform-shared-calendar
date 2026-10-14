@@ -1,5 +1,21 @@
 # Testing
 
+## 我的标题一致性 — LOCAL PASS / USER VISUAL ACCEPTED / 2026-10-15
+
+- 首页/日历/My均复用text-ui-page-title：26px、34px行高、700字重、16px水平边距；My左对齐/44px标题行，原顶部safe-area与20px卡片间距保持。375px真实组件隔离截图my-title-375.png；无横向溢出，底部导航375×49、console error/warn为空。用户已确认标题视觉PASS，Production/PWA待验收。
+- `node --test tests/me-spaces-ui-v2.test.ts tests/profile-card-ui.test.ts tests/calendar-create.test.ts` 25/25 PASS；`npm run build`含TypeScript及`git diff --check` PASS。标题修改阶段未重复全量；本轮统一发布前按用户要求重新运行全量964/964、TypeScript、Build/diff-check PASS。
+- 用户确认日历创建真实账号功能PASS；该确认不替代未进行的Production发布/验收。未改Event业务逻辑，不操作真实登录态。
+
+## Calendar final create flow — REAL-ACCOUNT FUNCTIONAL PASS / PRODUCTION PENDING / 2026-10-15
+
+- 最终规则：日历右上角唯一44×44「+」直接打开既有完整EventSheet，不再有前置空间选择Sheet。全部空间默认当前用户Personal Space，具体筛选默认当前Space；两种模式均显示可交互的「保存到」选择控件，可改为其他合法Space。切换保留标题、日期时间、重复、提醒和描述，仅重置空间相关归属；保存使用最终选中的Space，保存前重验Auth/成员。无合法目标或读取失败禁用保存并提示/重试；取消保留日历日期、视图、筛选。已有Event编辑/转移、任务清单及后端不变。
+- 新增7/7、全量964/964 PASS；`npx tsc -b`、`npm run build`、`git diff --check` PASS（既有chunk size警告）。包含全部/具体默认及可切换、单/多/空目标、完整草稿、最终归属、取消、晚响应、权限重验、同tick提交锁和失败重试。已有业务测试未删；上一版8项前置picker测试替换为7项最终行为测试。
+- 375px真实组件离线浏览器验证两种可交互表单、草稿与重复设置保留、最终目标模拟保存一次、取消/单目标/无目标提示；无横向溢出或console error/warn。截图：本Chat calendar-create-final/{all-personal-375,switched-shared-375,specific-editable-375}.png。使用内存client与connect-src none，无真实账号或Production写入；真机键盘/PWA与真正保存由用户验收。
+- Readiness Gate：真实Vite固定5175，Supabase及CLI linked project均ximazjhxvmktpcdbypka，Event/member契约limit0 HTTP200/零行。无新Schema/RPC/Edge要求，无backend修改。
+- 人工：自行登录 http://127.0.0.1:5175/；全部空间+默认Personal，具体筛选+默认当前Space；两种表单均可换目标，标题/时间/重复/提醒/描述保留，确认保存后刷新检查最终归属；关闭表单保持日历日期/视图/筛选；断网失败保留草稿并允许重试。当前只有Personal时验证单目标；多Space分支待正常使用已有合法Space时验收，不为测试额外建Production Space。用户已确认本地功能/视觉并授权统一发布；正式浏览器/PWA需刷新或重启运行时后再验收两种默认目标/可切换、草稿/最终归属/取消与我的标题。Production/PWA人工PASS前不CLOSED，之后暂停常规开发、真实试用。
+
+Commands: `node --test tests/calendar-create.test.ts`; `node --test tests/*.test.ts tests/*.test.js`; `npx tsc -b`; `npm run build`; `git diff --check`.
+
 ## Profile Card Compact + Avatar v1 — 2026-10-14
 
 Status: CLOSED / PASS — user-confirmed Production manual acceptance. No new formal version.

@@ -1,5 +1,40 @@
 # Development Log
 
+## 2026-10-15 — 日历创建与我的标题统一发布审查 — LOCAL USER PASS / PRODUCTION MANUAL PENDING
+
+- 用户明确确认日历创建真实账号与我的标题视觉PASS，并授权统一Commit/正常Push origin/main/Vercel自动Production发布核验。基线main/origin/main26777a1；完整12文件范围：App、MyPage、styles，calendar-create新测试、两UI回归测试和六治理文档。没有后端/Avatar/依赖/环境/临时截图或无关文件。
+- 发布前重跑全量964/964、npx tsc -b、npm run build及diff-check PASS；既有bundle警告非阻塞。代码/测试审查确认最终Space选择、草稿/取消/重复锁保护与标题两行样式无冲突，既有Event编辑分支和Task/List未扩展。
+- PROJECT_STATE核对Current version/status、Next Action、Blockers、Version Index及Deployment；保持v0.1.20，无新增Index条目，暂无明确阻塞。Next Action为用户Production/PWA验收；不写正在提交或尚未提交等短期状态。Project-State-Review: updated用于本轮提交，Push后只读审查。
+- 发布状态及精确SHA以本轮Git/Vercel/公开资源报告为准；部署成功不证明真实账号/PWA人工验收，未提前CLOSED。失败停止、不修改生产配置；若出现实际回归，先报告并获授权后采用前端forward revert/重新部署，保留后端和用户内容，不重置数据库或改历史。
+- 无Production数据/Schema/RLS/RPC/Edge/Cron/Storage变更，不继承真实登录态。无.env或密钥读取/输出，GitHub/Vercel公开部署元数据只读核验；无外部项目改动。下面本地实施记录为历史，当前验收状态以上述用户确认与最终核验报告为准。
+
+## 2026-10-15 — 我的一级标题一致性 — LOCAL PASS / VISUAL PENDING
+
+- 用户确认上一轮日历创建真实账号功能验收PASS，不再调整行为；Production前端发布及验收仍未完成。
+- 首页/日历使用text-ui-page-title，「我的」原text-ui-section且ui-me-title居中。本轮仅MyPage标题改为text-ui-page-title + 44px垂直居中标题行，ui-me-title改为左对齐，沿用26px/34px/700变量、16px水平/顶部safe-area与20px卡片间距。Profile/空间管理/通知/退出/底部导航及Event代码未改。
+- 相关25/25（me-spaces-ui-v2、profile-card-ui、calendar-create，其中日历7/7）、npm run build含TypeScript、git diff --check PASS；既有bundle警告保留。此前全量964/964证据保持，本轮两行样式修改不重复全量。375px实际MyPage/ProfileCard/BottomNavigation组件与正式CSS隔离检查：font26px/weight700/left16px/top16px/row44px，无溢出或console warn/error；截图本Chat my-title-375.png。未驱动真实登录态；用户视觉确认待完成。
+- 无后端/头像/依赖/外部项目改动、未读取.env或输出密钥；临时fixture和截图在仓库外。保留全部未提交Event改动，不Commit/Push/部署。固定5175临时离线检查后恢复真实Vite；确认后再另获统一发布授权。
+
+## 2026-10-15 — Calendar 默认空间 + 表单内自由选择 — LOCAL PASS / MANUAL PENDING
+
+- 用户否定前置选择流程，最终规则：日历右上角唯一44×44「+」直接打开既有完整EventSheet，不再有前置空间选择Sheet。全部空间默认当前用户Personal Space，具体筛选默认当前Space；两种模式均显示可交互的「保存到」选择控件，可改为其他合法Space。切换保留标题、日期时间、重复、提醒和描述，仅重置空间相关归属；保存使用最终选中的Space，保存前重验Auth/成员。无合法目标或读取失败禁用保存并提示/重试；取消保留日历日期、视图、筛选。已有Event编辑/转移、任务清单及后端不变。
+- 保留此前有效唯一入口、权限重验、请求失效和提交锁；移除前置CalendarFilterPicker创建模式、picker状态及opening状态。新表单立即打开，成员读取期间禁用保存，失败保留草稿与重试；空间选择不重新挂载EventSheet。保存复用既有明确目标确认及最终space.id insert；没有修改已有Event编辑/跨空间转移或Task/List/Avatar/后端。
+- 先用5项新行为回归复现旧实现失败，再调整；最终新增7/7、全量964/964、npx tsc -b与npm run build/diff-check PASS。测试覆盖默认Personal/具体Space均可选择、单目标、无目标、成员/账号变化、取消/晚响应/快速切换、完整草稿保留、最终归属、重复提交及失败重试。965为上一版8项测试计数，本版替换为7项，非跳过旧业务测试。Build既有>500kB警告保持。
+- 375px真实React/CSS离线fixture验证默认Personal、具体Space可切换、标题/时间/提醒/描述/重复保留、模拟insert Shared一次、筛选日期不变、取消、单目标与无目标提示；无横向溢出，console error/warn为空。截图在本Chat calendar-create-final/{all-personal-375,switched-shared-375,specific-editable-375}.png。隔离结果不代表Production或真实登录验收。
+- 已确认停止的是本项目Vite PID73587，暂时切到固定5175离线server后关闭并恢复真实Vite strictPort。服务目标/linked Project均ximazjhxvmktpcdbypka；公开Event/成员契约limit0查询HTTP200/零行，无新backend能力要求，无真实登录/Production写入。public配置仅内部读取使用，未打印密钥或读取.env；无外部项目文件改动（临时测试/截图除外）、依赖安装、Git提交/Push/部署。
+- 更新当前规格/决策/Backlog/Project State及Testing；旧前置选择记录仅历史，已被本条替代。等待用户本地确认，再另获发布授权；Production验收完成后暂停常规开发，真实试用观察。
+
+## 2026-10-14 — Calendar unified create entry — HISTORICAL / SUPERSEDED BY 2026-10-15
+
+- 用户批准正式试用前最后一项明确UX需求。main26777a1、初始clean；用户报告Production测试数据清理完成，当前两个账号/各自Personal Space，此为用户报告，本轮未执行清理或独立账号盘点。既有Space Rename/Avatar CLOSED/PASS保持；不新增版本或扩大架构。
+- 当前日历只有具体Space显示+。本轮始终保留唯一44×44入口；全部空间多目标复用CalendarFilterPicker Sheet/样式与focus/Escape/Tab，显式选择保存Space；只有一个目标或具体筛选直接打开既有EventSheet。create目标与Calendar filter分离，取消和保存不改变日期/视图/筛选，无新的模块、CSS或依赖。
+- 入口/目标打开/实际保存重新读取当前Auth、完整membership-valid Space与成员，用既有targetMembersValid校验本人/关联owner。请求guard和同步打开锁阻止重复/过期响应；选择取消、账号/视图scope变化不会打开旧目标。空目标有明确反馈，不生成无space_id表单。EventSheet复用既有submitLock覆盖本地创建：same-tick重复保存只有一次insert，失败保留草稿释放锁、成功保持锁到关闭；不改变编辑/重复/Reminder payload或后端。
+- 新8项Node+Vite fixture覆盖全部选择/取消/具体与单目标/空与读取失败重试/账号成员变化/late response/保存前撤权/实际insert空间ID/duplicate/retry，选择读取失败在Sheet内可见并允许重新选择。用初始7项fixture在HEAD基线内存加载复现旧交互不满足，最终含面板错误重试8/8 PASS（初次fixtureSSR hook注入问题修正后复验）。既有两UI套件只更新原all-space无创建断言，Home/Hub/底栏入口保持。相关120/120、全量965/965、npm run build含tsc-b PASS，既有>500kB警告非阻塞；diff-check PASS。
+- 真源码React/编译CSS、envFile=false、内存client、connect-src none隔离浏览器：320/375/768/1024无横向溢出、唯一+且44×44；375多Space Sheet→选Shared→实际表单保存mock1次/正确space_id、原全部空间和周日期保留，Escape/Tab闭环/焦点恢复/表单取消/具体Space直达/单Space直达/无目标disabled+说明通过；console warn/error为空。图片位于本Chat visualizations/calendar-create/。此为隔离模拟，不是Production写入或真实设备/PWA验收。
+- 5175当时空闲，临时隔离Python server完成后只停止该PID并恢复真正npm run dev/strictPort。真实served Vite目标和CLI link匹配ximazjhxvmktpcdbypka；公开客户端Event/成员列limit=0均HTTP200/零行，既有后端能力足够。public凭据仅内部使用、不输出；无主动.env读取/修改、无真实登录驱动、无Production写入。
+- changed: src/App.tsx、tests/calendar-create.test.ts与aggregate-calendar-ui/global-create-ui，及PROJECT_STATE/DEVLOG/TESTING/BACKLOG/DECISIONS/v0.1.11规格中的当前补充说明。无Avatar/后端/权限/外部项目修改；未Commit/Push/部署。停在用户本地视觉/真实账号验收，完成后按明确要求暂停常规开发、真实使用观察。
+
+
 ## 2026-10-14 — Space Rename / Profile Card Compact + Avatar v1 最终治理收口 — CLOSED / PASS
 
 - 用户确认Profile Card Compact + Avatar v1正式Production人工验收PASS，最终状态CLOSED / PASS；Space Rename真实Production功能及最终UI也为CLOSED / PASS。Avatar已验收功能发布Source SHA：fcd3c8ad1b91bd7ec137c331e3d721ea8fae6cac。12预设及猫F+02「陶粉与燕麦」保持冻结。该整体验收不扩大为跨设备、照片替换/默认恢复、真实失败/断网重试、退出最后共同Space的新签拒绝、5分钟签名续期及iOS/Android/PWA全部边界已通过；未完整验证项继续在观察期记录。

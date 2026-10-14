@@ -714,7 +714,7 @@ body:has(.ui-calendar-shell) {
 
 /* UI v2 Slice 11: My / Space management; notification settings remain outside these surfaces. */
 .ui-my-page, .ui-spaces-page { padding-top: calc(var(--ui-space-4) + env(safe-area-inset-top, 0px)); }
-.ui-me-title { text-align: center; margin-bottom: var(--ui-space-5); }
+.ui-me-title { text-align: left; margin-bottom: var(--ui-space-5); }
 .ui-my-profile, .ui-space-group { padding: var(--ui-space-4); border: var(--ui-border-width) solid rgb(var(--ui-color-border)); border-radius: var(--ui-radius-group); background: rgb(var(--ui-color-surface)); }
 .ui-my-profile-heading { display: flex; align-items: center; gap: var(--ui-space-3); color: rgb(var(--ui-color-text)); }
 .ui-profile-row { display: flex; align-items: center; gap: var(--ui-space-3); min-width: 0; }

@@ -1,6 +1,10 @@
 # Backlog
 
-## Current next action — approximately two-week real use observation
+## Final pre-trial calendar create UX — LOCAL USER ACCEPTED / PRODUCTION MANUAL PENDING
+
+唯一当前开发例外：日历右上角唯一44×44「+」直接打开既有完整EventSheet，不再有前置空间选择Sheet。全部空间默认当前用户Personal Space，具体筛选默认当前Space；两种模式均显示可交互的「保存到」选择控件，可改为其他合法Space。切换保留标题、日期时间、重复、提醒和描述，仅重置空间相关归属；保存使用最终选中的Space，保存前重验Auth/成员。无合法目标或读取失败禁用保存并提示/重试；取消保留日历日期、视图、筛选。已有Event编辑/转移、任务清单及后端不变。 本地964/964与TypeScript/Build通过，日历真实账号功能已验收PASS；「我的」标题视觉已确认、统一发布已授权；等待Production/PWA真实人工验收。Production验收后暂停常规功能开发，进入约两周真实试用观察；用户报告测试数据清理完成，不重做清理。
+
+## Prior observation plan — superseded by the final pre-trial UX exception
 
 暂停常规功能开发，进入约两周真实使用观察（2026-10-14起，约至2026-10-28）；记录实际使用问题与未完整覆盖的边界，再决定是否需要后续修正。未来独立待办：整理测试数据，三个测试账号保留两个；保留账号选择与清理需另行确认，本轮不执行，也不是当前阻塞项。不创建新版本或启动新功能。
 
