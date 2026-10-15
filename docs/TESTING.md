@@ -1,5 +1,10 @@
 # Testing
 
+## Review + confirmation UI Production static acceptance — PASS / FINAL DEVICE PENDING
+
+First functional Source d514b71d348d74dc12ebe46345b475c163d08b25, GitHub Production7089323536 / VercelBZbyFYcM8Erdbq19VmWA3NEFEruv success. Formal domain HTML/JS/CSS/manifest/sw200; JS index-0ga2zs_T.js and CSS index-DBzd7NWS.css byte-identical to final local Build. Review corrected-date/delete RPC/App dialog, List Item/recovered input dialog, invite dialog and both group scopes present; correct backend and original VAPID public key verified. Later authorized docs-only records have their own final Source.992/992 + TS/Build and user local acceptance retained; final Production iPhone PWA NOT RUN by Codex, pending user. No backend replay, authenticated session or Push E2E.
+
+
 ## Review final release gate — USER LOCAL PASS / FINAL PRODUCTION DEVICE PENDING
 
 User confirms Review App confirmation/cancel/delete, List Item cancel/delete, empty group confirmation/delete, nonempty group both scopes, invite confirmation/cancel and Review date correction PASS. Backend Review RPC/Postflight and earlier Event/Push PASS retained. Reviewed19-file source is unchanged since final full992/992 and TypeScript/Build (source/test file timestamps and SHA manifest checked); diff-check/credential-literal scan PASS, no pointless full/E2E rerun. Exact new Vercel Source/static resources require separate verification; user iPhone PWA acceptance remains pending. No SQL/Edge/Cron/data operation in this release.

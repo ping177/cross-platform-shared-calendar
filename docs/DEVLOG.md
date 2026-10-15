@@ -1,5 +1,13 @@
 # Development Log
 
+## 2026-10-15 — Review + confirmation UI frontend release — DEPLOYED / FINAL IPHONE PWA PENDING
+
+- Review实现提交8f5efd1；确认UI/验收治理提交及首个功能Production Source `d514b71d348d74dc12ebe46345b475c163d08b25`。正常push origin/main成功；GitHub Production deployment7089323536 / VercelBZbyFYcM8Erdbq19VmWA3NEFEruv success，vercel[bot]记录绑定正确仓库/Production环境/精确SHA。部署地址cross-platform-shared-calendar-ki0u199lj-ping178.vercel.app。
+- 正式域名HTML、JS /assets/index-0ga2zs_T.js、CSS /assets/index-DBzd7NWS.css、manifest及sw均200；JS/CSS与已验证本地Build逐字节相同。Review日期局部样式/删除RPC/App确认、清单项目/恢复输入确认、邀请码确认和既有分组两范围均在新构建；目标ximazjhxvmktpcdbypka、原VAPID公钥匹配。未输出公钥或凭据值、未依赖上传.env.local。
+- 992/992、TypeScript/Build、375/430真实组件与用户五项本地真实验收均保持PASS；本轮源码未变，复核证据不重复全测/E2E。未修改Production SQL/Edge/Cron/Auth/Storage/业务数据，Review已安装补丁只提交源码。推送后只读状态复核POST_PUSH_STATE_CURRENT。
+- 本次授权的docs-only发布记录有其独立最终Source；上方SHA为首个功能发布证据，最新Source由独立部署报告核验。最后Production iPhone PWA由用户检查日期边界/确认取消与一次删除/分组范围/邀请码取消；不提前CLOSED/PASS。之后暂停常规开发、真实使用观察，无新版本。
+
+
 ## 2026-10-15 — Review + destructive confirmations release gate — USER LOCAL PASS / FINAL PRODUCTION DEVICE PENDING
 
 - 用户确认五项本地真实验收全部PASS：Review App确认取消/删除、List Item取消保留/删除、空分组确认/删除、非空分组两范围、邀请码提示/取消；Review日期更正真实PASS保持。Review删除Production RPC及Postflight已完成；Event Collaboration及真实Push已验收，不重做。

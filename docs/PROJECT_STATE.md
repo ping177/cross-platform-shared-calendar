@@ -12,7 +12,7 @@ v0.1.20
 
 ## Current status
 
-Review最终修复 + 删除确认：USER LOCAL ACCEPTANCE PASS / 最终Production iPhone PWA验收PENDING，本轮未CLOSED。用户五项本地真实验收及Review日期更正均PASS，Review Production删除RPC/Postflight已完成，Event Collaboration/真实Push既有PASS保持。本轮前端Git/Vercel发布获明确授权；19文件范围、992/992、TypeScript/Build证据与当前未变源码一致，diff-check/敏感字面量扫描PASS。独立部署Source/正式资源核验结果单独记录，不以授权或自动测试推断Production人工通过。v0.1.20不变；不实施筛选器统一，不操作Production后端，不新增功能。
+Review最终修复 + 删除确认：FRONTEND PRODUCTION DEPLOYED / 最终iPhone PWA用户验收PENDING，本轮未CLOSED。首个功能Source d514b71d348d74dc12ebe46345b475c163d08b25，Vercel部署与正式静态核验PASS，JS/CSS与本地Build逐字节一致；后续本次授权docs-only记录的最终Source独立核验，不把功能SHA冒充永久最新。用户五项本地真实验收和Review日期更正PASS；992/992、TS/Build证据及375/430检查保持，既有chunk警告非阻塞。Review删除Production RPC/Postflight、Event Collaboration/真实Push既有PASS保持，本轮未操作后端。v0.1.20不变，不实施筛选器统一或额外功能。
 
 用户报告Production测试数据已清理，目前保留两个账号及各自Personal Space；本轮未执行该清理或独立读取账号数据。此前整理测试数据/三个账号保留两个的计划已由用户报告接续，不再列作当前待执行任务。
 
@@ -45,6 +45,8 @@ UI v2 Slice6 = LOCAL PASS / VISUAL PASS：用户已认可四张居中概览卡�
 v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3为LOCAL PASS / VISUAL PASS；Slice4为LOCAL PASS / VISUAL PROVISIONALLY ACCEPTED。Slice5月视图本地验证与离线视觉验收通过：两条短标题/准确+N、六色圆点与日期浮层，261/261相关测试、build/diff-check、28组四宽度离线检查PASS；用户确认普通月、密集月、空月及浮层满意。已授权本地commit；不代表真实账号、真机、installed PWA或Production验收。Space Color System继续Deferred；真实账号/真机/installed PWA/Production未验收。正式版本仍v0.1.20。
 
 ## Latest completed
+
+2026-10-15 — Review日期/删除与确认UI功能Production d514b71发布成功（GitHub7089323536 / VercelBZbyFYcM8Erdbq19VmWA3NEFEruv），正式JS/CSS逐字节匹配、Review/List/Invite标识及目标/公钥核验PASS。用户本地验收PASS保持，最后Production iPhone PWA待反馈，不提前关闭。
 
 2026-10-15 — 用户确认Review日期及五项确认交互本地真实PASS；19文件最终范围、源码与992/992/TS/Build证据一致性、diff-check及敏感字面量扫描通过。后端补丁源码与已安装版本一致，仅纳入Git记录。最终Production前端Source/资源和iPhone PWA结果独立核验，不提前关闭。
 
@@ -342,6 +344,8 @@ Slice 3 Home Aggregation is deployed to Vercel Production and `CLOSED / PASS` af
 Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create action; a single Space filter uses the existing Event Sheet with an explicit target and membership recheck. Complete Event/exception reads, per-Space members, canonical recurrence/edit reuse, fail-closed display and active-view Realtime passed automated checks and the read-only frontend/backend readiness gate. Implementation commit `0505091` is pushed to `origin/main`; local automated verification and user-run authenticated functional checks 1–10 are `PASS`, including Today/Week/Month navigation and current-period actions. User-run bounded Production smoke is `PASS`: Production runs the Slice 2 frontend; aggregate/source labels, all/single create behavior, Event open/edit context, date navigation/current-period actions, Hub → Calendar filter, rapid-filter stale-data isolation, and A/B Realtime create/update/delete passed. Slice 2 is `CLOSED / PASS`. Checks 11 iPhone Safari, 12 installed PWA and 13 final 320px device check are `DEFERRED / NOT RUN`; check 14 second Shared Space is `N/A / NOT RUN`. No Slice 2 backend rollout occurred; Slice 1 remains `CLOSED / PASS` in Production.
 
 ## Deployment
+
+Review最终修复 + 确认UI首个功能Production Source d514b71d348d74dc12ebe46345b475c163d08b25（Review提交8f5efd1）。GitHub7089323536 / VercelBZbyFYcM8Erdbq19VmWA3NEFEruv success；正式域名HTML/JS/CSS/manifest/sw200，JS/CSS与本地Build一致，Supabase目标与既有VAPID公钥匹配。后续已授权docs-only发布记录Source与最终main由本轮独立报告核验；本条仅记录首个功能发布，不推断永久最新。最后Production iPhone PWA验收仍PENDING，无后端重复部署。
 
 本轮Review最终修复/确认UI的发布前基线305681eda48311052604043aa140102efda14b38；前端Git→Vercel发布由用户单独授权，精确新Source/部署ID/公开资源结论以本轮独立发布记录为准。Review删除后端已完成且不重放；最终Production iPhone PWA人工验收PENDING。
 
