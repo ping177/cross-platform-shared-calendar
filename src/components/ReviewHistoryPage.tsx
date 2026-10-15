@@ -283,7 +283,7 @@ export function ReviewHistoryPage({ swipeClickGuard, userId, entry = null, entry
       </section>
     </>}
     {createOpen && selectedSpace && <div className="fixed inset-0 z-40 flex items-end bg-ink/50 p-4 md:items-center" role="dialog" aria-modal="true" aria-labelledby="review-create-title" onClick={(event) => { if (event.target === event.currentTarget && !createBusy) setCreateOpen(false); }}>
-      <form className="mx-auto w-full max-w-md rounded-ui-sheet bg-ui-page p-ui-5 shadow-ui-sheet ui-safe-bottom" onSubmit={(event) => void submitCreate(event)}>
+      <form className="ui-review-create-form mx-auto w-full max-w-md rounded-ui-sheet bg-ui-page p-ui-5 shadow-ui-sheet ui-safe-bottom" onSubmit={(event) => void submitCreate(event)}>
         <h2 id="review-create-title" className="text-ui-section">新建回顾</h2>
         <p className="mt-ui-3 break-words text-ui-meta text-ui-muted">目标空间：<strong>{selectedSpace.name}</strong></p>
         <label className="mt-ui-6 block text-ui-meta font-ui-semibold" htmlFor="review-date">回顾日期</label>

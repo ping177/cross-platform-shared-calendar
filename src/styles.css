@@ -114,9 +114,10 @@ select {
 
 /* iOS date controls otherwise impose a localized intrinsic width/content-box
    and center their internal value. Preserve the native picker, style only
-   Event/Task fields, and leave Task's flex row/clear button unchanged. */
+   Event/Task fields and Review creation, leaving Task's flex row/clear button unchanged. */
 .ui-event-sheet-body input[type="datetime-local"],
-.ui-task-sheet-body input[type="date"] {
+.ui-task-sheet-body input[type="date"],
+.ui-review-create-form input[type="date"] {
   -webkit-appearance: none;
   appearance: none;
   min-width: 0;
@@ -125,7 +126,8 @@ select {
   text-align: left;
 }
 .ui-event-sheet-body input[type="datetime-local"]::-webkit-date-and-time-value,
-.ui-task-sheet-body input[type="date"]::-webkit-date-and-time-value {
+.ui-task-sheet-body input[type="date"]::-webkit-date-and-time-value,
+.ui-review-create-form input[type="date"]::-webkit-date-and-time-value {
   text-align: left;
 }
 
@@ -589,6 +591,15 @@ body:has(.ui-calendar-shell) {
 
 /* UI v2 Slice 8: review surfaces only. */
 .ui-review-page { padding-top: calc(var(--ui-space-6) + env(safe-area-inset-top, 0px)); }
+.ui-review-create-form {
+  min-width: 0;
+  min-height: 0;
+  max-height: calc(100dvh - 2rem);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  overflow-wrap: anywhere;
+}
 .ui-review-row {
   display: grid;
   grid-template-columns: 1.5rem minmax(0, 1fr) auto 1rem;
