@@ -8,9 +8,9 @@ const space = { id: 's', name: '共享', kind: 'shared', membershipRole: 'owner'
 const round = { id: 'r2', space_id: 's', round_no: 2, review_date: '2026-09-26', created_by: 'me', created_at: '2026-09-26T00:00:00Z' } as ReviewRound;
 const entry = (review_id: string, user_id: string, next_plan: string | null = null): ReviewEntry => ({ review_id, user_id, focus: null, progress: null, problems: null, next_plan, content_revision: next_plan ? 1 : 0, filled_revision: null, updated_at: '2026-09-26T00:00:00Z' });
 
-function fakeClient(log: string[], options: { previousPlans?: Record<string, string | null>; missing?: boolean; wrongRound?: boolean; rpcError?: Error } = {}): SupabaseClient {
+function fakeClient(log: string[], options: { previousPlans?: Record<string, string | null>; missing?: boolean; wrongRound?: boolean; rpcError?: Error; deleteResult?: string | null; authUserId?: string } = {}): SupabaseClient {
   return {
-    auth: { getUser: async () => ({ data: { user: { id: 'me' } }, error: null }) },
+    auth: { getUser: async () => ({ data: { user: { id: options.authUserId ?? 'me' } }, error: null }) },
     from(table: string) {
       log.push(`from:${table}`);
       const filters: Record<string, unknown> = {};
@@ -27,6 +27,7 @@ function fakeClient(log: string[], options: { previousPlans?: Record<string, str
     },
     async rpc(name: string, args: unknown) {
       log.push(`rpc:${name}:${JSON.stringify(args)}`);
+      if (name === 'delete_review_round') return { data: options.deleteResult === undefined ? 'r2' : options.deleteResult, error: options.rpcError ?? null };
       if (name === 'get_my_previous_review_plan') {
         const reviewId = (args as { p_review_id: string }).p_review_id;
         return { data: options.previousPlans?.[reviewId] ?? null, error: options.rpcError ?? null };
@@ -79,4 +80,18 @@ test('date correction uses exact RPC and server result, propagating backend reje
   assert.deepEqual(log.filter((item) => item.startsWith('rpc:')), ['rpc:correct_review_date:{"p_review_id":"r2","p_review_date":"2026-09-27"}']);
   await assert.rejects(correctReviewDate(fakeClient([], { rpcError: new Error('Review module is disabled') }), round, '2026-09-27', 'me'), /disabled/);
   await assert.rejects(correctReviewDate(fakeClient([], { rpcError: new Error('这一天已经有一篇回顾') }), round, '2026-09-27', 'me'), /这一天已经有一篇回顾/);
+}));
+
+
+test('delete confirms exact round receipt, rejects missing/wrong receipts and backend failure', async () => withData(async ({ deleteReviewRound }) => {
+  const log: string[] = [];
+  await deleteReviewRound(fakeClient(log), round, 'me');
+  assert.ok(log.includes('rpc:delete_review_round:{"p_review_id":"r2"}'));
+  for (const deleteResult of [null, 'other']) {
+    await assert.rejects(deleteReviewRound(fakeClient([], { deleteResult }), round, 'me'), /无法确认/);
+  }
+  await assert.rejects(deleteReviewRound(fakeClient([], { rpcError: new Error('Current review participant membership is required') }), round, 'me'), /membership/);
+  const deniedLog: string[] = [];
+  await assert.rejects(deleteReviewRound(fakeClient(deniedLog, { authUserId: 'other' }), round, 'me'), /登录状态/);
+  assert.ok(!deniedLog.some((line) => line.startsWith('rpc:')));
 }));

@@ -43,3 +43,10 @@ export async function correctReviewDate(client: SupabaseClient, round: ReviewRou
     || typeof data.review_date !== 'string') throw new Error('无法确认更正后的回顾日期，请刷新后重试。');
   return data as ReviewRound;
 }
+
+export async function deleteReviewRound(client: SupabaseClient, round: ReviewRound, userId: string): Promise<void> {
+  await assertCurrentUser(client, userId);
+  const { data, error } = await client.rpc('delete_review_round', { p_review_id: round.id });
+  if (error) throw error;
+  if (data !== round.id) throw new Error('无法确认回顾已删除，请刷新后重试。');
+}

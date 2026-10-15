@@ -865,3 +865,26 @@ body:has(.ui-calendar-shell) {
 .ui-event-sheet-body .text-coral { color: rgb(var(--ui-color-danger)); }
 .ui-event-sheet-body .bg-coral { background-color: rgb(var(--ui-color-danger)); }
 @media (min-width: 768px) { .ui-event-sheet-panel { border-radius: var(--ui-radius-sheet); } }
+
+/* Review date correction is a separate dialog, not the creation Sheet. */
+.ui-review-date-form {
+  min-width: 0;
+  min-height: 0;
+  max-height: calc(100dvh - 2rem);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  overflow-wrap: anywhere;
+}
+.ui-review-date-form input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  text-align: left;
+}
+.ui-review-date-form input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+}

@@ -46,3 +46,17 @@ test('Review create form stays inside the viewport and scrolls long content loca
   const source = readFileSync(new URL('../src/components/ReviewHistoryPage.tsx', import.meta.url), 'utf8');
   assert.match(source, /<form className="ui-review-create-form [^"]*ui-safe-bottom" onSubmit=/);
 });
+
+
+test('Review date correction has its own constrained native date and scrolling dialog', () => {
+  const source = readFileSync(new URL('../src/components/ReviewDetailPage.tsx', import.meta.url), 'utf8');
+  assert.match(source, /<form className="ui-review-date-form /);
+  for (const selector of ['.ui-review-date-form input[type="date"]', '.ui-review-date-form input[type="date"]::-webkit-date-and-time-value']) {
+    assert.match(rule(selector), /text-align:\s*left/);
+  }
+  const form = rule('.ui-review-date-form');
+  assert.match(form, /min-width:\s*0/);
+  assert.match(form, /max-height:\s*calc\(100dvh - 2rem\)/);
+  assert.match(form, /overflow-x:\s*hidden/);
+  assert.match(form, /overflow-y:\s*auto/);
+});
