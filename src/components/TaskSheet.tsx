@@ -179,8 +179,18 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
   }
 
   return (
-    <div className="ui-task-sheet fixed inset-0 z-20 flex items-end bg-ink/35 font-ui text-ui-text md:items-center md:px-4 md:py-6">
-      <section ref={dialog} className="mx-auto max-h-[92dvh] w-full max-w-md overflow-y-auto overscroll-contain rounded-t-2xl bg-white p-5 shadow-soft safe-bottom md:rounded-lg" role="dialog" aria-modal="true" aria-labelledby="task-sheet-title">
+    <div data-delete-overlay={confirmingDelete} className="ui-task-sheet fixed inset-0 z-20 flex items-end bg-ink/35 font-ui text-ui-text md:items-center md:px-4 md:py-6">
+      <section ref={dialog} data-delete-confirm={confirmingDelete} className="mx-auto max-h-[92dvh] w-full max-w-md overflow-y-auto overscroll-contain rounded-t-2xl bg-white p-5 shadow-soft safe-bottom md:rounded-lg" role="dialog" aria-modal="true" aria-labelledby="task-sheet-title">
+        {confirmingDelete && task && !confirmingDiscard && !confirmingCreateTargetId ? <div className="ui-delete-content">
+          <h2 id="task-sheet-title" className="ui-delete-title">删除任务</h2>
+          <p className="ui-delete-target">任务：<strong>{task.title}</strong>{sourceSpaceLabel && <><br />空间：<strong>{sourceSpaceLabel}</strong></>}</p>
+          <p className="ui-delete-warning">这会永久删除此任务，无法恢复。</p>
+          {error && <p className="ui-delete-error" role="alert">{error}</p>}
+          <div className="ui-delete-actions">
+            <button data-confirm-cancel className="ui-delete-button ui-delete-cancel" type="button" disabled={busy} onClick={() => setConfirmingDelete(false)}>取消</button>
+            <button className="ui-delete-button ui-delete-danger" type="button" disabled={busy || !actionsAllowed} onClick={() => void deleteTask()}>{busy ? '删除中…' : '删除'}</button>
+          </div>
+        </div> : <>
         <header className="ui-task-sheet-header">
           <button className="ui-focus" type="button" onClick={moduleView ? requestClose : onClose} disabled={busy} aria-label="关闭任务表单"><X size={20} aria-hidden="true" /></button>
           <h2 id="task-sheet-title" ref={createHeading} tabIndex={-1} className="text-ui-bar">{task ? '编辑任务' : '新建任务'}</h2>
@@ -206,14 +216,6 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
             <div className="flex gap-3">
               <button data-confirm-cancel className="h-12 flex-1 rounded-lg bg-mist font-semibold" type="button" disabled={busy} onClick={() => setConfirmingCreateTargetId(null)}>取消</button>
               <button className="h-12 flex-1 rounded-lg bg-teal font-semibold text-white disabled:opacity-50" type="button" disabled={busy || !actionsAllowed || !createReady} onClick={() => void save(undefined, true)}>{busy ? '保存中' : '确认保存'}</button>
-            </div>
-          </div>
-        ) : confirmingDelete && task ? (
-          <div className="mt-5 space-y-4">
-            <p className="text-sm text-ink/70">确定删除「{task.title}」吗？删除后无法恢复。</p>
-            <div className="flex gap-3">
-              <button data-confirm-cancel className="h-12 flex-1 rounded-lg bg-mist font-semibold disabled:opacity-60" type="button" disabled={busy} onClick={() => setConfirmingDelete(false)}>取消</button>
-              <button className="h-12 flex-1 rounded-lg bg-coral font-semibold text-white disabled:opacity-60" type="button" disabled={busy || !actionsAllowed} onClick={() => void deleteTask()}>{busy ? '删除中' : '确认删除'}</button>
             </div>
           </div>
         ) : (
@@ -256,6 +258,7 @@ export function TaskSheet({ task, spaceId, spaceKind, userId, members, onClose, 
           </form>
         )}
         </div>
+        </>}
       </section>
     </div>
   );

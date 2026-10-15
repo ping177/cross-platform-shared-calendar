@@ -128,15 +128,15 @@ export function ListDeleteDialog({ list, space, step, busy, canConfirm = true, e
 }) {
   const keyboard = useListModalKeyboard(true, busy, onCancel, '[data-list-confirm-cancel]');
   return <div ref={keyboard.container} tabIndex={-1} className="ui-list-overlay ui-list-confirm-overlay font-ui" role="dialog" aria-modal="true" aria-labelledby="list-delete-title">
-    <div className="ui-list-confirm mx-auto w-full max-w-md bg-white p-5 safe-bottom">
-      <h2 id="list-delete-title" className="text-lg font-bold">{step === 1 ? '删除清单' : '再次确认删除清单'}</h2>
-      <p className="mt-3 break-words text-sm leading-6">清单：<strong>{list.name}</strong><br />空间：<strong>{space.kind === 'personal' ? '我的空间' : space.name}</strong></p>
-      <p className="mt-3 text-sm leading-6">{step === 1 ? '这会永久删除清单及其中所有分组和项目，无法恢复。' : '请再次确认：上述清单及其内容将永久删除。'}</p>
-      {error && <p className="mt-3 text-sm text-coral" role="alert">{error}</p>}
-      {eligibilityError && <p className="mt-3 text-sm text-coral" role="alert">{eligibilityError}<button className="ml-2 min-h-11 font-semibold text-teal" type="button" onClick={onRetryEligibility}>重新读取清单</button></p>}
-      <div className="mt-5 flex justify-end gap-2">
-        <button data-list-confirm-cancel className="min-h-11 rounded-lg bg-mist px-4 font-semibold" type="button" disabled={busy} onClick={onCancel}>取消</button>
-        <button className="min-h-11 rounded-lg bg-coral px-4 font-semibold text-white disabled:opacity-50" type="button" disabled={busy || !canConfirm} onClick={onConfirm}>{busy ? '删除中…' : step === 1 ? '继续确认' : '永久删除清单'}</button>
+    <div className="ui-list-confirm ui-delete-content mx-auto w-full max-w-md bg-white p-5 safe-bottom">
+      <h2 id="list-delete-title" className="ui-delete-title">{step === 1 ? '删除清单' : '再次确认删除清单'}</h2>
+      <p className="ui-delete-target">清单：<strong>{list.name}</strong><br />空间：<strong>{space.kind === 'personal' ? '我的空间' : space.name}</strong></p>
+      <p className="ui-delete-warning">{step === 1 ? '这会永久删除清单及其中所有分组和项目，无法恢复。' : '请再次确认：上述清单及其内容将永久删除。'}</p>
+      {error && <p className="ui-delete-error" role="alert">{error}</p>}
+      {eligibilityError && <p className="ui-delete-error" role="alert">{eligibilityError}<button className="ml-2 min-h-11 font-semibold text-teal" type="button" onClick={onRetryEligibility}>重新读取清单</button></p>}
+      <div className="ui-delete-actions">
+        <button data-list-confirm-cancel className="ui-delete-button ui-delete-cancel" type="button" disabled={busy} onClick={onCancel}>取消</button>
+        <button className="ui-delete-button ui-delete-danger" type="button" disabled={busy || !canConfirm} onClick={onConfirm}>{busy ? '删除中…' : step === 1 ? '继续确认' : '永久删除清单'}</button>
       </div>
     </div>
   </div>;

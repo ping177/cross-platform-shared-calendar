@@ -45,10 +45,10 @@ test('B edits A-assigned event, changes final audience and sends one CAS save wi
 }));
 test('delete requires confirmation, pins Space and version, rejects zero-row result',()=>runtime(async e=>{
   nodes(e.render()).find(n=>n.type==='button'&&n.props['aria-label']==='删除日程').props.onClick();assert.equal(e.m.calls.length,0);
-  e.m.deleted=[];await e.find('确认删除').props.onClick();assert.equal(e.m.closed,0);
+  e.m.deleted=[];await e.find('删除').props.onClick();assert.equal(e.m.closed,0);
   assert.ok(e.m.calls.some((c:any)=>c[0]==='eq'&&c[1]==='space_id'&&c[2]==='s'));
   assert.ok(e.m.calls.some((c:any)=>c[0]==='eq'&&c[1]==='updated_at'&&c[2]==='version'));
-  e.m.deleted=[{id:'e'}];await e.find('确认删除').props.onClick();assert.equal(e.m.closed,1);
+  e.m.deleted=[{id:'e'}];await e.find('删除').props.onClick();assert.equal(e.m.closed,1);
 }));
 test('occurrence retains content scope chooser and explicit whole-series audience semantics',()=>runtime(async e=>{
   assert.ok(text(e.render()).includes('归属修改对整个重复系列生效'));

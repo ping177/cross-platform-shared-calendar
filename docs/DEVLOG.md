@@ -1,5 +1,32 @@
 # Development Log
 
+## 2026-10-15 — UI修复正式发布门禁 — USER IPHONE SAFARI PASS / PRODUCTION PWA PENDING
+
+- 用户明确确认五项本地iPhone Safari功能/视觉PASS：空/非空分组改名删除、两范围、贴底外壳、清单基准内部层级、原特殊规则/安全确认，并授权本轮Commit/正常Push/origin-main及既有Vercel前端发布。正式PWA用户最终验收前不CLOSED/PASS。
+- 20文件范围逐项复审，8个前端UI/CSS、6个测试/fixture、package测试脚本和5份治理文档均属授权修复；无env/凭据/调试产物或额外功能。源码/测试早于最终992/992与WebKit/Chrome18/18日志，源码未变不重跑全量；最终npm run build（含tsc）、Node语法和diff-check PASS，JS index-DYnsqgws/CSS index-CgQs3Nqx与最终验证产物一致，原bundle warning非阻塞。官方registry生产依赖audit：0/0/0/0/0；原npm镜像不支持audit，命令级切换未修改配置。
+- 独立远端main=5e171949d2c83c93ee8caa151426acc900b7ffb1与本地/用户基线一致；GitHub现有Production部署通道可用。按一个功能修复提交与后续实际发布记录提交组织；每次push前审查Project State并附准确trailer，每次成功push后只读freshness review。Next Action保持稳定为用户正式PWA验收，不把即将完成的同次push写成长期业务状态。
+- 全部既有删除范围/锁/权限与后台保持；不触及SQL/RLS/RPC/Edge/Cron/Auth或业务数据。若前端部署/静态核验失败则停止报告，不扩大范围；保留此前5e17194作为可识别的历史前端版本（有已知WebKit分组缺陷），任何回退另行处理，本轮不操作后台回退。实际Source/部署ID/资源证据在部署成功后记录。
+
+## 2026-10-15 — 删除确认内部视觉统一（清单唯一基准）— LOCAL PASS / USER PENDING
+
+- 用户已确认真实iPhone Safari分组改名/删除、贴底外壳、触摸按钮滚动安全区PASS，保持此验收事实；本轮仅按用户明确指定的清单内部设计统一，不重开Auth/环境审计或已验收外壳，也不宣称installed PWA已通过。
+- 真实结构盘点：Event/Task保留编辑居中头和表单留白/48px通栏按钮；分组名称混入标题；重要日加“确认”；Review对象无标签；Space的“确认”标题/成员信息顺序不同。原因是此前只合并外壳，每模块仍有独立正文模板。新真实组件回归在旧版分组标题上RED。
+- 复用清单实际18px/700/28px标题、14px/24px段落、加粗对象、12px段间距、20px按钮前留白，抽为一组ui-delete内容角色；取消/删除为16px/600、44px热区、12px圆角、8px间隔、右对齐。Event/Task删除态使用相同正文，不显示编辑保存头；常规编辑态和所有处理函数不变。普通动作统一取消/删除，双确认/范围处理保留明确命名。对象后的空间信息只展示已有上下文，不新读数据。
+- 保留：整清单/Space两步及永久删除警告，非空分组两方式/项目数，重复Event两scope，Review双方永久删除/Personal/草稿提示，清单项目未保存编辑提示，以及移除/退出/转让的后果。非删除弹窗不在本轮改造范围，无大型组件框架、无模块独立CSS覆盖。
+- 真实WebKit/Chrome18/18 PASS，含16内容状态×两引擎逐项比较实际字体/坐标/间距/按钮/必要文案；375px主检查及既有430px/桌面/短高/触摸取消/失败重试/锁保持PASS。生成并查看普通6列、特殊6列、成员3列375px并排真实截图；同焦点状态比较，未仅凭class判定。相关136/136、最终全量992/992、TypeScript/Build/Node语法/diff-check PASS；既有bundle警告保留。
+- 范围：src/App.tsx、styles.css，以及ListSheets/ListDetailPage/TaskSheet/ImportantDateSheet/ReviewDetailPage/SpaceManagementPage；tests/list-groups.browser.mjs及4个既有Node测试仅更新新文案/删除态结构期望；5份治理文档。原package测试脚本与fixture及全部旧修复保持。预修改快照比对：已验收外壳CSS逐字节相同；所有变动组件既有mutation/权限/键盘逻辑前缀一致，scope选择回调和RPC参数不变。无src/lib/SQL/RLS/RPC/Edge/Cron/public/lockfile或外部项目修改，无新依赖/.env读取/凭据输出。
+- PROJECT_STATE同步为内部视觉本地完成/待用户确认；正式版本v0.1.20及Production5e17194保持。不Commit/Push/部署，等待用户反馈；详细规范/命令和边界见TESTING。
+
+## 2026-10-15 — 清单分组WebKit触摸修复 + 统一确认Sheet — LOCAL PASS / USER PENDING
+
+- 用户Production反馈修正此前Pending：Review日期/删除、清单项目和其他既有确认PASS；空/非空分组改名/删除FAIL。基线main/Production5e17194，工作区初始干净。用户批准方案与WebKit缓存下载后实施；无项目新依赖、Git发布、后台/数据修改。
+- 真实WebKit375/430四入口均复现：菜单自动focus首项，触摸时null-relatedTarget失焦在click前卸载菜单。原Chrome触摸未复现；永久真实DOM回归先失败后通过。缺陷代码自ea820fb存在，d514b71未修改该handler；原992套测试直接调回调/替换hooks，漏掉实际DOM事件顺序。修复仅在focus目的地已知且在菜单外时关闭，外部pointerdown/Escape/键盘离开继续保持。
+- CSS合并既有List/Important/Space确认壳规则，Event/Task及重复Event仅删除态接入；手机全宽贴底、32rem最大宽度、24px顶部圆角、底部安全区至少20px，桌面居中/四角圆角/24px外边距。保留全部内容、业务函数、两范围与二步确认，不新增组件体系。用户已决定外形，无待选视觉规范。
+- 浏览器测试采用真实React/DnD/useListDetail/弹窗/写入函数，仅后台I/O内存化；新增npm run test:browser且无package-lock改动。WebKit/Chrome16/16，覆盖改名/删除取消/两范围/失败重试/锁、菜单键盘/外点、项目及整清单；375px每引擎15确认状态、430px烟测、1024px居中与360px高滚动PASS。15张WebKit375截图已生成，分组/Event/Review/重要日/重复Event代表项已视觉检查。相关126/126、全量992/992、tsc -b、Build PASS；原chunk警告保留。最终docs/diff-check另见收口验证。
+- 5175新菜单/浏览器公开配置与本地Build目标一致，无.env读取或凭据输出；只读匿名列探针401/42501、OPTIONS负对照同样200，不冒充认证postflight。保持既有Production后台审计证据，真正账号/真机验收前须完成认证能力Gate；本轮不驱动登录会话。详见TESTING的复现、命令、外壳盘点与最少真机验收边界。
+- 五轴复审：焦点修复不改变提交路径/权限；既有ref锁/确认与错误恢复保留；所有新增CSS限于确认态和既有确认类，常规表单宽度不变；无新增生产依赖或泄密日志；没有数据库/外部项目代码变更。PROJECT_STATE同步为本地待反馈，不新建版本，不提交/推送/部署。
+- 修改文件：src/components/ListDetailPage.tsx、TaskSheet.tsx、ImportantDateSheet.tsx，src/App.tsx、src/styles.css；tests/list-groups.browser.mjs、tests/fixtures/list-groups-browser.jsx；package.json（仅测试脚本）；docs/TESTING.md、DEVLOG.md、PROJECT_STATE.md、DECISIONS.md、BACKLOG.md。没有外部项目代码变更；项目外仅授权的WebKit/随附FFmpeg缓存、临时验证脚本/日志和本Chat截图。未打开.env文件；仅内存读取/比对浏览器公开客户端配置，未打印凭据。最终node --check与git diff --check PASS，git status为11 modified +2 untracked新测试文件；无commit。
+
 ## 2026-10-15 — Review + confirmation UI frontend release — DEPLOYED / FINAL IPHONE PWA PENDING
 
 - Review实现提交8f5efd1；确认UI/验收治理提交及首个功能Production Source `d514b71d348d74dc12ebe46345b475c163d08b25`。正常push origin/main成功；GitHub Production deployment7089323536 / VercelBZbyFYcM8Erdbq19VmWA3NEFEruv success，vercel[bot]记录绑定正确仓库/Production环境/精确SHA。部署地址cross-platform-shared-calendar-ki0u199lj-ping178.vercel.app。

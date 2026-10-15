@@ -27,7 +27,11 @@ export function ListActionsMenu({ label, disabled, onRename, onDelete, menuId }:
     document.addEventListener('pointerdown', outside);
     return () => document.removeEventListener('pointerdown', outside);
   }, [open]);
-  return <div ref={root} className="ui-list-menu" data-no-swipe onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) close(false); }} onKeyDown={(event) => {
+  return <div ref={root} className="ui-list-menu" data-no-swipe onBlur={(event) => {
+    // WebKit can blur a touched button to body before dispatching click.
+    // Outside pointerdown dismisses the menu; only a known focus destination dismisses on blur.
+    if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget as Node)) close(false);
+  }} onKeyDown={(event) => {
     if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); close(); }
   }}>
     <button id={menuId} ref={trigger} className="ui-focus grid h-11 w-11 shrink-0 place-items-center rounded-ui-control text-ui-muted" type="button" aria-label={`${label}更多操作`} aria-expanded={open && !disabled} disabled={disabled} onClick={() => open ? close() : setOpen(true)}><MoreHorizontal size={20} aria-hidden="true" /></button>
@@ -415,29 +419,30 @@ export function ListDetailPage({ userId, target, onBack, onUnavailable, onLeaveG
     {renameOpen && data && <ListEditorSheet mode="rename" list={data.list} memberSpaces={[data.space]} eligibleSpaces={state.degraded ? [] : [data.space]} userId={userId} eligibilityStatus={state.degraded ? 'error' : 'ready'} eligibilityError={state.error} onRetryEligibility={() => { void refresh(); }} onSubmit={(name) => saveListName(name)} onCancel={() => { setRenameOpen(false); requestAnimationFrame(() => document.getElementById('list-detail-menu')?.focus()); }} />}
     {listDelete && data && <ListDeleteDialog list={data.list} space={data.space} step={listDelete.step} busy={listDelete.busy} canConfirm={!disabled} error={listDelete.error} eligibilityError={state.error} onRetryEligibility={() => { void refresh(); }} onCancel={() => { setListDelete(null); requestAnimationFrame(() => document.getElementById('list-detail-menu')?.focus()); }} onConfirm={() => void confirmListDelete()} />}
     {sectionToDelete && <div ref={sectionKeyboard.container} tabIndex={-1} className="ui-list-overlay ui-list-confirm-overlay font-ui" role="dialog" aria-modal="true" aria-labelledby="section-delete-title">
-      <div className="ui-list-confirm mx-auto w-full max-w-md bg-white p-5 safe-bottom">
-        <h2 id="section-delete-title" className="text-lg font-bold">删除分组：{sectionToDelete.section.name}</h2>
-        <p className="mt-2 text-sm text-ink/65">{sectionToDelete.region.total > 0 ? `其中有 ${sectionToDelete.region.total} 项内容。请选择处理方式；删除后无法恢复。` : '这是一个空分组，删除后无法恢复。'}</p>
-        {mutationError && <p className="mt-3 text-sm text-coral" role="alert">{mutationError}</p>}
-        <div className={sectionToDelete.region.total > 0 ? 'mt-4 space-y-2' : 'mt-5 flex justify-end gap-2'}>
-          {sectionToDelete.region.total === 0 && <button data-list-confirm-cancel className="min-h-11 rounded-lg bg-mist px-4 font-semibold" type="button" disabled={busyKey !== null} onClick={() => setSectionDeleteId(null)}>取消</button>}
-          <button className={sectionToDelete.region.total > 0 ? 'min-h-11 w-full rounded-lg bg-teal px-4 font-semibold text-white' : 'min-h-11 rounded-lg bg-coral px-4 font-semibold text-white disabled:opacity-50'} type="button" disabled={disabled || busyKey !== null} onClick={() => confirmSectionDelete(sectionToDelete.section.id, true)}>{sectionToDelete.region.total > 0 ? '仅删除分组' : '永久删除分组'}</button>
+      <div className="ui-list-confirm ui-delete-content mx-auto w-full max-w-md bg-white p-5 safe-bottom">
+        <h2 id="section-delete-title" className="ui-delete-title">删除分组</h2>
+        <p className="ui-delete-target">分组：<strong>{sectionToDelete.section.name}</strong>{sectionToDelete.region.total > 0 && <><br />内容：<strong>{sectionToDelete.region.total} 项</strong></>}</p>
+        <p className="ui-delete-warning">{sectionToDelete.region.total > 0 ? '请选择处理方式；删除后无法恢复。' : '这是一个空分组，删除后无法恢复。'}</p>
+        {mutationError && <p className="ui-delete-error" role="alert">{mutationError}</p>}
+        <div className={sectionToDelete.region.total > 0 ? 'ui-delete-options' : 'ui-delete-actions'}>
+          {sectionToDelete.region.total === 0 && <button data-list-confirm-cancel className="ui-delete-button ui-delete-cancel" type="button" disabled={busyKey !== null} onClick={() => setSectionDeleteId(null)}>取消</button>}
+          <button className={sectionToDelete.region.total > 0 ? 'ui-delete-button ui-delete-preserve' : 'ui-delete-button ui-delete-danger'} type="button" disabled={disabled || busyKey !== null} onClick={() => confirmSectionDelete(sectionToDelete.section.id, true)}>{sectionToDelete.region.total > 0 ? '仅删除分组' : '删除'}</button>
           {sectionToDelete.region.total > 0 && <>
-            <button className="min-h-11 w-full rounded-lg border border-coral px-4 font-semibold text-coral" type="button" disabled={disabled || busyKey !== null} onClick={() => confirmSectionDelete(sectionToDelete.section.id, false)}>删除分组及其中内容</button>
-            <button data-list-confirm-cancel className="min-h-11 w-full rounded-lg px-4" type="button" disabled={busyKey !== null} onClick={() => setSectionDeleteId(null)}>取消</button>
+            <button className="ui-delete-button ui-delete-option" type="button" disabled={disabled || busyKey !== null} onClick={() => confirmSectionDelete(sectionToDelete.section.id, false)}>删除分组及其中内容</button>
+            <button data-list-confirm-cancel className="ui-delete-button ui-delete-cancel" type="button" disabled={busyKey !== null} onClick={() => setSectionDeleteId(null)}>取消</button>
           </>}
         </div>
       </div>
     </div>}
     {itemToDelete && <div ref={itemKeyboard.container} tabIndex={-1} className="ui-list-overlay ui-list-confirm-overlay font-ui" role="dialog" aria-modal="true" aria-labelledby="item-delete-title">
-      <div className="ui-list-confirm mx-auto w-full max-w-md bg-white p-5 safe-bottom">
-        <h2 id="item-delete-title" className="text-lg font-bold">删除清单项目</h2>
-        <p className="mt-3 break-words text-sm leading-6">项目：<strong>{itemToDelete.content}</strong></p>
-        <p className="mt-3 text-sm leading-6">这会永久删除此项目，无法恢复。{ui.editing?.id === itemToDelete.id && ui.editing.draft !== itemToDelete.content && '尚未保存的项目编辑也将丢弃。'}</p>
-        {mutationError && <p className="mt-3 text-sm text-coral" role="alert">{mutationError}</p>}
-        <div className="mt-5 flex justify-end gap-2">
-          <button data-list-confirm-cancel className="min-h-11 rounded-lg bg-mist px-4 font-semibold" type="button" disabled={busyKey !== null} onClick={() => setItemDeleteId(null)}>取消</button>
-          <button className="min-h-11 rounded-lg bg-coral px-4 font-semibold text-white disabled:opacity-50" type="button" disabled={disabled || busyKey !== null} onClick={confirmItemDelete}>{busyKey ? '删除中…' : '永久删除项目'}</button>
+      <div className="ui-list-confirm ui-delete-content mx-auto w-full max-w-md bg-white p-5 safe-bottom">
+        <h2 id="item-delete-title" className="ui-delete-title">删除清单项目</h2>
+        <p className="ui-delete-target">项目：<strong>{itemToDelete.content}</strong></p>
+        <p className="ui-delete-warning">这会永久删除此项目，无法恢复。{ui.editing?.id === itemToDelete.id && ui.editing.draft !== itemToDelete.content && '尚未保存的项目编辑也将丢弃。'}</p>
+        {mutationError && <p className="ui-delete-error" role="alert">{mutationError}</p>}
+        <div className="ui-delete-actions">
+          <button data-list-confirm-cancel className="ui-delete-button ui-delete-cancel" type="button" disabled={busyKey !== null} onClick={() => setItemDeleteId(null)}>取消</button>
+          <button className="ui-delete-button ui-delete-danger" type="button" disabled={disabled || busyKey !== null} onClick={confirmItemDelete}>{busyKey ? '删除中…' : '删除'}</button>
         </div>
       </div>
     </div>}

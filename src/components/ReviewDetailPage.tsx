@@ -222,14 +222,14 @@ export function ReviewDetailPage({ target, userId, onBack, onDirtyChange, onUnav
       </section>
     </>}
     {deleteOpen && detail && <div ref={deleteKeyboard.container} tabIndex={-1} className="ui-space-confirm-overlay font-ui" role="dialog" aria-modal="true" aria-labelledby="review-delete-title" aria-describedby="review-delete-description">
-      <div className="ui-space-confirm mx-auto w-full max-w-md rounded-lg bg-white p-5 shadow-soft safe-bottom">
-        <h2 id="review-delete-title" className="text-lg font-bold">删除回顾</h2>
-        <p className="mt-3 break-words text-sm leading-6">{formatReviewDate(detail.round.review_date)} · 第 {detail.round.round_no} 次回顾</p>
-        <p id="review-delete-description" className="mt-3 text-sm leading-6">{detail.other ? '本次双方填写的全部内容将永久删除，无法恢复。' : '本次填写的全部内容将永久删除，无法恢复。'}{dirty && '尚未保存的内容也将丢弃。'}</p>
-        {deleteError && <p className="mt-3 text-sm text-coral" role="alert">{deleteError}</p>}
-        <div className="mt-5 flex justify-end gap-2">
-          <button data-review-delete-cancel className="min-h-11 rounded-lg bg-mist px-4 font-semibold" type="button" disabled={deleteBusy} onClick={() => { if (!deleting.current) setDeleteOpen(false); }}>取消</button>
-          <button className="min-h-11 rounded-lg bg-coral px-4 font-semibold text-white disabled:opacity-50" type="button" disabled={deleteBusy} onClick={() => void removeReview()}>{deleteBusy ? '删除中…' : '永久删除回顾'}</button>
+      <div className="ui-space-confirm ui-delete-content mx-auto w-full max-w-md rounded-lg bg-white p-5 shadow-soft safe-bottom">
+        <h2 id="review-delete-title" className="ui-delete-title">删除回顾</h2>
+        <p className="ui-delete-target">回顾：<strong>{formatReviewDate(detail.round.review_date)} · 第 {detail.round.round_no} 次回顾</strong></p>
+        <p id="review-delete-description" className="ui-delete-warning">{detail.other ? '本次双方填写的全部内容将永久删除，无法恢复。' : '本次填写的全部内容将永久删除，无法恢复。'}{dirty && '尚未保存的内容也将丢弃。'}</p>
+        {deleteError && <p className="ui-delete-error" role="alert">{deleteError}</p>}
+        <div className="ui-delete-actions">
+          <button data-review-delete-cancel className="ui-delete-button ui-delete-cancel" type="button" disabled={deleteBusy} onClick={() => { if (!deleting.current) setDeleteOpen(false); }}>取消</button>
+          <button className="ui-delete-button ui-delete-danger" type="button" disabled={deleteBusy} onClick={() => void removeReview()}>{deleteBusy ? '删除中…' : '删除'}</button>
         </div>
       </div>
     </div>}

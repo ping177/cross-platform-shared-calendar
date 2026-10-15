@@ -167,13 +167,13 @@ export function SpaceLifecycleControls({ space, members, userId, busy, onBusyCha
       {owner && <button className="min-h-11 rounded-lg bg-coral px-4 font-semibold text-white disabled:opacity-50" type="button" disabled={busy} onClick={() => open('delete', '删除空间')}>删除空间</button>}
     </div>
     {pending && <div ref={dialog} tabIndex={-1} className="ui-space-confirm-overlay font-ui" role="dialog" aria-modal="true" aria-labelledby="space-lifecycle-title">
-      <div className="ui-space-confirm mx-auto w-full max-w-md rounded-lg bg-white p-5 shadow-soft safe-bottom">
-        <h3 id="space-lifecycle-title" className="text-lg font-bold">确认{pending.label}</h3>
-        <p className="mt-3 text-sm leading-6">{pending.action === 'leave' ? '退出后，你在此共享空间的个人日程将删除；共享日程保留。' : pending.action === 'remove' ? '该成员在此共享空间的个人日程将删除；共享日程和任务保留。' : pending.action === 'transfer' ? '转让后，对方成为所有者，你成为普通成员。' : deleteStep === 1 ? '此操作将永久删除整个共享空间及其中的日程、任务、回顾、清单和重要日，无法恢复。' : '请再次确认：整个共享空间及其中的日程、任务、回顾、清单和重要日将永久删除，所有成员都将失去访问权。'}</p>
-        {(pending.action === 'remove' || pending.action === 'transfer') && <p className="mt-2 break-all text-sm font-semibold">目标成员：{members.find((member) => member.user_id === pending.targetId)?.profiles?.display_name || pending.targetId}</p>}
-        <div className="mt-5 flex justify-end gap-2">
-          <button className="min-h-11 rounded-lg bg-mist px-4 font-semibold" type="button" disabled={busy} onClick={() => setPending(null)}>取消</button>
-          <button className="min-h-11 rounded-lg bg-coral px-4 font-semibold text-white disabled:opacity-50" type="button" disabled={busy} onClick={() => void confirm()}>{busy ? '处理中…' : pending.action === 'delete' ? deleteStep === 1 ? '继续确认' : '永久删除空间' : `确认${pending.label}`}</button>
+      <div className="ui-space-confirm ui-delete-content mx-auto w-full max-w-md rounded-lg bg-white p-5 shadow-soft safe-bottom">
+        <h3 id="space-lifecycle-title" className="ui-delete-title">{pending.action === 'delete' && deleteStep === 2 ? '再次确认删除空间' : pending.label}</h3>
+        <p className="ui-delete-target">{pending.action === 'remove' || pending.action === 'transfer' ? <>成员：<strong>{members.find((member) => member.user_id === pending.targetId)?.profiles?.display_name || pending.targetId}</strong><br />空间：<strong>{space.name}</strong></> : <>空间：<strong>{space.name}</strong></>}</p>
+        <p className="ui-delete-warning">{pending.action === 'leave' ? '退出后，你在此共享空间的个人日程将删除；共享日程保留。' : pending.action === 'remove' ? '该成员在此共享空间的个人日程将删除；共享日程和任务保留。' : pending.action === 'transfer' ? '转让后，对方成为所有者，你成为普通成员。' : deleteStep === 1 ? '此操作将永久删除整个共享空间及其中的日程、任务、回顾、清单和重要日，无法恢复。' : '请再次确认：整个共享空间及其中的日程、任务、回顾、清单和重要日将永久删除，所有成员都将失去访问权。'}</p>
+        <div className="ui-delete-actions">
+          <button className="ui-delete-button ui-delete-cancel" type="button" disabled={busy} onClick={() => setPending(null)}>取消</button>
+          <button className="ui-delete-button ui-delete-danger" type="button" disabled={busy} onClick={() => void confirm()}>{busy ? '处理中…' : pending.action === 'delete' ? deleteStep === 1 ? '继续确认' : '永久删除空间' : pending.label}</button>
         </div>
       </div>
     </div>}

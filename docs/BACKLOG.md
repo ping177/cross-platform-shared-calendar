@@ -1,5 +1,17 @@
 # Backlog
 
+## 2026-10-15 UI修复发布 — LOCAL IPHONE SAFARI PASS / FINAL PRODUCTION PWA PENDING
+
+用户已确认本轮全部本地功能/视觉及特殊安全规则PASS，并明确授权正常Git/Vercel前端发布；20文件范围和992/992、浏览器18/18证据保持，最终Build/语法/diff-check通过。下一业务动作是独立正式资源核验后的用户iPhone PWA最终验收，通过后才另行CLOSED/PASS。无新功能或后台变更；下方为历史检查点。
+
+## 2026-10-15 删除确认内部层级统一 — LOCAL PASS / USER VISUAL PENDING
+
+用户已确认真实iPhone Safari分组改名/删除、统一外壳及触摸/滚动/安全区PASS。新内部视觉按整清单唯一基准完成，保留范围/双方说明/两步确认；136/136、992/992、浏览器18/18、TS/Build与375px并排对比PASS。下一步仅用户视觉确认，不重做已通过的功能/外壳，不启动Auth改造或后台审计；所有未提交修复保留，不Commit/Push/部署。下方为此前检查点。
+
+## 2026-10-15 清单分组触摸修复 + 确认外壳 — LOCAL PASS / USER FEEDBACK PENDING
+
+用户最新Production反馈：Review日期/删除、清单项目PASS，分组四入口FAIL。既有WebKit菜单blur缺陷本地修复；批准的全宽贴底确认外壳统一完成，992/992、浏览器16/16、TS/Build PASS。下一步仅用户本地反馈；真实账号/真机前认证环境Gate保持。无Commit/Push/部署授权、无后端变更或额外功能；细节见TESTING/DEVLOG，下方为此前检查点。
+
 ## 2026-10-15 Review + 删除确认 — USER LOCAL PASS / FINAL PRODUCTION DEVICE PENDING
 
 用户五项真实验收和Review日期更正PASS；后端已上线并Postflight PASS。19文件确认属于授权范围，992/992和TS/Build证据与当前源码一致；本轮Git→Vercel前端发布已授权，实际结果独立记录。最终iPhone PWA反馈前本轮不CLOSED，之后暂停常规开发并真实使用观察。筛选器统一、其他UI/后端和Event/Push重测均不在范围。

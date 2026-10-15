@@ -101,7 +101,7 @@ test('ordinary Event delete needs explicit confirmation; cancelling does not wri
   clickDelete(); tree = await e.pump(); assert.equal(e.calls.includes('delete'), false);
   const cancel = elements(tree).find((n) => n.type === 'button' && n.props.children === '取消'); assert.ok(cancel); cancel.props.onClick();
   tree = await e.pump(); assert.equal(e.calls.includes('delete'), false);
-  clickDelete(); tree = await e.pump(); const confirm = elements(tree).find((n) => n.type === 'button' && n.props.children === '确认删除'); assert.ok(confirm);
+  clickDelete(); tree = await e.pump(); const confirm = elements(tree).find((n) => n.type === 'button' && n.props.children === '删除'); assert.ok(confirm);
   await confirm.props.onClick(); await new Promise((r) => setImmediate(r));
   assert.equal(e.calls.filter((c: any) => c === 'delete').length, 1);
   assert.ok(e.calls.includes('close')); assert.ok(e.calls.includes('saved'));
@@ -122,7 +122,7 @@ for (const kind of ['Event', 'Task'] as const) test(`${kind} ignores Escape duri
   else e.props.onSaved = () => new Promise<void>((resolve) => { release = resolve; });
   let tree = await e.pump();
   elements(tree).find((n) => n.props['aria-label'] === (kind === 'Event' ? '删除日程' : '删除任务')).props.onClick();
-  tree = await e.pump(); elements(tree).find((n) => n.type === 'button' && n.props.children === '确认删除').props.onClick();
+  tree = await e.pump(); elements(tree).find((n) => n.type === 'button' && n.props.children === '删除').props.onClick();
   await new Promise((r) => setImmediate(r)); tree = await e.pump(); e.key('Escape');
   assert.equal(e.calls.includes('close'), false); assert.ok(release); release(); await new Promise((r) => setImmediate(r));
   assert.equal(e.calls.includes('close'), true);

@@ -668,8 +668,7 @@ body:has(.ui-calendar-shell) {
 .ui-list-sheet-body { overflow-y: auto; overscroll-behavior: contain; padding: 0 var(--ui-space-5) max(var(--ui-space-6), env(safe-area-inset-bottom, 0px)); }
 .ui-list-sheet-body label { color: rgb(var(--ui-color-muted)); }
 .ui-list-sheet-body input, .ui-list-sheet-body select { background-color: rgb(var(--ui-color-surface)); border-radius: var(--ui-radius-control); }
-.ui-list-confirm-overlay { padding: var(--ui-space-4); }
-.ui-list-confirm { max-height: calc(100dvh - var(--ui-space-7)); overflow-y: auto; border-radius: var(--ui-radius-sheet); color: rgb(var(--ui-color-text)); }
+.ui-list-confirm { color: rgb(var(--ui-color-text)); }
 @media (max-width: 390px) {
   .ui-list-section-header { flex-wrap: wrap; }
   .ui-list-section-header > button { flex-basis: 100%; }
@@ -719,8 +718,6 @@ body:has(.ui-calendar-shell) {
 .ui-important-sheet-body :is(label, p:not([role="alert"])) { color: rgb(var(--ui-color-muted)); }
 .ui-important-sheet-body label { font-weight: var(--ui-weight-normal); }
 .ui-important-sheet-body .text-coral, .ui-important-confirm .text-coral { color: rgb(var(--ui-color-danger)); }
-.ui-important-confirm-overlay { padding: var(--ui-space-4); }
-.ui-important-confirm { max-height: calc(100dvh - var(--ui-space-7)); overflow-y: auto; border-radius: var(--ui-radius-sheet); box-shadow: var(--ui-shadow-sheet); }
 .ui-important-confirm .bg-mist { background: rgb(var(--ui-color-soft)); }
 .ui-important-confirm .bg-coral { background: rgb(var(--ui-color-danger)); }
 @media (min-width: 768px) {
@@ -801,8 +798,7 @@ body:has(.ui-calendar-shell) {
 .ui-space-danger .bg-coral, .ui-space-confirm .bg-coral { background: rgb(var(--ui-color-danger)); }
 .ui-space-confirm .bg-mist { background: rgb(var(--ui-color-soft)); }
 .ui-space-danger { border-color: rgb(var(--ui-color-danger) / .3); }
-.ui-space-confirm-overlay { position: fixed; inset: 0; z-index: 40; display: flex; align-items: flex-end; justify-content: center; padding: var(--ui-space-4); background: rgb(var(--ui-color-text) / .35); color: rgb(var(--ui-color-text)); }
-.ui-space-confirm { max-height: calc(100dvh - var(--ui-space-7)); overflow-y: auto; border-radius: var(--ui-radius-sheet); }
+.ui-space-confirm-overlay { position: fixed; inset: 0; z-index: 40; display: flex; align-items: flex-end; justify-content: center; background: rgb(var(--ui-color-text) / .35); color: rgb(var(--ui-color-text)); }
 .ui-space-form-view { position: fixed; inset: 0; z-index: 40; background: rgb(var(--ui-color-page)); color: rgb(var(--ui-color-text)); }
 .ui-space-form { display: flex; flex-direction: column; width: 100%; max-width: 48rem; height: 100dvh; margin: 0 auto; }
 .ui-space-form-header { flex: none; display: grid; grid-template-columns: var(--ui-touch-target) minmax(0,1fr) auto; align-items: center; gap: var(--ui-space-2); padding: calc(var(--ui-space-3) + env(safe-area-inset-top, 0px)) var(--ui-space-4) var(--ui-space-3); border-bottom: var(--ui-border-width) solid rgb(var(--ui-color-border)); }
@@ -811,7 +807,62 @@ body:has(.ui-calendar-shell) {
 .ui-space-form-body { flex: 1; overflow-y: auto; padding: var(--ui-space-6) var(--ui-space-4) max(var(--ui-space-6), env(safe-area-inset-bottom, 0px)); }
 .ui-my-page button, .ui-spaces-page button, .ui-space-confirm button { min-height: var(--ui-touch-target); min-width: var(--ui-touch-target); }
 .ui-my-page :is(button,input):focus-visible, .ui-spaces-page :is(button,input):focus-visible, .ui-space-confirm :is(button,input):focus-visible { outline: var(--ui-focus-width) solid rgb(var(--ui-color-focus)); outline-offset: var(--ui-focus-offset); }
-@media (min-width:768px) { .ui-space-confirm-overlay { align-items: center; } }
+/* Confirmation shells reuse the established mobile Sheet geometry across modules. */
+.ui-list-confirm-overlay, .ui-important-confirm-overlay, .ui-space-confirm-overlay, [data-delete-overlay="true"] {
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+}
+.ui-list-confirm, .ui-important-confirm, .ui-space-confirm, [data-delete-confirm="true"] {
+  min-width: 0;
+  width: 100%;
+  max-width: 32rem;
+  max-height: calc(100dvh - env(safe-area-inset-top, 0px) - var(--ui-space-4));
+  border-radius: var(--ui-radius-sheet) var(--ui-radius-sheet) 0 0;
+  box-shadow: var(--ui-shadow-sheet);
+  overflow-wrap: anywhere;
+}
+.ui-list-confirm, .ui-important-confirm, .ui-space-confirm,
+[data-event-scope-dialog] > [data-delete-confirm="true"], .ui-important-confirm-overlay > [data-delete-confirm="true"] {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: max(var(--ui-space-5), env(safe-area-inset-bottom, 0px));
+}
+@media (min-width: 768px) {
+  .ui-list-confirm-overlay, .ui-important-confirm-overlay, .ui-space-confirm-overlay, [data-delete-overlay="true"] {
+    align-items: center;
+    padding: var(--ui-space-6);
+  }
+  .ui-list-confirm, .ui-important-confirm, .ui-space-confirm, [data-delete-confirm="true"] {
+    max-height: calc(100dvh - 2 * var(--ui-space-6));
+    border-radius: var(--ui-radius-sheet);
+  }
+}
+
+/* Delete content hierarchy follows the existing whole-List confirmation. Shell geometry stays above. */
+.ui-delete-content {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--ui-space-5) var(--ui-space-5) max(var(--ui-space-5), env(safe-area-inset-bottom, 0px));
+  background: rgb(var(--ui-color-surface));
+  color: rgb(var(--ui-color-text));
+  font-family: var(--ui-font-sans);
+}
+.ui-delete-title { margin: 0; font-size: var(--ui-text-bar); line-height: var(--ui-leading-section); font-weight: var(--ui-weight-bold); text-align: left; }
+.ui-delete-target, .ui-delete-warning, .ui-delete-error { margin: var(--ui-space-3) 0 0; font-size: var(--ui-text-meta); line-height: var(--ui-leading-body); font-weight: var(--ui-weight-normal); overflow-wrap: anywhere; }
+.ui-delete-target strong { font-weight: var(--ui-weight-bold); }
+.ui-delete-error { color: rgb(var(--ui-color-danger)); }
+.ui-delete-actions, .ui-delete-options { margin-top: var(--ui-space-5); gap: var(--ui-space-2); }
+.ui-delete-actions { display: flex; justify-content: flex-end; }
+.ui-delete-options { display: grid; }
+.ui-delete-button { min-height: var(--ui-touch-target); padding: 0 var(--ui-space-4); border-radius: var(--ui-radius-control); font-size: var(--ui-text-body); line-height: var(--ui-leading-body); font-weight: var(--ui-weight-semibold); }
+.ui-delete-button:disabled { opacity: .5; }
+.ui-delete-button:focus-visible { outline: var(--ui-focus-width) solid rgb(var(--ui-color-focus)); outline-offset: var(--ui-focus-offset); }
+.ui-delete-cancel { background: rgb(var(--ui-color-page)); color: rgb(var(--ui-color-text)); }
+.ui-delete-danger { background: rgb(var(--ui-color-danger)); color: rgb(var(--ui-color-on-accent)); }
+.ui-delete-preserve { background: rgb(var(--ui-color-accent)); color: rgb(var(--ui-color-on-accent)); }
+.ui-delete-option { border: var(--ui-border-width) solid rgb(var(--ui-color-danger)); background: rgb(var(--ui-color-surface)); color: rgb(var(--ui-color-danger)); }
 
 /* UI v2 integration Round 1: only audited header insets and weekday touch targets. */
 .ui-calendar-header, .ui-tasks-header { padding-top: calc(var(--ui-space-4) + env(safe-area-inset-top, 0px)); }

@@ -74,13 +74,13 @@ test('Event Home and Calendar edits preserve delete and read-only users have no 
   assert.equal(nodes(tree).filter(n => n.props.type === 'submit').length, 0);
   assert.doesNotMatch(e.html(), /删除日程/); assert.match(e.html(), /日程详情/);
 }));
-test('Event global target confirmation and ordinary deletion disable the header without losing original confirm controls', () => sheet('Event', async e => {
+test('Event global target confirmation disables submit; deletion replaces edit controls with named confirmation', () => sheet('Event', async e => {
   e.props.createTarget = { spaces: [space], selectedId: 'p', state: 'ready', error: '', onSelect() {}, onRetry() {} };
   await e.submit(); assert.equal(nodes(e.render()).find(n => n.props.type === 'submit').props.disabled, true);
   assert.match(e.html(), /确认保存/); assert.equal(e.calls.length, 0);
   e.click('取消'); e.props.target = { kind: 'event', event }; e.click('删除日程');
-  assert.equal(nodes(e.render()).find(n => n.props.type === 'submit').props.disabled, true);
-  assert.match(e.html(), /确认删除/); assert.equal(e.calls.length, 0);
+  assert.equal(nodes(e.render()).some(n => n.props.type === 'submit'), false);
+  assert.match(e.html(), /删除日程/); assert.match(e.html(), /ui-delete-target/); assert.equal(e.calls.length, 0);
 }));
 test('Event occurrence save opens the original chooser and disables the underlying header', () => sheet('Event', async e => {
   e.props.target = { kind: 'occurrence', event: { ...event, recurrence_rule: { frequency: 'daily', interval: 1 } }, occurrence: { ...event, source_event_id: 'e', occurrence_id: 'e:2026-10-15', occurrence_starts_at: event.starts_at, occurrence_ends_at: event.ends_at } };

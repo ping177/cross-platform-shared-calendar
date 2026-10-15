@@ -50,7 +50,7 @@ async function runtime(kind: 'review' | 'list' | 'invite', run: (e: any) => Prom
 }
 
 for (const kind of ['review', 'list', 'invite'] as const) {
-  const label = kind === 'review' ? '永久删除回顾' : kind === 'invite' ? '确认轮换' : '永久删除项目';
+  const label = kind === 'invite' ? '确认轮换' : '删除';
   test(`${kind}: cancel never deletes; confirming twice submits once and success reconciles`, () => runtime(kind, async ({ m, calls, render, pump, open }) => {
     open(); await pump(); assert.equal(calls.length, 0); button(render(), '取消').props.onClick(); await pump(); assert.equal(calls.length, 0);
     open(); await pump(); let release!: () => void; m.barrier = new Promise<void>(r => release = r);
@@ -66,5 +66,5 @@ for (const kind of ['review', 'list', 'invite'] as const) {
 
 test('empty List group opens confirmation and cancellation does not run the mutation', () => runtime('list', async ({ calls, render, pump }) => {
   const menu = nodes(render()).find(n => n.props.label === '分组 空分组'); assert.ok(menu); menu.props.onDelete(); await pump(); assert.equal(calls.length, 0);
-  assert.ok(button(render(), '永久删除分组')); button(render(), '取消').props.onClick(); await pump(); assert.equal(calls.length, 0);
+  assert.ok(button(render(), '删除')); button(render(), '取消').props.onClick(); await pump(); assert.equal(calls.length, 0);
 }));

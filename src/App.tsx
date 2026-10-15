@@ -1915,8 +1915,18 @@ export function EventSheet({
   }
 
   return (
-    <div ref={dialog} className="ui-event-sheet fixed inset-0 z-20 flex items-end bg-ink/35 font-ui text-ui-text md:items-center md:px-4 md:py-6">
-      <div role="dialog" aria-modal="true" aria-labelledby="event-sheet-title" className="ui-event-sheet-panel mx-auto max-h-[92dvh] w-full max-w-3xl md:max-h-[calc(100dvh-3rem)]">
+    <div ref={dialog} data-delete-overlay={confirmingDelete} className="ui-event-sheet fixed inset-0 z-20 flex items-end bg-ink/35 font-ui text-ui-text md:items-center md:px-4 md:py-6">
+      <div role="dialog" aria-modal="true" aria-labelledby="event-sheet-title" data-delete-confirm={confirmingDelete} className="ui-event-sheet-panel mx-auto max-h-[92dvh] w-full max-w-3xl md:max-h-[calc(100dvh-3rem)]">
+        {confirmingDelete && event && canManage ? <div className="ui-delete-content">
+          <h2 id="event-sheet-title" className="ui-delete-title">删除日程</h2>
+          <p className="ui-delete-target">日程：<strong>{event.title}</strong><br />空间：<strong>{space.kind === 'personal' ? '我的空间' : space.name}</strong></p>
+          <p className="ui-delete-warning">这会永久删除此日程，无法恢复。</p>
+          {error && <div className="ui-delete-error"><Notice tone="error" message={error} /></div>}
+          <div className="ui-delete-actions">
+            <button data-confirm-cancel className="ui-delete-button ui-delete-cancel" type="button" disabled={busy} onClick={() => setConfirmingDelete(false)}>取消</button>
+            <button className="ui-delete-button ui-delete-danger" type="button" disabled={busy || !canManage} onClick={() => void deleteEvent(true)}>{busy ? '删除中…' : '删除'}</button>
+          </div>
+        </div> : <>
         <header className="ui-event-sheet-header">
           <button className="ui-focus grid h-11 w-11 place-items-center disabled:opacity-60" type="button" onClick={onClose} disabled={busy} aria-label="关闭">
             <X size={20} aria-hidden="true" />
@@ -1943,14 +1953,6 @@ export function EventSheet({
             <ReadOnlyField label="提醒" value={reminderKindLabel(event.reminder_kind)} />
             <ReadOnlyField label="重复" value={recurrenceSummary(event.recurrence_rule)} />
             <ReadOnlyField label="描述" value={event.description || '无'} />
-          </div>
-        ) : confirmingDelete && event ? (
-          <div className="mt-5 space-y-4">
-            <p className="break-words text-sm text-ink/70">确定删除「{event.title}」吗？删除后无法恢复。</p>
-            <div className="flex gap-3">
-              <button data-confirm-cancel className="h-12 flex-1 rounded-lg bg-mist font-semibold disabled:opacity-60" type="button" disabled={busy} onClick={() => setConfirmingDelete(false)}>取消</button>
-              <button className="h-12 flex-1 rounded-lg bg-coral font-semibold text-white disabled:opacity-60" type="button" disabled={busy || !canManage} onClick={() => void deleteEvent(true)}>{busy ? '删除中' : '确认删除'}</button>
-            </div>
           </div>
         ) : confirmingCreateTargetId && !event ? (
           <div className="mt-5 space-y-4">
@@ -2045,10 +2047,12 @@ export function EventSheet({
           </form>
         )}
         </div>
+        </>}
       </div>
       {pendingOccurrenceAction && (
         <OccurrenceActionChooser
           action={pendingOccurrenceAction}
+          eventTitle={event?.title ?? ''}
           scopes={editUi.occurrenceScopes}
           busy={busy}
           onCancel={() => setPendingOccurrenceAction(null)}
@@ -2068,21 +2072,26 @@ function ReadOnlyField({ label, value }: { label: string; value: string }) {
   );
 }
 
-function OccurrenceActionChooser({ action, scopes, busy, onCancel, onSelect }: { action: OccurrenceAction; scopes: OccurrenceScope[]; busy: boolean; onCancel: () => void; onSelect: (scope: OccurrenceScope) => void }) {
+function OccurrenceActionChooser({ action, eventTitle, scopes, busy, onCancel, onSelect }: { action: OccurrenceAction; eventTitle: string; scopes: OccurrenceScope[]; busy: boolean; onCancel: () => void; onSelect: (scope: OccurrenceScope) => void }) {
   return (
-    <div className="fixed inset-0 z-30 flex items-end bg-ink/35 md:items-center md:px-4" data-event-scope-dialog role="dialog" aria-modal="true" aria-label={occurrenceActionCopy(action, 'only-this').title}>
-      <section className="w-full rounded-t-2xl bg-white p-5 shadow-soft safe-bottom md:mx-auto md:max-w-md md:rounded-lg">
-        <h3 className="text-lg font-bold text-ink">{occurrenceActionCopy(action, 'only-this').title}</h3>
-        <div className="mt-4 space-y-2">
+    <div className="fixed inset-0 z-30 flex items-end bg-ink/35 md:items-center md:px-4" data-delete-overlay={action === 'delete'} data-event-scope-dialog role="dialog" aria-modal="true" aria-label={action === 'delete' ? '删除日程' : occurrenceActionCopy(action, 'only-this').title}>
+      <section data-delete-confirm={action === 'delete'} className={`${action === 'delete' ? 'ui-delete-content ' : ''}w-full rounded-t-2xl bg-white p-5 shadow-soft safe-bottom md:mx-auto md:max-w-md md:rounded-lg`}>
+        <h3 className={action === 'delete' ? 'ui-delete-title' : 'text-lg font-bold text-ink'}>{action === 'delete' ? '删除日程' : occurrenceActionCopy(action, 'only-this').title}</h3>
+        {action === 'delete' && <>
+          <p className="ui-delete-target">日程：<strong>{eventTitle}</strong></p>
+          <p className="ui-delete-warning">请选择删除范围；删除后无法恢复。</p>
+        </>}
+        <div className={action === 'delete' ? 'ui-delete-options' : 'mt-4 space-y-2'}>
           {scopes.map((scope) => (
-            <button key={scope} className={`h-12 w-full rounded-lg text-sm font-semibold disabled:opacity-60 ${action === 'delete' ? 'bg-coral/10 text-coral' : 'bg-teal/10 text-teal'}`} type="button" onClick={() => onSelect(scope)} disabled={busy}>
+            <button key={scope} className={action === 'delete' ? 'ui-delete-button ui-delete-option' : 'h-12 w-full rounded-lg text-sm font-semibold disabled:opacity-60 bg-teal/10 text-teal'} type="button" onClick={() => onSelect(scope)} disabled={busy}>
               {occurrenceActionCopy(action, scope).label}
             </button>
           ))}
+          {action === 'delete' && <button data-confirm-cancel className="ui-delete-button ui-delete-cancel" type="button" onClick={onCancel} disabled={busy}>取消</button>}
         </div>
-        <button data-confirm-cancel className="mt-3 h-12 w-full rounded-lg bg-mist text-sm font-semibold text-ink disabled:opacity-60" type="button" onClick={onCancel} disabled={busy}>
+        {action !== 'delete' && <button data-confirm-cancel className="mt-3 h-12 w-full rounded-lg bg-mist text-sm font-semibold text-ink disabled:opacity-60" type="button" onClick={onCancel} disabled={busy}>
           取消
-        </button>
+        </button>}
       </section>
     </div>
   );

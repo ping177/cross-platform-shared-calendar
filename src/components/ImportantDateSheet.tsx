@@ -129,15 +129,15 @@ export function ImportantDateDeleteDialog({ date, space, busy, canAct, error, on
   date: ImportantDate; space: CurrentSpace; busy: boolean; canAct: boolean; error: string; onCancel: () => void; onConfirm: () => void; moduleView?: boolean;
 }) {
   const container = useImportantDateDialog(onCancel, busy);
-  return <div ref={container} className={moduleView ? "ui-important-overlay ui-important-confirm-overlay font-ui" : "fixed inset-0 z-40 flex items-end bg-ink/50 p-4 md:items-center"} role="dialog" aria-modal="true" aria-labelledby="important-date-delete-title">
-    <div className={`${moduleView ? 'ui-important-confirm ' : ''}mx-auto w-full max-w-md rounded-lg bg-white p-5 shadow-soft safe-bottom`}>
-      <h2 id="important-date-delete-title" className="text-lg font-bold">确认删除重要日</h2>
-      <p className="mt-3 break-words text-sm leading-6">重要日：<strong>{date.name}</strong><br />空间：<strong>{space.kind === 'personal' ? '我的空间' : space.name}</strong></p>
-      <p className="mt-3 text-sm">这会永久删除此重要日，无法恢复。</p>
-      {error && <p className="mt-3 text-sm text-coral" role="alert">{error}</p>}
-      <div className="mt-5 flex justify-end gap-2">
-        <button className="min-h-11 rounded-lg bg-mist px-4 font-semibold" type="button" disabled={busy} onClick={onCancel}>取消</button>
-        <button className="min-h-11 rounded-lg bg-coral px-4 font-semibold text-white disabled:opacity-50" type="button" disabled={busy || !canAct} onClick={onConfirm}>{busy ? '删除中…' : '永久删除重要日'}</button>
+  return <div ref={container} className={moduleView ? "ui-important-overlay ui-important-confirm-overlay font-ui" : "ui-important-confirm-overlay fixed inset-0 z-40 flex items-end bg-ink/50 p-4 md:items-center"} role="dialog" aria-modal="true" aria-labelledby="important-date-delete-title">
+    <div data-delete-confirm className={`ui-delete-content ${moduleView ? 'ui-important-confirm ' : ''}mx-auto w-full max-w-md rounded-lg bg-white p-5 shadow-soft safe-bottom`}>
+      <h2 id="important-date-delete-title" className="ui-delete-title">删除重要日</h2>
+      <p className="ui-delete-target">重要日：<strong>{date.name}</strong><br />空间：<strong>{space.kind === 'personal' ? '我的空间' : space.name}</strong></p>
+      <p className="ui-delete-warning">这会永久删除此重要日，无法恢复。</p>
+      {error && <p className="ui-delete-error" role="alert">{error}</p>}
+      <div className="ui-delete-actions">
+        <button className="ui-delete-button ui-delete-cancel" type="button" disabled={busy} onClick={onCancel}>取消</button>
+        <button className="ui-delete-button ui-delete-danger" type="button" disabled={busy || !canAct} onClick={onConfirm}>{busy ? '删除中…' : '删除'}</button>
       </div>
     </div>
   </div>;
