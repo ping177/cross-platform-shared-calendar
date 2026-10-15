@@ -1,3 +1,4 @@
+import { SpaceFilterDropdown } from './SpaceFilterDropdown';
 import { useMobileSwipe } from './useMobileSwipe';
 import type { SwipeClickGuard } from '../lib/mobile-swipe';
 import { useEffect, useRef, useState } from 'react';
@@ -155,11 +156,11 @@ function ImportantDatesModule({ swipeClickGuard, userId, onHubBack, onNoEligible
           <h1 className="min-w-0 truncate text-ui-section">重要日</h1>
           <button ref={createButton} className="ui-focus grid h-11 w-11 shrink-0 place-items-center rounded-ui-control bg-transparent text-ui-accent disabled:opacity-50" type="button" aria-label="新建重要日" disabled={!canAct || !data?.eligibleSpaces.length} onClick={openCreate}><Plus size={18} aria-hidden="true" /></button>
         </div>
-        {data && <label className="mt-3 block w-full max-w-sm min-w-0"><span className="sr-only">筛选重要日空间</span>
-          <select className="h-11 w-full min-w-0 truncate rounded-ui-control border border-ui-control bg-ui-surface px-ui-3 text-ui-body" aria-label="筛选重要日空间" value={filter === 'all' ? 'all' : filter.spaceId} onChange={(event) => setFilter(event.target.value === 'all' ? 'all' : { spaceId: event.target.value })}>
-            <option value="all">全部空间</option>{data.eligibleSpaces.map((space) => <option key={space.id} value={space.id}>{space.kind === 'personal' ? '我的空间' : space.name}</option>)}
-          </select>
-        </label>}
+        {data && <div className="mt-3 w-full max-w-sm min-w-0">
+          <SpaceFilterDropdown spaces={data.eligibleSpaces} value={filter === 'all' ? 'all' : filter.spaceId} label="筛选重要日空间"
+            onChange={(id) => setFilter(id === 'all' ? 'all' : { spaceId: id })}
+            className="ui-focus h-11 w-full min-w-0 rounded-ui-control border border-ui-control bg-ui-surface px-ui-3 text-ui-body" />
+        </div>}
       </header>
       <div className="flex-1 space-y-ui-5 px-ui-4 py-ui-4 safe-bottom">
         {notice && <p role="status" className="text-sm text-ink/70">{notice}</p>}

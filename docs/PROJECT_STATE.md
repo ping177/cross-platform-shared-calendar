@@ -12,6 +12,8 @@ v0.1.20
 
 ## Current status
 
+2026-10-16 五模块Space筛选器统一：LOCAL AUTOMATED PASS / USER-AUTHENTICATED LOCAL IPHONE SAFARI PASS / PRODUCTION RELEASE AUTHORIZED / FINAL PWA ACCEPTANCE PENDING。用户已确认本地真实账号iPhone Safari功能与视觉验收PASS，冻结实现；990/990、WebKit/Chrome44/44、TypeScript/Build/语法/diff-check与375/430真实渲染检查PASS。按授权通过既有Git→Vercel流程发布，精确Source及公开资源结果由本次独立发布报告记录；Production installed PWA最终用户验收前不CLOSED/PASS。正式版本仍v0.1.20，旧删除交互收口保持下方状态。
+
 本轮删除确认UI与清单分组WebKit触摸修复 = **PRODUCTION ACCEPTED / CLOSED / PASS**。用户确认正式Production iPhone PWA最终验收PASS。验收对应应用基线 `8d7fb252c60b75688d0a736be6f761c0506ff0b5`（其前端实现提交为 `b0487c106cc654dc72de5054191480376b9aacc8`）；GitHub Production 7093050865 / Vercel `HSqce4foW3jffYGfjpmRi5rAdrKw` 成功。992/992、WebKit/Chrome18/18、TypeScript、Build、Node语法和diff-check PASS。只关闭本轮UI修复及验收，不代表整个项目已完成正式试用或所有业务E2E。正式版本仍v0.1.20；没有数据库、Edge、Cron、Auth或业务数据变更。
 
 用户报告Production测试数据已清理，目前保留两个账号及各自Personal Space；本轮未执行该清理或独立读取账号数据。此前整理测试数据/三个账号保留两个的计划已由用户报告接续，不再列作当前待执行任务。
@@ -45,6 +47,8 @@ UI v2 Slice6 = LOCAL PASS / VISUAL PASS：用户已认可四张居中概览卡�
 v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3为LOCAL PASS / VISUAL PASS；Slice4为LOCAL PASS / VISUAL PROVISIONALLY ACCEPTED。Slice5月视图本地验证与离线视觉验收通过：两条短标题/准确+N、六色圆点与日期浮层，261/261相关测试、build/diff-check、28组四宽度离线检查PASS；用户确认普通月、密集月、空月及浮层满意。已授权本地commit；不代表真实账号、真机、installed PWA或Production验收。Space Color System继续Deferred；真实账号/真机/installed PWA/Production未验收。正式版本仍v0.1.20。
 
 ## Latest completed
+
+2026-10-16 — 五模块Space下拉UI及回顾辅助标题本地自动验证和用户真实账号iPhone Safari验收均PASS；发布范围/业务不变复审完成，确认992→990仅移除旧Calendar Sheet的两项模态测试并由新下拉真实DOM覆盖替代。用户授权单一实现提交、正常Push及既有自动Production部署；实际Git/Source/资源证据见本次发布报告，最后Production PWA验收仍Pending。
 
 2026-10-15 — 本轮删除确认与清单分组修复 CLOSED / PASS：用户确认正式Production iPhone PWA最终验收PASS。验收对应应用基线 `8d7fb252c60b75688d0a736be6f761c0506ff0b5`；GitHub Production 7093050865 / Vercel `HSqce4foW3jffYGfjpmRi5rAdrKw` success。992/992、WebKit/Chrome18/18、TypeScript/Build/Node语法/diff-check PASS。治理收口仅更新文档；最终Git与Production状态见本轮交付记录。
 
@@ -353,6 +357,8 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
+本轮Space筛选器发布前main/origin-main基线为afd6e35a331af2d58db4cf5c4c16e3650928103e；用户已授权正常Commit/Push及GitHub→Vercel自动Production前端发布，不主动手动部署或改配置。实际部署成功状态、精确Source SHA及正式静态资源核验由本次独立发布报告记录，不能用发布授权代替部署证据。用户认证本地5175 iPhone Safari已PASS；Production installed PWA用户最终验收仍Pending。本地Build公开后台目标与已验收Production一致，无新后端能力/配置要求。
+
 本轮删除确认与清单分组修复对应的Production应用基线为 `8d7fb252c60b75688d0a736be6f761c0506ff0b5`，GitHub Production deployment 7093050865 / Vercel `HSqce4foW3jffYGfjpmRi5rAdrKw` success。用户已确认该正式iPhone PWA验收PASS。其业务前端实现来自 `b0487c106cc654dc72de5054191480376b9aacc8`；后续8d7fb25为已核验的docs-only发布记录，正式JS/CSS/manifest/SW与通过Build一致。本轮治理收口仅修改文档，不主动触发部署或修改Production配置。
 
 本轮UI首个功能Production Source：`b0487c106cc654dc72de5054191480376b9aacc8`，GitHub部署 7092894811、Vercel 2jNzviS264gyfMpKzzpNkXGVMHMy 均success。正式域名JS `/assets/index-DYnsqgws.js`、CSS `/assets/index-CgQs3Nqx.css`、manifest及SW成功获取且与本地Build逐字节一致；新焦点/内容/外壳标识均存在，公开后端客户端/VAPID配置与已验证Build匹配。375px正式无登录首页渲染PASS，零pageerror/后台请求。固定部署地址受Vercel登录保护，本轮不登录或绕过；Source以vercel[bot]的正确仓库/Production/精确SHA记录核对，资产以正式公开域名核对。
@@ -453,11 +459,11 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Last verified
 
-2026-10-15 — 日期/表单修复发布前重跑全量967/967、npx tsc -b、npm run build、git diff --check PASS；其中日期/边界3项和Event空间创建7项回归均通过。用户Mac视觉PASS，复用375/430/短视口真实组件及明确标注的压力模型证据；iPhone真机NOT RUN，发布结果单独核验。
+2026-10-16 — Space筛选器全量Node990/990、WebKit/Chrome44/44、TypeScript/Build/语法/diff-check PASS。375/430与旧版触发框真实几何/字号相同，菜单统一且无遮挡/溢出；用户确认真实账号本地iPhone Safari功能/视觉验收PASS；正式installed PWA仍待用户最终验收。旧删除修复正式PWA PASS保持，不用本轮自动结果扩大人工证据。
 
 ## Next Action
 
-等待用户启动下一阶段需求讨论；本轮删除确认与清单分组修复已CLOSED / PASS。新阶段范围由用户明确指定后再开始，不自动启动空间筛选器或其他功能实现。
+本次独立发布报告确认Production Source与公开资源正常后，用户在已安装正式iPhone PWA完成五模块Space筛选器最小验收（详见TESTING）；收到用户Production PASS后再另行授权最终治理收口。验收前不CLOSED/PASS，不扩大到新功能或后台工作。
 
 ## Blockers
 
@@ -558,7 +564,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Handoff Prompt
 
-独立Production Source与正式静态资源核验后，用户完全退出并重开iPhone正式PWA，用可丢弃分组复验改名/取消/两种删除范围，并抽查普通删除和高风险/范围确认的贴底外壳与内部层级。无需为视觉删除真实Space或重新测试Push。仅在用户确认正式PWA PASS后另行记录本轮CLOSED/PASS；保持当前范围，不启动新功能或后端工作。
+五模块Space筛选器冻结实现及990/990、WebKit/Chrome44/44、TS/Build、375/430真实渲染检查PASS，用户真实账号本地iPhone Safari验收PASS。用户已授权本次实现Commit/正常Push与既有Vercel自动Production发布，Source/资源及Git最终状态见独立发布报告；下一检查点是用户正式installed PWA验收，不驱动登录态，不提前最终治理收口。原删除确认与分组CLOSED/PASS保持，本轮筛选器未CLOSED，不新增版本。
 
 用户确认Profile Card Compact + Avatar v1正式Production人工验收PASS，最终状态CLOSED / PASS；Space Rename真实Production功能及最终UI也为CLOSED / PASS。Avatar已验收功能发布Source SHA：fcd3c8ad1b91bd7ec137c331e3d721ea8fae6cac。12预设及猫F+02「陶粉与燕麦」保持冻结。该整体验收不扩大为跨设备、照片替换/默认恢复、真实失败/断网重试、退出最后共同Space的新签拒绝、5分钟签名续期及iOS/Android/PWA全部边界已通过；未完整验证项继续在观察期记录。
 

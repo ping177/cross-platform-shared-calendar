@@ -1,6 +1,7 @@
+import { SpaceFilterDropdown } from './SpaceFilterDropdown';
 import { useMobileSwipe } from './useMobileSwipe';
 import type { SwipeClickGuard } from '../lib/mobile-swipe';
-import { useRef, type ChangeEvent } from 'react';
+import { useRef } from 'react';
 import { CheckCircle2, ChevronDown, ChevronLeft, Circle, Plus } from 'lucide-react';
 import { taskAssignmentLabel, canChangeTaskStatus, formatTaskDueDate } from '../lib/task';
 import type { TaskFilter } from '../lib/aggregate-tasks';
@@ -18,20 +19,11 @@ export function TaskFilterPicker({ spaces, filter, onChange }: {
   filter: TaskFilter;
   onChange: (filter: TaskFilter) => void;
 }) {
-  function select(event: ChangeEvent<HTMLSelectElement>) {
-    const id = event.target.value;
-    if (id === 'all') onChange('all');
-    else if (spaces.some((space) => space.id === id)) onChange({ spaceId: id });
-  }
-  return <label className="mt-3 block w-full max-w-sm min-w-0">
-    <span className="sr-only">筛选任务空间</span>
-    <span className="relative block">
-      <select className="min-h-ui-touch w-full min-w-0 appearance-none truncate rounded-ui-control border border-ui-border bg-ui-surface pl-ui-3 pr-10 text-ui-body text-ui-text ui-focus" aria-label="筛选任务空间" value={filter === 'all' ? 'all' : filter.spaceId} onChange={select}>
-        <option value="all">全部空间</option>
-        {spaces.map((space) => <option key={space.id} value={space.id}>{space.name}</option>)}
-      </select>
-    </span>
-  </label>;
+  return <div className="mt-3 w-full max-w-sm min-w-0">
+    <SpaceFilterDropdown spaces={spaces} value={filter === 'all' ? 'all' : filter.spaceId} label="筛选任务空间"
+      onChange={(id) => { if (id === 'all') onChange('all'); else if (spaces.some((space) => space.id === id)) onChange({ spaceId: id }); }}
+      className="min-h-ui-touch w-full min-w-0 rounded-ui-control border border-ui-border bg-ui-surface pl-ui-3 text-ui-body text-ui-text ui-focus" />
+  </div>;
 }
 
 export function TaskRows({ tasks, sourceSpacesById, membersBySpaceId, userId, completed, busyTaskId, openingTask, onOpen, onChangeStatus }: {

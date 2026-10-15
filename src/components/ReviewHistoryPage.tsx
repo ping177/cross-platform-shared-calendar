@@ -1,3 +1,4 @@
+import { SpaceFilterDropdown } from './SpaceFilterDropdown';
 import { useMobileSwipe } from './useMobileSwipe';
 import type { SwipeClickGuard } from '../lib/mobile-swipe';
 import { useEffect, useRef, useState } from 'react';
@@ -266,14 +267,14 @@ export function ReviewHistoryPage({ swipeClickGuard, userId, entry = null, entry
     {eligibilityStatus === 'loading' && !selectedSpace && <p className="mt-4" role="status">正在读取回顾空间…</p>}
     {eligibilityStatus === 'ready' && !selectedSpace && <p className="mt-ui-4 rounded-ui-group border border-ui-border bg-ui-surface p-ui-4 text-ui-meta text-ui-muted">当前没有已开启回顾的空间。可在空间管理中开启。</p>}
     {selectedSpace && <>
-      <label className="mt-ui-6 block text-ui-meta font-ui-semibold" htmlFor="review-space">空间</label>
-      <select id="review-space" className="ui-focus mt-ui-2 min-h-ui-touch w-full min-w-0 rounded-ui-control border border-ui-control bg-ui-surface px-ui-3 text-ui-body" value={selectedSpace.id} disabled={entryPending} onChange={(event) => selectSpace(event.target.value)}>
-        {spaces.map((space) => <option key={space.id} value={space.id}>{space.name}</option>)}
-      </select>
+      <div className="ui-review-space-filter">
+        <SpaceFilterDropdown spaces={spaces} value={selectedSpace.id} allowAll={false} label="筛选回顾空间" disabled={entryPending} onChange={selectSpace}
+          className="ui-focus min-h-ui-touch w-full min-w-0 rounded-ui-control border border-ui-control bg-ui-surface px-ui-3 text-ui-body" />
+      </div>
       {selectedSpace.kind === 'shared' && memberCount === 1 && <p className="mt-ui-3 text-ui-meta text-ui-muted">当前共享空间需要两名成员才能新建回顾；已有历史仍可查看。</p>}
       {memberError && <p className="mt-3 text-ui-meta text-ui-danger" role="alert">{memberError}</p>}
-      <section className="mt-ui-7" aria-label="历史回顾">
-        {totalCount !== null && <div className="mb-3 flex min-w-0 items-baseline justify-between gap-3"><h2 className="text-ui-section">历史回顾</h2><ReviewHistorySummary totalCount={totalCount} /></div>}
+      <section className="mt-ui-5" aria-label="历史回顾">
+        {totalCount !== null && <div className="mb-3 flex min-w-0 items-baseline justify-between gap-3"><h2 className="text-ui-meta font-ui-medium text-ui-muted">历史回顾</h2><ReviewHistorySummary totalCount={totalCount} /></div>}
         {(historyStatus === 'loading' || lostScope) && <p role="status">正在读取历史回顾…</p>}
         {historyError && <div role="alert">{historyError}<button className="ui-focus ml-ui-2 min-h-ui-touch min-w-11 rounded-ui-control font-ui-semibold text-ui-accent" type="button" onClick={() => void (historyStatus === 'ready' ? readPage(selectedSpace, null, true, true) : readPage(selectedSpace, rows.length ? cursor : null, rows.length === 0))}>重试</button></div>}
         {historyStatus !== 'loading' && rows.length === 0 && historyStatus !== 'error' && <p className="rounded-ui-group border border-ui-border bg-ui-surface p-ui-6 text-ui-meta text-ui-muted">还没有回顾记录</p>}

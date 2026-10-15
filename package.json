@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 5175 --strictPort",
     "build": "tsc -b && vite build",
-    "test:browser": "node --test tests/list-groups.browser.mjs",
+    "test:browser": "node --test tests/*.browser.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

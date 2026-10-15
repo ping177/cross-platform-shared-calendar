@@ -28,14 +28,15 @@ test('Tasks filter presents only eligible IDs and emits one canonical selection'
     const tree = TaskFilterPicker({ spaces: [shared, sameName], filter: 'all', onChange: (next: 'all' | { spaceId: string }) => selected.push(next) });
     const markup = renderToStaticMarkup(tree);
     assert.match(markup, /全部空间/);
-    assert.equal((markup.match(/同名空间/g) ?? []).length, 2);
+    assert.match(markup, /aria-haspopup="listbox"/);
     assert.doesNotMatch(markup, /我的空间/);
-    const select = elements(tree).find((element) => element.type === 'select');
-    assert.ok(select);
-    const change = (select.props as { onChange: (event: { target: { value: string } }) => void }).onChange;
-    change({ target: { value: sameName.id } });
-    change({ target: { value: personal.id } });
-    change({ target: { value: 'all' } });
+    const dropdown = elements(tree).find((element) => (element.type as any)?.name === 'SpaceFilterDropdown');
+    assert.ok(dropdown);
+    const props = dropdown.props as { spaces: CurrentSpace[]; onChange: (id: string) => void };
+    assert.deepEqual(props.spaces.map(space => space.id), [shared.id, sameName.id]);
+    props.onChange(sameName.id);
+    props.onChange(personal.id);
+    props.onChange('all');
     assert.deepEqual(selected, [{ spaceId: sameName.id }, 'all']);
   } finally { await vite.close(); }
 });

@@ -74,9 +74,9 @@ test('four-tab Module Hub and Aggregate Tasks cards keep IDs, compact controls a
       spaces: [shared, { ...secondShared, name: '一个很长很长很长的共享空间名称' }],
       filter: 'all', onChange: noop,
     }));
-    assert.match(filter, /筛选任务空间.*全部空间.*旅行.*一个很长很长很长的共享空间名称/);
+    assert.match(filter, /筛选任务空间.*aria-haspopup="listbox".*全部空间/);
     assert.doesNotMatch(filter, /个人空间/);
-    assert.match(filter, /h-11.*min-w-0|truncate/);
+    assert.match(filter, /min-h-ui-touch.*min-w-0/);
     const rows = renderToStaticMarkup(React.createElement(TaskRows, {
       tasks: [task('共享任务一', shared.id, 'other'), task('共享任务二', secondShared.id)],
       sourceSpacesById: { [shared.id]: shared, [secondShared.id]: secondShared },

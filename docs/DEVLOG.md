@@ -1,5 +1,23 @@
 # Development Log
 
+## 2026-10-16 — Space筛选器正式发布门禁 — LOCAL IPHONE SAFARI PASS / FINAL PRODUCTION PWA PENDING
+
+- 用户确认真实账号本地iPhone Safari功能/视觉验收PASS，冻结已验收UI；明确授权一个实现Commit、正常Push origin/main及既有GitHub→Vercel自动Production前端发布，不创建第二次手动部署。发布前main/origin-main及独立远端均为afd6e35a331af2d58db4cf5c4c16e3650928103e。
+- 23文件范围：7个前端组件/CSS、10个测试/fixture、package浏览器测试脚本和5份治理文档。全部属于五模块筛选器及回顾标题调整，无未识别额外改动、新依赖/lockfile、环境文件、后台或生产配置变更。CurrentSpaceApp业务尾部、TaskRows/TasksArea尾部及清单/重要日/回顾render前业务逻辑与基线逐字节相同；原资格/ownership/独立状态记忆/创建默认/异步失效与失败恢复保持。
+- 992→990仅因current-modules-interaction的CalendarPicker从参数循环移除：旧Sheet的Tab/IME Escape/取消/恢复焦点及opener消失回退两例不再适用；其他参数和业务测试未删除，aggregate-calendar的Sheet例一对一替换为适配器例。新菜单的键盘/取消/日历重挂载恢复焦点、真实触摸及null-relatedTarget不吞click由双引擎真实DOM覆盖。复核全量990/990、浏览器44/44日志，后续筛选增强26/26与日历10/10增量PASS；源码未实质改变，不机械重跑全量。
+- 最终npm run build（含TypeScript）、新增browser文件Node语法及diff-check PASS；原bundle大小提示非阻塞。发布前后仅对正式公开资源/配置作只读核验，不继承登录态、不发送OTP、不操作生产业务数据。实际Commit/Push、Vercel Source/状态、资源证据以本次独立发布报告为准，不以授权冒充成功。
+- PROJECT_STATE/TESTING/BACKLOG/DECISIONS接续为用户本地验收PASS、正式发布已授权、最终Production PWA待用户。每次push前按现有Project State Push Gate审查及准确trailer，成功push后只读freshness review；Next Action保持用户PWA反馈，不在本次执行最终CLOSED/PASS收口。正式版本v0.1.20不变，下方本地Pending均为历史检查点。
+
+## 2026-10-16 — 五模块Space筛选器统一 — LOCAL AUTOMATED PASS / USER ACCEPTANCE PENDING
+
+- Repo-first：main/本地及独立远端origin-main均为afd6e35a331af2d58db4cf5c4c16e3650928103e，初始clean。用户冻结设计已授权实施；旧删除交互与分组修复CLOSED/PASS保持，本轮不改变正式版本v0.1.20。
+- 新增小型SpaceFilterDropdown，仅接收候选Space/id/回调和触发样式；Portal固定定位，跟随触发框、窗口/祖先滚动、visualViewport及安全区，菜单最大384px/320px高、独立滚动。复用UI v2 tokens/下箭头；键盘方向/Home/End/Enter/Space、Tab退出、Escape/外点关闭，选中后恢复到仍存在或日历重挂载后的触发框。不通过blur/relatedTarget关闭。
+- 五模块接入保留触发框实际位置、宽度、字体字号/字重；实际名称用于筛选器，其他来源文案/数据库名称未变。回顾移除可见标签但保留原控制位置和ARIA名称，历史标题改14px/500、内容前留白20px。旧Calendar Sheet被替换，没有引入菜单框架/新依赖。
+- TDD：真实WebKit基线先因缺少下拉listbox失败。实际五页面及原hooks/请求守卫运行，仅后台I/O内存化；固定5175拦截全部请求、envFile=false，不操作真实账号或业务API。对旧提交真实渲染逐项比较375/430触发矩形/字体，并检查菜单实际字体、几何、遮挡命中、滚动、窄框宽菜单、安全区短视口、真实tap及null-relatedTarget失焦插入、快速切换晚响应/失败重试、资格pending关闭和创建默认目标。
+- 验证：Node990/990、WebKit/Chrome44/44（既有删除18 + 新筛选26）、TypeScript/Build、node --check与diff-check PASS。原两个Calendar“模态Sheet”夹具用例随非模态设计移出，其键盘/取消/焦点行为改由真实DOM测试覆盖；所有业务测试保留，原select结构期望改为共享筛选适配器。移动WebKit运行时不支持wheel输入，菜单滚动位置/边界通过DOM验证，滚动后tap为原生输入；Chrome另有原生wheel，真机手指滚动留给用户。
+- 源码比较：CurrentSpaceApp及其后整个业务尾部、TaskRows/TasksArea尾部、清单/重要日/回顾页面render前逻辑与基线逐字节相同；src/lib、数据库/RLS/RPC/Realtime/Push/Cron/Supabase配置、创建表单及lockfile均未变。Build公开后台目标与已验收Production一致，无新后台能力要求，不重复认证审计或继承用户登录态。
+- 375/430五模块并排与回顾关闭态截图已生成并实际查看，保存在本Chat的space-filters/目录。既有大bundle提示非阻塞。Vite按现有命令启动固定5175/strictPort，监听局域网；用户自行真实账号/iPhone Safari最终视觉与触摸验收仍Pending。未Commit/Push/部署，没有外部项目或环境文件修改，未打开/打印环境文件或凭据。
+
 ## 2026-10-15 — UI修复Governance Closeout — CLOSED / PASS
 
 - 用户明确确认正式Production iPhone PWA最终验收PASS，本轮清单空/非空分组改名与删除、两种非空删除范围、移动端全宽贴底确认外壳、跨模块删除确认内容层级及特殊安全规则全部通过。关闭范围仅为本轮UI修复与验收，不表示整个项目完成正式试用或所有业务E2E。

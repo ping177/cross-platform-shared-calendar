@@ -64,7 +64,7 @@ async function runtime(run: (env: any) => Promise<void>, showMonthDetails = true
         if (id === 'react' && (importer?.includes('/components/') || importer?.endsWith('/App.tsx'))) return '\0calendar-hooks';
         if (/\/supabase(?:\.ts)?$/.test(id)) return '\0calendar-client';
       },
-      load(id) { if (id === '\0calendar-hooks') return 'export const {useState,useRef,useEffect,useCallback,useMemo}=globalThis.__calendarDates;';
+      load(id) { if (id === '\0calendar-hooks') return 'export const useId=()=>"fixture-space-filter";export const {useState,useRef,useEffect,useCallback,useMemo}=globalThis.__calendarDates;';
         if (id === '\0calendar-client') return 'export const supabase=globalThis.__calendarDates.supabase;'; },
       transform(code, id) {
         if (id.endsWith('/useImportantDateProjection.ts') || id.endsWith('/calendar-event-view.ts')) return code.replace('Intl.DateTimeFormat().resolvedOptions().timeZone', 'globalThis.__calendarDates.timeZone');

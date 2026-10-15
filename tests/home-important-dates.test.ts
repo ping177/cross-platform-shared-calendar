@@ -95,7 +95,7 @@ async function runtime(run: (env: any) => Promise<void>) {
     },
     load(id) {
       const prefix = 'const m=globalThis.__homeImportantDates;';
-      if (id === '\0home-hooks') return prefix + 'export const {useState,useRef,useCallback,useEffect,useMemo}=m;';
+      if (id === '\0home-hooks') return prefix + 'export const useId=()=>"fixture-space-filter";export const {useState,useRef,useCallback,useEffect,useMemo}=m;';
       if (id === '\0home-client') return prefix + 'export const supabase=m.supabase,isSupabaseConfigured=true;';
       if (id === '\0home-spaces') return prefix + 'export const listCurrentSpaces=async()=>m.spaceRead?m.spaceRead():m.members;';
       if (id === '\0home-dates') return prefix + 'export class ImportantDatesAuthError extends Error{};export const loadHomeImportantDates=(...a)=>m.home(...a),loadCalendarImportantDates=(...a)=>m.calendar(...a),loadImportantDates=(...a)=>m.canonical(...a),readImportantDateTarget=(...a)=>m.target(...a),loadImportantDatesEligibility=async()=>({memberSpaces:m.members,eligibleSpaces:m.eligible}),updateImportantDate=(...a)=>m.update(...a),deleteImportantDate=(...a)=>m.remove(...a),createImportantDate=(...a)=>m.create(...a);';

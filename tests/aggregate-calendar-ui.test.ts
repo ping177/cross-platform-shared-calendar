@@ -21,12 +21,6 @@ function findButton(node: React.ReactNode, label: string): React.ReactElement<{ 
 }
 
 // Capture handlers while React supplies the dispatcher for the Picker's local focus hooks.
-function renderTree(Component: (props: any) => React.ReactNode, props: any): React.ReactNode {
-  let tree: React.ReactNode;
-  function Capture() { tree = Component(props); return null; }
-  renderToStaticMarkup(React.createElement(Capture));
-  return tree;
-}
 
 test('all Calendar and single Space each expose one unified create entry with explicit target', async () => {
   const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
@@ -50,58 +44,24 @@ test('all Calendar and single Space each expose one unified create entry with ex
   } finally { await vite.close(); }
 });
 
-test('Calendar filter selector opens as a bounded sheet and chooses all or one unprefixed Space without changing the Hub selection', async () => {
-  const vite = await createServer({ configFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
+test('Calendar filter adapter preserves independent Space IDs and uses the shared nonmodal dropdown', async () => {
+  const vite = await createServer({ configFile: false, envFile: false, logLevel: 'silent', server: { middlewareMode: true, hmr: false }, appType: 'custom' });
   try {
     const { CalendarFilterPicker } = await vite.ssrLoadModule('/src/App.tsx');
     const selectedSpaceId = shared.id;
-    let currentFilter: 'all' | { spaceId: string } = 'all';
-    let closeCount = 0;
-    let openCount = 0;
-    const props = {
-      spaces: [personal, shared, { ...shared, id: 'family', name: '很长的家庭空间名称用于验证选项换行与布局' }],
-      filter: currentFilter,
-      open: false,
-      onOpen: () => { openCount += 1; },
-      onClose: () => { closeCount += 1; },
-      onSelect: (filter: 'all' | { spaceId: string }) => { currentFilter = filter; },
-    };
-    const closed = renderToStaticMarkup(React.createElement(CalendarFilterPicker, props));
-    assert.match(closed, /aria-label="筛选日历"/);
-    assert.match(closed, /全部空间/);
-    assert.doesNotMatch(closed, />空间</);
-    assert.doesNotMatch(closed, /role="dialog"|筛选：私人|筛选：旅行/);
-
-    const opened = renderToStaticMarkup(React.createElement(CalendarFilterPicker, { ...props, open: true }));
-    assert.match(opened, /role="dialog"/);
-    assert.match(opened, /safe-bottom/);
-    assert.match(opened, /筛选：全部空间/);
-    assert.match(opened, /筛选：私人/);
-    assert.match(opened, /筛选：旅行/);
-    assert.match(opened, /筛选：很长的家庭空间名称用于验证选项换行与布局/);
-    assert.doesNotMatch(opened, /共享空间 · 旅行/);
-    assert.match(opened, /truncate/);
-    assert.match(opened, /break-all/);
-
-    const click = (filter: 'all' | { spaceId: string }, label: string) => {
-      const tree = renderTree(CalendarFilterPicker, { ...props, filter, open: true });
-      const button = findButton(tree, label);
-      assert.ok(button, `missing ${label}`);
-      button.props.onClick();
-    };
-    const opener = findButton(renderTree(CalendarFilterPicker, props), '筛选日历');
-    assert.ok(opener);
-    opener.props.onClick();
-    assert.equal(openCount, 1);
-    click('all', '筛选：私人');
-    assert.deepEqual(currentFilter, { spaceId: personal.id });
-    click(currentFilter, '筛选：旅行');
-    assert.deepEqual(currentFilter, { spaceId: shared.id });
-    click(currentFilter, '筛选：全部空间');
-    assert.equal(currentFilter, 'all');
-    assert.equal(closeCount, 3);
-    assert.equal(selectedSpaceId, shared.id);
-    assert.match(renderToStaticMarkup(React.createElement(CalendarFilterPicker, { ...props, filter: { spaceId: shared.id } })), /aria-label="筛选日历"[^>]*>.*旅行/);
+    let filter: 'all' | { spaceId: string } = 'all';
+    let opened = false;
+    const props = { spaces: [personal, shared], filter, open: false, onOpen() { opened = true; }, onClose() { opened = false; }, onSelect(next: typeof filter) { filter = next; } };
+    const html = renderToStaticMarkup(React.createElement(CalendarFilterPicker, props));
+    assert.match(html, /aria-label="筛选日历".*aria-haspopup="listbox"/);
+    assert.match(html, /全部空间/); assert.doesNotMatch(html, /<select|role="dialog"/);
+    const adapter = CalendarFilterPicker(props).props;
+    adapter.onOpenChange(true); assert.equal(opened, true);
+    adapter.onChange(personal.id); assert.deepEqual(filter, { spaceId: personal.id });
+    adapter.onChange(shared.id); assert.deepEqual(filter, { spaceId: shared.id });
+    adapter.onChange('all'); assert.equal(filter, 'all');
+    adapter.onOpenChange(false); assert.equal(opened, false); assert.equal(selectedSpaceId, shared.id);
+    assert.match(renderToStaticMarkup(React.createElement(CalendarFilterPicker, { ...props, filter: { spaceId: shared.id } })), />旅行<\/button>/);
   } finally { await vite.close(); }
 });
 
@@ -124,7 +84,7 @@ test('Calendar segmented views select all three modes without a modal and keep d
       assert.equal(view, mode); assert.deepEqual(filter, { spaceId: shared.id });
     }
     assert.equal(closes, 3);
-    findButton(renderTree(CalendarFilterPicker, { spaces: [personal, shared], filter, open: true, onOpen: noop, onClose: noop, onSelect: (next: typeof filter) => { filter = next; } }), '筛选：私人')!.props.onClick();
+    CalendarFilterPicker({ spaces: [personal, shared], filter, open: false, onOpen: noop, onClose: noop, onSelect: (next: typeof filter) => { filter = next; } }).props.onChange(personal.id);
     assert.equal(view, 'month'); assert.deepEqual(filter, { spaceId: personal.id });
     assert.equal(selectedDate.getTime(), new Date(2026, 8, 24).getTime());
     for (const mode of ['today', 'week', 'month']) {

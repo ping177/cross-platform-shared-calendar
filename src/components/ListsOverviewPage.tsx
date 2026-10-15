@@ -1,3 +1,4 @@
+import { SpaceFilterDropdown } from './SpaceFilterDropdown';
 import { useMobileSwipe } from './useMobileSwipe';
 import type { SwipeClickGuard } from '../lib/mobile-swipe';
 import { useEffect, useRef, useState } from 'react';
@@ -157,13 +158,11 @@ export function ListsOverviewPage({ swipeClickGuard, userId, entry = null, entry
           <h1 className="min-w-0 truncate text-xl font-bold">清单</h1>
           <button ref={createButton} className="ui-focus grid h-11 w-11 shrink-0 place-items-center rounded-ui-control bg-transparent text-ui-accent disabled:opacity-50" type="button" aria-label="新建清单" disabled={!canAct || !data?.eligibleSpaces.length} onClick={openCreate}><Plus size={18} aria-hidden="true" /></button>
         </div>
-        {data && <label className="mt-3 block w-full max-w-sm min-w-0">
-          <span className="sr-only">筛选清单空间</span>
-          <span className="relative block"><select className="h-11 w-full min-w-0 appearance-none truncate rounded-lg bg-white pl-3 pr-10 text-sm font-semibold text-ink outline-none focus-visible:ring-2 focus-visible:ring-teal" aria-label="筛选清单空间" value={filter === 'all' ? 'all' : filter.spaceId} onChange={(event) => chooseFilter(event.target.value === 'all' ? 'all' : { spaceId: event.target.value })}>
-            <option value="all">全部空间</option>
-            {data.eligibleSpaces.map((space) => <option key={space.id} value={space.id}>{space.kind === 'personal' ? '我的空间' : space.name}</option>)}
-          </select></span>
-        </label>}
+        {data && <div className="mt-3 w-full max-w-sm min-w-0">
+          <SpaceFilterDropdown spaces={data.eligibleSpaces} value={filter === 'all' ? 'all' : filter.spaceId} label="筛选清单空间"
+            onChange={(id) => chooseFilter(id === 'all' ? 'all' : { spaceId: id })}
+            className="h-11 w-full min-w-0 rounded-lg bg-white pl-3 text-sm font-semibold text-ink ui-focus" />
+        </div>}
       </header>
       <div className="ui-lists-body flex-1 space-y-5 px-4 py-4 safe-bottom">
         {notice && <p className="rounded-lg bg-white px-4 py-3 text-sm text-ink/70" role="status">{notice}</p>}

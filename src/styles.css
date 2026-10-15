@@ -131,7 +131,7 @@ select {
   text-align: left;
 }
 
-/* One decoration for native single selects and the Calendar Space trigger.
+/* One decoration for native single selects and the Space filter triggers.
    The icon is Lucide's 24px chevron path in a 16px box, using ui-muted (#636F67).
    It is decorative: native options, popup UI and keyboard behavior stay intact. */
 :root {
@@ -636,7 +636,7 @@ body:has(.ui-calendar-shell) {
 .ui-list-overlay .bg-coral { background: rgb(var(--ui-color-danger)); }
 .ui-list-detail .bg-mist, .ui-list-overlay .bg-mist { background: rgb(var(--ui-color-page)); }
 .ui-lists-page .rounded-lg, .ui-list-detail .rounded-lg, .ui-list-overlay .rounded-lg { border-radius: var(--ui-radius-control); }
-.ui-lists-page select, .ui-list-overlay :is(input, select), .ui-list-detail input:not([type="checkbox"]) {
+.ui-lists-page select, .ui-lists-page .ui-space-filter-trigger, .ui-list-overlay :is(input, select), .ui-list-detail input:not([type="checkbox"]) {
   min-height: var(--ui-touch-target); font-size: 1rem; border: var(--ui-border-width) solid rgb(var(--ui-color-control)); box-shadow: none;
 }
 .ui-lists-rows, .ui-list-panel { border: var(--ui-border-width) solid rgb(var(--ui-color-border)); border-radius: var(--ui-radius-group); background: rgb(var(--ui-color-surface)); }
@@ -939,3 +939,16 @@ body:has(.ui-calendar-shell) {
 .ui-review-date-form input[type="date"]::-webkit-date-and-time-value {
   text-align: left;
 }
+
+/* Space filters: only presentation is shared; module state stays with each page. */
+.ui-space-filter-trigger { display: block; overflow: hidden; text-align: left; text-overflow: ellipsis; white-space: nowrap; }
+.ui-space-filter-viewport { position: fixed; inset: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); z-index: 30; pointer-events: none; }
+.ui-space-filter-menu { position: fixed; box-sizing: border-box; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; pointer-events: auto; padding: var(--ui-space-1); border: var(--ui-border-width) solid rgb(var(--ui-color-control)); border-radius: var(--ui-radius-control); background: rgb(var(--ui-color-surface)); box-shadow: var(--ui-shadow-sheet); font-family: var(--ui-font-sans); font-size: var(--ui-text-body); line-height: var(--ui-leading-body); color: rgb(var(--ui-color-text)); }
+.ui-space-filter-option { display: flex; align-items: center; gap: var(--ui-space-2); width: 100%; min-height: var(--ui-touch-target); padding: var(--ui-space-2) var(--ui-space-3); border-radius: var(--ui-radius-control); text-align: left; font-size: inherit; font-weight: var(--ui-weight-normal); }
+.ui-space-filter-option > svg { flex: none; color: rgb(var(--ui-color-accent)); }
+.ui-space-filter-option > span { min-width: 0; overflow-wrap: anywhere; }
+.ui-space-filter-option[aria-selected="true"] { color: rgb(var(--ui-color-accent-strong)); font-weight: var(--ui-weight-semibold); background: rgb(var(--ui-color-accent-soft)); }
+.ui-space-filter-option:focus-visible { outline: var(--ui-focus-width) solid rgb(var(--ui-color-focus)); outline-offset: -2px; }
+@media (hover: hover) { .ui-space-filter-option:hover { background: rgb(var(--ui-color-soft)); } }
+/* Keep the existing control position while removing its visible label. */
+.ui-review-space-filter { margin-top: calc(var(--ui-space-6) + var(--ui-leading-meta) + var(--ui-space-2)); }

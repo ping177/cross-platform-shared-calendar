@@ -1,5 +1,9 @@
 # Backlog
 
+## 2026-10-16 五模块Space筛选器 — LOCAL AUTOMATED + USER LOCAL IPHONE SAFARI PASS / FINAL PRODUCTION PWA PENDING
+
+冻结设计已完成并经用户真实账号本地iPhone Safari验收PASS。990/990、WebKit/Chrome44/44、TypeScript/Build/diff-check及375/430实际组件检查PASS；992→990仅为旧日历Sheet两例随下拉真实DOM测试替换。用户授权正常Commit/Push与既有Vercel自动Production前端发布，实际Source/静态证据见独立发布报告。下一业务动作仅用户已安装正式iPhone PWA最小验收，通过后再另行授权最终治理收口；本轮尚未CLOSED/PASS，不新增版本/后台工作。下方旧删除确认与分组CLOSED/PASS保持。
+
 ## 2026-10-15 UI删除确认与清单分组修复 — CLOSED / PASS
 
 用户确认Production iPhone PWA最终验收PASS，Production应用基线 `8d7fb252c60b75688d0a736be6f761c0506ff0b5` 与GitHub/Vercel部署核验一致。分组WebKit触摸修复、删除确认外形与内部层级统一及特殊删除保护均已验收；992/992、WebKit/Chrome18/18、TypeScript/Build/diff-check PASS。本轮无剩余事项，不新增版本、不启动筛选器或其他功能。整体正式试用状态不由本轮关闭结果推断。发布与验收细节见DEVLOG/TESTING；下方pending条目均为历史检查点。

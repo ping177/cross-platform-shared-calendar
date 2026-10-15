@@ -1,5 +1,18 @@
 # Testing
 
+## Space filter dropdowns — 2026-10-16 LOCAL AUTOMATED + USER LOCAL IPHONE SAFARI PASS / FINAL PRODUCTION PWA PENDING
+
+- 用户已确认真实账号本地iPhone Safari功能与视觉验收PASS；本轮正式发布已授权，Production installed PWA最终验收仍Pending，不提前CLOSED/PASS。
+- Node990/990 PASS，未跳过/失败；旧2个Calendar模态Sheet模拟DOM用例被新非模态下拉真实DOM覆盖替代，业务测试全部保留。原生select相关的旧UI结构断言已适配。
+- `PLAYWRIGHT_MODULE_PATH=/absolute/path/to/playwright/index.mjs npm run test:browser`：44/44 PASS，WebKit26.5与Chrome；18项既有分组/删除保护 + 26项新增筛选。新fixture渲染CurrentSpaceApp、TasksArea、ListsOverviewPage、ReviewHistoryPage、ImportantDatesPage及真实hooks，只替换后端I/O。全部请求由5175测试路由拦截、env文件禁用；不读取用户登录态，不请求业务后台。
+- 覆盖五模块打开/触摸选择/全部与实际Personal名称/关闭，回顾无全部；箭头/Home/End/Enter/Space与Tab退出、IME/Escape/外点；日历筛选后重挂载恢复焦点；多选项滚动后真实tap、空relatedTarget失焦插入不吞click；快速切换旧响应拒绝、失败重试、资格pending关闭；四类真实创建表单的全部→Personal/具体→该Space及原生保存到保持。
+- 375px主基准/430px回归：从afd6e35真实渲染读取旧触发框x/y/width/height/font/weight，与新版本误差≤1px/字体相等；五模块菜单字体/行高/背景/圆角/内距/阴影一致，菜单宽min(384,viewport−32)，位于触发框下4px，最大320px高。实际elementFromPoint命中选项、不被sticky header覆盖；长名称、右边缘、短360px高和模拟安全区bounds通过。回顾标题14px/500/新间距、隐藏标签与可访问名称已检查。
+- 浏览器pageerror为零。WebKit移动模拟不支持wheel协议输入，其滚动通过DOM滚动验证位置、边界与页面高度/scrollY不变，再原生触摸选项；Chrome有原生wheel验证。不能把上述证据当作真实iPhone手指滚动或实际notch/PWA验收。
+- TypeScript（build中的tsc -b）、Vite Build、`node --check tests/space-filters.browser.mjs`、`git diff --check` PASS，既有>500kB bundle警告保留。实际查看375/430五模块并排截图及375回顾关闭态，位于本Chat space-filters/；源码/创建表单/后端未新增需求，无新依赖。
+- 最终发布增量：实现未作新的实质修改，沿用上述全量及浏览器证据（筛选增强26/26、日历适配10/10后续增量PASS）；重新执行npm run build（含TypeScript）、新增browser文件Node语法和diff-check PASS。生产Source/正式资源核验的实际结果见本次独立发布报告。
+- 最小Production人工：用户完全关闭并重开已安装正式iPhone PWA，确认取得新版；在五模块分别展开、选择Space，检查日历窄框宽菜单、实际Personal名称、回顾无可见“空间”标签且“历史回顾”标题合适；用手指滚动多选项、外点关闭，切换页面再返回检查原记忆和模块独立性。日历/任务/清单/重要日抽查全部/具体Space下打开新建表单默认Space并取消，无需实际保存。菜单过少时无需新建测试空间。用户本人登录操作；Readiness沿用未变化后台契约及已验收本地目标，Production公开配置/资源另行核对；不重复完整业务、双账号或删除验收。收到用户Production PASS后才最终收口。
+
+
 ## UI repair final Production iPhone PWA acceptance — CLOSED / PASS / 2026-10-15
 
 用户确认正式Production iPhone PWA最终人工验收全部PASS：清单空/非空分组改名与删除、非空分组两种范围、统一的全宽贴底确认外壳、各模块删除确认文字层级及既有特殊安全确认。此前最小验收清单已由用户完成；本次无需重复人工验收。对应Production应用基线 `8d7fb252c60b75688d0a736be6f761c0506ff0b5`（GitHub deployment 7093050865 / Vercel `HSqce4foW3jffYGfjpmRi5rAdrKw` success）。全量Node992/992、WebKit/Chrome18/18、TypeScript、Build、Node语法、diff-check保持PASS。治理收口为docs-only，不重跑完整测试、不修改业务实现或后端。以下final-device-pending内容为历史检查点，由此记录 supersede。

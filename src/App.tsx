@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { SpaceFilterDropdown } from './components/SpaceFilterDropdown';
 import { useMobileSwipe } from './components/useMobileSwipe';
 import { createSwipeClickGuard, type SwipeClickGuard } from './lib/mobile-swipe';
 import type { Session } from '@supabase/supabase-js';
@@ -8,7 +8,6 @@ import {
   House,
   LayoutGrid,
   UserRound,
-  Check,
   ChevronLeft,
   ChevronRight,
   Plus,
@@ -848,21 +847,6 @@ function SpaceListPending({ status, onRetry, mySpaces = false }: { status: 'load
   );
 }
 
-function calendarPickerSheet(title: string, titleId: string, onClose: () => void, choices: React.ReactNode, container: React.RefObject<HTMLDivElement>) {
-  const sheet = (
-    <div ref={container} tabIndex={-1} className="fixed inset-0 z-30 flex items-end bg-ink/35 font-ui md:items-center md:px-4" role="dialog" aria-modal="true" aria-labelledby={titleId} onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-      <section className="w-full min-w-0 max-h-[80dvh] overflow-y-auto overscroll-contain rounded-t-2xl bg-white p-5 shadow-soft safe-bottom md:mx-auto md:max-w-md md:rounded-lg">
-        <div className="flex items-center justify-between gap-3">
-          <h2 id={titleId} className="text-lg font-bold">{title}</h2>
-          <button type="button" className="ui-focus grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-mist" aria-label={`关闭${title}`} onClick={onClose}><X size={20} /></button>
-        </div>
-        <div className="mt-4 space-y-1">{choices}</div>
-      </section>
-    </div>
-  );
-  return typeof document === 'undefined' ? sheet : createPortal(sheet, document.body);
-}
-
 export function CalendarFilterPicker({ spaces, filter, open, onOpen, onClose, onSelect }: {
   spaces: CurrentSpace[];
   filter: CalendarFilter;
@@ -871,66 +855,9 @@ export function CalendarFilterPicker({ spaces, filter, open, onOpen, onClose, on
   onClose: () => void;
   onSelect: (filter: CalendarFilter) => void;
 }) {
-  const trigger = useRef<HTMLButtonElement>(null);
-  const dialog = useRef<HTMLDivElement>(null);
-  const close = useRef(onClose);
-  close.current = onClose;
-  useEffect(() => {
-    if (!open) return;
-    const root = dialog.current;
-    (root?.querySelector<HTMLElement>('button[aria-pressed="true"]') ?? root?.querySelector<HTMLElement>('button'))?.focus();
-    const keydown = (event: KeyboardEvent) => {
-      if (event.isComposing || event.keyCode === 229) return;
-      if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); close.current(); return; }
-      if (event.key !== 'Tab') return;
-      const controls = Array.from(root?.querySelectorAll<HTMLElement>('button:not(:disabled)') ?? []);
-      const first = controls[0], last = controls[controls.length - 1];
-      if (!controls.length) { event.preventDefault(); root?.focus(); }
-      else if (!root?.contains(document.activeElement)) { event.preventDefault(); first.focus(); }
-      else if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
-      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
-    };
-    document.addEventListener('keydown', keydown);
-    return () => {
-      document.removeEventListener('keydown', keydown);
-      if (trigger.current?.isConnected && !trigger.current.disabled) trigger.current.focus();
-      else {
-        const fallback = document.querySelector<HTMLElement>('main h1') ?? document.querySelector<HTMLElement>('main');
-        if (fallback) {
-          const tabIndex = fallback.getAttribute('tabindex');
-          fallback.setAttribute('tabindex', '-1'); fallback.focus();
-          if (tabIndex === null) fallback.removeAttribute('tabindex'); else fallback.setAttribute('tabindex', tabIndex);
-        }
-      }
-    };
-  }, [open]);
-  const selectedName = filter === 'all' ? '全部空间' : spaces.find((item) => item.id === filter.spaceId)?.name ?? '全部空间';
-  function choose(next: CalendarFilter) {
-    onSelect(next);
-    onClose();
-  }
-
-  const sheet = open && calendarPickerSheet('筛选日历', 'calendar-filter-title', onClose, <>
-    <button type="button" className="ui-focus flex min-h-12 w-full min-w-0 items-center gap-3 rounded-lg px-3 text-left font-semibold hover:bg-mist" aria-label="筛选：全部空间" aria-pressed={filter === 'all'} onClick={() => choose('all')}>
-      <Check size={18} className={`shrink-0 ${filter === 'all' ? 'text-teal' : 'invisible'}`} aria-hidden="true" />
-      <span className="min-w-0 truncate">全部空间</span>
-    </button>
-    {spaces.map((item) => (
-      <button key={item.id} type="button" className="ui-focus flex min-h-12 w-full min-w-0 items-center gap-3 rounded-lg px-3 text-left font-semibold hover:bg-mist" aria-label={`筛选：${item.name}`} aria-pressed={filter !== 'all' && filter.spaceId === item.id} onClick={() => choose({ spaceId: item.id })}>
-        <Check size={18} className={`shrink-0 ${filter !== 'all' && filter.spaceId === item.id ? 'text-teal' : 'invisible'}`} aria-hidden="true" />
-        <span className="min-w-0 break-all">{item.name}</span>
-      </button>
-    ))}
-  </>, dialog);
-
-  return (
-    <>
-      <button ref={trigger} type="button" className="ui-dropdown-trigger ui-focus flex min-h-ui-touch w-full min-w-0 items-center gap-ui-2 rounded-ui-control bg-ui-surface px-ui-3 text-ui-label text-ui-text shadow-ui-group" aria-label="筛选日历" aria-haspopup="dialog" aria-expanded={open} onClick={onOpen}>
-        <span className="min-w-0 flex-1 truncate text-left">{selectedName}</span>
-      </button>
-      {sheet}
-    </>
-  );
+  return <SpaceFilterDropdown spaces={spaces} value={filter === 'all' ? 'all' : filter.spaceId} label="筛选日历" open={open}
+    onOpenChange={(next) => next ? onOpen() : onClose()} onChange={(id) => onSelect(id === 'all' ? 'all' : { spaceId: id })}
+    className="ui-focus min-h-ui-touch w-full min-w-0 rounded-ui-control bg-ui-surface px-ui-3 text-ui-label text-ui-text shadow-ui-group" />;
 }
 
 export function CalendarViewPicker({ mode, onClose, onSelect }: {

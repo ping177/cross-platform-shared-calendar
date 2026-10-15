@@ -103,7 +103,7 @@ async function runtime(run: (env: any) => Promise<void>) {
     const pump = async () => { for (let i = 0; i < 6; i++) { render(); for (const mount of mounts.values()) for (const { i, fn } of mount.effects.splice(0)) {
       mount.cleanups.get(i)?.(); const cleanup = fn(); if (cleanup) mount.cleanups.set(i, cleanup); else mount.cleanups.delete(i);
     } await new Promise((resolve) => setTimeout(resolve, 0)); } return render(); };
-    const choose = (id: string) => elements(render()).find((el) => el.type === 'select').props.onChange({ target: { value: id } });
+    const choose = (id: string) => elements(render()).find((el) => el.type?.name === 'SpaceFilterDropdown').props.onChange(id);
     const updates = () => calls.filter(([name]) => name === 'update');
     const session = (id: string | null) => { m.userId = id; for (const fn of auth) fn(id ? 'SIGNED_IN' : 'SIGNED_OUT', id ? { user: { id } } : null); };
     const unmount = () => { for (const mount of mounts.values()) stop(mount); mounts.clear(); };
@@ -115,7 +115,7 @@ async function runtime(run: (env: any) => Promise<void>) {
 test('new filter first read failure leaves loading, exposes retry for that filter, and recovers', async () => runtime(async ({ m, calls, choose, pump, render }) => {
   await pump(); m.listRead = async () => ({ data: null, count: null, error: new Error('读取失败，请重试。') }); choose('b');
   const failed = await pump(); assert.doesNotMatch(text(failed), /正在读取任务/); assert.match(text(failed), /读取失败/);
-  assert.deepEqual(rows(failed), []); assert.equal(elements(failed).find((el) => el.type === 'select').props.value, 'b');
+  assert.deepEqual(rows(failed), []); assert.equal(elements(failed).find((el) => el.type?.name === 'SpaceFilterDropdown').props.value, 'b');
   m.listRead = undefined; m.tasks = [task('b-fresh', 'b')]; const before = calls.length;
   await button(render(), '重试').props.onClick(); assert.deepEqual(rows(await pump()), ['b-fresh']);
   assert.ok(calls.slice(before).some((c: any) => c[0] === 'list' && c[1] === 'b'));
@@ -137,7 +137,7 @@ test('A1 → B → A2 rejects both late success and late filter error', async ()
   a2.resolve({ data: [task('current-a2')], count: 1, error: null }); await pump();
   a1.resolve({ data: [task('obsolete-a1')], count: 1, error: null }); b1.resolve({ data: null, count: null, error: new Error('旧 B 失败') });
   const current = await pump(); assert.deepEqual(rows(current), ['current-a2']); assert.doesNotMatch(text(current), /旧 B/);
-  assert.equal(elements(render()).find((el) => el.type === 'select').props.value, 'a');
+  assert.equal(elements(render()).find((el) => el.type?.name === 'SpaceFilterDropdown').props.value, 'a');
 }));
 
 test('returning to still-valid last filter retains its presentation on failure without caching other filters', async () => runtime(async ({ m, pump, choose }) => {
@@ -207,7 +207,7 @@ test('conditional quick update rejects a status change between exact read and mu
 test('confirmed scope/module loss hides retained rows, fresh read replaces rather than publishing partial data', async () => runtime(async ({ props, pump, render }) => {
   await pump(); props.entry = { memberSpaces: [a, b], eligibleSpaces: [b] };
   assert.deepEqual(rows(render()), []); const fresh = await pump(); assert.deepEqual(rows(fresh), []);
-  assert.equal(elements(fresh).find((el) => el.type === 'select').props.value, 'all');
+  assert.equal(elements(fresh).find((el) => el.type?.name === 'SpaceFilterDropdown').props.value, 'all');
 }));
 
 test('Realtime refresh keeps original one-Space channels and all unmount cleanups', async () => runtime(async ({ m, pump, choose, unmount, calls }) => {

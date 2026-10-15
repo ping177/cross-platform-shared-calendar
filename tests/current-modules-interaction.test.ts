@@ -22,7 +22,7 @@ function hooks() {
   };
 }
 
-async function runtime(kind: 'Event' | 'Task' | 'ListCreate' | 'ListRename' | 'ListDelete' | 'CalendarPicker', run: (env: any) => Promise<void>) {
+async function runtime(kind: 'Event' | 'Task' | 'ListCreate' | 'ListRename' | 'ListDelete', run: (env: any) => Promise<void>) {
   const hook = hooks(); const calls: any[] = []; const prior = (globalThis as any).document;
   const trigger: any = { isConnected: true, focus() { document.activeElement = trigger; } };
   const heading: any = { isConnected: true, getAttribute() { return null; }, setAttribute() {}, removeAttribute() {}, focus() { document.activeElement = heading; } };
@@ -31,24 +31,21 @@ async function runtime(kind: 'Event' | 'Task' | 'ListCreate' | 'ListRename' | 'L
   let mutationWait: Promise<void> | undefined;
   const query: any = { delete() { calls.push('delete'); return query; }, eq() { return query; }, select() { return query; }, then(resolve: any) { return (mutationWait ?? Promise.resolve()).then(() => ({ data: [{ id: event.id }], error: null })).then(resolve); } };
   (globalThis as any).__stageSheets = { ...hook, useMemo: (fn: any) => fn(), supabase: { from() { return query; } } };
-  const vite = await createServer({ configFile: false, envFile: false, logLevel: 'silent', ssr: { noExternal: [/^react$/, ...(kind === 'CalendarPicker' ? [/^react-dom$/] : [])], external: ['react/jsx-runtime', 'react/jsx-dev-runtime'] }, server: { middlewareMode: true, hmr: false }, appType: 'custom', plugins: [{ name: 'sheet-runtime', enforce: 'pre',
+  const vite = await createServer({ configFile: false, envFile: false, logLevel: 'silent', ssr: { noExternal: [/^react$/], external: ['react/jsx-runtime', 'react/jsx-dev-runtime'] }, server: { middlewareMode: true, hmr: false }, appType: 'custom', plugins: [{ name: 'sheet-runtime', enforce: 'pre',
     resolveId(id, importer) {
       if (id === 'react' && (importer?.includes('/components/') || importer?.endsWith('/App.tsx'))) return '\0sheet-hooks';
-      if (kind === 'CalendarPicker' && id === 'react-dom') return '\0sheet-portal';
       if (/\/supabase(?:\.ts)?$/.test(id)) return '\0sheet-client';
     }, load(id) {
       if (id === '\0sheet-hooks') return 'const m=globalThis.__stageSheets; export const {useState,useRef,useCallback,useEffect,useMemo}=m;';
-      if (id === '\0sheet-portal') return 'export const createPortal=(node)=>node;';
       if (id === '\0sheet-client') return 'export const supabase=globalThis.__stageSheets.supabase;';
     },
   }] } as any);
   try {
-    const Sheet = kind === 'Event' ? (await vite.ssrLoadModule('/src/App.tsx')).EventSheet : kind === 'CalendarPicker' ? (await vite.ssrLoadModule('/src/App.tsx')).CalendarFilterPicker : kind.startsWith('List') ? (await vite.ssrLoadModule('/src/components/ListSheets.tsx'))[kind === 'ListDelete' ? 'ListDeleteDialog' : 'ListEditorSheet'] : (await vite.ssrLoadModule('/src/components/TaskSheet.tsx')).TaskSheet;
+    const Sheet = kind === 'Event' ? (await vite.ssrLoadModule('/src/App.tsx')).EventSheet : kind.startsWith('List') ? (await vite.ssrLoadModule('/src/components/ListSheets.tsx'))[kind === 'ListDelete' ? 'ListDeleteDialog' : 'ListEditorSheet'] : (await vite.ssrLoadModule('/src/components/TaskSheet.tsx')).TaskSheet;
     (globalThis as any).document = document;
     const props: any = kind === 'Event' ? { target: { kind: 'event', event }, space, userId: 'me', members: [{ space_id: space.id, user_id: 'me', role: 'owner' }], partnerId: null, onClose() { calls.push('close'); }, onSaved() { calls.push('saved'); } }
       : { task: { id: 'task', title: '任务', status: 'open', assigned_to_user_id: null, due_on: null }, spaceId: space.id, spaceKind: space.kind, userId: 'me', members: [], onClose() { calls.push('close'); }, async onSaved() { calls.push('saved'); } };
     if (kind.startsWith('List')) Object.assign(props, { mode: kind === 'ListRename' ? 'rename' : 'create', list: { id: 'list', space_id: space.id, name: '清单' }, space, memberSpaces: [space], eligibleSpaces: [space], initialTargetId: space.id, userId: 'me', busy: false, step: 1, error: '', onCancel() { calls.push('close'); }, onConfirm() { calls.push('confirm'); }, async onSubmit() { calls.push('submit'); } });
-    if (kind === 'CalendarPicker') Object.assign(props, { spaces: [space], filter: { spaceId: space.id }, open: true, onOpen() { calls.push('open'); }, onClose() { calls.push('close'); }, onSelect(next: any) { calls.push(next); } });
     let dom: any[] = []; const mounted = new Map<string, any>();
     const render = () => {
       hook.reset(); let tree = Sheet(props);
@@ -142,28 +139,23 @@ test('recurring Event keeps scope confirmation, traps its keyboard and Escape ca
 }));
 
 
-for (const kind of ['ListCreate', 'ListRename', 'ListDelete', 'CalendarPicker'] as const) {
+for (const kind of ['ListCreate', 'ListRename', 'ListDelete'] as const) {
   test(`${kind} modal traps Tab in both directions, ignores IME Escape, cancels safely and restores focus`, () => runtime(kind, async (e) => {
     const tree = await e.pump();
     assert.ok(elements(tree).some((n) => n.props.role === 'dialog' && n.props['aria-modal'] === 'true'));
     assert.notEqual(e.document.activeElement, e.trigger);
-    if (kind === 'CalendarPicker') assert.equal(e.document.activeElement.node.props['aria-pressed'], true);
     const controls = e.dom().filter((d: any) => ['button', 'input', 'select', 'textarea'].includes(d.node.type) && !d.node.props.disabled);
-    // Calendar's trigger is outside its Portal dialog.
     const modal = e.dom().find((d: any) => d.node.props.role === 'dialog');
     const inside = controls.filter((d: any) => modal.contains(d));
     inside[0].focus(); assert.equal(e.key('Tab', true), true); assert.equal(e.document.activeElement, inside.at(-1));
     inside.at(-1).focus(); assert.equal(e.key('Tab'), true); assert.equal(e.document.activeElement, inside[0]);
     e.key('Escape', false, { isComposing: true, keyCode: 229 }); assert.equal(e.calls.includes('close'), false);
     e.key('Escape'); assert.deepEqual(e.calls, ['close']);
-    const pickerTrigger = e.dom().find((d: any) => d.node.props['aria-label'] === '筛选日历');
-    e.stop(); assert.equal(e.document.activeElement, kind === 'CalendarPicker' ? pickerTrigger : e.trigger);
+    e.stop(); assert.equal(e.document.activeElement, e.trigger);
   }));
   test(`${kind} restores a safe page heading when the opener disappears`, () => runtime(kind, async (e) => {
     await e.pump();
     e.trigger.isConnected = false;
-    const pickerTrigger = e.dom().find((d: any) => d.node.props['aria-label'] === '筛选日历');
-    if (pickerTrigger) pickerTrigger.isConnected = false;
     e.stop(); assert.equal(e.document.activeElement, e.heading);
   }));
 }
