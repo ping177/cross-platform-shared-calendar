@@ -1,5 +1,35 @@
 # Testing
 
+## Event Collaboration + Review release gate — USER A/B + PUSH PASS / FINAL PRODUCTION MOBILE PENDING
+
+- User confirms ordinary cross-member edit/audience, recurring whole-series audience, Shared delete and Personal isolation PASS. Real delivery after A→B: B received, A did not. This supersedes earlier no-due/pending-Push checkpoints only for this tested scenario; other device/concurrency/Realtime/permission-revocation limits remain unclaimed.
+- Review mobile form/date fix locally visually accepted. Final full Node978/978, TypeScript/Build and diff-check PASS; existing bundle warning retained. No backend redeployment, SQL/Cron/data write or Push E2E rerun. Reviewed local DB upgrade/fresh/concurrency evidence preserved.
+- Current Production bundle contains the original public VAPID key and matches current server digest. Local .env.local is ignored; new remote Production build must independently contain that same key. No secret values exported or printed. Final Safari/iPhone PWA acceptance occurs after the exact new Vercel Source is verified.
+
+## Event Collaboration Production backend — PASS / LIVE USER FLOWS NOT RUN / 2026-10-15
+
+- User-applied exact SQL independently verified: eight function bodies identical, postflight booleans/ACL/RLS PASS; no patch replay. Both RPC paths in database OpenAPI, service_role negative check rejects nonexistent Event without writes. Read-only role denial is expected ACL behavior.
+- One source upload yields ACTIVE v5 / verify_jwt=false; 13 downloaded runtime files byte-identical (14 uploaded including erased type-only src/types.ts), matching independent deployment metadata. Metadata ezbr SHA and exported ESZIP hash are separate representations; do not conflate them. Other Functions/config/Secrets untouched.
+- Original Job1 restored through official alter_job; unchanged schedule and command MD5 cd0c5b049c9c1ca9f564c2b1895c00d1. Natural runs/HTTP33848,33849 at 14:35/14:36 Asia/Shanghai succeeded/200/completed; zero failed/finalize/unexpected errors, cutoff/truncation, queue/claimed residue. Business/subscription fingerprints and ledger unchanged. No candidate/claim/send: recipient changes and actual Push NOT RUN.
+- Actual local5175 new Event source targets the verified Production backend. User A/B local acceptance is the next gate; frontend not committed/deployed, Review repair remains local, overall NOT CLOSED. Keep existing978/978/DB/TS/Build evidence; no full rerun for deployment/docs-only work. No authenticated session driven by Codex.
+
+## Shared Space Event collaboration — LOCAL PASS / REMOTE NOT RUN / 2026-10-15
+
+- 两个独立LOCAL临时数据库（baseline+正式patch / fresh canonical）各62新增pgTAP、314既有Event/Task/生命周期/普通与重复提醒断言PASS；各7观察到锁等待的双事务顺序PASS。新旧函数定义一致、升级synthetic Event指纹不变；文档pre/postflight本地通过。未连接Production或修改现有本地app库。
+- 全量978/978、npx tsc -b、npm run build、Deno cached-only/no-lock check、git diff --check PASS；既有bundle warning非阻塞。覆盖A/B协作、Personal/非成员、creator/Space/lineage不可变、owner资格、CAS、整系列归属/拆分/例外、纯归属无新段、历史override字段保留、旧候选/ABA/claim去重/发送前拒绝；创建/Task/modal keyboard回归保持。部分旧fixture显式补成员或在INSERT定义关联，未删断言。
+- 375/430真实EventSheet离线检查PASS：Shared他人归属可编辑，3按钮有效，无横溢，日期left，whole-series说明与既有scope/delete确认保留；纯归属模拟保存无content override。截图与JSON见DEVLOG。桌面内存fixture不能证明iPhone、真实Supabase/PostgREST、A/B Realtime或Push。
+- 已验收回顾修复组件/CSS/test字节指纹3/3保留；该项原968/968证据保留。本轮不发布，Production仍2204b30；全量自动PASS不能替代新backend真实验收。
+- 下一步按 [bounded rollout](./EVENT_COLLABORATION_ROLLOUT.md) 等用户审查与单独授权：SQL/Edge→目标/能力对齐→用户真实A/B本地→另行Git前端发布→用户Safari/PWA。未经对齐不要求真实账号登录。
+
+## 回顾创建布局 — LOCAL PASS / USER & IPHONE ACCEPTANCE PENDING / 2026-10-15
+
+- 用户报告Production2204b30四项iPhone PWA PASS：Event新建编辑尺寸，Event/Task日期及选择，Event滚动/键盘，创建Space切换/草稿/最终归属。该范围已确认；不扩展为独立Safari全部场景或新回顾修复已PASS。下方旧Pending/FAIL为历史检查点。
+- 本轮回顾新增局部布局契约并把date接入既有WebKit规则：先Red后Green，针对39/39；full968/968、npx tsc -b、npm run build/diff-check PASS，既有chunk warning。无保存/查看/双方填写/历史/权限或Event转移逻辑变更。
+- 隔离真实组件375/430各5表单无横溢/日期left；375×240原top=-32→16，max-height208/内容256内部滚动；375/430×320长空间名与按钮Tab可达；回顾取消、原生键盘改日期、模拟失败保留2026-10-16后重试同日期/Space并触发查看回调。CSP禁止外联，无Production写入；截图review-layout-fix/forms-{375,430}.jpg、before/after-review-{375,430}.png、short-before-after.png，JSON见DEVLOG。
+- 待人工：本地视觉；另行授权发布后，iPhone Safari/安装PWA新建回顾日期左对齐/原生选择/无横向移动/内部滚动/取消/创建后查看，抽查Event/Task。桌面普通baseline未复现iOS内部值居中；短视口压力检查不等于真实键盘或safe-area，整体不提前CLOSED。
+- Commands: `node --test tests/sheet-date-layout.test.ts tests/review-history-ui.test.ts tests/review-ui-v2.test.ts tests/review-history-data.test.ts tests/event-edit-mutation.test.ts tests/calendar-create.test.ts`; `node --test --test-reporter=tap tests/*.test.ts tests/*.test.js`; `npx tsc -b`; `npm run build`; `git diff --check`.
+
+
 ## iPhone PWA Sheet/date corrective work — MAC ACCEPTED / IPHONE ACCEPTANCE PENDING / 2026-10-15
 
 - 本轮用户Mac本地视觉PASS并明确授权Git→Vercel发布；发布前重新执行全量967/967、npx tsc -b、npm run build/diff-check PASS。保持3项日期/布局与7项Event空间创建回归；没有TSX、筛选器、业务或后端改动。

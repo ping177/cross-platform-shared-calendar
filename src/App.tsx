@@ -46,11 +46,10 @@ import { draftFromEditTarget, type EventDraft } from './lib/event-edit-draft';
 import {
   buildEventUpdatePayload,
   deleteMutationRoute,
+  eventSaveRpcArgs,
+  occurrenceContentChanges,
   deleteOccurrenceAndFutureRpcArgs,
   occurrenceDeleteRpcArgs,
-  occurrenceOverrideRpcArgs,
-  saveMutationRoute,
-  splitRecurringEventRpcArgs,
   type OccurrenceScope,
 } from './lib/event-edit-mutation';
 import { eventEditTargetForEvent, eventEditTargetForOccurrence } from './lib/event-edit-target';
@@ -68,7 +67,7 @@ import {
 } from './lib/reminder';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { bootstrapSpaces, chooseSelectedSpaceId, clearSelectedSpaceId, ensureOnceUntilFailure, writeSelectedSpaceId } from './lib/space-selection';
-import { newEventIdentity } from './lib/space-content';
+import { canManageSpaceEvent, newEventIdentity } from './lib/space-content';
 import { readSpaceMembers } from './lib/space-members';
 import { settleSpaceLifecycle, type SpaceLifecycleAction } from './lib/space-lifecycle';
 import { createRequestGuard } from './lib/request-guard';
@@ -159,10 +158,6 @@ function audienceFromEvent(event: Pick<CalendarEvent, 'scope' | 'owner_user_id'>
   }
 
   return event.owner_user_id === userId ? 'mine' : 'partner';
-}
-
-function canManageEvent(event: CalendarEvent, userId: string) {
-  return event.scope === 'shared' || event.owner_user_id === userId;
 }
 
 function audienceLabel(audience: EventAudience, userId: string, members: SpaceMember[]) {
@@ -1632,7 +1627,7 @@ export function EventSheet({
   const previousCreateSpaceId = useRef(space.id);
   const createHeading = useRef<HTMLHeadingElement>(null);
   const canChoosePartner = Boolean(partnerId);
-  const canManage = !event || canManageEvent(event, userId);
+  const canManage = !event || canManageSpaceEvent(space, event, userId, members);
   const editUi = eventEditUiState(target);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const dialog = useRef<HTMLDivElement>(null);
@@ -1743,20 +1738,28 @@ export function EventSheet({
       return;
     }
 
+    if (!submitLock.current.acquire()) return;
     setBusy(true);
     try {
       const result = pendingOccurrenceAction === 'save'
-        ? saveMutationRoute(target, scope) === 'recurring-split'
-          ? await supabase.rpc('split_recurring_event', splitRecurringEventRpcArgs(target, draft, fromDateInputValue))
-          : await supabase.rpc('upsert_occurrence_override', occurrenceOverrideRpcArgs(target, draft, fromDateInputValue))
+        ? await supabase.rpc('save_event_edit', eventSaveRpcArgs(target,
+          newEventIdentity(space.kind, draft.audience, userId, partnerId),
+          occurrenceContentChanges(initialDraft, draft, fromDateInputValue), scope))
         : deleteMutationRoute(target, scope) === 'occurrence-future-delete'
           ? await supabase.rpc('delete_occurrence_and_future', deleteOccurrenceAndFutureRpcArgs(target))
           : await supabase.rpc('delete_occurrence', occurrenceDeleteRpcArgs(target));
 
-      if (result.error) {
+      const returned = result.data;
+      const validResult = typeof returned?.id === 'string' && (
+        pendingOccurrenceAction === 'delete' && scope === 'only-this'
+          ? returned.event_id === target.event.id && returned.occurrence_date === target.occurrence.occurrence_date
+          : returned.space_id === space.id
+            && (pendingOccurrenceAction === 'save' && scope === 'this-and-future' || returned.id === target.event.id)
+      );
+      if (result.error || !validResult) {
         setBusy(false);
         setPendingOccurrenceAction(null);
-        setError(result.error.message);
+        setError(result.error?.message ?? '未能确认操作结果，请刷新后重试。');
         return;
       }
 
@@ -1765,6 +1768,8 @@ export function EventSheet({
       setBusy(false);
       setPendingOccurrenceAction(null);
       setError(getErrorMessage(mutationError));
+    } finally {
+      submitLock.current.release();
     }
   }
 
@@ -1804,7 +1809,7 @@ export function EventSheet({
       if (!canConfirmCreate(confirmingCreateTargetId, createTarget.selectedId, space.id)) return;
     }
 
-    if (!event && !submitLock.current.acquire()) return;
+    if (!submitLock.current.acquire()) return;
     setBusy(true);
     let createdSuccessfully = false;
 
@@ -1832,11 +1837,13 @@ export function EventSheet({
           timeZoneResult.timeZone,
           fromDateInputValue,
         );
-        if (Object.keys(updatePayload).length === 0) {
+        const identity = newEventIdentity(space.kind, saveDraft.audience, userId, partnerId);
+        if (Object.keys(updatePayload).length === 0 && identity.scope === event.scope && identity.owner_user_id === event.owner_user_id) {
           completeSuccessfulMutation();
           return;
         }
-        result = await supabase.from('events').update(updatePayload).eq('id', event.id);
+        result = await supabase.rpc('save_event_edit', eventSaveRpcArgs(target!, identity, updatePayload));
+        if (!result.error && (!result.data || result.data.id !== event.id)) throw new Error('未能确认保存结果，请刷新后重试。');
       } else {
         try {
           const identity = newEventIdentity(space.kind, saveDraft.audience, userId, partnerId);
@@ -1875,7 +1882,7 @@ export function EventSheet({
       setConfirmingCreateTargetId(null);
       setError(createTarget ? '保存失败，请确认目标空间及成员后重试。' : getErrorMessage(saveError));
     } finally {
-      if (!event && !createdSuccessfully) submitLock.current.release();
+      if (!createdSuccessfully) submitLock.current.release();
     }
   }
 
@@ -1891,17 +1898,20 @@ export function EventSheet({
     }
 
     if (!confirmed) { setConfirmingDelete(true); return; }
-    if (busy) return;
+    if (busy || !submitLock.current.acquire()) return;
     setBusy(true);
-    const deleteResult = await supabase.from('events').delete().eq('id', event.id);
-
-    if (deleteResult.error) {
+    try {
+      const deleteResult = await supabase.from('events').delete()
+        .eq('space_id', space.id).eq('id', event.id).eq('updated_at', event.updated_at).select('id');
+      if (deleteResult.error) throw deleteResult.error;
+      if (deleteResult.data?.length !== 1) throw new Error('日程已变化或成员权限已改变，请刷新后重试。');
+      completeSuccessfulMutation();
+    } catch (deleteError) {
       setBusy(false);
-      setError(deleteResult.error.message);
-      return;
+      setError(getErrorMessage(deleteError));
+    } finally {
+      submitLock.current.release();
     }
-
-    completeSuccessfulMutation();
   }
 
   return (
@@ -1922,6 +1932,7 @@ export function EventSheet({
           ? <div className="mt-4"><CreateTargetSelector control={{ ...createTarget, onSelect: (id) => { setDraft(resetEventAudienceForTarget); setConfirmingCreateTargetId(null); createTarget.onSelect(id); } }} kind="event" disabled={busy} /></div>
           : <p className="mt-3 text-sm font-semibold text-teal">保存到：{space.name}</p>)}
 
+        {event && space.kind === 'shared' && editUi.isRecurringOccurrenceEdit && <p className="mt-3 text-sm text-ink/70">归属修改对整个重复系列生效，包括已有拆分段；其他内容按下方选择的范围保存。</p>}
         {event && !canManage ? (
           <div className="mt-5 space-y-4">
             <ReadOnlyField label="标题" value={event.title} />
@@ -1967,7 +1978,7 @@ export function EventSheet({
                 <button
                   key={audience}
                   type="button"
-                  disabled={Boolean(event) || (audience === 'partner' && !canChoosePartner)}
+                  disabled={busy || (audience === 'partner' && !canChoosePartner)}
                   className={`h-11 rounded-lg text-sm font-semibold disabled:opacity-40 ${draft.audience === audience ? 'bg-teal text-white' : 'bg-mist text-ink/70'}`}
                   onClick={() => setDraft({ ...draft, audience })}
                 >

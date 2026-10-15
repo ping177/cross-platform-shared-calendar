@@ -110,7 +110,13 @@ This freeze changes governance documents only: no Figma MCP installation/configu
 - "Cross-platform" means the app works in iOS Safari and Android Chrome. It does not mean bidirectional sync with Apple Calendar or Google Calendar.
 - The backend uses Supabase Auth, Supabase Postgres, Supabase RLS, and Supabase Realtime.
 
-## Data Model
+## Shared Space Event collaboration — confirmed 2026-10-15, local implementation
+
+- All current Shared Space members may read, edit, reassign and delete every Event; deletion requires confirmation. Audience identifies participation/reminder recipients, not mutation authority. Personal Space remains owner-private; space_id/created_by remain immutable.
+- Audience changes affect the entire logical series including split segments, atomically; content retains existing occurrence scope. No per-occurrence audience override, cross-Space move, new checkbox UI or Task-permission change.
+- This supersedes the v0.1.1 scope/owner immutability and owner-only mutation decision ONLY inside Shared Space. The old baseline below remains historical. Production SQL was user-applied and independently verified; matching Edge v5 and original Cron restoration are complete. User core A/B and real Push A→B acceptance passed. Frontend release is explicitly authorized; final Production/Safari/iPhone PWA acceptance remains pending and is not implied by deployment. No new formal version. Implementation and rollout boundaries: [Event collaboration](./EVENT_COLLABORATION_ROLLOUT.md).
+
+## Data Model — historical baseline before the collaboration rollout
 
 - Event ownership uses stable fields: `scope + owner_user_id`.
 - The app does not store relative viewpoint values such as `mine`, `partner`, or `shared` for event ownership.

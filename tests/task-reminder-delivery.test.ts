@@ -22,6 +22,7 @@ function fixture() {
       const key = `${i.taskId}:${i.occurrenceDate}:${i.subscriptionId}:${i.dueAt}`;
       if (claims.has(key)) return null; claims.add(key); return key;
     },
+    checkEvent: async () => {},
     checkTask: async () => {},
     send: async (sub, payload) => { sent.push({ id: sub.id, payload }); return { classification: 'delivered', status: 201, provider: 'fcm.googleapis.com' }; },
     disableSubscription: async () => false, finalize: async value => { final.push(value); return 1; },

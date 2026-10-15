@@ -1,5 +1,52 @@
 # Development Log
 
+## 2026-10-15 — Event Collaboration + Review 前端发布审查 — AUTH ACCEPTED / FINAL DEVICE PENDING
+
+- 用户确认普通Event跨成员编辑/改归属、重复系列改归属、共享删除/Personal隔离全部PASS；真实Push A→B后B收到、A未收到PASS，属于用户真实送达证据，不再沿用此前“无候选未测Push”的发布窗口状态。此前“哈”全天08:00测试未发送属已查明的配置语义，不是本轮代码缺陷；未重发历史通知。Review局部表单布局/日期已获用户本地视觉验收。最终新前端Production/Safari/iPhone PWA尚待用户确认，整体不CLOSED。
+- 最终范围原28文件，业务源与已审查/已部署后台版本字节一致，无筛选器统一/其他UI/Task业务改动/依赖或配置扩展。Review三文件独立提交02d9973；其余Event前端、正式schema/patch、已部署Edge源码、自动验证及治理记录在后续逻辑提交中纳入，SQL文件只是版本记录，不重新应用。
+- 本轮全量978/978、TypeScript/Build、diff-check PASS；既有>500kB包警告非阻塞。原数据库升级/全新库/双事务验证证据保持，不重复数据库测试、SQL/Edge部署、Cron或Push E2E。凭据模式扫描无发现，.env.local被Git忽略、不纳入提交；只复核正式网站实际构建VAPID公钥与现行服务端摘要一致，不输出值。Vercel控制台变量未直接读取，最终还须检查新Production构建注入。
+- 本机直连解析/HTTPS异常由沿用已有系统代理解决，未改系统路由/DNS或生产设置。GitHub管理/推送权限和既有Production自动部署记录已核对，远端基线2204b30；发布实际Source/部署结果以本轮后续独立记录为准，不以授权推断成功。下一业务门禁为用户在已核验Production上完成Safari/PWA最终检查，之后暂停常规开发、进入真实使用观察；本轮不新增版本。
+
+## 2026-10-15 — 本地5175通知公钥配置修复 / 提醒人工验收待继续
+
+- 用户真实A/B报告：普通Event跨成员编辑/改归属、重复Event整系列改归属、删除及Personal隔离PASS；第4项提醒被本地VAPID配置阻断，不扩大为Push/Realtime/并发全部验收通过。
+- 前端实际读取VITE_VAPID_PUBLIC_KEY；本地.env无该项，.env.local原不存在。只新建被Git忽略的.env.local，复用此前公开Production资源中的原公钥，当前Supabase VAPID_PUBLIC_KEY元数据摘要逐字匹配，65字节P-256格式有效；不生成/轮换密钥，不读取私钥值，不输出或持久化管理凭据。直接公网资源连接超时后使用本项目此前公开bundle缓存，服务端摘要独立核实，不凭缓存猜测。
+- 现有Vite自动重载环境（无需额外停止/启动）；实际5175 NotificationSettings模块注入公钥与核实值一致，目标仍ximazjhxvmktpcdbypka。实际enablePushNotifications函数使用该公钥通过缺失校验（隔离permission=denied、禁止真实授权/RPC/订阅写入），推送基础测试6/6及diff-check PASS。无业务源码改动，不重跑全量/Build；之前978/978/TS/Build证据保持，不把本轮配置检查冒充真实账号通知验收。
+- 仅本地配置和DEVLOG/PROJECT_STATE记录变化，全部既有未提交代码/回顾修复保持；Production数据库/Edge v5/Cron/订阅无写操作，不Commit/Push/部署。下一步用户刷新5175、重新授权通知并完成提醒接收人/实际送达验收；功能尚未CLOSED。
+
+## 2026-10-15 — Event Collaboration Production backend — DEPLOYED / A/B PENDING
+
+- 用户已执行SQL；Codex只读复核8函数体与正式patch一致、postflight/RLS/ACL全部PASS，未重执行补丁。正确项目ximazjhxvmktpcdbypka，原暂停Job1、无启用提醒源/queue/claimed，旧33846/33847 completed/零错误。
+- 本轮独立授权后使用既有Keychain+官方Management API单次部署send-reminders ACTIVE v4→v5，verify_jwt=false保留。上传14资源、下载13运行时源码逐字节匹配（src/types.ts类型擦除）；部署返回与独立读取的元数据SHA为95f02fb496854b8e2c4b085545468b69b7bd06f27f8cc9df24fc75ce14dcb72f。导出ESZIP和元数据哈希属于不同对象，不宣称二者字节哈希相等。未重部署，其他Functions/Secrets/JWT配置未变。
+- 两新RPC OpenAPI可见；只读角色被service-only EXECUTE拒绝符合ACL；临时service_role对不存在Event的只读负向调用返回false，无业务写入。首个带系统表FOR UPDATE的Cron恢复被权限拒绝，复核active仍false后，仅官方cron.alter_job切换原Job1 active=true，未绕过授权/改grants；ID/schedule/command指纹cd0c5b049c9c1ca9f564c2b1895c00d1不变，无新增/删除作业。
+- 自然Cron/HTTP33848、33849（北京时间14:35/14:36）succeeded/200/completed，failed/finalize_failures/unexpected_task_errors/禁用失败为0，无truncation/cutoff/claimed/queue。业务表/例外/3条Push订阅指纹和空ledger保持。没有候选/claim/send，因此不是实际收件人或Push验收。
+- 实际5175无认证源码核验：新Event RPC/UI已服务，目标同Production。可由用户进行A/B本地集成；前端Production仍2204b30，回顾修复未发布，用户真实协作/Realtime/Push/Safari/PWA仍待验收，整体不CLOSED。978/978等既有本地证据保持，未无理由重跑；不Commit/Push/前端部署，无业务源码/其他外部项目修改，无凭据输出/持久化。
+- 更新既有状态/测试/决策/Backlog/rollout文档以记录真实后台结果；后续用户A/B通过后另行授权Git/Vercel，再做Production/PWA验收。完整门禁及故障处理见EVENT_COLLABORATION_ROLLOUT.md。
+
+## 2026-10-15 — Shared Space Event collaboration — LOCAL PASS / BACKEND NOT DEPLOYED
+
+- 用户明确确认Shared Space所有当前成员可查看、编辑、改归属及确认删除所有Event；Personal Space不变。归属指同Space的scope/owner_user_id，绝非space_id转移。v0.1.1的归属决定编辑/删除规则在该范围被新决策接续，历史记录保留。正式版本仍v0.1.20，无新增版本/筛选器统一/Task权限/Avatar或清理。
+- 新增成员型can_manage_event保留Personal owner及成员判断；既有UPDATE/DELETE/exception RLS和全部重复RPC同步生效。validate_event_owner保留space_id/created_by不可变与合法owner、Personal形状，新增lineage不可变；save_event_edit使用SECURITY INVOKER/调用者RLS、Space锁→身份/版本重验→允许字段→原内容scope→整个logical series归属→实际返回行，失败原子回滚。普通delete限定Space/id/updated_at/select id，零行拒绝；保留普通确认和重复作用范围选择。
+- 整系列归属含历史/未来拆分段；例外保持ID和内容并继承source归属，内容仍only-this/this-and-future。新增deferred关联一致性约束防直接半系列更新；既有assert_manage_recurring_event与delete_logical_series统一Space-first锁序；future-only内容/例外迁移保持。纯归属不创建override/split；编辑override或拆分时保留本次显示的完整四字段。后者新增Red→Green回归，避免部分payload丢覆盖字段。
+- 提醒scope/owner变化推进单调marker，普通/重复旧候选及ABA拒绝；Event claim之后新增service-only check，核对source/例外snapshot、recipient/member/subscription/marker，失败沿用ledger finalize，不删/重放历史。DB检查后至外部Push之间仍有竞态窗口，已发送/在途Push不能撤回。Edge需与SQL/前端分别获准更新，不重构提醒调度或Task/Important Date路径。
+- 真实LOCAL Docker独立临时库两条路径：各62项新增pgTAP + 314项既有Event/Task/生命周期/提醒断言PASS；各7组真实双事务等待PASS（CAS、离开、移除目标、旧claim/发送前复核、split/save两个顺序）。canonical/patch八个函数定义相同，升级保留synthetic旧Event指纹。文档preflight/postflight在本地执行通过。只访问Unix socket，本轮独立DB均清理，现有本地app库和Production未改。
+- Node全量978/978 PASS；TypeScript、Build（既有chunk warning）、Deno cached-only/no-lock check、diff-check PASS。实际EventSheet注入外部读写，覆盖B管理A、最终归属、失败保草稿、同tick锁、CAS参数、零行delete及重复chooser；原创建7项、modal keyboard与Task回归保持。旧modal fixture补真实成员；旧lifecycle fixture改INSERT时建lineage，原断言保留；旧reminder fixture在既有历史marker DDL前flush新deferred约束，没有新增禁用保护的实现。
+- 375/430真实组件离线视觉：他人归属Shared Event可编辑，3按钮有效、日期left/无横溢，系列归属提示与内容scope chooser明确；仅改归属模拟保存p_content={}，delete确认/取消保持。截图本Chat event-collaboration/{ordinary,series}-{375,430}.png、series-save-scope-375.png、delete-confirmation-375.png。内存client/CSP connect-src none；不是真实账号/双账号Realtime/iPhone/PWA/真实Push验收。
+- 保护之前回顾修复：ReviewHistoryPage/styles/sheet-date-layout三文件字节指纹与本次前快照一致，原七文件修改保留（共享治理文件追加本次状态）。用户称回顾本地已验收，Production仍未部署；两项不能提前整体CLOSED。完整实施/风险/操作SQL见EVENT_COLLABORATION_ROLLOUT.md。
+- 本轮无Commit/Push/Production SQL/Edge/Vercel部署，无账号操作/密钥输出/依赖安装/外部项目修改。临时fixture、日志、截图仓库外。下一步等用户审查并另行授权SQL→Edge→后端对齐→用户真实A/B本地验收，再授权前端Git发布及真机复验；当前Production仍2204b30，不能直接向用户宣称5175已具备新backend能力。
+
+## 2026-10-15 — 回顾创建布局本地修复 / Event 转移只读评估
+
+- Production基线2204b30，工作区原本clean。用户确认iPhone PWA的Event尺寸、Event/Task日期、Event滚动/键盘及创建Space/草稿/保存四项PASS；独立Safari完整验收未报告。新回顾问题尚未在Production修复，不提前整体CLOSED。
+- 回顾弹层为ReviewHistoryPage内fixed inset-0/p-4，form原无max-height及overflow边界；祖先无transform/filter/contain固定包含块改变。普通桌面375/430未复现全部iPhone错位，但真实375×240复现form top=-32/bottom224、高256、overflow visible，顶部出屏且内部不可滚。回顾date未匹配上一轮局部规则，仍appearance auto，iOS内部值默认center证据沿用下方官方WebKit源码；不宣称已经精确复现用户手机的全部布局成因。
+- 最小修复：ReviewHistoryPage只新增ui-review-create-form类；styles复用现有WebKit外观/尺寸/内部值左对齐规则，新增局部min-size0、max-height:calc(100dvh - 2rem)、overflow-x:hidden/y:auto、contain及anywhere。保留原16px外围间距、圆角、safe-bottom、原生date与全部创建/取消/参与者/历史/查看逻辑。无全局日期覆盖，不改Event/Task/筛选器/后端。
+- CSS契约测试先3失败/1通过，修复后4/4；针对39/39、全量968/968、npx tsc -b、npm run build、git diff --check PASS；既有bundle warning非阻塞。Event创建7项、编辑mutation与回顾保存/查看/双方填写既有回归保持。
+- 真实组件+正式构建CSS、临时内存数据、envFile=false/CSP connect-src none：375/430×回顾创建/Event创建编辑/Task创建编辑共10场景无横溢、日期left。375×240修复后top16/bottom224、client208/scroll256，Tab到确认按钮内部scrollTop48；375/430×320长空间名换行、无横溢、操作可达。取消保留列表；原生键盘修改日期后，模拟失败保留2026-10-16，重试以同日期/空间进入查看回调。无真实账号或Production写入，iPhone键盘/日期picker/safe-area/PWA仍需用户本轮复验。
+- 视觉证据在本Chat review-layout-fix：before/after-review-{375,430}.png、forms-{375,430}.jpg、short-before-after.png及validation/short-validation/long-validation/interaction.json。短视口为布局压力检查，不是iPhone软键盘模拟器；桌面普通before也已左对齐，不能把对比图冒充iOS居中复现。
+- Event转移只读结论：App editingTarget锁定原Space、编辑仅显示所属空间；buildEventUpdatePayload只允许内容字段；schema validate_event_owner禁止space_id/created_by/scope/owner_user_id改变，RLS还要求can_manage_event及目标成员约束。既有recurrence split RPC继承原空间，非转移接口。series/parent RESTRICT、exceptions、logical-series提醒去重、会员锁和已claim的Push均需单独处理；prepare_event_reminder_schedule不因单独Space变化更新marker，不能仅放开select或旧trigger。
+- 后续最小候选仅无重复规则、无series/parent/children/exceptions的普通Event，明确源管理+目标成员/模块权限和共享转私有的授权语义，以受控事务RPC/前向迁移及并发/提醒审查实现；现有不可变trigger须在正式授权设计中有受控合法通道，不能禁用或假设security definer自动绕过。保留Event身份/created_by，不能把复制后删除冒充安全转移。涉及后端，非低风险前端补丁，本轮未实施、未冻结产品规则。
+- 不新增依赖/版本、不改环境文件或输出密钥、无外部项目修改。临时预览与截图均仓库外；本轮不Commit/Push/部署。等待用户验收与后续独立授权。
+
 ## 2026-10-15 — 日期/表单修复正式发布审查 — MAC PASS / IPHONE MANUAL PENDING
 
 - 用户确认Mac本地视觉正常，明确授权统一Commit/正常Push origin/main/现有Vercel Production自动部署及Source核验。基线main/origin/main/Production0fe85e8，刷新远端一致；六文件范围仅src/styles.css的19行、tests/sheet-date-layout.test.ts的3项以及PROJECT_STATE/DEVLOG/TESTING/BACKLOG。完整diff审查无只读筛选器审计/可行性评估产生的实现、依赖、临时截图、环境或无关文件。

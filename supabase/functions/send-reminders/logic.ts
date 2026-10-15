@@ -148,6 +148,7 @@ export type RunSendRemindersDependencies = {
   fetchRecurringCandidatePage: (request: CandidatePageRequest) => Promise<RecurringReminderSource[]>;
   fetchTaskCandidatePage: (request: CandidatePageRequest) => Promise<TaskReminderSource[]>;
   claimTask: (input: TaskClaimInput) => Promise<string | null>;
+  checkEvent: (deliveryId: string, task: EventDeliveryTask) => Promise<void>;
   checkTask: (deliveryId: string, kind: TaskClaimInput['expectedReminderKind'], rawMarker: string) => Promise<void>;
   fetchImportantDateCandidatePage: (request: CandidatePageRequest) => Promise<ImportantDateReminderSource[]>;
   fetchRecurringExceptions: (eventIds: string[]) => Promise<RecurringExceptionScanResult>;
@@ -705,6 +706,8 @@ async function processDeliveryTask(
       await dependencies.checkTask(deliveryId, task.task.reminderKind, task.rawReminderScheduleChangedAt);
     } else if ('importantDate' in task) {
       await dependencies.checkImportantDate(deliveryId, task.importantDate.reminderKind, task.rawReminderScheduleChangedAt);
+    } else {
+      await dependencies.checkEvent(deliveryId, task);
     }
     const senderResult = await dependencies.send(task.subscription, {
       title: '共享日历',

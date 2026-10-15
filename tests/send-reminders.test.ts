@@ -384,6 +384,7 @@ function orchestrationDependencies(
     fetchRecurringCandidatePage: async () => [],
     fetchTaskCandidatePage: async () => [],
     claimTask: async () => { throw new Error('Unexpected Task claim'); },
+    checkEvent: async () => {},
     checkTask: async () => { throw new Error('Unexpected Task check'); },
     fetchImportantDateCandidatePage: async () => [],
     claimImportantDate: async () => { throw new Error('Unexpected Important Date claim'); },

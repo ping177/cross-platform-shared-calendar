@@ -215,6 +215,18 @@ Deno.serve(async (request) => {
         },
         claimImportantDate: (input) => claimImportantDateReminder(importantDateRpc, input),
         checkImportantDate: (deliveryId, kind, rawMarker) => assertImportantDateReminderSendable(importantDateRpc, deliveryId, kind, rawMarker),
+        checkEvent: async (deliveryId, task) => {
+          const result = await adminClient.rpc('check_event_reminder_delivery', {
+            p_delivery_id: deliveryId, p_event_id: task.eventId,
+            p_expected_marker: task.rawReminderScheduleChangedAt,
+            p_expected_source_updated_at: task.recurrence?.sourceUpdatedAt ?? null,
+            p_occurrence_date: task.recurrence?.occurrenceDate ?? null,
+            p_expected_exception_id: task.recurrence?.exceptionId ?? null,
+            p_expected_exception_updated_at: task.recurrence?.exceptionUpdatedAt ?? null,
+            p_expected_exception_type: task.recurrence?.exceptionType ?? null,
+          });
+          if (result.error || result.data !== true) throw new Error('Event changed before send.');
+        },
         send: (subscription, payload) => sendWebPush({
           subscription,
           payload,

@@ -1,5 +1,21 @@
 # Backlog
 
+## 2026-10-15 Shared Space Event 协作权限 — BACKEND + USER A/B/PUSH PASS / FINAL PRODUCTION MOBILE PENDING
+
+- 用户已确定全员可编辑、改同Space归属、确认删除；Personal私有，space_id/created_by不可变。普通/重复均已本地实施，整个logical series归属原子更正，内容scope保留；并非跨Space移动，不再将此前跨Space评估作为当前需求。
+- 本地978/978、TS/Build/Deno与两路径数据库验证通过，详见DEVLOG/TESTING及 [rollout](./EVENT_COLLABORATION_ROLLOUT.md)。Production用户SQL及独立核验、Edge v5和原Cron恢复/两次自然健康调用已通过；实际本地5175目标对齐。用户核心A/B及真实Push A→B接收人已PASS；本轮前端Git/Vercel发布获授权，实际部署独立核验后仅待最终Production/Safari/PWA反馈，不能提前CLOSED；不新增版本。
+- 当前回顾布局本地验收保留且未部署，原实现三文件指纹不变。筛选器A/B仍独立未决；本项通过Production验收后暂停常规开发、真实使用观察。
+
+以下定向问题及只读评估为本轮前历史记录；当前批准范围以上方同Space协作规则为准。
+
+## 2026-10-15 定向问题状态
+
+- Production2204b30：用户确认Event/Task四项iPhone PWA验收PASS；新回顾创建局部布局/日期修复LOCAL PASS（968/968、TS/Build），等待用户视觉及后续真机验收，尚未发布，不提前整体CLOSED。
+- 已有Event跨Space转移：READ-ONLY ASSESSED / NOT IMPLEMENTED。现有前端与数据库均固定归属；后续如授权，先明确普通/重复、共享转私有的授权和归属语义及提醒并发，再设计受控后端迁移/RPC，不能仅开放前端控件。不是创建功能回归，不自动进入开发。
+- 筛选器统一A/B仍为独立未决事项；本轮不实施、不冻结。既有功能和Avatar保持，完成当前缺陷验收后暂停常规开发、真实使用观察。
+
+以下为本轮接续前的历史检查点，旧Pending由上方用户报告更新。
+
 ## Final pre-trial corrective work — MAC ACCEPTED / IPHONE ACCEPTANCE PENDING
 
 当前唯一发布范围：Event正文宽度/滚动边界、Event/Task日期WebKit外观/尺寸/左对齐，3项回归与治理；用户Mac本地视觉PASS，967/967及TS/Build通过，Git→Vercel发布已授权。iPhone Safari/PWA真实复验待完成，未CLOSED；上一版0fe85e8的FAIL为问题历史。Event已验收Space逻辑和五模块现有筛选器保持，筛选器统一A/B为独立未来决策，未实施或冻结。最终真机PASS后暂停常规开发、真实试用观察；用户报告数据清理完成，不重做。

@@ -86,3 +86,31 @@ export function occurrenceDeleteRpcArgs(target: OccurrenceEditTarget) {
 export function deleteOccurrenceAndFutureRpcArgs(target: OccurrenceEditTarget) {
   return occurrenceDeleteRpcArgs(target);
 }
+
+// Audience applies to the logical series; content keeps the selected edit scope.
+export function eventSaveRpcArgs(target: EventEditTarget, identity: Pick<CalendarEvent, 'scope' | 'owner_user_id'>, content: Record<string, unknown>, mode: 'event' | OccurrenceScope = 'event') {
+  return {
+    p_event_id: target.event.id,
+    p_expected_updated_at: target.event.updated_at,
+    p_scope: identity.scope,
+    p_owner_user_id: identity.owner_user_id,
+    p_content: content,
+    p_edit_mode: mode,
+    p_occurrence_date: target.kind === 'occurrence' ? target.occurrence.occurrence_date : null,
+  };
+}
+
+export function occurrenceContentChanges(initial: EventDraft, draft: EventDraft, fromDateInputValue: (value: string) => string): Record<string, unknown> {
+  const changed = draft.title.trim() !== initial.title.trim()
+    || draft.description.trim() !== initial.description.trim()
+    || draft.startsAt !== initial.startsAt || draft.endsAt !== initial.endsAt;
+  if (!changed) return {};
+  // Overrides replace their JSON object, and split children inherit this
+  // occurrence's displayed values rather than the source baseline.
+  return {
+    title: draft.title.trim(),
+    description: draft.description.trim() || null,
+    starts_at: fromDateInputValue(draft.startsAt),
+    ends_at: draft.endsAt ? fromDateInputValue(draft.endsAt) : null,
+  };
+}

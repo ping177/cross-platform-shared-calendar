@@ -226,6 +226,8 @@ values (
   '33000000-0000-4000-8000-000000000004'
 );
 
+-- Flush the new deferred lineage check before the existing historical-marker fixture DDL.
+set constraints events_lineage_audience immediate;
 alter table public.events disable trigger events_prepare_reminder_schedule;
 update public.events
 set reminder_schedule_changed_at = clock_timestamp() - interval '20 minutes'

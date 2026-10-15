@@ -25,22 +25,16 @@ insert into public.space_members(space_id,user_id,role) values
 ('91000000-0000-4000-8000-000000000015','91000000-0000-4000-8000-000000000001','owner'),
 ('91000000-0000-4000-8000-000000000015','91000000-0000-4000-8000-000000000002','member');
 
-insert into public.events(id,space_id,created_by,scope,owner_user_id,title,starts_at,recurrence_rule,time_zone) values
-('91000000-0000-4000-8000-000000000021','91000000-0000-4000-8000-000000000011','91000000-0000-4000-8000-000000000001','personal','91000000-0000-4000-8000-000000000001','true Personal',now()+interval '1 day',null,null),
-('91000000-0000-4000-8000-000000000022','91000000-0000-4000-8000-000000000012','91000000-0000-4000-8000-000000000001','shared',null,'shared survives',now()+interval '1 day',null,null),
-('91000000-0000-4000-8000-000000000023','91000000-0000-4000-8000-000000000012','91000000-0000-4000-8000-000000000002','personal','91000000-0000-4000-8000-000000000002','leaver root',now()+interval '1 day','{"version":1,"frequency":"daily","interval":1,"time_zone":"UTC"}','UTC'),
-('91000000-0000-4000-8000-000000000024','91000000-0000-4000-8000-000000000012','91000000-0000-4000-8000-000000000002','personal','91000000-0000-4000-8000-000000000002','leaver child',now()+interval '2 days','{"version":1,"frequency":"daily","interval":1,"time_zone":"UTC"}','UTC'),
-('91000000-0000-4000-8000-000000000025','91000000-0000-4000-8000-000000000012','91000000-0000-4000-8000-000000000002','personal','91000000-0000-4000-8000-000000000001','other owner',now()+interval '1 day',null,null),
-('91000000-0000-4000-8000-000000000026','91000000-0000-4000-8000-000000000013','91000000-0000-4000-8000-000000000001','personal','91000000-0000-4000-8000-000000000002','remove target',now()+interval '1 day',null,null),
-('91000000-0000-4000-8000-000000000027','91000000-0000-4000-8000-000000000015','91000000-0000-4000-8000-000000000001','shared',null,'delete root',now()+interval '1 day','{"version":1,"frequency":"daily","interval":1,"time_zone":"UTC"}','UTC'),
-('91000000-0000-4000-8000-000000000028','91000000-0000-4000-8000-000000000015','91000000-0000-4000-8000-000000000001','shared',null,'delete split child',now()+interval '2 days','{"version":1,"frequency":"daily","interval":1,"time_zone":"UTC"}','UTC'),
-('91000000-0000-4000-8000-000000000029','91000000-0000-4000-8000-000000000015','91000000-0000-4000-8000-000000000002','personal','91000000-0000-4000-8000-000000000002','delete personal',now()+interval '1 day',null,null);
-update public.events set series_id=id where id='91000000-0000-4000-8000-000000000023';
-update public.events set series_id='91000000-0000-4000-8000-000000000023',parent_event_id='91000000-0000-4000-8000-000000000023'
-where id='91000000-0000-4000-8000-000000000024';
-update public.events set series_id=id where id='91000000-0000-4000-8000-000000000027';
-update public.events set series_id='91000000-0000-4000-8000-000000000027',parent_event_id='91000000-0000-4000-8000-000000000027'
-where id='91000000-0000-4000-8000-000000000028';
+insert into public.events(id,space_id,created_by,scope,owner_user_id,title,starts_at,recurrence_rule,time_zone,series_id,parent_event_id) values
+('91000000-0000-4000-8000-000000000021','91000000-0000-4000-8000-000000000011','91000000-0000-4000-8000-000000000001','personal','91000000-0000-4000-8000-000000000001','true Personal',now()+interval '1 day',null,null,null,null),
+('91000000-0000-4000-8000-000000000022','91000000-0000-4000-8000-000000000012','91000000-0000-4000-8000-000000000001','shared',null,'shared survives',now()+interval '1 day',null,null,null,null),
+('91000000-0000-4000-8000-000000000023','91000000-0000-4000-8000-000000000012','91000000-0000-4000-8000-000000000002','personal','91000000-0000-4000-8000-000000000002','leaver root',now()+interval '1 day','{"version":1,"frequency":"daily","interval":1,"time_zone":"UTC"}','UTC','91000000-0000-4000-8000-000000000023',null),
+('91000000-0000-4000-8000-000000000024','91000000-0000-4000-8000-000000000012','91000000-0000-4000-8000-000000000002','personal','91000000-0000-4000-8000-000000000002','leaver child',now()+interval '2 days','{"version":1,"frequency":"daily","interval":1,"time_zone":"UTC"}','UTC','91000000-0000-4000-8000-000000000023','91000000-0000-4000-8000-000000000023'),
+('91000000-0000-4000-8000-000000000025','91000000-0000-4000-8000-000000000012','91000000-0000-4000-8000-000000000002','personal','91000000-0000-4000-8000-000000000001','other owner',now()+interval '1 day',null,null,null,null),
+('91000000-0000-4000-8000-000000000026','91000000-0000-4000-8000-000000000013','91000000-0000-4000-8000-000000000001','personal','91000000-0000-4000-8000-000000000002','remove target',now()+interval '1 day',null,null,null,null),
+('91000000-0000-4000-8000-000000000027','91000000-0000-4000-8000-000000000015','91000000-0000-4000-8000-000000000001','shared',null,'delete root',now()+interval '1 day','{"version":1,"frequency":"daily","interval":1,"time_zone":"UTC"}','UTC','91000000-0000-4000-8000-000000000027',null),
+('91000000-0000-4000-8000-000000000028','91000000-0000-4000-8000-000000000015','91000000-0000-4000-8000-000000000001','shared',null,'delete split child',now()+interval '2 days','{"version":1,"frequency":"daily","interval":1,"time_zone":"UTC"}','UTC','91000000-0000-4000-8000-000000000027','91000000-0000-4000-8000-000000000027'),
+('91000000-0000-4000-8000-000000000029','91000000-0000-4000-8000-000000000015','91000000-0000-4000-8000-000000000002','personal','91000000-0000-4000-8000-000000000002','delete personal',now()+interval '1 day',null,null,null,null);
 insert into public.event_occurrence_exceptions(event_id,occurrence_date,exception_type)
 values ('91000000-0000-4000-8000-000000000023',current_date+1,'deleted'),
 ('91000000-0000-4000-8000-000000000028',current_date+2,'deleted');
@@ -137,25 +131,28 @@ begin
 end $body$;$test$,'Auth cascade cannot leave a live Shared Space ownerless');
 select is((select count(*) from auth.users where id='91000000-0000-4000-8000-000000000003'),1::bigint,'failed Auth deletion rolled back');
 
-insert into public.events(id,space_id,created_by,scope,owner_user_id,title,starts_at) values
-('91000000-0000-4000-8000-000000000050','91000000-0000-4000-8000-000000000013','91000000-0000-4000-8000-000000000001','personal','91000000-0000-4000-8000-000000000001','graph target',now()+interval '1 day'),
-('91000000-0000-4000-8000-000000000051','91000000-0000-4000-8000-000000000013','91000000-0000-4000-8000-000000000001','shared',null,'cross scope reference',now()+interval '1 day'),
-('91000000-0000-4000-8000-000000000052','91000000-0000-4000-8000-000000000013','91000000-0000-4000-8000-000000000001','personal','91000000-0000-4000-8000-000000000001','cycle peer',now()+interval '1 day');
-update public.events set parent_event_id='91000000-0000-4000-8000-000000000050' where id='91000000-0000-4000-8000-000000000051';
+insert into public.events(id,space_id,created_by,scope,owner_user_id,title,starts_at,parent_event_id) values
+('91000000-0000-4000-8000-000000000050','91000000-0000-4000-8000-000000000013','91000000-0000-4000-8000-000000000001','personal','91000000-0000-4000-8000-000000000001','graph target',now()+interval '1 day',null),
+('91000000-0000-4000-8000-000000000051','91000000-0000-4000-8000-000000000013','91000000-0000-4000-8000-000000000001','shared',null,'cross scope reference',now()+interval '1 day','91000000-0000-4000-8000-000000000050'),
+('91000000-0000-4000-8000-000000000052','91000000-0000-4000-8000-000000000013','91000000-0000-4000-8000-000000000001','personal','91000000-0000-4000-8000-000000000001','cycle peer',now()+interval '1 day',null);
+-- Cross-scope legacy graph deliberately uncommitted; lifecycle guard must reject it.
 set local role authenticated;
 select set_config('request.jwt.claim.sub','91000000-0000-4000-8000-000000000001',true);
 select throws_ok($$select public.leave_shared_space('91000000-0000-4000-8000-000000000013')$$,'P0001','Event deletion set has an external or invalid reference','cross-scope reference stops leave');
 reset role;
 select is((select count(*) from public.events where id='91000000-0000-4000-8000-000000000050'),1::bigint,'failed leave keeps target Event');
 select is((select count(*) from public.space_members where space_id='91000000-0000-4000-8000-000000000013' and user_id='91000000-0000-4000-8000-000000000001'),1::bigint,'failed leave keeps membership');
-update public.events set parent_event_id=null where id='91000000-0000-4000-8000-000000000051';
-update public.events set parent_event_id='91000000-0000-4000-8000-000000000050' where id='91000000-0000-4000-8000-000000000021';
+delete from public.events where id='91000000-0000-4000-8000-000000000051';
+insert into public.events(id,space_id,created_by,scope,owner_user_id,title,starts_at,parent_event_id)
+values ('91000000-0000-4000-8000-000000000053','91000000-0000-4000-8000-000000000011','91000000-0000-4000-8000-000000000001','personal','91000000-0000-4000-8000-000000000001','cross Space legacy reference',now()+interval '1 day','91000000-0000-4000-8000-000000000050');
 set local role authenticated;
 select throws_ok($$select public.leave_shared_space('91000000-0000-4000-8000-000000000013')$$,'P0001','Event deletion set has an external or invalid reference','cross-Space reference stops leave');
 reset role;
-update public.events set parent_event_id=null where id='91000000-0000-4000-8000-000000000021';
-update public.events set parent_event_id='91000000-0000-4000-8000-000000000052' where id='91000000-0000-4000-8000-000000000050';
-update public.events set parent_event_id='91000000-0000-4000-8000-000000000050' where id='91000000-0000-4000-8000-000000000052';
+delete from public.events where id='91000000-0000-4000-8000-000000000053';
+delete from public.events where id in ('91000000-0000-4000-8000-000000000050','91000000-0000-4000-8000-000000000052');
+insert into public.events(id,space_id,created_by,scope,owner_user_id,title,starts_at,parent_event_id) values
+('91000000-0000-4000-8000-000000000050','91000000-0000-4000-8000-000000000013','91000000-0000-4000-8000-000000000001','personal','91000000-0000-4000-8000-000000000001','cycle target',now()+interval '1 day','91000000-0000-4000-8000-000000000052'),
+('91000000-0000-4000-8000-000000000052','91000000-0000-4000-8000-000000000013','91000000-0000-4000-8000-000000000001','personal','91000000-0000-4000-8000-000000000001','cycle peer',now()+interval '1 day','91000000-0000-4000-8000-000000000050');
 set local role authenticated;
 select throws_ok($$select public.leave_shared_space('91000000-0000-4000-8000-000000000013')$$,'P0001','Event reference cycle prevents bounded deletion','cycle stops leave and rolls back');
 reset role;

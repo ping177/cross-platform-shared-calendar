@@ -41,6 +41,7 @@ function dependencies(overrides: Partial<RunSendRemindersDependencies> = {}): Ru
     fetchCandidatePage: pages([event()]), fetchRecurringCandidatePage: pages([recurring()]),
     fetchTaskCandidatePage: async () => [],
     claimTask: async () => { throw new Error('Unexpected Task claim'); },
+    checkEvent: async () => {},
     checkTask: async () => { throw new Error('Unexpected Task check'); },
     fetchImportantDateCandidatePage: pages([important()]),
     fetchRecurringExceptions: async () => ({ exceptions: [], exceptionsScanned: 0, exceptionTruncated: false }),
@@ -332,4 +333,17 @@ test('Important Date previous-day/year/grace/fallback/future-anchor occurrences 
     assert.equal(result.claimed, item.date === null ? 0 : 1);
     if (item.date !== null) assert.deepEqual(claims.map(input => [input.occurrenceDate, input.dueAt]), [[item.date, item.due]]);
   }
+});
+
+test('Event pre-send recheck failure prevents push after ownership changed and finalizes the claim', async () => {
+  let checks=0, sends=0; const finalized: any[]=[];
+  const result=await runSendReminders(context(),dependencies({
+    fetchRecurringCandidatePage:async()=>[],fetchImportantDateCandidatePage:async()=>[],
+    checkEvent:async()=>{checks++;throw new Error('Event audience changed');},
+    send:async()=>{sends++;throw new Error('must not send');},
+    finalize:async(input)=>{finalized.push(input);return 1;},
+  }));
+  assert.equal(checks,1);assert.equal(sends,0);
+  assert.equal(finalized.length,1);assert.equal(finalized[0].status,'failed');
+  assert.equal(result.sent,0);
 });
