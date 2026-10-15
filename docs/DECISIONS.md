@@ -1,5 +1,9 @@
 # Decisions
 
+## 2026-10-15 — 删除确认与清单分组修复正式关闭
+
+用户确认Production iPhone PWA最终验收PASS，冻结本轮已验收实现并标记本范围CLOSED / PASS。治理收口只修改必要文档并按正常Commit/Push流程同步；接受现有Git集成可能随Push自动触发Vercel部署，不主动部署、不改Ignored Build Step或Production配置。正式版本仍为v0.1.20；不扩展为整个项目试用完成，不自动开始筛选器或其他功能。
+
 ## 2026-10-15 — 本轮UI本地验收通过并授权Production前端发布
 
 用户确认分组四入口、两范围、贴底容器和清单基准内部设计及特殊安全规则本地iPhone Safari PASS，冻结当前设计；授权Commit/正常Push/origin-main及既有Vercel自动Production发布，不再等待重复批准。发布只含已验收UI、测试和治理，禁止扩大到筛选器/架构/后端/Auth/数据；正式PWA最终用户验收通过后才标记本轮CLOSED/PASS。下方待确认/未授权措辞为当时历史检查点。

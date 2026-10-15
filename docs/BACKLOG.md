@@ -1,8 +1,8 @@
 # Backlog
 
-## 2026-10-15 UI修复 — FRONTEND PRODUCTION DEPLOYED / FINAL PWA PENDING
+## 2026-10-15 UI删除确认与清单分组修复 — CLOSED / PASS
 
-功能Source b0487c1正常push及Vercel Production部署成功，正式资源逐字节匹配、公开配置和375px无登录首页PASS；本次docs-only记录有独立最终Source，不把功能SHA视作永久最新。本地五项iPhone Safari验收已PASS；下一步仅用户正式PWA最终反馈，通过后才另行CLOSED/PASS。无新功能或后台操作。发布详情见DEVLOG/TESTING，下方为历史检查点。
+用户确认Production iPhone PWA最终验收PASS，Production应用基线 `8d7fb252c60b75688d0a736be6f761c0506ff0b5` 与GitHub/Vercel部署核验一致。分组WebKit触摸修复、删除确认外形与内部层级统一及特殊删除保护均已验收；992/992、WebKit/Chrome18/18、TypeScript/Build/diff-check PASS。本轮无剩余事项，不新增版本、不启动筛选器或其他功能。整体正式试用状态不由本轮关闭结果推断。发布与验收细节见DEVLOG/TESTING；下方pending条目均为历史检查点。
 
 ## 2026-10-15 UI修复发布 — LOCAL IPHONE SAFARI PASS / FINAL PRODUCTION PWA PENDING
 

@@ -1,5 +1,9 @@
 # Testing
 
+## UI repair final Production iPhone PWA acceptance — CLOSED / PASS / 2026-10-15
+
+用户确认正式Production iPhone PWA最终人工验收全部PASS：清单空/非空分组改名与删除、非空分组两种范围、统一的全宽贴底确认外壳、各模块删除确认文字层级及既有特殊安全确认。此前最小验收清单已由用户完成；本次无需重复人工验收。对应Production应用基线 `8d7fb252c60b75688d0a736be6f761c0506ff0b5`（GitHub deployment 7093050865 / Vercel `HSqce4foW3jffYGfjpmRi5rAdrKw` success）。全量Node992/992、WebKit/Chrome18/18、TypeScript、Build、Node语法、diff-check保持PASS。治理收口为docs-only，不重跑完整测试、不修改业务实现或后端。以下final-device-pending内容为历史检查点，由此记录 supersede。
+
 ## UI repair Production static postflight — 2026-10-15 PASS / FINAL DEVICE PENDING
 
 First functional Source `b0487c106cc654dc72de5054191480376b9aacc8`; vercel[bot] GitHub Production 7092894811 / Vercel 2jNzviS264gyfMpKzzpNkXGVMHMy success, correct repository and exact SHA. Formal origin HTML/JS/CSS/manifest/SW verified; JS index-DYnsqgws.js and CSS index-CgQs3Nqx.css are byte-identical to the verified local Build. WebKit focus fix/shared content hierarchy/scope and warning strings present; public backend/client/VAPID configuration matches that Build. Fixed deployment URLs require Vercel login, so no protected resource claim or login/bypass is made. Fresh375px public login-page smoke: correct assets200, zero pageerrors/backend requests, no OTP sent or session inherited.
