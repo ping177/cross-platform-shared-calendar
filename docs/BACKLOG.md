@@ -1,5 +1,18 @@
 # Backlog
 
+## 2026-10-15 Review + 删除确认 — USER LOCAL PASS / FINAL PRODUCTION DEVICE PENDING
+
+用户五项真实验收和Review日期更正PASS；后端已上线并Postflight PASS。19文件确认属于授权范围，992/992和TS/Build证据与当前源码一致；本轮Git→Vercel前端发布已授权，实际结果独立记录。最终iPhone PWA反馈前本轮不CLOSED，之后暂停常规开发并真实使用观察。筛选器统一、其他UI/后端和Event/Push重测均不在范围。
+
+
+## 2026-10-15 删除确认一致性 — LOCAL PASS / USER UI PENDING
+
+全项目盘点后仅修Review、List Detail及InvitePanel确认UI；既有Space/整清单两步、重复Event/非空分组范围和原权限/RPC/恢复保留。Review原真实删除/日期验收PASS，新增确认UI待用户本地确认；992/992、TS/Build、375/430隔离组件PASS。头像替换附属旧照清理、非删除草稿提示保持既有产品流程，不扩展功能。原14未提交保留，无后端/Git发布操作。
+
+## 2026-10-15 Review日期更正 + 整次删除 — VISUAL ACCEPTED / BACKEND DEPLOYED / USER FUNCTION PENDING
+
+用户确认305681e Event协作/真实Push/Review新建Production PASS。仅Review更正日期弹窗布局与整次删除本地补齐，详细见DEVLOG/TESTING；用户确认本地视觉后，新增review-delete SQL已单独授权安装、Postflight和5175对齐PASS，未操作真实回顾内容；等待用户可丢弃回顾真实删除与iPhone验收，再另行授权前端发布，不提前CLOSED。不实施筛选器统一、不新增版本，完成后回到真实使用观察。以下前端发布待验收记录保留为历史检查点，以本条用户反馈为准。
+
 ## 2026-10-15 Shared Space Event 协作权限 — FRONTEND DEPLOYED + USER A/B/PUSH PASS / FINAL PRODUCTION MOBILE PENDING
 
 - 用户已确定全员可编辑、改同Space归属、确认删除；Personal私有，space_id/created_by不可变。普通/重复均已本地实施，整个logical series归属原子更正，内容scope保留；并非跨Space移动，不再将此前跨Space评估作为当前需求。

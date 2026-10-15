@@ -12,7 +12,7 @@ v0.1.20
 
 ## Current status
 
-Event Collaboration + Review：PRODUCTION FRONTEND DEPLOYED / 最终用户Safari/iPhone PWA验收PENDING，整体未CLOSED。首个功能Source2c233e842733fe9c3a916fdbf672860fd26e023f的Vercel部署及正式域名静态核验PASS，JS/CSS与本地Build逐字节一致，远端构建VAPID公钥与服务端匹配。用户普通跨成员编辑/归属、重复系列归属、Shared删除/Personal隔离及真实Push A→B后B收到/A未收到均PASS；Review本地视觉PASS。后台已完成，不重做SQL/Edge/Cron/Push；978/978、TypeScript/Build/diff-check PASS，既有包体积警告非阻塞。首个功能发布证据与后续docs-only治理部署Source分开记录；最新Source以本轮独立报告/部署记录为准。正式版本v0.1.20不变，不引入筛选器统一；Realtime/并发/其他设备未完整覆盖边界保留。
+Review最终修复 + 删除确认：USER LOCAL ACCEPTANCE PASS / 最终Production iPhone PWA验收PENDING，本轮未CLOSED。用户五项本地真实验收及Review日期更正均PASS，Review Production删除RPC/Postflight已完成，Event Collaboration/真实Push既有PASS保持。本轮前端Git/Vercel发布获明确授权；19文件范围、992/992、TypeScript/Build证据与当前未变源码一致，diff-check/敏感字面量扫描PASS。独立部署Source/正式资源核验结果单独记录，不以授权或自动测试推断Production人工通过。v0.1.20不变；不实施筛选器统一，不操作Production后端，不新增功能。
 
 用户报告Production测试数据已清理，目前保留两个账号及各自Personal Space；本轮未执行该清理或独立读取账号数据。此前整理测试数据/三个账号保留两个的计划已由用户报告接续，不再列作当前待执行任务。
 
@@ -45,6 +45,14 @@ UI v2 Slice6 = LOCAL PASS / VISUAL PASS：用户已认可四张居中概览卡�
 v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3为LOCAL PASS / VISUAL PASS；Slice4为LOCAL PASS / VISUAL PROVISIONALLY ACCEPTED。Slice5月视图本地验证与离线视觉验收通过：两条短标题/准确+N、六色圆点与日期浮层，261/261相关测试、build/diff-check、28组四宽度离线检查PASS；用户确认普通月、密集月、空月及浮层满意。已授权本地commit；不代表真实账号、真机、installed PWA或Production验收。Space Color System继续Deferred；真实账号/真机/installed PWA/Production未验收。正式版本仍v0.1.20。
 
 ## Latest completed
+
+2026-10-15 — 用户确认Review日期及五项确认交互本地真实PASS；19文件最终范围、源码与992/992/TS/Build证据一致性、diff-check及敏感字面量扫描通过。后端补丁源码与已安装版本一致，仅纳入Git记录。最终Production前端Source/资源和iPhone PWA结果独立核验，不提前关闭。
+
+2026-10-15 — 用户确认上轮Review日期/删除真实PASS；全App删除确认盘点及Review/List/Invite局部UI统一本地完成，992/992、TS/Build和375/430实际组件检查PASS。等待本地确认后另行授权前端Git发布，无后台操作。
+
+2026-10-15 — Review删除Production RPC安装与只读Postflight PASS，既有数据/权限/函数保持；日期更正/删除入口视觉已获用户确认，5175真实Vite目标及新代码对齐。待用户可丢弃回顾真实删除/iPhone验收，未前端Git发布。
+
+2026-10-15 — Review日期更正弹窗局部WebKit边界/左对齐、整次删除RPC及确认/刷新本地完成；自动980/980、TS/Build、升级/全新库及375/430真实组件验证通过。等待用户视觉确认及另行后端发布授权；既有Production Event/Push/Review新建PASS已由用户确认。
 
 2026-10-15 — Event Collaboration及Review前端首个Production功能部署2c233e8完成（VercelAsgVoZ7BxNZaodeG3anCQ3XHu5En / GitHub7087198195 success）；正式JS/CSS逐字节匹配、VAPID/目标/静态资源PASS。已验收后台与真实Push保持，最终Safari/PWA用户反馈待完成，整体不提前关闭。
 
@@ -335,6 +343,10 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
+本轮Review最终修复/确认UI的发布前基线305681eda48311052604043aa140102efda14b38；前端Git→Vercel发布由用户单独授权，精确新Source/部署ID/公开资源结论以本轮独立发布记录为准。Review删除后端已完成且不重放；最终Production iPhone PWA人工验收PENDING。
+
+2026-10-15 Review删除后端：Production ximazjhxvmktpcdbypka已通过现有Management API应用2026-10-15-review-delete.sql一次，SHA25620aeff18f86e36d6e3328cc34c10421472ab315d3bfc5c17aa3b11dc49dc107d；定义/ACL/既有Review契约及数据指纹只读核验PASS，无生产删除RPC调用。5175后端目标/新代码对齐，前端仍305681e，等待用户真实验收与后续Git发布授权。
+
 Event Collaboration后台：用户SQL已应用且8函数/ACL/RLS/RPC核验PASS；send-reminders ACTIVE v5 / verify_jwt=false，部署元数据SHA95f02fb496854b8e2c4b085545468b69b7bd06f27f8cc9df24fc75ce14dcb72f，13运行时源码下载匹配。原Job1 schedule及MD5 cd0c5b049c9c1ca9f564c2b1895c00d1保持；自然健康及用户真实Push A→B接收人验收已通过。本轮不再操作后台。
 
 首个Event Collaboration + Review功能前端Production Source：2c233e842733fe9c3a916fdbf672860fd26e023f；GitHub Production deployment7087198195 / VercelAsgVoZ7BxNZaodeG3anCQ3XHu5En success，项目与精确SHA匹配。正式域名 https://cross-platform-shared-calendar.vercel.app/ 的HTML/JS/CSS/manifest/sw200，JS/CSS与最终本地Build逐字节一致、VAPID原公钥与服务端匹配，.env.local未提交。后续本轮已授权docs-only发布记录拥有独立Source，不能把功能发布SHA冒充始终最新的治理SHA；最终最新Source在独立发布报告核对。最终Safari/iPhone PWA人工验收PENDING，整体未CLOSED。
@@ -427,7 +439,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-新Production部署及Source/公开资源核验后，由用户刷新Safari、完全退出并重开iPhone PWA，最终抽查Event归属编辑/确认删除和Review日期左对齐、尺寸/纵向滚动/键盘/创建查看；已有后台和真实Push验收不无理由重做。用户最终反馈前整体不CLOSED；通过后暂停常规功能开发、进入真实使用观察。Realtime/并发/其他设备等未完整覆盖边界据实保留；不实施筛选器统一或跨Space移动，不再应用SQL/部署Edge/调整Cron。
+在独立核对新Production Source与正式JS/CSS后，用户刷新Safari并完全退出/重开iPhone PWA，用可丢弃内容最终抽查Review日期边界/左对齐、App确认取消/删除、清单项目/空分组确认、非空分组两范围和邀请码提示/取消。无需为视觉重删Space、实际轮换正式邀请码或重测Event/Push。收到最终Production设备反馈前本轮不CLOSED；通过后暂停常规功能开发、进入真实使用观察。不得重放Review SQL、部署Edge或调整Cron。
 
 ## Blockers
 
@@ -528,7 +540,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Handoff Prompt
 
-新Production部署及Source/公开资源核验后，由用户刷新Safari、完全退出并重开iPhone PWA，最终抽查Event归属编辑/确认删除和Review日期左对齐、尺寸/纵向滚动/键盘/创建查看；已有后台和真实Push验收不无理由重做。用户最终反馈前整体不CLOSED；通过后暂停常规功能开发、进入真实使用观察。Realtime/并发/其他设备等未完整覆盖边界据实保留；不实施筛选器统一或跨Space移动，不再应用SQL/部署Edge/调整Cron。
+在独立核对新Production Source与正式JS/CSS后，用户刷新Safari并完全退出/重开iPhone PWA，用可丢弃内容最终抽查Review日期边界/左对齐、App确认取消/删除、清单项目/空分组确认、非空分组两范围和邀请码提示/取消。无需为视觉重删Space、实际轮换正式邀请码或重测Event/Push。收到最终Production设备反馈前本轮不CLOSED；通过后暂停常规功能开发、进入真实使用观察。不得重放Review SQL、部署Edge或调整Cron。
 
 用户确认Profile Card Compact + Avatar v1正式Production人工验收PASS，最终状态CLOSED / PASS；Space Rename真实Production功能及最终UI也为CLOSED / PASS。Avatar已验收功能发布Source SHA：fcd3c8ad1b91bd7ec137c331e3d721ea8fae6cac。12预设及猫F+02「陶粉与燕麦」保持冻结。该整体验收不扩大为跨设备、照片替换/默认恢复、真实失败/断网重试、退出最后共同Space的新签拒绝、5分钟签名续期及iOS/Android/PWA全部边界已通过；未完整验证项继续在观察期记录。
 

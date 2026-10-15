@@ -115,6 +115,8 @@ export function ListDetailPage({ userId, target, onBack, onUnavailable, onLeaveG
   const [renameOpen, setRenameOpen] = useState(false);
   const [listDelete, setListDelete] = useState<{ step: 1 | 2; busy: boolean; error: string; listName: string; spaceName: string } | null>(null);
   const [sectionDeleteId, setSectionDeleteId] = useState<string | null>(null);
+  const [itemDeleteId, setItemDeleteId] = useState<string | null>(null);
+  const [clearRecoveredOpen, setClearRecoveredOpen] = useState(false);
   const [sectionCreateError, setSectionCreateError] = useState('');
   const inputRefs = useRef(new Map<string, HTMLInputElement>());
   const mutationLock = useRef(false);
@@ -168,6 +170,7 @@ export function ListDetailPage({ userId, target, onBack, onUnavailable, onLeaveG
   useEffect(() => {
     if (!data) return;
     setUi((current) => reconcileListDetailUiState(current, data.sections, data.items));
+    setItemDeleteId((current) => current && data.items.some((item) => item.id === current) ? current : null);
     setSectionDeleteId((current) => current && data.sections.some((section) => section.id === current) ? current : null);
     setListDelete((current) => current && (current.listName !== data.list.name || current.spaceName !== data.space.name)
       ? { step: 1, busy: false, error: '清单资料已变化，请重新确认删除目标。', listName: data.list.name, spaceName: data.space.name } : current);
@@ -275,11 +278,10 @@ export function ListDetailPage({ userId, target, onBack, onUnavailable, onLeaveG
     } finally { listDeleteLock.current = false; }
   }
 
-  function requestSectionDelete(section: ListSection, total: number) {
+  function requestSectionDelete(section: ListSection) {
     if (live.current.disabled || mutationLock.current) return;
-    if (total === 0) {
-      confirmSectionDelete(section.id, true);
-    } else setSectionDeleteId(section.id);
+    setMutationError('');
+    setSectionDeleteId(section.id);
   }
 
   function confirmSectionDelete(sectionId: string, preserveItems: boolean) {
@@ -293,6 +295,7 @@ export function ListDetailPage({ userId, target, onBack, onUnavailable, onLeaveG
   const derived = data ? deriveListDetail(target.listId, target.spaceId, data.sections, data.items, data.projectedUngroupedOrder, data.projectedItemOrders) : null;
   const totalItems = data?.items.length ?? 0;
   const completedItems = data?.items.filter((item) => item.completed).length ?? 0;
+  const itemToDelete = data?.items.find((item) => item.id === itemDeleteId) ?? null;
   const sectionToDelete = derived?.sections.find((entry) => entry.section.id === sectionDeleteId) ?? null;
   function handleDragEnd(result: DropResult) {
     const destination = result.destination;
@@ -345,11 +348,21 @@ export function ListDetailPage({ userId, target, onBack, onUnavailable, onLeaveG
     onToggleFold={() => toggleFold(key)} onToggleItem={(item) => { void runMutation(`complete:${item.id}`, () => setListItemCompleted(supabase, target, item, !item.completed), (row) => applyConfirmed({ kind: 'item', row })); }}
     onEditItem={(item) => beginEdit('item', item.id, item.content)}
     onEditChange={editingChange} onSaveEdit={saveEdit} onCancelEdit={cancelEdit}
-    onDeleteItem={(item) => { if (!allowEditChange()) return; void runMutation(`delete-item:${item.id}`, () => deleteListItem(supabase, target.listId, item.id), () => { applyConfirmed({ kind: 'item-delete', id: item.id }); setUi((current) => ({ ...current, editing: null })); }); }} />;
+    onDeleteItem={(item) => { if (disabled || mutationLock.current || listDeleteLock.current) return; setMutationError(''); setItemDeleteId(item.id); }} />;
   const quick = (key: string, label: string, sectionId: string | null) => <QuickAdd label={label} value={ui.quickDrafts[key] ?? ''} busy={busyKey === `quick:${key}`} disabled={disabled || (busyKey !== null && busyKey !== `quick:${key}`)}
     onInput={(input) => { if (input) inputRefs.current.set(key, input); else inputRefs.current.delete(key); }}
     onChange={(value) => setQuickDraft(key, value)} onSubmit={() => quickAdd(key, sectionId)} />;
 
+  function confirmItemDelete() {
+    if (!itemToDelete) return;
+    void runMutation(`delete-item:${itemToDelete.id}`, () => deleteListItem(supabase, target.listId, itemToDelete.id), () => {
+      applyConfirmed({ kind: 'item-delete', id: itemToDelete.id });
+      setUi((current) => ({ ...current, editing: null }));
+      setItemDeleteId(null);
+    });
+  }
+  const itemKeyboard = useListModalKeyboard(Boolean(itemToDelete), busyKey !== null, () => setItemDeleteId(null), '[data-list-confirm-cancel]', mutationLock);
+  const recoveredKeyboard = useListModalKeyboard(clearRecoveredOpen, busyKey !== null, () => setClearRecoveredOpen(false), '[data-list-confirm-cancel]', mutationLock);
   const sectionKeyboard = useListModalKeyboard(Boolean(sectionToDelete), busyKey !== null, () => setSectionDeleteId(null), '[data-list-confirm-cancel]', mutationLock);
 
   return <main className="ui-list-detail mx-auto min-h-screen w-full max-w-3xl px-4 py-4 font-ui safe-bottom">
@@ -372,7 +385,7 @@ export function ListDetailPage({ userId, target, onBack, onUnavailable, onLeaveG
       </div>
       {(state.error || syncError || mutationError) && <div className="mt-3 rounded-lg bg-coral/10 p-3 text-sm text-coral" role="alert">{state.error || syncError || mutationError}<button className="ml-2 min-h-11 font-semibold text-teal" type="button" onClick={reconnect}>重试读取</button></div>}
       {busyKey === 'reorder' && <p className="mt-3 text-sm text-ink/60" role="status">正在保存顺序…</p>}
-      {ui.recovered.length > 0 && <div className="mt-3 rounded-lg bg-white p-3 text-sm" role="status">原项目或分组已不可用，以下输入未保存，请复制后自行处理：{ui.recovered.map((text, index) => <p key={`${index}:${text}`} className="mt-2 break-words">{text}</p>)}<button className="mt-2 min-h-11 font-semibold text-teal" type="button" onClick={() => { if (window.confirm('清除提示后将无法从此处复制这些输入，确定清除吗？')) setUi((current) => ({ ...current, recovered: [] })); }}>清除提示</button></div>}
+      {ui.recovered.length > 0 && <div className="mt-3 rounded-lg bg-white p-3 text-sm" role="status">原项目或分组已不可用，以下输入未保存，请复制后自行处理：{ui.recovered.map((text, index) => <p key={`${index}:${text}`} className="mt-2 break-words">{text}</p>)}<button className="mt-2 min-h-11 font-semibold text-teal" type="button" onClick={() => setClearRecoveredOpen(true)}>清除提示</button></div>}
       <section className="ui-list-panel mt-4 bg-white p-3" aria-label="清单项目">
         {quick(ungroupedKey, '添加清单项目', null)}
         {totalItems === 0 && <div className="ui-lists-empty" role="status"><p className="font-semibold">还没有清单项</p><p className="mt-2 text-sm text-ui-muted">从上方添加第一项，也可以按需要建立分组。</p></div>}
@@ -393,7 +406,7 @@ export function ListDetailPage({ userId, target, onBack, onUnavailable, onLeaveG
           <div className="ui-list-section-header flex min-w-0 items-start justify-between gap-2">
             {editing ? <form className="ui-list-inline-edit flex min-w-0 flex-1 flex-wrap gap-2" onSubmit={(event) => { event.preventDefault(); if (!sectionComposing.current) saveEdit(); }}><input autoFocus onCompositionStart={() => { sectionComposing.current = true; }} onCompositionEnd={() => { sectionComposing.current = false; }} onKeyDown={(event) => { if (event.nativeEvent.isComposing || sectionComposing.current || event.keyCode === 229) { if (event.key === 'Enter') event.preventDefault(); return; } if (event.key === 'Escape') { event.preventDefault(); cancelEdit(); } }} className="min-h-11 min-w-0 flex-1 rounded-lg border border-ink/15 px-3" aria-label="编辑分组名称" value={ui.editing?.draft ?? ''} disabled={disabled || busyKey !== null} onChange={(event) => editingChange(event.target.value)} /><button className="min-h-11 font-semibold text-teal" type="submit" disabled={disabled || busyKey !== null}>保存</button><button className="min-h-11" type="button" disabled={busyKey !== null} onClick={cancelEdit}>取消</button></form>
               : <button className="flex min-h-11 min-w-0 flex-1 items-center gap-2 text-left" type="button" disabled={busyKey !== null} aria-expanded={!collapsed} id={`list-edit-${section.id}`} onClick={() => toggleSection(section.id)}><ChevronDown size={18} className={collapsed ? '-rotate-90 shrink-0' : 'shrink-0'} aria-hidden="true" /><span className="min-w-0 flex-1 break-words font-semibold">{section.name}</span><span className="shrink-0 text-sm text-ink/60">{region.completedCount} / {region.total}</span></button>}
-            {!editing && <ListActionsMenu menuId={`list-group-menu-${section.id}`} label={`分组 ${section.name}`} disabled={disabled || busyKey !== null} onRename={() => beginEdit('section', section.id, section.name)} onDelete={() => { if (allowEditChange()) requestSectionDelete(section, region.total); }} />}
+            {!editing && <ListActionsMenu menuId={`list-group-menu-${section.id}`} label={`分组 ${section.name}`} disabled={disabled || busyKey !== null} onRename={() => beginEdit('section', section.id, section.name)} onDelete={() => { if (allowEditChange()) requestSectionDelete(section); }} />}
           </div>
           {!collapsed && <div className="mt-3">{itemRegion(section.id, section.name, region)}<div className="mt-3">{quick(section.id, `在${section.name}添加项目`, section.id)}</div></div>}
         </section>;
@@ -401,6 +414,42 @@ export function ListDetailPage({ userId, target, onBack, onUnavailable, onLeaveG
     </DragDropContext>}
     {renameOpen && data && <ListEditorSheet mode="rename" list={data.list} memberSpaces={[data.space]} eligibleSpaces={state.degraded ? [] : [data.space]} userId={userId} eligibilityStatus={state.degraded ? 'error' : 'ready'} eligibilityError={state.error} onRetryEligibility={() => { void refresh(); }} onSubmit={(name) => saveListName(name)} onCancel={() => { setRenameOpen(false); requestAnimationFrame(() => document.getElementById('list-detail-menu')?.focus()); }} />}
     {listDelete && data && <ListDeleteDialog list={data.list} space={data.space} step={listDelete.step} busy={listDelete.busy} canConfirm={!disabled} error={listDelete.error} eligibilityError={state.error} onRetryEligibility={() => { void refresh(); }} onCancel={() => { setListDelete(null); requestAnimationFrame(() => document.getElementById('list-detail-menu')?.focus()); }} onConfirm={() => void confirmListDelete()} />}
-    {sectionToDelete && <div ref={sectionKeyboard.container} tabIndex={-1} className="ui-list-overlay ui-list-confirm-overlay font-ui" role="dialog" aria-modal="true" aria-labelledby="section-delete-title"><div className="ui-list-confirm mx-auto w-full max-w-md bg-white p-5 safe-bottom"><h2 id="section-delete-title" className="text-lg font-bold">删除分组：{sectionToDelete.section.name}</h2><p className="mt-2 text-sm text-ink/65">其中有 {sectionToDelete.region.total} 项内容。请选择处理方式。</p><div className="mt-4 space-y-2"><button className="min-h-11 w-full rounded-lg bg-teal px-4 font-semibold text-white" type="button" disabled={disabled || busyKey !== null} onClick={() => confirmSectionDelete(sectionToDelete.section.id, true)}>仅删除分组</button><button className="min-h-11 w-full rounded-lg border border-coral px-4 font-semibold text-coral" type="button" disabled={disabled || busyKey !== null} onClick={() => confirmSectionDelete(sectionToDelete.section.id, false)}>删除分组及其中内容</button><button data-list-confirm-cancel className="min-h-11 w-full rounded-lg px-4" type="button" disabled={busyKey !== null} onClick={() => setSectionDeleteId(null)}>取消</button></div></div></div>}
+    {sectionToDelete && <div ref={sectionKeyboard.container} tabIndex={-1} className="ui-list-overlay ui-list-confirm-overlay font-ui" role="dialog" aria-modal="true" aria-labelledby="section-delete-title">
+      <div className="ui-list-confirm mx-auto w-full max-w-md bg-white p-5 safe-bottom">
+        <h2 id="section-delete-title" className="text-lg font-bold">删除分组：{sectionToDelete.section.name}</h2>
+        <p className="mt-2 text-sm text-ink/65">{sectionToDelete.region.total > 0 ? `其中有 ${sectionToDelete.region.total} 项内容。请选择处理方式；删除后无法恢复。` : '这是一个空分组，删除后无法恢复。'}</p>
+        {mutationError && <p className="mt-3 text-sm text-coral" role="alert">{mutationError}</p>}
+        <div className={sectionToDelete.region.total > 0 ? 'mt-4 space-y-2' : 'mt-5 flex justify-end gap-2'}>
+          {sectionToDelete.region.total === 0 && <button data-list-confirm-cancel className="min-h-11 rounded-lg bg-mist px-4 font-semibold" type="button" disabled={busyKey !== null} onClick={() => setSectionDeleteId(null)}>取消</button>}
+          <button className={sectionToDelete.region.total > 0 ? 'min-h-11 w-full rounded-lg bg-teal px-4 font-semibold text-white' : 'min-h-11 rounded-lg bg-coral px-4 font-semibold text-white disabled:opacity-50'} type="button" disabled={disabled || busyKey !== null} onClick={() => confirmSectionDelete(sectionToDelete.section.id, true)}>{sectionToDelete.region.total > 0 ? '仅删除分组' : '永久删除分组'}</button>
+          {sectionToDelete.region.total > 0 && <>
+            <button className="min-h-11 w-full rounded-lg border border-coral px-4 font-semibold text-coral" type="button" disabled={disabled || busyKey !== null} onClick={() => confirmSectionDelete(sectionToDelete.section.id, false)}>删除分组及其中内容</button>
+            <button data-list-confirm-cancel className="min-h-11 w-full rounded-lg px-4" type="button" disabled={busyKey !== null} onClick={() => setSectionDeleteId(null)}>取消</button>
+          </>}
+        </div>
+      </div>
+    </div>}
+    {itemToDelete && <div ref={itemKeyboard.container} tabIndex={-1} className="ui-list-overlay ui-list-confirm-overlay font-ui" role="dialog" aria-modal="true" aria-labelledby="item-delete-title">
+      <div className="ui-list-confirm mx-auto w-full max-w-md bg-white p-5 safe-bottom">
+        <h2 id="item-delete-title" className="text-lg font-bold">删除清单项目</h2>
+        <p className="mt-3 break-words text-sm leading-6">项目：<strong>{itemToDelete.content}</strong></p>
+        <p className="mt-3 text-sm leading-6">这会永久删除此项目，无法恢复。{ui.editing?.id === itemToDelete.id && ui.editing.draft !== itemToDelete.content && '尚未保存的项目编辑也将丢弃。'}</p>
+        {mutationError && <p className="mt-3 text-sm text-coral" role="alert">{mutationError}</p>}
+        <div className="mt-5 flex justify-end gap-2">
+          <button data-list-confirm-cancel className="min-h-11 rounded-lg bg-mist px-4 font-semibold" type="button" disabled={busyKey !== null} onClick={() => setItemDeleteId(null)}>取消</button>
+          <button className="min-h-11 rounded-lg bg-coral px-4 font-semibold text-white disabled:opacity-50" type="button" disabled={disabled || busyKey !== null} onClick={confirmItemDelete}>{busyKey ? '删除中…' : '永久删除项目'}</button>
+        </div>
+      </div>
+    </div>}
+    {clearRecoveredOpen && <div ref={recoveredKeyboard.container} tabIndex={-1} className="ui-list-overlay ui-list-confirm-overlay font-ui" role="dialog" aria-modal="true" aria-labelledby="recovered-clear-title">
+      <div className="ui-list-confirm mx-auto w-full max-w-md bg-white p-5 safe-bottom">
+        <h2 id="recovered-clear-title" className="text-lg font-bold">清除恢复的输入</h2>
+        <p className="mt-3 text-sm leading-6">清除后将无法从此处复制这些尚未保存的输入。已保存的清单内容不受影响。</p>
+        <div className="mt-5 flex justify-end gap-2">
+          <button data-list-confirm-cancel className="min-h-11 rounded-lg bg-mist px-4 font-semibold" type="button" disabled={busyKey !== null} onClick={() => setClearRecoveredOpen(false)}>取消</button>
+          <button className="min-h-11 rounded-lg bg-coral px-4 font-semibold text-white disabled:opacity-50" type="button" disabled={busyKey !== null} onClick={() => { if (!mutationLock.current) { setUi((current) => ({ ...current, recovered: [] })); setClearRecoveredOpen(false); } }}>确认清除</button>
+        </div>
+      </div>
+    </div>}
   </main>;
 }

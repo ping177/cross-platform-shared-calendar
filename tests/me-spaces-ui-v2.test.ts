@@ -44,9 +44,9 @@ test('create/join pending writes block duplicate submit and closing; failure pre
 
 test('invitation rotation retains member access, blocks duplicate writes and preserves code on failure',()=>runtime('InvitePanel.tsx',async({props,calls,render,click,client,flush,html})=>{
  props.space={...shared,membershipRole:'member'};props.onSpaceChange=(space:any)=>{calls.push({updated:space});};
- let release:any;client.rpc=async(method:string,args:any)=>{calls.push({method,args});return new Promise(r=>{release=r;});};click('轮换邀请码');click('轮换邀请码');assert.equal(calls.length,1);assert.deepEqual(calls[0],{method:'rotate_invite_code',args:{space_id:'s'}});assert.equal(nodes(render()).find(n=>n.props['aria-label']==='轮换邀请码').props.disabled,true);
+ let release:any;client.rpc=async(method:string,args:any)=>{calls.push({method,args});return new Promise(r=>{release=r;});};click('轮换邀请码');assert.equal(calls.length,0);click('取消');assert.equal(calls.length,0);click('轮换邀请码');const confirm=nodes(render()).find(n=>n.type==='button'&&n.props.children==='确认轮换').props.onClick;confirm();confirm();assert.equal(calls.length,1);assert.deepEqual(calls[0],{method:'rotate_invite_code',args:{space_id:'s'}});assert.equal(nodes(render()).find(n=>n.props['aria-label']==='轮换邀请码').props.disabled,true);
  release({data:null,error:{message:'轮换失败'}});await flush();assert.match(html(),/FIXTURE|轮换失败/);assert.equal(calls.length,1);
- client.rpc=async()=>({data:{...shared,invite_code:'NEWCODE'},error:null});click('轮换邀请码');await flush();assert.equal(calls[1].updated.invite_code,'NEWCODE');
+ client.rpc=async()=>({data:{...shared,invite_code:'NEWCODE'},error:null});click('确认轮换');await flush();assert.equal(calls[1].updated.invite_code,'NEWCODE');
 }));
 
 test('successful create with failed membership refresh retries the exact returned ID without creating twice',()=>runtime('SharedSpaceForms.tsx',async({props,calls,click,submit,flush,html})=>{

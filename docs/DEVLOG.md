@@ -1,5 +1,35 @@
 # Development Log
 
+## 2026-10-15 — Review + destructive confirmations release gate — USER LOCAL PASS / FINAL PRODUCTION DEVICE PENDING
+
+- 用户确认五项本地真实验收全部PASS：Review App确认取消/删除、List Item取消保留/删除、空分组确认/删除、非空分组两范围、邀请码提示/取消；Review日期更正真实PASS保持。Review删除Production RPC及Postflight已完成；Event Collaboration及真实Push已验收，不重做。
+- 发布前19文件完整审查，全部属于Review日期/删除、删除确认及测试/治理。正式review-delete补丁SHA25620aeff18f86e36d6e3328cc34c10421472ab315d3bfc5c17aa3b11dc49dc107d与已安装后台一致，仅提交源码记录，不执行SQL。非docs文件早于最终992/992测试日志，src也早于已通过TypeScript/Build记录，源码未改变故沿用结果，不重复完整自动/E2E；diff-check和敏感字面量扫描PASS。
+- 远端main与批准基线305681e一致，无额外改动、依赖/env/调试素材。按Review与清单/邀请码确认组织提交，发布结果以独立GitHub/Vercel Source及正式资源核验记录为准。用户明确授权Commit/Push/前端自动发布，无Production后端操作；最终iPhone/PWA人工验收前不标记本轮CLOSED/PASS，不新增版本。以下LOCAL/PENDING条目为历史检查点。
+
+## 2026-10-15 — Destructive action confirmation audit — LOCAL UI / USER ACCEPTANCE PENDING
+
+- 全量检索window.confirm/confirm()/alert及所有可见delete/remove/clear/reset路径：普通Event与Task为现有Sheet内二元确认，重复Event保留only-this/this-and-future自定义范围选择；整清单/Space保留两步，非空分组保留“仅删分组/含内容”两种RPC参数；Important Date、移除/退出Space、转让所有者均为App确认。未发现alert；lists-detail.ts中confirm()仅重排成功回调，不是浏览器弹窗。
+- 本轮仅3个UI文件：Review删除从原生confirm改为复用ui-space-confirm/现有useListModalKeyboard，保留双方/Personal/草稿提示及原RPC/身份/回执/失败/防重；List Detail项目、空分组由直接删除改为先确认，清除recovered输入由原生改App确认；InvitePanel轮换旧码立即失效，补前置确认，保持原RPC与成员权限。普通二元确认取消在左、危险按钮在右；范围型操作保留既有布局，不新建通用组件或CSS。
+- 使用真实页面handler的12项新确认保护/流程测试，Review/Item/Invite取消零调用、确认重复一次、失败留在确认层可重试、空分组先确认；旧邀请码回归同步增加确认步骤，原成员/失败/防重断言保留。首次全量发现旧测试“点击即请求”假设，修正测试后最终全量992/992、TS/Build/diff-check PASS（既有chunk警告）。既有Review日期/数据/SQL测试保留，不重复数据库运行。
+- 隔离真实React组件+内存API：375/430×Review/Item/空分组/分组范围/恢复输入/轮换6类共12布局；均无横向溢出，按钮>=44px，零原生弹窗/pageerror。确认取消、重复提交、失败重试；Review焦点返回/Tab/Escape；Item取消保留草稿；恢复输入取消/清除均无服务器写；分组两scope保留。截图本Chat delete-confirm/，Chrome结果不替代iPhone/PWA。
+- 保留：草稿离开/放弃编辑的6处原生confirm（非本轮删除）；头像替换/恢复默认的已验收自动旧照清理（是否加额外确认属替换产品流程，非独立删除权限调整）；通知关闭/登出是可重新开启/登录的设备状态操作；表单清空日期/emoji仅未保存草稿。Space失败关闭确认后重新核验资格、失败不关闭详情的既有恢复不改；Event重复范围失败回原表单显示错误、不改变RPC语义。
+- 用户已确认上轮Review日期更正、取消/确认删除真实PASS；本轮只是确认UI待验，不倒退该功能事实。原14未提交保留，既有SQL/schema/数据函数、日期CSS/测试字节不变；无Production请求/写入/真实登录态操作（只读本地模块确认目标），不Commit/Push/部署。
+
+## 2026-10-15 — Review delete Production backend — DEPLOYED / REAL USER ACCEPTANCE PENDING
+
+- 用户确认日期更正/删除入口视觉，并单独授权Review后端。Management API确认ximazjhxvmktpcdbypka ACTIVE_HEALTHY、delete_review_round不存在、Review前置结构/RLS/表ACL/8既有函数源码与canonical一致后，仅执行2026-10-15-review-delete.sql一次。SHA-256：20aeff18f86e36d6e3328cc34c10421472ab315d3bfc5c17aa3b11dc49dc107d；成功，NOTIFY schema reload包含在该事务中，未重跑其他补丁。
+- 只读Postflight：新增RPC精确签名/函数体/search_path/SECURITY DEFINER及authenticated执行权限匹配；PUBLIC/anon/service_role无EXECUTE，既有RLS/直接表写保护/触发器/约束/8函数未变。已有Review round/entry数量和全行指纹前后不变，无孤立entry；未调用生产删除RPC或生成测试数据，不以静态检查冒充真实功能验收。
+- 5175只读模块检查：真实Vite，目标ximazjhxvmktpcdbypka，新日期表单/删除调用源码已加载。无用户登录态访问。980/980及本地数据库结果沿用，业务实现无变化，不重复完整测试；本轮仅追加部署治理记录和diff-check。
+- 既有Management凭据只在内存使用、未输出；未触及Event/Task/提醒/Edge/Cron/其他Production资源。未Commit/Push/发布前端，Production前端仍305681e。下一步用户自行登录5175，使用可丢弃回顾验证取消/整次删除/历史刷新/其他回顾不变及Shared对方内容消失；通过后再授权前端正式发布。以下本地阶段“SQL未上线”为历史检查点。
+
+## 2026-10-15 — Review date correction + whole-round delete — LOCAL PASS / USER ACCEPTANCE PENDING
+
+- 用户确认305681e Production的Event编辑/归属/删除、真实Push接收人及Review新建表单PASS；本轮不是上述路径回归。日期更正是独立弹窗，原生date未命中只限定新建表单的WebKit边界/对齐规则。新增ui-review-date-form局部约束和内部纵向滚动，旧Event/Task/Review-create声明不改；Chrome旧版不复现iPhone溢出，代码缺口和用户真机现象一致，修复后iPhone仍待验证。
+- 整次删除此前缺少UI和RPC，Review表仍仅授予SELECT。新增delete_review_round(uuid)沿用当前成员+本轮参与者、模块开启及advisory→Space行锁；只删精确round，entries外键级联，直接表写/其他RPC/RLS不变。详情二次确认说明双方内容永久删除，Personal单人提示；防重复，失败保留内容可重试，返回前核对精确删除回执，卸载后迟到响应不导航。成功复用onUnavailable('review')清空App历史snapshot再回列表。
+- 其他round/编号不改，删除留下编号空缺；新建仍沿用max(round_no)+1，最高编号删除后可能再用该编号，引用均依赖UUID/日期而非编号。上一份计划为动态日期查询，删除最近前一轮后引用更早一轮，不复制或改写其他entry。
+- 最终Node980/980、TypeScript/Build及diff-check PASS；本地升级/全新两路径新增19+既有158数据库断言各PASS，RPC定义一致，并发delete/save、revoke/delete、delete/create各3顺序PASS。真实组件375/430px：日期保存/边界/左对齐、新建表单、删除取消/确认/重复防护/失败重试/权限拒绝/错误回执/Personal提示通过；独立Chrome，无登录、connect-src none内存数据。没有可用WebKit运行时，不将Chromium结果写成iPhone/PWA PASS。
+- 准备supabase/patches/2026-10-15-review-delete.sql，尚未应用Production。真实账号删除验收前须另行授权部署该新增RPC并验证环境，再用5175新前端；本轮用户仅先验本地隔离视觉。Production/Edge/Cron/数据不动；未Commit/Push/部署，不新增版本。
+
 ## 2026-10-15 — Event Collaboration + Review frontend Production — DEPLOYED / FINAL USER DEVICE PENDING
 
 - Review独立提交02d9973；Event Collaboration功能提交/首个Production Source `2c233e842733fe9c3a916fdbf672860fd26e023f`，正常push origin/main成功；GitHub Production deployment7087198195由vercel[bot]报告success，Vercel部署AsgVoZ7BxNZaodeG3anCQ3XHu5En，唯一部署地址cross-platform-shared-calendar-afv0jtqpi-ping178.vercel.app。项目/仓库/Production环境及精确SHA一致，不以HEAD或clean推断部署。

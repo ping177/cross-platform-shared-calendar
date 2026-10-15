@@ -1,5 +1,25 @@
 # Testing
 
+## Review final release gate — USER LOCAL PASS / FINAL PRODUCTION DEVICE PENDING
+
+User confirms Review App confirmation/cancel/delete, List Item cancel/delete, empty group confirmation/delete, nonempty group both scopes, invite confirmation/cancel and Review date correction PASS. Backend Review RPC/Postflight and earlier Event/Push PASS retained. Reviewed19-file source is unchanged since final full992/992 and TypeScript/Build (source/test file timestamps and SHA manifest checked); diff-check/credential-literal scan PASS, no pointless full/E2E rerun. Exact new Vercel Source/static resources require separate verification; user iPhone PWA acceptance remains pending. No SQL/Edge/Cron/data operation in this release.
+
+
+## Delete confirmation UI consistency — 2026-10-15 LOCAL PASS / USER PENDING
+
+- New `tests/delete-confirmation-ui.test.ts` + `tests/delete-confirmation-flow.test.ts`12项：Review/Item/Invite打开或取消零写、两次确认一次请求、失败不退出且可重试；精确原RPC/锁保留，空分组不直接删，清除恢复输入不再原生确认。`tests/me-spaces-ui-v2.test.ts`原轮换case适配新确认步骤，保留成员可用/旧码失败保留/重复提交断言。相关24/24、最终全量992/992、`npm run build`(含tsc)、diff-check PASS；既有chunk警告。
+- Isolated actual ReviewDetailPage/ListDetailPage/InvitePanel in Chrome, no real session or external API:375×812/430×812×6 dialogs (Review/Item/empty group/nonempty scope/recovered input/invite). Bounds/44px/pass; zero native dialogs or pageerrors. Review Escape/Tab/opener focus, cancel & one write & failure retry; item cancel retains draft; group cancel both scopes; recovered input cancel preserves and clear does not call backend; rotation cancel/no call, failure/retry and single submission verified. Screenshots in current Chat delete-confirm/; iPhone Safari/PWA NOT RUN.
+- Manual minimum: local5175 use disposable Review/Item/empty group, check App confirmation, cancel preservation, confirm once and list refresh; nonempty group retains two scopes. Check rotation dialog/cancel; no need rotate a real invitation solely for aesthetics. Do not re-delete real Space or re-run backend/Push for UI testing. Recovery input clear can be accepted when naturally shown; no fabricated Production error data.
+- Inventory: Event plain & Task inline App confirm; recurring Event scope Sheet; List whole and Space delete two steps; nonempty group scope dialog; Important Date App dialog; remove/leave/transfer App dialog. Review native->App; Item/empty group direct->App; recovered native->App; invite direct->App. Avatar replacement/default auto-cleanup retains accepted behavior pending separate product decision; disable push/sign out and draft-only clearing remain direct. Remaining6 native confirms are unsaved-draft navigation/cancel; zero alert calls.
+
+
+## Review date correction / whole-round deletion — 2026-10-15 LOCAL PASS
+
+- `node --test tests/*.test.ts tests/*.test.js`: 980/980 PASS；新date弹窗和delete receipt/auth/error回归曾在修复前失败，修复后通过。`npm run build`含tsc -b PASS（既有chunk警告）；`git diff --check` PASS。
+- `python3 supabase/tests/review_delete_local.py`: 仅existing local Docker内临时库；upgrade305681e+增量与fresh canonical，各新增19项、既有Review117+chronology41项PASS，函数一致。各3项双事务delete/save、revoke/delete、delete/create顺序PASS。验证Shared对方删除、Personal隔离、非成员/离开/新非参与成员拒绝、module-off拒绝、双方entry级联、其他round与编号不改、动态上一计划引用、直接表DELETE禁用。
+- 真实ReviewDetailPage/ReviewHistoryPage，375×812和430×812，原版/修复版相同内容；Chrome检查边界、左对齐、日期保存、新建回归及删除取消/成功/cache invalidation/重复防护/失败重试/权限拒绝/回执不符/Personal提示，零pageerror。截图在本Chat review-final-repair；无真实账号，网络连接禁用，API内存替代。Chrome原版未复现iPhone UA问题，无WebKit运行时；iPhone Safari/PWA日期控件、键盘/安全区仍待真机，不虚报。
+- 当前Production新增delete_review_round已在用户单独授权后安装，精确函数/ACL/旧RPC/RLS及Review数据指纹只读Postflight PASS，未调用生产删除RPC。5175真实Vite目标与新代码对齐，可进入用户自行真实功能验收；本轮未重复980测试、未发布前端。只用可丢弃Review：取消保留；确认整次删除并刷新历史，另一账号确认双方内容消失；Personal其他账号不可读/删。其余业务/Push不重做。
+
 ## Event Collaboration + Review Production static acceptance — PASS / USER DEVICE PENDING
 
 - First feature Production Source2c233e842733fe9c3a916fdbf672860fd26e023f, GitHub7087198195 / VercelAsgVoZ7BxNZaodeG3anCQ3XHu5En success; exact source/environment/project binding independently read from Vercel integration records.
