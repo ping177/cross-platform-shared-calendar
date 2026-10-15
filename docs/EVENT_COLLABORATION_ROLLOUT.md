@@ -1,8 +1,21 @@
 # Shared Space Event collaboration — local contract and rollout
 
 2026-10-15. Baseline: 2204b30fee3e00d116d902c6925b33239b6409dc.
-Status: PRODUCTION BACKEND + USER A/B/PUSH PASS / FINAL FRONTEND DEVICE ACCEPTANCE PENDING.
+Status: PRODUCTION FRONTEND + BACKEND DEPLOYED / USER A/B/PUSH PASS / FINAL DEVICE ACCEPTANCE PENDING.
 SQL was applied by the user; Edge + original Cron restoration separately authorized and completed below. Frontend release separately authorized; exact release result/Source is recorded independently below. No new version.
+
+## First frontend Production release receipt — 2026-10-15
+
+Review commit02d9973; feature Source **2c233e842733fe9c3a916fdbf672860fd26e023f**.
+GitHub Production7087198195 / VercelAsgVoZ7BxNZaodeG3anCQ3XHu5En success,
+reported by the Vercel integration for the correct repository/project/environment.
+Formal domain HTML, JS, CSS, manifest and sw HTTP200. JS/CSS byte-identical to
+final local Build; Event/Review markers, expected backend and original VAPID public
+key all verified. The public key matches the server; ignored .env.local was not
+uploaded. No backend, secret, scheduler, data or Push E2E operation repeated.
+Later authorized docs-only publication records have their own deployment Source;
+this receipt identifies the first functional release, not an eternal latest SHA.
+Final new Production Safari/iPhone PWA user acceptance remains pending.
 
 ## Frontend release acceptance — 2026-10-15
 

@@ -1,10 +1,10 @@
 # Backlog
 
-## 2026-10-15 Shared Space Event 协作权限 — BACKEND + USER A/B/PUSH PASS / FINAL PRODUCTION MOBILE PENDING
+## 2026-10-15 Shared Space Event 协作权限 — FRONTEND DEPLOYED + USER A/B/PUSH PASS / FINAL PRODUCTION MOBILE PENDING
 
 - 用户已确定全员可编辑、改同Space归属、确认删除；Personal私有，space_id/created_by不可变。普通/重复均已本地实施，整个logical series归属原子更正，内容scope保留；并非跨Space移动，不再将此前跨Space评估作为当前需求。
-- 本地978/978、TS/Build/Deno与两路径数据库验证通过，详见DEVLOG/TESTING及 [rollout](./EVENT_COLLABORATION_ROLLOUT.md)。Production用户SQL及独立核验、Edge v5和原Cron恢复/两次自然健康调用已通过；实际本地5175目标对齐。用户核心A/B及真实Push A→B接收人已PASS；本轮前端Git/Vercel发布获授权，实际部署独立核验后仅待最终Production/Safari/PWA反馈，不能提前CLOSED；不新增版本。
-- 当前回顾布局本地验收保留且未部署，原实现三文件指纹不变。筛选器A/B仍独立未决；本项通过Production验收后暂停常规开发、真实使用观察。
+- 本地978/978、TS/Build/Deno与两路径数据库验证通过，详见DEVLOG/TESTING及 [rollout](./EVENT_COLLABORATION_ROLLOUT.md)。Production用户SQL及独立核验、Edge v5和原Cron恢复/两次自然健康调用已通过；实际本地5175目标对齐。用户核心A/B及真实Push A→B接收人已PASS；本轮前端首个Production功能Source2c233e8发布与静态/VAPID核验PASS，仅待最终Production/Safari/PWA反馈，不能提前CLOSED；不新增版本。
+- 回顾布局本地验收保留，已随2c233e8功能Production发布，原实现三文件指纹不变。筛选器A/B仍独立未决；本项通过Production验收后暂停常规开发、真实使用观察。
 
 以下定向问题及只读评估为本轮前历史记录；当前批准范围以上方同Space协作规则为准。
 

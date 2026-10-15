@@ -12,7 +12,7 @@ v0.1.20
 
 ## Current status
 
-Event Collaboration + Review：用户核心A/B及真实Push验收PASS，前端发布已授权，最终Production/Safari/iPhone PWA人工验收PENDING，整体未CLOSED。用户确认普通跨成员编辑/归属、重复系列归属、Shared删除/Personal隔离；真实Push A改B后B收到、A未收到。Review表单日期/布局本地视觉PASS。后台SQL已安装、send-reminders ACTIVE v5、原Cron1恢复及健康PASS保持，不重做；978/978、TypeScript/Build/diff-check最终检查PASS，既有包体积警告非阻塞。发布前实际Production构建的VAPID公钥与服务端摘要匹配，本地.env.local不入Git。发布实际Source/部署结果以本轮独立核验记录为准，不以授权/自动测试推断已发布或真机通过。筛选器统一未实施，正式版本仍v0.1.20；未完整覆盖的Realtime/并发/其他设备边界继续保留。
+Event Collaboration + Review：PRODUCTION FRONTEND DEPLOYED / 最终用户Safari/iPhone PWA验收PENDING，整体未CLOSED。首个功能Source2c233e842733fe9c3a916fdbf672860fd26e023f的Vercel部署及正式域名静态核验PASS，JS/CSS与本地Build逐字节一致，远端构建VAPID公钥与服务端匹配。用户普通跨成员编辑/归属、重复系列归属、Shared删除/Personal隔离及真实Push A→B后B收到/A未收到均PASS；Review本地视觉PASS。后台已完成，不重做SQL/Edge/Cron/Push；978/978、TypeScript/Build/diff-check PASS，既有包体积警告非阻塞。首个功能发布证据与后续docs-only治理部署Source分开记录；最新Source以本轮独立报告/部署记录为准。正式版本v0.1.20不变，不引入筛选器统一；Realtime/并发/其他设备未完整覆盖边界保留。
 
 用户报告Production测试数据已清理，目前保留两个账号及各自Personal Space；本轮未执行该清理或独立读取账号数据。此前整理测试数据/三个账号保留两个的计划已由用户报告接续，不再列作当前待执行任务。
 
@@ -45,6 +45,8 @@ UI v2 Slice6 = LOCAL PASS / VISUAL PASS：用户已认可四张居中概览卡�
 v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3为LOCAL PASS / VISUAL PASS；Slice4为LOCAL PASS / VISUAL PROVISIONALLY ACCEPTED。Slice5月视图本地验证与离线视觉验收通过：两条短标题/准确+N、六色圆点与日期浮层，261/261相关测试、build/diff-check、28组四宽度离线检查PASS；用户确认普通月、密集月、空月及浮层满意。已授权本地commit；不代表真实账号、真机、installed PWA或Production验收。Space Color System继续Deferred；真实账号/真机/installed PWA/Production未验收。正式版本仍v0.1.20。
 
 ## Latest completed
+
+2026-10-15 — Event Collaboration及Review前端首个Production功能部署2c233e8完成（VercelAsgVoZ7BxNZaodeG3anCQ3XHu5En / GitHub7087198195 success）；正式JS/CSS逐字节匹配、VAPID/目标/静态资源PASS。已验收后台与真实Push保持，最终Safari/PWA用户反馈待完成，整体不提前关闭。
 
 2026-10-15 — 用户确认Event Collaboration核心A/B及真实Push A→B正确送达PASS、Review本地视觉PASS；最终28文件范围、978/978/TypeScript/Build/diff-check及实际Production VAPID配置核验通过。独立Review提交02d9973；本轮前端实际Source/发布结果单独核验，最终设备验收不提前关闭。
 
@@ -335,9 +337,9 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 Event Collaboration后台：用户SQL已应用且8函数/ACL/RLS/RPC核验PASS；send-reminders ACTIVE v5 / verify_jwt=false，部署元数据SHA95f02fb496854b8e2c4b085545468b69b7bd06f27f8cc9df24fc75ce14dcb72f，13运行时源码下载匹配。原Job1 schedule及MD5 cd0c5b049c9c1ca9f564c2b1895c00d1保持；自然健康及用户真实Push A→B接收人验收已通过。本轮不再操作后台。
 
-本轮前端发布门禁已获明确Git→Vercel授权；发布前基线2204b30，当前公开Production构建含与服务端匹配的VAPID公钥，.env.local不提交。精确新Source/部署ID及正式域名资源结论以本轮独立发布记录为准，最终Production/Safari/PWA人工验收保留。正式域名 https://cross-platform-shared-calendar.vercel.app/ 。
+首个Event Collaboration + Review功能前端Production Source：2c233e842733fe9c3a916fdbf672860fd26e023f；GitHub Production deployment7087198195 / VercelAsgVoZ7BxNZaodeG3anCQ3XHu5En success，项目与精确SHA匹配。正式域名 https://cross-platform-shared-calendar.vercel.app/ 的HTML/JS/CSS/manifest/sw200，JS/CSS与最终本地Build逐字节一致、VAPID原公钥与服务端匹配，.env.local未提交。后续本轮已授权docs-only发布记录拥有独立Source，不能把功能发布SHA冒充始终最新的治理SHA；最终最新Source在独立发布报告核对。最终Safari/iPhone PWA人工验收PENDING，整体未CLOSED。
 
-日期/表单修复 Production Source：2204b30fee3e00d116d902c6925b33239b6409dc；Vercel 7bvzSyKWKASGCmF1zzydaZygRXJM / GitHub deployment7073484012，部署 success；正式HTML/JS/CSS/manifest/SW HTTP200，CSS与本地构建一致。用户确认上述四项 iPhone PWA PASS。新回顾创建局部修复仅在本地，未Commit/Push/部署，需另行用户验收与发布授权；不修改生产数据、配置或后端。正式域名 https://cross-platform-shared-calendar.vercel.app/ 。上一版0fe85e8的iPhone问题与旧Pending记录保留为历史证据。
+日期/表单修复 Production Source：2204b30fee3e00d116d902c6925b33239b6409dc；Vercel 7bvzSyKWKASGCmF1zzydaZygRXJM / GitHub deployment7073484012，部署 success；正式HTML/JS/CSS/manifest/SW HTTP200，CSS与本地构建一致。用户确认上述四项 iPhone PWA PASS。该段记录日期/表单修复的历史部署；后续回顾创建局部修复已获本地验收，并随上方2c233e8功能版本发布，最终Production设备验收仍待用户反馈；未修改生产数据、配置或后端。正式域名 https://cross-platform-shared-calendar.vercel.app/ 。上一版0fe85e8的iPhone问题与旧Pending记录保留为历史证据。
 
 本轮日历创建与我的标题沿用origin/main → Vercel自动Production部署；部署成功、精确Source SHA和公开资源以发布核验报告的实测结果为准。Production/PWA真实人工验收PENDING，不能由部署成功推断PASS。真实Vite固定5175与Production项目ximazjhxvmktpcdbypka已对齐，既有Event/成员契约limit0 HTTP200；无新Schema/RPC/Edge要求、不改后端。正式域名：https://cross-platform-shared-calendar.vercel.app/ 。
 

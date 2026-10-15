@@ -1,5 +1,11 @@
 # Testing
 
+## Event Collaboration + Review Production static acceptance — PASS / USER DEVICE PENDING
+
+- First feature Production Source2c233e842733fe9c3a916fdbf672860fd26e023f, GitHub7087198195 / VercelAsgVoZ7BxNZaodeG3anCQ3XHu5En success; exact source/environment/project binding independently read from Vercel integration records.
+- Formal domain HTML/JS/CSS/manifest/sw200. JS and CSS byte-identical to final local Build; Event collaboration/Review/create-target markers present, backend project correct, public VAPID key included and equal to current-server-verified original. Local env file is ignored. No real login or device testing by Codex.
+- 978/978 + TypeScript/Build/diff-check PASS. User core A/B + real Push PASS retained; final new-frontend Safari/iPhone PWA checks pending. Later docs-only deployment has its own Source and does not retroactively change this feature-release receipt.
+
 ## Event Collaboration + Review release gate — USER A/B + PUSH PASS / FINAL PRODUCTION MOBILE PENDING
 
 - User confirms ordinary cross-member edit/audience, recurring whole-series audience, Shared delete and Personal isolation PASS. Real delivery after A→B: B received, A did not. This supersedes earlier no-due/pending-Push checkpoints only for this tested scenario; other device/concurrency/Realtime/permission-revocation limits remain unclaimed.

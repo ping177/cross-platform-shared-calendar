@@ -1,5 +1,12 @@
 # Development Log
 
+## 2026-10-15 — Event Collaboration + Review frontend Production — DEPLOYED / FINAL USER DEVICE PENDING
+
+- Review独立提交02d9973；Event Collaboration功能提交/首个Production Source `2c233e842733fe9c3a916fdbf672860fd26e023f`，正常push origin/main成功；GitHub Production deployment7087198195由vercel[bot]报告success，Vercel部署AsgVoZ7BxNZaodeG3anCQ3XHu5En，唯一部署地址cross-platform-shared-calendar-afv0jtqpi-ping178.vercel.app。项目/仓库/Production环境及精确SHA一致，不以HEAD或clean推断部署。
+- 正式域名HTML、index-DGmbm8wz.js、index-ZhudcQTM.css、manifest和sw均HTTP200；JS/CSS与本地最终Build逐字节一致。Event save_event_edit/整系列归属说明/CAS删除、Review局部form/CSS及旧日历目标Space标识存在；实际Supabase目标ximazjhxvmktpcdbypka。
+- 新Production构建含原VAPID公钥，与已核验服务端公钥匹配。证明远端构建注入正确，未依赖Git忽略的本地.env.local；未读取Push私钥；既有管理凭据仅进程内使用、未输出，未修改Vercel环境。既有系统代理用于只读静态核验，无网络/生产配置改动。
+- 本轮最终978/978及TypeScript/Build/diff-check PASS；不重做SQL/Edge/Cron/Push E2E，已验收回顾及其他既有修改保留，无新增功能/版本。用户确认核心A/B和真实Push A→B正确送达PASS；尚待新前端Production/Safari/iPhone PWA最终反馈，整体不CLOSED。后续本次已授权docs-only发布记录不改变上述首个功能Source证据，最新治理部署Source以独立最终核验为准。
+
 ## 2026-10-15 — Event Collaboration + Review 前端发布审查 — AUTH ACCEPTED / FINAL DEVICE PENDING
 
 - 用户确认普通Event跨成员编辑/改归属、重复系列改归属、共享删除/Personal隔离全部PASS；真实Push A→B后B收到、A未收到PASS，属于用户真实送达证据，不再沿用此前“无候选未测Push”的发布窗口状态。此前“哈”全天08:00测试未发送属已查明的配置语义，不是本轮代码缺陷；未重发历史通知。Review局部表单布局/日期已获用户本地视觉验收。最终新前端Production/Safari/iPhone PWA尚待用户确认，整体不CLOSED。
