@@ -1,5 +1,13 @@
 # Testing
 
+## UI repair Production static postflight — 2026-10-15 PASS / FINAL DEVICE PENDING
+
+First functional Source `b0487c106cc654dc72de5054191480376b9aacc8`; vercel[bot] GitHub Production 7092894811 / Vercel 2jNzviS264gyfMpKzzpNkXGVMHMy success, correct repository and exact SHA. Formal origin HTML/JS/CSS/manifest/SW verified; JS index-DYnsqgws.js and CSS index-CgQs3Nqx.css are byte-identical to the verified local Build. WebKit focus fix/shared content hierarchy/scope and warning strings present; public backend/client/VAPID configuration matches that Build. Fixed deployment URLs require Vercel login, so no protected resource claim or login/bypass is made. Fresh375px public login-page smoke: correct assets200, zero pageerrors/backend requests, no OTP sent or session inherited.
+
+User local iPhone Safari all-five acceptance PASS remains; final Production installed-PWA acceptance is PENDING.992/992 + WebKit/Chrome18/18 + final TS/Build/Node syntax/diff-check remain valid for unchanged implementation. Source and artifact fingerprints checked, no redundant full/E2E run. The original configured npm mirror lacks audit; official registry production-only audit0, no dependency/config changes. No backend/Auth/data change.
+
+This actual publication record is followed by its own authorized docs-only commit/deployment; final Source is independently checked in the release report. The functional SHA above is not a claim about permanent latest main. Push freshness after the functional push: POST_PUSH_STATE_CURRENT. Final PWA smoke remains the minimum described below; do not mark CLOSED before the user's result.
+
 ## UI repair release acceptance — 2026-10-15 USER IPHONE SAFARI PASS / FINAL PRODUCTION PWA PENDING
 
 User explicitly accepts all five local iPhone Safari checks: empty/nonempty group rename/delete, both scopes, edge-to-edge bottom shells, List-based title/object/body/warning/buttons, and existing special safeguards. Previous UI-pending text below is historical. Production frontend Commit/Push/Vercel release is authorized; final installed-PWA acceptance remains user-owned and must not be marked CLOSED early.

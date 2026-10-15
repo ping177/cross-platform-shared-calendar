@@ -1,5 +1,13 @@
 # Development Log
 
+## 2026-10-15 — UI修复Production发布成功 — DEPLOYED / FINAL IPHONE PWA PENDING
+
+- 功能提交/首个Production Source `b0487c106cc654dc72de5054191480376b9aacc8`：fix(ui): restore WebKit group actions and unify delete confirmations。20文件完整纳入，无凭据/环境/调试产物；正常push origin/main成功，Project State门禁PASS，随即只读freshness review POST_PUSH_STATE_CURRENT。
+- GitHub Production部署 7092894811（vercel[bot]、正确仓库/环境/精确SHA），Vercel 2jNzviS264gyfMpKzzpNkXGVMHMy / 状态success。正式域名HTML及JS index-DYnsqgws.js、CSS index-CgQs3Nqx.css、manifest、sw核验PASS；JS SHA256 6e6015f3ffb5e6004f8b1b38b87ed5510ad9910259f4ce115f303c639bcb996c，CSS SHA256 b2bcfbe738c002406d2fc7536bbb1899bf5abf09b4360d013c7466b07352a9e3，四资源与已验证本地Build逐字节相同，焦点修复/统一层级及特殊内容标识存在，公开目标/客户端/VAPID配置与验证Build匹配。固定部署域名为Vercel登录保护页，未绕过或登录；元数据由GitHub/Vercel关联记录核对，资源由正式公开域名核对，不把保护页当作应用资源。
+- 全新无登录Chrome375px正式首页：验证码入口渲染PASS、零pageerror、零后台请求，实际加载正确JS/CSS。未发送验证码、未继承登录态、未调用业务API；未操作数据库/RLS/RPC/Edge/Cron/Auth/业务数据。992/992及WebKit/Chrome18/18已验证源码未变，最终Build/TS/语法/diff-check保持PASS，生产依赖audit0，原bundle警告非阻塞。
+- 用户本地iPhone Safari全部五项验收PASS保持；最后Production installed PWA真实验收仍待用户，尚未CLOSED/PASS。最少重开正式PWA，用可丢弃分组复验改名/取消/两范围及普通/特殊确认外形和层级；无需删除真实Space或重测Push。
+- 本次授权包含实际发布记录收口，因此本条作为后续docs-only提交/正常push接续。上方SHA明确是首个功能发布证据；docs-only最终Source/部署单独核验，不把功能SHA冒充永久最新。后续每次push继续执行预审与只读post-push freshness review，Next Action保持用户最终PWA反馈。没有新的UI/业务代码改动，不重复全量/E2E。
+
 ## 2026-10-15 — UI修复正式发布门禁 — USER IPHONE SAFARI PASS / PRODUCTION PWA PENDING
 
 - 用户明确确认五项本地iPhone Safari功能/视觉PASS：空/非空分组改名删除、两范围、贴底外壳、清单基准内部层级、原特殊规则/安全确认，并授权本轮Commit/正常Push/origin-main及既有Vercel前端发布。正式PWA用户最终验收前不CLOSED/PASS。

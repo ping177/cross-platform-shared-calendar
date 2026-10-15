@@ -12,7 +12,7 @@ v0.1.20
 
 ## Current status
 
-本轮UI修复：LOCAL IPHONE SAFARI ACCEPTED / PRODUCTION PWA FINAL ACCEPTANCE PENDING，尚未CLOSED。用户确认空/非空分组改名删除、两种删除范围、全宽贴底外壳、清单基准内部层级及全部特殊安全确认PASS，并明确授权本轮正常Commit/Push/既有Vercel前端发布。992/992、WebKit/Chrome18/18、TypeScript/Build/语法/diff-check PASS；发布前源码未变，Build产物与最终验证一致，生产依赖audit为0。实际Production Source、部署和公开资源状态通过独立发布核验记录，不以本地通过推断上线或PWA通过。v0.1.20保持；原Production/main基线5e171949d2c83c93ee8caa151426acc900b7ffb1作为历史基线保留。无数据库/Edge/Cron/Auth/业务数据变更，不扩展功能。
+本轮UI修复：FRONTEND PRODUCTION DEPLOYED / FINAL IPHONE PWA USER ACCEPTANCE PENDING，尚未CLOSED。用户已确认本地iPhone Safari全部五项功能/视觉及特殊安全规则PASS；首个功能发布Source `b0487c106cc654dc72de5054191480376b9aacc8`，GitHub Production 7092894811 / Vercel 2jNzviS264gyfMpKzzpNkXGVMHMy success，正式JS/CSS/manifest/SW与已验证本地Build逐字节一致，375px无登录首页渲染PASS/零pageerror/零后台请求。本次实际发布记录作为独立docs-only提交接续；最终最新Source由发布报告单独核验，不把首个功能SHA冒充永久最新。992/992、WebKit/Chrome18/18、TS/Build/语法/diff-check证据保持，生产依赖audit0，既有chunk警告非阻塞。仅前端UI/测试/治理发布，v0.1.20不变，无数据库/Edge/Cron/Auth/业务数据修改。正式PWA最终反馈前不CLOSED/PASS。
 
 用户报告Production测试数据已清理，目前保留两个账号及各自Personal Space；本轮未执行该清理或独立读取账号数据。此前整理测试数据/三个账号保留两个的计划已由用户报告接续，不再列作当前待执行任务。
 
@@ -45,6 +45,8 @@ UI v2 Slice6 = LOCAL PASS / VISUAL PASS：用户已认可四张居中概览卡�
 v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3为LOCAL PASS / VISUAL PASS；Slice4为LOCAL PASS / VISUAL PROVISIONALLY ACCEPTED。Slice5月视图本地验证与离线视觉验收通过：两条短标题/准确+N、六色圆点与日期浮层，261/261相关测试、build/diff-check、28组四宽度离线检查PASS；用户确认普通月、密集月、空月及浮层满意。已授权本地commit；不代表真实账号、真机、installed PWA或Production验收。Space Color System继续Deferred；真实账号/真机/installed PWA/Production未验收。正式版本仍v0.1.20。
 
 ## Latest completed
+
+2026-10-15 — 本轮UI功能Source b0487c1已正常push并由既有Vercel部署Production成功（GitHub 7092894811 / Vercel 2jNzviS264gyfMpKzzpNkXGVMHMy）；正式JS/CSS逐字节匹配、manifest/SW/目标公开配置核验及375px无登录首页PASS。当前docs-only记录由独立Source接续；用户正式PWA最终验收仍Pending。
 
 2026-10-15 — 用户确认本轮五项iPhone Safari功能/视觉及特殊删除安全规则PASS，并授权正式前端发布；20文件范围与自动验证证据复核、最终Build/语法/diff-check及生产依赖audit0通过。实际Git/Vercel/静态资源另行核验，正式PWA最终验收前不CLOSED。
 
@@ -351,7 +353,9 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
-本轮分组WebKit/删除确认UI发布已获用户明确授权，使用正常Git→既有Vercel Production流程，不更改生产配置或后台。首个功能Source、Vercel状态和正式JS/CSS匹配证据在实际发布核验后补充；不能用本地Build冒充Production结果。此前Production/main5e171949d2c83c93ee8caa151426acc900b7ffb1仅为历史基线，下方为此前部署证据。
+本轮UI首个功能Production Source：`b0487c106cc654dc72de5054191480376b9aacc8`，GitHub部署 7092894811、Vercel 2jNzviS264gyfMpKzzpNkXGVMHMy 均success。正式域名JS `/assets/index-DYnsqgws.js`、CSS `/assets/index-CgQs3Nqx.css`、manifest及SW成功获取且与本地Build逐字节一致；新焦点/内容/外壳标识均存在，公开后端客户端/VAPID配置与已验证Build匹配。375px正式无登录首页渲染PASS，零pageerror/后台请求。固定部署地址受Vercel登录保护，本轮不登录或绕过；Source以vercel[bot]的正确仓库/Production/精确SHA记录核对，资产以正式公开域名核对。
+
+本条记录的是已核验首个功能部署；后续本次授权docs-only发布记录拥有独立Source，最终SHA/部署以最终发布报告独立核验。不得据此推断PWA真实验收已通过；用户最后反馈Pending。没有数据库/Edge/Cron/Auth/业务数据操作，未更改生产配置。此前5e17194及下方记录均为历史部署证据。
 
 Review最终修复 + 确认UI首个功能Production Source d514b71d348d74dc12ebe46345b475c163d08b25（Review提交8f5efd1）。GitHub7089323536 / VercelBZbyFYcM8Erdbq19VmWA3NEFEruv success；正式域名HTML/JS/CSS/manifest/sw200，JS/CSS与本地Build一致，Supabase目标与既有VAPID公钥匹配。后续已授权docs-only发布记录Source与最终main由本轮独立报告核验；本条仅记录首个功能发布，不推断永久最新。最后Production iPhone PWA验收仍PENDING，无后端重复部署。
 
