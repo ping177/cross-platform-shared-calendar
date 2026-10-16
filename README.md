@@ -6,6 +6,9 @@ Production URL: https://cross-platform-shared-calendar.vercel.app/
 
 ## 当前阶段
 
+- 2026-10-16：**v0.1.20 CLOSED / PASS**。全域UI/UX一致性修整及创建表单Space选择器补充均完成，用户在正式installed iPhone PWA确认整轮六项及补充六项全部PASS；已验收业务代码 `b021a41d4d02543e565a121ba6a8cdb17c988361`。本地/Production验证与验收范围见 [Project State](./docs/PROJECT_STATE.md) / [Testing](./docs/TESTING.md)，不代表其他未执行业务测试或整个项目正式试用已完成。
+- 下一阶段为**独立工程稳定性审查（尚未启动）**，待用户另行指示后先只读检查，再依据证据决定是否修改；不创建新版本或在本次收口中启动工程工作。以下条目保留各历史阶段事实。
+
 - 2026-10-09 Product Direction Freeze：先建立 Figma ↔ Codex MCP 工作流，完成全应用统一 UI 设计至用户明确满意；再分阶段实施确认设计、完善中英文/i18n、检查试用前安全/隐私/账户/访问体验、家庭与适量外部试用，最后整理演示/设计/项目说明/简历与 LinkedIn 材料。全应用覆盖与候选功能边界见 [Decisions](./docs/DECISIONS.md#product-direction-freeze--2026-10-09)。本轮只记录方向，不配置 MCP、不实施 UI。
 - v0.1.20 Mobile Gesture Navigation `CLOSED / PASS`：两个冻结 Scope、focused review、全量788自动测试、Production发布与资产核验，以及用户真实 iPhone installed PWA 13/13 人工检查 PASS。多指取消/busy 未单独人工检查；证据边界见 [Testing](./docs/TESTING.md)。最终 closeout c316b60 已 push、独立远端核验及 docs-only Production 部署成功；后续顺序由上方 Product Direction Freeze 接续。
 - v0.1.10 foundation remains `CLOSED / PASS`; v0.1.11 Slices 1–4 and the overall version are `CLOSED / PASS`. Production includes Slice 4; user-reported Desktop and installed PWA acceptance passed. Dedicated final iPhone Safari acceptance is `NOT RUN` and is not a Slice 4 blocker. Independent Slice 3 Event/Task section error/retry simulation remains `NOT RUN / DIFFICULT TO SIMULATE SAFELY`; second Shared Space is `N/A / NOT RUN`. Home “近期日程 +” opens Event creation directly; “需要处理的任务 +” opens Task creation directly. See the [v0.1.11 Navigation + Aggregation Spec](./docs/v0.1.11_NAVIGATION_AGGREGATION_SPEC.md), [v0.1.9 Shared Tasks Spec](./docs/v0.1.9_SHARED_TASKS_SPEC.md), and [Shared Life Architecture Freeze](./docs/SHARED_LIFE_ARCHITECTURE.md).

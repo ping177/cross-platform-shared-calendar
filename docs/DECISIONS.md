@@ -1,5 +1,9 @@
 # Decisions
 
+## 2026-10-16 — v0.1.20 正式收口，后续审查独立启动
+
+用户明确确认整轮UI/UX六项及创建表单Space补充六项真实Production iPhone PWA全部PASS，授权仅治理文档Commit/正常Push及状态核验；正式v0.1.20 = CLOSED / PASS，无剩余阻塞验收项，不新版本。已验收业务基线b021a41，历史实施/发布Pending由最终验收接续但保留原事实。旧来源文案及bundle提示非阻塞，不借收口修复；不把其他未执行业务测试写成PASS。后续“独立工程稳定性审查（尚未启动）”先只读，需另行用户指示，不在本轮开展。允许正常Git集成触发docs-only部署，不手动部署/改配置；仅Source SHA改变不代表应用行为变化，不重复要求整轮PWA验收。
+
 ## 2026-10-16 — 创建表单 Space 本地验收通过，授权正式发布
 
 用户确认日历/任务/清单/重要日及首页快捷新建本地iPhone Safari全部PASS，冻结当前补充实现，授权正常实现Commit、Push origin/main和现有GitHub→Vercel自动Production。仅原24文件源码/直接测试/治理记录，不新增设计、版本、依赖或后台/配置变更。此前六项正式PWA PASS保持；本次提交前Production release/PWA acceptance均PENDING，Source/资源另行实证，正式PWA由用户验收。收到本次Production PASS前不最终CLOSED/PASS、不追加最终Governance Closeout Commit或启动稳定性审查。下方LOCAL ONLY为当时实施边界，现由本次授权接续。

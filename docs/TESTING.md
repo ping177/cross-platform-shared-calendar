@@ -1,5 +1,17 @@
 # Testing
 
+## v0.1.20 最终验收 — 2026-10-16 CLOSED / PASS
+
+用户明确确认以下两组检查均由本人在**已安装的正式 iPhone Production PWA**中完成并全部 PASS，不是 Codex 自动化或模拟验收：
+
+1. 整轮 UI/UX 六项：首页三个板块标题；四模块标题/空状态/次级折叠入口；功能中心简洁化；回顾新建/修改日期贴底与关闭；空间管理/详情右滑；通知及登录视觉。
+2. Space 补充六项：日历新建自定义菜单；任务新建自定义菜单；清单新建自定义菜单；重要日新建自定义菜单；首页快捷新建；菜单切换/选中回显/取消/关闭。
+
+- Local automated tests = PASS；user local iPhone Safari acceptance = PASS；Production deployment/source/assets verification = PASS；user Production iPhone PWA acceptance = PASS。v0.1.20定义的全域UI/UX及Space补充范围完成，无阻塞验收项。
+- 最终业务代码 `b021a41d4d02543e565a121ba6a8cdb17c988361`：Node990/990、WebKit/Chrome105/105、TypeScript/Production Build、脚本语法/diff-check PASS；Production Deployment7114613389 / Vercel jcaKrzrRQuptpwkHUGi2P8Udey2U success，Source匹配，HTML/JS/CSS/manifest/SW/图标7项与Build逐字节一致，无登录375/430 smoke PASS。此前e70c66f整轮六项PASS保留，完整发布证据 `/private/tmp/calendar-space-release/`。
+- 本次docs-only不重跑Node/浏览器/Build、不新写代码测试；检查文档差异、状态一致性、diff-check及现有Project State Push Gate。治理Push若自动部署，仅核对治理Source/成功/应用树不变及静态资源一致，不将部署SHA变化当功能变化，不重复要求用户整轮PWA验收。核验记录 `/private/tmp/calendar-v020-closeout/`。
+- 不扩写未执行的其他业务、安全、Push、Realtime、多账号或跨平台边界为PASS。旧日历来源“我的空间”文案、已有bundle提示非阻塞；独立工程稳定性审查尚未启动。下方Pending/Local Only为历史检查点，已由本节最终验收接续，不再作为当前待验收。
+
 ## 创建表单 Space 发布前最终集成 — 2026-10-16 LOCAL ALL PASS / PRODUCTION PWA PENDING
 
 - 用户确认四模块新建及首页快捷新建五项本地iPhone Safari PASS，接续下方本补充旧Local Pending；此前六项正式PWA PASS保持，本次新增控件正式PWA仍PENDING。

@@ -1,5 +1,11 @@
 # Backlog
 
+## 2026-10-16 v0.1.20 — CLOSED / PASS；独立工程稳定性审查尚未启动
+
+- 已完成：全域UI/UX整轮六项及创建表单Space补充六项，用户真实installed Production iPhone PWA全部PASS。本地自动/本地Safari/Production部署与资源验证均PASS；本轮无剩余阻塞性验收项。业务代码b021a41，详细范围/证据见TESTING首节及PROJECT_STATE；下方旧Pending是历史检查点，不再作为当前待办。
+- 非阻塞遗留：普通日历编辑可能使用通用“我的空间”来源文案；Production Build既有bundle大小提示。本轮不修复。
+- 独立工程稳定性审查（尚未启动）：未来只读检查项目结构与历史冗余、权限和数据安全、核心业务可靠性、测试覆盖与有效性、复杂度和维护成本、PWA/跨平台稳定性，再依证据决定是否修改。当前只登记方向，等待用户启动，不创建实施版本、不开始审查或修改代码。
+
 ## 2026-10-16 表单 Space 正式发布检查点 — LOCAL ACCEPTED / PRODUCTION PWA PENDING
 
 四模块及首页快捷新建用户本地iPhone Safari五项PASS，最终完整Node990/990、WebKit/Chrome105/105、TS/Build/语法/diff-check与audit0通过，用户授权正常Commit/Push及既有自动Production。此前六项正式PWA PASS保持；当前下一业务检查点为本次部署Source/资源核验后的用户正式PWA菜单选择/取消/滚动验收，无需保存删除或重验旧六项。下方Local Pending为历史；本次正式PWA仍Pending、不最终收口或启动新版本/稳定性审查。普通日历编辑Personal来源通用文案继续非阻塞记录，不扩修。
