@@ -82,7 +82,7 @@ export function HomeSection({ title, status, error, items, previewLimit, empty, 
 }) {
   return <section className="rounded-ui-group bg-ui-surface p-ui-4 shadow-ui-group" aria-label={title}>
     <div className="mb-ui-2 flex min-h-ui-touch items-center justify-between gap-ui-3">
-      <h2 className="min-w-0 break-words text-ui-section">{title}</h2>
+      <h2 className="min-w-0 break-words text-ui-list font-ui-semibold">{title}</h2>
       {createAction}
     </div>
     {createFeedback}

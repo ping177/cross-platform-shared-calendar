@@ -1,5 +1,33 @@
 # Backlog
 
+## 2026-10-16 全域UX正式发布检查点 — LOCAL ACCEPTED / PRODUCTION PWA PENDING
+
+用户确认本轮全部本地iPhone Safari PASS，并授权整轮Commit/正常Push及既有自动Production；下方首页/折叠/其他Local Pending均已接续。最终Node990/990、原并行Browser81/81、TS/Build/语法/diff-check通过；仅修一项旧静态测试的class顺序假设，未再改设计。当前业务检查点为部署及正式资源核验后的用户installed PWA最小验收；提交前Production release/PWA均Pending，实际部署结果见本次发布报告。其他字重差异不扩展当前范围，不新版本/功能/后端；用户正式PASS前不最终收口或追加Governance Closeout Commit。
+
+## 2026-10-16 最后首页标题调整 — LOCAL VERIFIED / FINAL USER LOCAL PENDING
+
+用户已确认四模块顶部/空状态、次级折叠入口、回顾贴边、空间右滑、登录及功能中心本地iPhone Safari PASS，下方对应待验收为历史检查点。本次最后一项仅首页三个板块标题统一16px/600，原卡片和内容布局不变；Node115/115、双引擎10个页面/数据场景与TS/Build通过。唯一当前动作是用户首页最终本地验收，随后等待另行Git/Production发布授权；不提前最终CLOSED/PASS。此前其他字重差异保留记录，不新增实施范围或阻塞项。
+
+## 2026-10-16 次级折叠入口及四模块复核 — LOCAL VERIFIED / USER SAFARI PENDING
+
+用户已确认回顾两Sheet贴边、空间右滑、登录PASS，UX-01至UX-09主要视觉基本满意；下方三项/Review待验收为历史检查点，已由本反馈接续。本轮任务/清单/重要日折叠入口沿任务轻量风格、同级分组标题和12px节奏本地完成；Node80/80、WebKit/Chrome70/70、补充数量断言3/3、TS/Build通过。四模块375/430有内容/正常空结果及展开收起/页底已真实比较，下一步只复验三入口，不重验已PASS部分。
+
+横向复核待设计决定：筛选框清单600/另三页400及任务浅边框；任务行标题500/另三页600。保留现有冻结宽度和内容强调，证据见TESTING及临时REPORT，不自动实施。非所有权限/分页/加载失败组合均有完整视觉截图；不将此复核写成全产品无遗漏。全部未提交成果保留，不新版本/Commit/Push/部署/最终CLOSED。
+
+## 2026-10-16 回顾底部Sheet — LOCAL LAYOUT VERIFIED / USER SAFARI RECHECK PENDING
+
+用户最新真实验收：空间管理手势、登录视觉/标语PASS且禁止再次修改；回顾水平PASS、底部FAIL。已仅本地修复两个Review Sheet的外层底部padding并复用既有贴底/安全区规则，自动证据见TESTING；唯一下一步是用户复验新建与日期更正的底边、原生日期/软键盘关闭和取消。既有27文件保护，未重开UX/后台或新版本；不Commit/Push/部署或提前最终收口。
+
+## 2026-10-16 首轮本地反馈 — 三项定向修正 / USER RECHECK PENDING
+
+用户对当前UX修整整体基本满意；仅接续回顾短弹窗横向宽度、空间管理/详情右滑返回覆盖缺口及登录浅色/去旧标语。修复本地完成，验证记录见TESTING；不重开其余UX、不启动新任务或版本。下一步只复验这三项，不能将“基本满意”写成无保留最终PASS。全部未提交成果保留，Production与既有筛选器最终治理状态不变。
+
+## 2026-10-16 全域UX一致性修整 — LOCAL AUTOMATED PASS / USER LOCAL ACCEPTANCE PENDING
+
+用户冻结UX-01至UX-09的四工作组已本地完成：顶部/功能中心、正常空结果/局部名称、短弹窗键盘/登录通知视觉、真实跨模块对比。Node990/990、最后增量40/40、WebKit/Chrome61/61、TS/Build/语法/diff-check PASS。当前只等待本地iPhone Safari最小验收，见TESTING；不提交/推送/部署、不新建版本/功能、不标记最终CLOSED/PASS。
+
+Production仍为最近确认5533b329；上一轮筛选器主要交互PWA正常，但回顾间距已由本轮本地修整、尚待真机反馈，正式最终治理未收口。UX-07只处理本轮明确具体Space名称；Calendar独立来源的类型文案及语义不明确位置不批量替换、不自动启动后续改动。保留已关闭删除交互范围与其他历史验收事实，不扩大为全项目试用完成。
+
 ## 2026-10-16 五模块Space筛选器 — LOCAL AUTOMATED + USER LOCAL IPHONE SAFARI PASS / FINAL PRODUCTION PWA PENDING
 
 冻结设计已完成并经用户真实账号本地iPhone Safari验收PASS。990/990、WebKit/Chrome44/44、TypeScript/Build/diff-check及375/430实际组件检查PASS；992→990仅为旧日历Sheet两例随下拉真实DOM测试替换。用户授权正常Commit/Push与既有Vercel自动Production前端发布，实际Source/静态证据见独立发布报告。下一业务动作仅用户已安装正式iPhone PWA最小验收，通过后再另行授权最终治理收口；本轮尚未CLOSED/PASS，不新增版本/后台工作。下方旧删除确认与分组CLOSED/PASS保持。

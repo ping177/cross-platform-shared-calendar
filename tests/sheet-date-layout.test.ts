@@ -44,7 +44,8 @@ test('Review create form stays inside the viewport and scrolls long content loca
   assert.match(form, /overscroll-behavior:\s*contain/);
   assert.match(form, /overflow-wrap:\s*anywhere/);
   const source = readFileSync(new URL('../src/components/ReviewHistoryPage.tsx', import.meta.url), 'utf8');
-  assert.match(source, /<form className="ui-review-create-form [^"]*ui-safe-bottom" onSubmit=/);
+  const classes = source.match(/<form className="([^"]+)" onSubmit=/)?.[1].split(/\s+/) ?? [];
+  for (const name of ['ui-review-create-form', 'ui-review-sheet', 'ui-safe-bottom']) assert.ok(classes.includes(name), name);
 });
 
 

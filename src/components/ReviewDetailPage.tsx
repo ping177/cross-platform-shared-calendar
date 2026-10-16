@@ -58,6 +58,8 @@ export function ReviewDetailPage({ target, userId, onBack, onDirtyChange, onUnav
   const [dateError, setDateError] = useState('');
   const [dateBusy, setDateBusy] = useState(false);
   const submittingDate = useRef(false);
+  const dateButton = useRef<HTMLButtonElement>(null);
+  const dateKeyboard = useListModalKeyboard(dateOpen, dateBusy, () => setDateOpen(false), '#review-corrected-date', submittingDate, { cycleTab: true, lockScroll: true, restoreFocus: () => dateButton.current });
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [deleteError, setDeleteError] = useState('');
@@ -204,7 +206,7 @@ export function ReviewDetailPage({ target, userId, onBack, onDirtyChange, onUnav
       <section className="mt-ui-6 min-w-0">
         <h1 className="break-words text-ui-page-title">{formatReviewDate(detail.round.review_date)}</h1>
         <p className="mt-ui-1 text-ui-meta text-ui-muted">第 {detail.round.round_no} 次回顾</p>
-        <button className="ui-focus mt-ui-2 min-h-ui-touch min-w-11 rounded-ui-control text-ui-meta font-ui-semibold text-ui-accent" type="button" aria-label="更正回顾日期" disabled={dateBusy || deleteBusy} onClick={openDate}>更正日期</button>
+        <button ref={dateButton} className="ui-focus mt-ui-2 min-h-ui-touch min-w-11 rounded-ui-control text-ui-meta font-ui-semibold text-ui-accent" type="button" aria-label="更正回顾日期" disabled={dateBusy || deleteBusy} onClick={openDate}>更正日期</button>
       </section>
       {refreshError && <div className="mt-3 text-ui-meta text-ui-danger" role="alert">{refreshError}<button className="ui-focus ml-ui-2 min-h-ui-touch min-w-11 rounded-ui-control font-ui-semibold text-ui-accent" type="button" onClick={() => void refreshDetail()}>重试</button></div>}
       {target.justCreated && <section className="mt-ui-6 min-w-0 rounded-ui-group border border-ui-border bg-ui-surface p-ui-4" aria-label="上一份计划参考">
@@ -233,8 +235,8 @@ export function ReviewDetailPage({ target, userId, onBack, onDirtyChange, onUnav
         </div>
       </div>
     </div>}
-    {dateOpen && detail && <div className="fixed inset-0 z-40 flex items-end bg-ink/50 p-4 md:items-center" role="dialog" aria-modal="true" aria-labelledby="review-date-title" onClick={(event) => { if (event.target === event.currentTarget && !dateBusy) setDateOpen(false); }}>
-      <form className="ui-review-date-form mx-auto w-full max-w-md rounded-ui-sheet bg-ui-page p-ui-5 shadow-ui-sheet ui-safe-bottom" onSubmit={(event) => void saveDate(event)}>
+    {dateOpen && detail && <div ref={dateKeyboard.container} tabIndex={-1} onCompositionStartCapture={() => { dateKeyboard.composing.current = true; }} onCompositionEndCapture={() => { dateKeyboard.composing.current = false; }} className="ui-review-sheet-overlay fixed inset-0 z-40 flex items-end bg-ink/50" role="dialog" aria-modal="true" aria-labelledby="review-date-title" onClick={(event) => { if (event.target === event.currentTarget && !dateBusy) setDateOpen(false); }}>
+      <form className="ui-review-date-form ui-review-sheet mx-auto w-full max-w-lg rounded-ui-sheet bg-ui-page p-ui-5 shadow-ui-sheet ui-safe-bottom md:max-w-md" onSubmit={(event) => void saveDate(event)}>
         <h2 id="review-date-title" className="text-ui-section">更正回顾日期</h2>
         <p className="mt-ui-2 text-ui-meta text-ui-muted">当前日期：{formatReviewDate(detail.round.review_date)}</p>
         <label className="mt-ui-4 block text-ui-meta font-ui-semibold" htmlFor="review-corrected-date">回顾日期</label>

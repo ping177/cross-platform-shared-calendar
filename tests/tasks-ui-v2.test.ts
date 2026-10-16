@@ -39,8 +39,8 @@ test('old completed navigation remains supported with its original title and dir
 }));
 test('zero, loading, read failure and no-qualified-Space are distinct and do not expose stale rows', () => fixture(({ m, render }) => {
   m.tasks.state.data.grouped = { open: [], completed: [] };
-  assert.match(render(), /暂无待完成事项/);
-  assert.match(render(), /暂无已完成事项/);
+  assert.match(render(), /暂无待完成任务/);
+  assert.match(render(), /暂无已完成任务/);
   for (const status of ['loading', 'error']) {
     m.tasks.state = { status, data: data(), error: '任务读取失败' };
     const html = render(); assert.doesNotMatch(html, /data-task-id=/);

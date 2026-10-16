@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState, type RefObject } from 'react';
+import { useListModalKeyboard } from './ListSheets';
 import { Bell, BellOff, Send, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import {
@@ -36,21 +37,17 @@ const statusCopy: Record<PushCapabilityStatus, { title: string; body: string }> 
   error: { title: '通知设置遇到问题', body: '请检查网络和配置后重试。' },
 };
 
-export function NotificationSettings({ onClose }: { onClose: () => void }) {
+export function NotificationSettings({ onClose, returnFocusRef }: { onClose: () => void; returnFocusRef?: RefObject<HTMLButtonElement> }) {
   const [status, setStatus] = useState<PushCapabilityStatus>('default');
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  // Closing this panel keeps the existing notification operation semantics.
+  const keyboard = useListModalKeyboard(true, false, onClose, '[data-notification-close]', undefined, { cycleTab: true, lockScroll: true, restoreFocus: () => returnFocusRef?.current ?? null });
   const platform = browserPushPlatformContext();
   const needsIosInstallation = platform.isIos && !platform.isStandalone;
 
   useEffect(() => {
-    closeButtonRef.current?.focus();
     let active = true;
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', closeOnEscape);
 
     async function inspect() {
       if (!isBrowserPushSupported()) {
@@ -82,7 +79,6 @@ export function NotificationSettings({ onClose }: { onClose: () => void }) {
     void inspect();
     return () => {
       active = false;
-      window.removeEventListener('keydown', closeOnEscape);
     };
   }, [onClose]);
 
@@ -149,48 +145,48 @@ export function NotificationSettings({ onClose }: { onClose: () => void }) {
   const copy = statusCopy[status];
 
   return (
-    <div className="fixed inset-0 z-30 flex items-end bg-ink/35 md:items-center md:px-4" role="dialog" aria-modal="true" aria-labelledby="notification-settings-title">
-      <section className="w-full rounded-t-2xl bg-white p-5 shadow-soft safe-bottom md:mx-auto md:max-w-md md:rounded-lg">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex min-w-0 items-start gap-3">
-            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-teal/10 text-teal">
+    <div ref={keyboard.container} tabIndex={-1} onCompositionStartCapture={() => { keyboard.composing.current = true; }} onCompositionEndCapture={() => { keyboard.composing.current = false; }} className="ui-notification-overlay fixed inset-0 z-30 flex items-end bg-ui-text/35 font-ui text-ui-text md:items-center md:px-4" role="dialog" aria-modal="true" aria-labelledby="notification-settings-title">
+      <section className="w-full max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-t-ui-sheet bg-ui-page p-ui-5 shadow-ui-sheet ui-safe-bottom md:mx-auto md:max-w-md md:rounded-ui-sheet">
+        <div className="flex items-start justify-between gap-ui-4">
+          <div className="flex min-w-0 items-start gap-ui-3">
+            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-ui-control bg-ui-accent-soft text-ui-accent">
               {status === 'denied' || status === 'unsupported' ? <BellOff size={19} /> : <Bell size={19} />}
             </div>
             <div>
-              <h2 id="notification-settings-title" className="text-lg font-bold text-ink">通知设置</h2>
-              <p className="mt-1 text-sm font-semibold text-ink/70">{copy.title}</p>
+              <h2 id="notification-settings-title" className="text-ui-bar">通知设置</h2>
+              <p className="mt-ui-1 text-ui-meta font-ui-medium text-ui-muted">{copy.title}</p>
             </div>
           </div>
-          <button ref={closeButtonRef} className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-mist text-ink" type="button" onClick={onClose} aria-label="关闭通知设置">
+          <button data-notification-close className="ui-focus grid h-11 w-11 shrink-0 place-items-center rounded-ui-control bg-ui-soft text-ui-muted" type="button" onClick={onClose} aria-label="关闭通知设置">
             <X size={19} />
           </button>
         </div>
 
-        <p className="mt-4 text-sm leading-6 text-ink/65">{copy.body}</p>
+        <p className="mt-ui-4 text-ui-meta leading-6 text-ui-muted">{copy.body}</p>
         {needsIosInstallation && status === 'unsupported' && (
-          <p className="mt-3 rounded-lg bg-amber/10 px-4 py-3 text-sm leading-6 text-amber">
+          <p className="mt-ui-3 rounded-ui-control bg-ui-warning-soft px-ui-4 py-ui-3 text-ui-meta leading-6 text-ui-warning">
             请先将应用添加到主屏幕，并从主屏幕打开后启用通知。
           </p>
         )}
         {message && (
-          <p className={`mt-3 rounded-lg px-4 py-3 text-sm leading-6 ${status === 'error' ? 'bg-coral/10 text-coral' : 'bg-teal/10 text-teal'}`} role="status">
+          <p className={`mt-ui-3 rounded-ui-control px-ui-4 py-ui-3 text-ui-meta leading-6 ${status === 'error' ? 'bg-ui-danger-soft text-ui-danger' : 'bg-ui-accent-soft text-ui-accent'}`} role="status">
             {message}
           </p>
         )}
 
         {(status === 'default' || status === 'granted' || status === 'error') && !needsIosInstallation && (
-          <button className="mt-5 h-12 w-full rounded-lg bg-teal font-semibold text-white disabled:opacity-60" type="button" onClick={() => void enableNotifications()} disabled={busy}>
+          <button className="ui-focus mt-ui-5 min-h-ui-touch w-full rounded-ui-control bg-ui-accent px-ui-3 font-ui-semibold text-ui-on-accent disabled:opacity-50" type="button" onClick={() => void enableNotifications()} disabled={busy}>
             {busy ? '正在开启' : '开启通知'}
           </button>
         )}
 
         {status === 'subscribed' && (
-          <div className="mt-5 space-y-3">
-            <button className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-teal font-semibold text-white disabled:opacity-60" type="button" onClick={() => void sendTestPush()} disabled={busy}>
+          <div className="mt-ui-5 space-y-ui-3">
+            <button className="ui-focus flex min-h-ui-touch w-full items-center justify-center gap-ui-2 rounded-ui-control bg-ui-accent px-ui-3 font-ui-semibold text-ui-on-accent disabled:opacity-50" type="button" onClick={() => void sendTestPush()} disabled={busy}>
               <Send size={17} />
               {busy ? '正在发送' : '发送测试通知'}
             </button>
-            <button className="h-12 w-full rounded-lg bg-mist text-sm font-semibold text-ink/70 disabled:opacity-60" type="button" onClick={() => void disableNotifications()} disabled={busy}>
+            <button className="ui-focus min-h-ui-touch w-full rounded-ui-control bg-ui-soft px-ui-3 text-ui-meta font-ui-semibold text-ui-muted disabled:opacity-50" type="button" onClick={() => void disableNotifications()} disabled={busy}>
               关闭此设备通知
             </button>
           </div>

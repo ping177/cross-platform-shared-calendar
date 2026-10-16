@@ -16,12 +16,12 @@ test('real Hub shows approved metrics and ordered original callbacks, while disa
   const tree=ModuleHubContent(props);const buttons=elements(tree).filter(n=>n.props['aria-label']?.startsWith('进入'));
   assert.deepEqual(buttons.map(n=>n.props['aria-label']),['进入任务','进入回顾','进入清单','进入重要日']);
   buttons.forEach(n=>n.props.onClick());assert.deepEqual(calls,['tasks','review','lists','importantDates']);
-  const html=renderToStaticMarkup(tree);assert.match(html,/未完成任务.*5 项/);assert.match(html,/清单总数.*2 个/);assert.match(html,/最近回顾.*2026-10-10.*我的空间/);assert.match(html,/家庭纪念日.*2026-10-12/);
+  const html=renderToStaticMarkup(tree);assert.doesNotMatch(html,/查看各空间|查看空间的历史回顾/);assert.match(html,/未完成任务.*5 项/);assert.match(html,/清单总数.*2 个/);assert.match(html,/最近回顾.*2026-10-10.*我的空间/);assert.match(html,/家庭纪念日.*2026-10-12/);
   assert.doesNotMatch(html,/已完成回顾|下次回顾|今日 \d|最近生日|bg-teal|bg-ui-accent-soft/);
   const partial=renderToStaticMarkup(ModuleHubContent({...props,listsAvailable:false}));
   assert.doesNotMatch(partial,/进入清单/);assert.match(partial,/data-overview-metric="lists" data-overview-state="unavailable"/);
   const empty=renderToStaticMarkup(ModuleHubContent({...props,overview:{...ready,tasks:{state:'ready',value:0},lists:{state:'ready',value:0},review:{state:'ready',value:{...ready.review.value,date:null}},importantDates:{state:'ready',value:null}}}));
-  assert.match(empty,/0 项/);assert.match(empty,/0 个/);assert.match(empty,/暂无回顾记录/);assert.match(empty,/暂无未来重要日/);
+  assert.match(empty,/0 项/);assert.match(empty,/0 个/);assert.equal((empty.match(/title="暂无">暂无<\/span>/g)||[]).length,2);assert.match(empty,/我的空间/);assert.doesNotMatch(empty,/暂无回顾记录|暂无未来重要日/);
   const pending=renderToStaticMarkup(ModuleHubContent({...props,loading:true}));assert.equal((pending.match(/data-overview-state="loading"/g)||[]).length,4);assert.doesNotMatch(pending,/进入任务|5 项/);
   const error=renderToStaticMarkup(ModuleHubContent({...props,overview:{...ready,lists:{state:'error'}},onRetryOverview:noop}));assert.match(error,/读取失败/);assert.match(error,/重试概览/);assert.doesNotMatch(error,/2 个/);
  } finally {await vite.close();}

@@ -1,0 +1,13 @@
+import React from 'react';
+import {createRoot} from 'react-dom/client';
+import App from '../../src/App';
+import '../../src/styles.css';
+const spaces=[{id:'p',name:'我的小天地',kind:'personal',membershipRole:'owner',created_by:'me',created_at:'2026-01-01'},{id:'s',name:'家庭共享空间',kind:'shared',membershipRole:'owner',created_by:'me',invite_code:'TEST2026',created_at:'2026-01-01'}];
+const members=spaces.flatMap(space=>[{space_id:space.id,user_id:'me',role:'owner',joined_at:'2026-01-01',profiles:{display_name:'测试用户',avatar_path:null}},...(space.kind==='shared'?[{space_id:space.id,user_id:'other',role:'member',joined_at:'2026-01-02',profiles:{display_name:'家人',avatar_path:null}}]:[])]);
+const tables={spaces,space_members:members,profiles:[{id:'me',display_name:'测试用户',avatar_path:null}],space_modules:spaces.flatMap(space=>['tasks','review','lists','important_dates'].map(module_key=>({space_id:space.id,module_key,enabled:false})))};
+window.swipeFixture={requests:[],rpcCalls:[],hold:false,events:[],
+ query(table){let rows=structuredClone(tables[table]??[]),single=false,start=0,end=99999,head=false,mutation=false;const q={update(){mutation=true;return q},select(cols,options){head=Boolean(options?.head);return q},eq(k,v){rows=rows.filter(row=>row[k]===v);return q},in(k,values){rows=rows.filter(row=>values.includes(row[k]));return q},order(){return q},range(a,b){start=a;end=b;return q},limit(n){end=n-1;return q},gte(){return q},lte(){return q},lt(){return q},gt(){return q},or(){return q},is(){return q},not(){return q},maybeSingle(){single=true;return q},single(){single=true;return q},then(resolve,reject){window.swipeFixture.requests.push(table);if(mutation)return (window.swipeFixture.hold?new Promise(done=>{window.swipeFixture.release=()=>done({data:null,error:{message:'模拟操作失败，请重试。'}})}):Promise.resolve({data:null,error:{message:'测试不允许业务写入。'}})).then(resolve,reject);return Promise.resolve({data:head?null:single?rows[0]??null:rows.slice(start,end+1),count:rows.length,error:null}).then(resolve,reject)}};return q},
+ rpc(name,args){this.rpcCalls.push({name,args});if(name==='ensure_personal_space')return Promise.resolve({data:'p',error:null});if(this.hold)return new Promise(resolve=>{this.release=()=>resolve({data:null,error:{message:'模拟操作失败，请重试。'}})});return Promise.resolve({data:null,error:{message:'测试不允许业务写入。'}})}
+};
+for(const type of ['pointerdown','pointermove','pointerup','pointercancel','click'])document.addEventListener(type,event=>window.swipeFixture.events.push({type,pointerId:event.pointerId,pointerType:event.pointerType,trusted:event.isTrusted,target:event.target.tagName,x:event.clientX,y:event.clientY,defaultPrevented:event.defaultPrevented}),true);
+createRoot(document.getElementById('root')).render(<App/>);

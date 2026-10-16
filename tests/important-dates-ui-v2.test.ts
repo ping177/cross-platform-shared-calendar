@@ -93,16 +93,20 @@ test('module save failure retains draft, duplicate save and close are blocked, e
   props.eligibleSpaces = [personal, shared]; props.onSubmit = async (...args: any[]) => calls.push(args); submit(); await flush(); assert.equal(calls.length, 2);
 }));
 
-test('empty module keeps the original create callback, disabled qualification and transparent 18px entry', () => components(({ ImportantDatesContent, ImportantDatesPage }) => {
-  let created = 0;
-  const props = { data: { ...data, dates: [] }, filter: 'all', today, pastExpanded: false, canAct: true, onOpen: noop, onPastToggle: noop, onCreate: () => { created++; } };
-  const tree = ImportantDatesContent(props);
-  nodes(tree).find(n => n.type === 'button' && n.props.onClick === props.onCreate).props.onClick(); assert.equal(created, 1);
-  const html = renderToStaticMarkup(tree); assert.match(html, /还没有重要日/); assert.match(html, /历史重要日 · 0/);
-  const blocked = ImportantDatesContent({ ...props, canAct: false }); assert.equal(nodes(blocked).find(n => n.type === 'button' && n.props.onClick === props.onCreate).props.disabled, true);
-  const page = renderToStaticMarkup(React.createElement(ImportantDatesPage, { userId: 'me', entry: { memberSpaces: data.memberSpaces, eligibleSpaces: data.eligibleSpaces }, initialData: data, onHubBack: noop, onNoEligible: noop }));
+test('normal empty result is text only; the header keeps its create entry and qualification guard', () => components(({ ImportantDatesContent, ImportantDatesPage }) => {
+  const props = { data: { ...data, dates: [] }, filter: 'all', today, pastExpanded: false, canAct: true, onOpen: noop, onPastToggle: noop };
+  for (const canAct of [true, false]) {
+    const tree = ImportantDatesContent({ ...props, canAct });
+    const html = renderToStaticMarkup(tree); assert.match(html, /暂无重要日/); assert.match(html, /历史重要日 · 0/);
+    assert.doesNotMatch(html, /新建重要日|还没有重要日|记录生活|width="36"/);
+    assert.equal(nodes(tree).filter(n => n.type === 'button').length, 1);
+  }
+  const pageProps = { userId: 'me', entry: { memberSpaces: data.memberSpaces, eligibleSpaces: data.eligibleSpaces }, initialData: data, onHubBack: noop, onNoEligible: noop };
+  const page = renderToStaticMarkup(React.createElement(ImportantDatesPage, pageProps));
   const button = page.match(/<button[^>]*aria-label="新建重要日"[\s\S]*?<\/button>/)![0];
   assert.match(button, /bg-transparent/); assert.match(button, /width="18" height="18"/);
+  const blocked = renderToStaticMarkup(React.createElement(ImportantDatesPage, { ...pageProps, entryPending: true }));
+  assert.match(blocked, /<button[^>]*aria-label="新建重要日"[^>]*disabled/);
 }));
 
 

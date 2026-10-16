@@ -5,15 +5,17 @@ import { canSaveListInSpace, normalizeListName } from '../lib/lists';
 import type { CurrentSpace, List } from '../types';
 
 // Local keyboard handling for the existing List modals; submission stays with each caller.
-export function useListModalKeyboard(open: boolean, busy: boolean, onCancel: () => void, initialFocus = 'input', submitLock?: { current: boolean }) {
+export function useListModalKeyboard(open: boolean, busy: boolean, onCancel: () => void, initialFocus = 'input', submitLock?: { current: boolean }, options?: { cycleTab?: boolean; lockScroll?: boolean; restoreFocus?: () => HTMLElement | null }) {
   const container = useRef<HTMLDivElement>(null);
   const composing = useRef(false);
-  const current = useRef({ busy, onCancel });
-  current.current = { busy, onCancel };
+  const current = useRef({ busy, onCancel, options });
+  current.current = { busy, onCancel, options };
   useEffect(() => {
     if (!open) return;
     const previous = document.activeElement as HTMLElement | null;
     const root = container.current;
+    const overflow = options?.lockScroll ? document.body.style.overflow : undefined;
+    if (options?.lockScroll) document.body.style.overflow = 'hidden';
     const initial = root?.querySelector<HTMLElement>(initialFocus);
     if (initial && !(initial as HTMLButtonElement).disabled) initial.focus();
     else (root?.querySelector<HTMLElement>('button:not(:disabled)') ?? root)?.focus();
@@ -28,6 +30,12 @@ export function useListModalKeyboard(open: boolean, busy: boolean, onCancel: () 
       const controls = Array.from(root?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled)') ?? []);
       const first = controls[0], last = controls[controls.length - 1];
       if (!controls.length) { event.preventDefault(); root?.focus(); }
+      else if (current.current.options?.cycleTab) {
+        // WebKit may Tab from a native date subfield straight to BODY, skipping buttons.
+        event.preventDefault();
+        const index = controls.indexOf(document.activeElement as HTMLElement);
+        controls[index < 0 ? event.shiftKey ? controls.length - 1 : 0 : (index + (event.shiftKey ? -1 : 1) + controls.length) % controls.length].focus();
+      }
       else if (!root?.contains(document.activeElement)) { event.preventDefault(); first.focus(); }
       else if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
       else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
@@ -35,7 +43,12 @@ export function useListModalKeyboard(open: boolean, busy: boolean, onCancel: () 
     document.addEventListener('keydown', keydown);
     return () => {
       document.removeEventListener('keydown', keydown);
-      if (previous?.isConnected && !(previous as HTMLButtonElement).disabled) previous.focus();
+      if (overflow !== undefined) document.body.style.overflow = overflow;
+      const restore = current.current.options?.restoreFocus?.() ?? previous;
+      if (restore?.isConnected && !(restore as HTMLButtonElement).disabled) {
+        if (current.current.options) restore.focus({ preventScroll: true });
+        else restore.focus();
+      }
       else {
         const fallback = document.querySelector<HTMLElement>('main h1') ?? document.querySelector<HTMLElement>('main');
         if (fallback) {
@@ -110,8 +123,8 @@ export function ListEditorSheet({ mode, list, memberSpaces, eligibleSpaces, user
         {mode === 'create' ? <select id="list-space" className="mt-2 min-h-11 w-full min-w-0 rounded-lg border border-ink/20 bg-white px-3" value={targetId} disabled={busy} onChange={(event) => { setTargetId(event.target.value); setError(''); }}>
           {!targetId && <option value="">请主动选择空间</option>}
           {targetId && targetId !== personalId && !targetEnabled && <option value={targetId} disabled>当前空间已不可用，请重新选择</option>}
-          {memberSpaces.filter((space) => space.id === personalId || eligibleSpaces.some((eligible) => eligible.id === space.id)).map((space) => <option key={space.id} value={space.id}>{space.kind === 'personal' ? '我的空间' : space.name}{eligibilityStatus !== 'ready' || canSaveListInSpace(space.id, eligibleSpaces) ? '' : '（未启用清单）'}</option>)}
-        </select> : <p id="list-space" className="mt-2 min-h-11 rounded-lg bg-mist px-3 py-3 text-sm">{target?.kind === 'personal' ? '我的空间' : target?.name ?? '空间不可用'}</p>}
+          {memberSpaces.filter((space) => space.id === personalId || eligibleSpaces.some((eligible) => eligible.id === space.id)).map((space) => <option key={space.id} value={space.id}>{space.name}{eligibilityStatus !== 'ready' || canSaveListInSpace(space.id, eligibleSpaces) ? '' : '（未启用清单）'}</option>)}
+        </select> : <p id="list-space" className="mt-2 min-h-11 rounded-lg bg-mist px-3 py-3 text-sm">{target?.name ?? '空间不可用'}</p>}
         {eligibilityStatus === 'loading' && <p className="mt-2 text-sm text-ink/65" role="status">正在核对清单空间资格…</p>}
         {eligibilityStatus === 'error' && <p className="mt-2 text-sm text-coral" role="alert">{eligibilityError || '清单空间读取失败。'}<button className="ml-2 min-h-11 font-semibold text-teal" type="button" onClick={onRetryEligibility}>重新读取空间资格</button></p>}
         {mode === 'create' && eligibilityStatus === 'ready' && !targetEnabled && <p className="mt-2 text-sm text-ink/65">{personalId && targetId === personalId ? '我的空间未启用清单。请先开启，或主动选择已启用清单的共享空间。' : '请主动选择已启用清单的空间。'}</p>}
@@ -130,7 +143,7 @@ export function ListDeleteDialog({ list, space, step, busy, canConfirm = true, e
   return <div ref={keyboard.container} tabIndex={-1} className="ui-list-overlay ui-list-confirm-overlay font-ui" role="dialog" aria-modal="true" aria-labelledby="list-delete-title">
     <div className="ui-list-confirm ui-delete-content mx-auto w-full max-w-md bg-white p-5 safe-bottom">
       <h2 id="list-delete-title" className="ui-delete-title">{step === 1 ? '删除清单' : '再次确认删除清单'}</h2>
-      <p className="ui-delete-target">清单：<strong>{list.name}</strong><br />空间：<strong>{space.kind === 'personal' ? '我的空间' : space.name}</strong></p>
+      <p className="ui-delete-target">清单：<strong>{list.name}</strong><br />空间：<strong>{space.name}</strong></p>
       <p className="ui-delete-warning">{step === 1 ? '这会永久删除清单及其中所有分组和项目，无法恢复。' : '请再次确认：上述清单及其内容将永久删除。'}</p>
       {error && <p className="ui-delete-error" role="alert">{error}</p>}
       {eligibilityError && <p className="ui-delete-error" role="alert">{eligibilityError}<button className="ml-2 min-h-11 font-semibold text-teal" type="button" onClick={onRetryEligibility}>重新读取清单</button></p>}

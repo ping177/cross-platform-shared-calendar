@@ -1,3 +1,4 @@
+import { useListModalKeyboard } from './ListSheets';
 import { SpaceFilterDropdown } from './SpaceFilterDropdown';
 import { useMobileSwipe } from './useMobileSwipe';
 import type { SwipeClickGuard } from '../lib/mobile-swipe';
@@ -61,6 +62,8 @@ export function ReviewHistoryPage({ swipeClickGuard, userId, entry = null, entry
   const [createError, setCreateError] = useState('');
   const [createBusy, setCreateBusy] = useState(false);
   const creating = useRef(false);
+  const createButton = useRef<HTMLButtonElement>(null);
+  const createKeyboard = useListModalKeyboard(createOpen, createBusy, () => setCreateOpen(false), '#review-date', creating, { cycleTab: true, lockScroll: true, restoreFocus: () => createButton.current });
   const eligibilityGuard = useRef(createRequestGuard());
   const historyGuard = useRef(createRequestGuard());
   const membersGuard = useRef(createRequestGuard());
@@ -255,36 +258,38 @@ export function ReviewHistoryPage({ swipeClickGuard, userId, entry = null, entry
   const swipe = useMobileSwipe({ enabled: !createOpen && !createBusy, scope: `${userId}:${selectedId}`,
     direction: 'right', clickGuard: swipeClickGuard, onSwipe: onHubBack });
 
-  return <main {...swipe} className="ui-review-page mx-auto min-h-screen w-full max-w-3xl bg-ui-page px-ui-4 py-ui-6 font-ui text-ui-text ui-safe-bottom">
-    <header className="flex min-h-11 items-center justify-between gap-3">
-      <div className="flex min-w-0 items-center gap-3">
-        <button className="ui-focus inline-flex min-h-ui-touch shrink-0 items-center gap-ui-1 rounded-ui-control text-ui-meta font-ui-semibold text-ui-accent" type="button" onClick={onHubBack}><ChevronLeft size={18} />功能中心</button>
-        <h1 className="text-ui-page-title">回顾</h1>
+  return <main {...swipe} className="ui-review-page ui-review-history mx-auto min-h-screen w-full max-w-3xl bg-ui-page font-ui text-ui-text ui-safe-bottom">
+    <header className="ui-module-header">
+      <div className="ui-module-title-row">
+        <button className="ui-focus inline-flex min-h-ui-touch min-w-0 items-center gap-ui-1 rounded-ui-control text-ui-meta font-ui-semibold text-ui-accent" type="button" onClick={onHubBack}><ChevronLeft size={18} className="shrink-0" aria-hidden="true" /><span className="truncate">功能中心</span></button>
+        <h1 className="min-w-0 truncate text-ui-section">回顾</h1>
+        {selectedSpace ? <button ref={createButton} className="grid h-11 w-11 shrink-0 place-items-center bg-transparent text-ui-accent hover:text-ui-accent-strong ui-focus disabled:text-ui-muted" type="button" aria-label="新建回顾" disabled={!canMutate || !canCreate} onClick={() => { setReviewDate(localReviewDate(new Date())); setCreateError(''); setCreateOpen(true); }}><Plus size={18} aria-hidden="true" /></button> : <span className="w-11" aria-hidden="true" />}
       </div>
-      {selectedSpace && <button className="grid h-11 w-11 shrink-0 place-items-center bg-transparent text-ui-accent hover:text-ui-accent-strong ui-focus disabled:text-ui-muted" type="button" aria-label="新建回顾" disabled={!canMutate || !canCreate} onClick={() => { setReviewDate(localReviewDate(new Date())); setCreateError(''); setCreateOpen(true); }}><Plus size={18} aria-hidden="true" /></button>}
+      {selectedSpace && <div className="mt-3 w-full min-w-0">
+        <SpaceFilterDropdown spaces={spaces} value={selectedSpace.id} allowAll={false} label="筛选回顾空间" disabled={entryPending} onChange={selectSpace}
+          className="ui-focus min-h-ui-touch w-full min-w-0 rounded-ui-control border border-ui-control bg-ui-surface px-ui-3 text-ui-body" />
+      </div>}
     </header>
+    <div className="px-ui-4 py-ui-4">
     {eligibilityStatus === 'error' && <div className="mt-4" role="alert">{eligibilityError}<button className="ui-focus ml-ui-2 min-h-ui-touch min-w-11 rounded-ui-control font-ui-semibold text-ui-accent" type="button" onClick={() => void refreshEligibility()}>重试</button></div>}
     {eligibilityStatus === 'loading' && !selectedSpace && <p className="mt-4" role="status">正在读取回顾空间…</p>}
     {eligibilityStatus === 'ready' && !selectedSpace && <p className="mt-ui-4 rounded-ui-group border border-ui-border bg-ui-surface p-ui-4 text-ui-meta text-ui-muted">当前没有已开启回顾的空间。可在空间管理中开启。</p>}
     {selectedSpace && <>
-      <div className="ui-review-space-filter">
-        <SpaceFilterDropdown spaces={spaces} value={selectedSpace.id} allowAll={false} label="筛选回顾空间" disabled={entryPending} onChange={selectSpace}
-          className="ui-focus min-h-ui-touch w-full min-w-0 rounded-ui-control border border-ui-control bg-ui-surface px-ui-3 text-ui-body" />
-      </div>
       {selectedSpace.kind === 'shared' && memberCount === 1 && <p className="mt-ui-3 text-ui-meta text-ui-muted">当前共享空间需要两名成员才能新建回顾；已有历史仍可查看。</p>}
       {memberError && <p className="mt-3 text-ui-meta text-ui-danger" role="alert">{memberError}</p>}
-      <section className="mt-ui-5" aria-label="历史回顾">
+      <section aria-label="历史回顾">
         {totalCount !== null && <div className="mb-3 flex min-w-0 items-baseline justify-between gap-3"><h2 className="text-ui-meta font-ui-medium text-ui-muted">历史回顾</h2><ReviewHistorySummary totalCount={totalCount} /></div>}
         {(historyStatus === 'loading' || lostScope) && <p role="status">正在读取历史回顾…</p>}
         {historyError && <div role="alert">{historyError}<button className="ui-focus ml-ui-2 min-h-ui-touch min-w-11 rounded-ui-control font-ui-semibold text-ui-accent" type="button" onClick={() => void (historyStatus === 'ready' ? readPage(selectedSpace, null, true, true) : readPage(selectedSpace, rows.length ? cursor : null, rows.length === 0))}>重试</button></div>}
-        {historyStatus !== 'loading' && rows.length === 0 && historyStatus !== 'error' && <p className="rounded-ui-group border border-ui-border bg-ui-surface p-ui-6 text-ui-meta text-ui-muted">还没有回顾记录</p>}
+        {historyStatus !== 'loading' && rows.length === 0 && historyStatus !== 'error' && <p className="ui-module-empty">暂无回顾</p>}
         {!lostScope && <ReviewHistoryRows rows={rows} onOpenDetail={onOpenDetail} />}
         {!lostScope && hasMore && historyStatus !== 'loading' && <button className="ui-focus mt-ui-4 min-h-ui-touch w-full rounded-ui-control border border-ui-control bg-ui-surface px-ui-4 font-ui-semibold text-ui-accent disabled:opacity-50" type="button" disabled={historyStatus === 'more' || historyStatus === 'error'} onClick={() => void readPage(selectedSpace, cursor, false)}>{historyStatus === 'more' ? '加载中…' : '加载更多'}</button>}
         <button className="ui-focus mt-ui-3 min-h-ui-touch min-w-11 rounded-ui-control text-ui-meta font-ui-semibold text-ui-accent disabled:opacity-50" type="button" disabled={entryPending} onClick={() => void refreshEligibility()}>刷新</button>
       </section>
     </>}
-    {createOpen && selectedSpace && <div className="fixed inset-0 z-40 flex items-end bg-ink/50 p-4 md:items-center" role="dialog" aria-modal="true" aria-labelledby="review-create-title" onClick={(event) => { if (event.target === event.currentTarget && !createBusy) setCreateOpen(false); }}>
-      <form className="ui-review-create-form mx-auto w-full max-w-md rounded-ui-sheet bg-ui-page p-ui-5 shadow-ui-sheet ui-safe-bottom" onSubmit={(event) => void submitCreate(event)}>
+    </div>
+    {createOpen && selectedSpace && <div ref={createKeyboard.container} tabIndex={-1} onCompositionStartCapture={() => { createKeyboard.composing.current = true; }} onCompositionEndCapture={() => { createKeyboard.composing.current = false; }} className="ui-review-sheet-overlay fixed inset-0 z-40 flex items-end bg-ink/50" role="dialog" aria-modal="true" aria-labelledby="review-create-title" onClick={(event) => { if (event.target === event.currentTarget && !createBusy) setCreateOpen(false); }}>
+      <form className="ui-review-create-form ui-review-sheet mx-auto w-full max-w-lg rounded-ui-sheet bg-ui-page p-ui-5 shadow-ui-sheet ui-safe-bottom md:max-w-md" onSubmit={(event) => void submitCreate(event)}>
         <h2 id="review-create-title" className="text-ui-section">新建回顾</h2>
         <p className="mt-ui-3 break-words text-ui-meta text-ui-muted">目标空间：<strong>{selectedSpace.name}</strong></p>
         <label className="mt-ui-6 block text-ui-meta font-ui-semibold" htmlFor="review-date">回顾日期</label>

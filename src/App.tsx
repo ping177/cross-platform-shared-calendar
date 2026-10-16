@@ -327,15 +327,14 @@ function AuthPage() {
   }
 
   return (
-    <main className="min-h-screen bg-mist px-5 py-10">
-      <section className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-md flex-col justify-center">
-        <div className="mb-8 flex items-center gap-3">
-          <div className="grid h-12 w-12 place-items-center rounded-lg bg-teal text-white">
+    <main className="ui-auth-page min-h-[100dvh] bg-ui-page px-ui-4 py-ui-6 font-ui text-ui-text">
+      <section className="mx-auto flex min-h-[calc(100dvh-3rem)] w-full max-w-md flex-col justify-center">
+        <div className="mb-ui-6 flex items-center gap-ui-3">
+          <div className="grid h-11 w-11 place-items-center rounded-ui-control bg-ui-accent-soft text-ui-accent">
             <CalendarDays size={26} />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-ink">共享日历</h1>
-            <p className="text-sm text-ink/60">两个人的小日程本</p>
+            <h1 className="text-ui-page-title">共享日历</h1>
           </div>
         </div>
 
@@ -345,14 +344,14 @@ function AuthPage() {
               event.preventDefault();
               void requestOtp();
             }}
-            className="rounded-lg bg-white p-5 shadow-soft"
+            className="rounded-ui-group border border-ui-border bg-ui-surface p-ui-5 shadow-ui-group"
           >
-            <label className="text-sm font-semibold text-ink" htmlFor="email">
+            <label className="text-ui-meta font-ui-semibold" htmlFor="email">
               邮箱
             </label>
             <input
               id="email"
-              className="mt-2 w-full rounded-lg border border-ink/15 px-4 py-3 outline-none focus:border-teal"
+              className="ui-focus mt-ui-2 min-h-ui-touch w-full min-w-0 rounded-ui-control border border-ui-control bg-ui-surface px-ui-3 py-ui-2 text-ui-body"
               type="email"
               inputMode="email"
               autoComplete="email"
@@ -362,24 +361,24 @@ function AuthPage() {
               placeholder="you@example.com"
             />
             <button
-              className="mt-4 h-12 w-full rounded-lg bg-teal font-semibold text-white disabled:opacity-60"
+              className="ui-focus mt-ui-4 min-h-ui-touch w-full rounded-ui-control bg-ui-accent-soft px-ui-3 font-ui-semibold text-ui-accent disabled:opacity-50"
               type="submit"
               disabled={sending}
             >
               {sending ? '发送中' : '发送验证码'}
             </button>
-            {errorMessage && <p className="mt-4 text-sm leading-6 text-coral">{errorMessage}</p>}
+            {errorMessage && <p className="mt-ui-4 text-ui-meta leading-6 text-ui-danger">{errorMessage}</p>}
           </form>
         ) : (
-          <form onSubmit={verifyOtp} className="rounded-lg bg-white p-5 shadow-soft">
-            <p className="text-sm leading-6 text-ink/70">验证码已发送至 {email}</p>
-            <label className="mt-4 block text-sm font-semibold text-ink" htmlFor="otp">
+          <form onSubmit={verifyOtp} className="rounded-ui-group border border-ui-border bg-ui-surface p-ui-5 shadow-ui-group">
+            <p className="text-ui-meta leading-6 text-ui-muted">验证码已发送至 {email}</p>
+            <label className="mt-ui-4 block text-ui-meta font-ui-semibold" htmlFor="otp">
               8 位验证码
             </label>
             <input
               ref={otpInputRef}
               id="otp"
-              className="mt-2 w-full rounded-lg border border-ink/15 px-4 py-3 text-center text-lg tracking-[0.35em] outline-none focus:border-teal"
+              className="ui-focus mt-ui-2 min-h-ui-touch w-full min-w-0 rounded-ui-control border border-ui-control bg-ui-surface px-ui-3 py-ui-2 text-center text-ui-bar tracking-[0.35em]"
               type="text"
               inputMode="numeric"
               autoComplete="one-time-code"
@@ -391,26 +390,26 @@ function AuthPage() {
               aria-describedby="otp-help"
               aria-invalid={Boolean(errorMessage)}
             />
-            <p id="otp-help" className="mt-2 text-sm leading-6 text-ink/60">
+            <p id="otp-help" className="mt-ui-2 text-ui-meta leading-6 text-ui-muted">
               请在当前浏览器或 PWA 中输入邮件里的验证码。
             </p>
             <button
-              className="mt-4 h-12 w-full rounded-lg bg-teal font-semibold text-white disabled:opacity-60"
+              className="ui-focus mt-ui-4 min-h-ui-touch w-full rounded-ui-control bg-ui-accent-soft px-ui-3 font-ui-semibold text-ui-accent disabled:opacity-50"
               type="submit"
               disabled={verifying || otp.length !== 8}
             >
               {verifying ? '验证中' : '验证并登录'}
             </button>
-            <div className="mt-4 flex items-center justify-between gap-3 text-sm font-semibold">
-              <button className="text-teal disabled:opacity-50" type="button" onClick={changeEmail} disabled={sending || verifying}>
+            <div className="mt-ui-4 flex items-center justify-between gap-ui-3 text-ui-meta font-ui-semibold">
+              <button className="ui-focus min-h-ui-touch text-ui-accent disabled:opacity-50" type="button" onClick={changeEmail} disabled={sending || verifying}>
                 修改邮箱
               </button>
-              <button className="text-teal disabled:opacity-50" type="button" onClick={() => void requestOtp()} disabled={cooldownSeconds > 0 || sending || verifying}>
+              <button className="ui-focus min-h-ui-touch text-ui-accent disabled:opacity-50" type="button" onClick={() => void requestOtp()} disabled={cooldownSeconds > 0 || sending || verifying}>
                 {cooldownSeconds > 0 ? `${cooldownSeconds} 秒后可重发` : sending ? '发送中' : '重新发送'}
               </button>
             </div>
-            {status && <p className="mt-4 text-sm leading-6 text-ink/70">{status}</p>}
-            {errorMessage && <p className="mt-4 text-sm leading-6 text-coral">{errorMessage}</p>}
+            {status && <p className="mt-ui-4 text-ui-meta leading-6 text-ui-muted">{status}</p>}
+            {errorMessage && <p className="mt-ui-4 text-ui-meta leading-6 text-ui-danger">{errorMessage}</p>}
           </form>
         )}
       </section>
@@ -816,6 +815,7 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
       {navigation.tab === 'me' && myScreen !== 'profile' && (
         spaceListStatus === 'ready'
           ? <SpaceManagementPage
+              swipeClickGuard={swipeClickGuard}
               spaces={spaces}
               selectedSpaceId={myScreen === 'detail' ? selectedSpaceId : null}
               userId={userId}

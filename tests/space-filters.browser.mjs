@@ -67,7 +67,7 @@ for(const engine of ['WebKit','Chrome']){
    const page=await pageFor(engine,mode,width);
    try{
     const trigger=triggerFor(page,mode);await trigger.waitFor();const now=await metrics(trigger);
-    for(const k of ['x','y','width','height'])assert.ok(Math.abs(now[k]-old[k])<=1,`${mode} preserves ${k}: ${old[k]} -> ${now[k]}`);
+    for(const k of ['x','y','width','height']){const expected=mode!=='calendar'&&k==='y'?76:old[k];assert.ok(Math.abs(now[k]-expected)<=1,`${mode} approved ${k}: ${expected} -> ${now[k]}`);}
     assert.equal(now.font,old.font);assert.equal(now.weight,old.weight);
     if(artifacts&&engine==='WebKit'&&width===375&&mode==='review')await page.screenshot({path:path.join(artifacts,'review-closed-375.png')});
     await trigger.tap();const menu=page.getByRole('listbox');await menu.waitFor();const box=await menu.boundingBox();
@@ -82,7 +82,7 @@ for(const engine of ['WebKit','Chrome']){
     assert.equal(await page.locator('[role="dialog"]').count(),0);
     if(mode==='review'){
      assert.equal(await page.locator('label[for="review-space"]').count(),0);
-     const title=page.getByRole('heading',{name:'历史回顾',exact:true});assert.equal(await title.evaluate(el=>getComputedStyle(el).fontSize),'14px');assert.equal(await title.evaluate(el=>getComputedStyle(el).fontWeight),'500');assert.equal(await title.evaluate(el=>getComputedStyle(el.closest('section')).marginTop),'20px');
+     const title=page.getByRole('heading',{name:'历史回顾',exact:true});assert.equal(await title.evaluate(el=>getComputedStyle(el).fontSize),'14px');assert.equal(await title.evaluate(el=>getComputedStyle(el).fontWeight),'500');assert.equal(await title.evaluate(el=>getComputedStyle(el.closest('section')).marginTop),'0px');
     }
     if(artifacts&&engine==='WebKit')await page.screenshot({path:path.join(artifacts,`${mode}-${width}.png`)});
     assert.deepEqual(page.errors,[]);

@@ -98,10 +98,10 @@ export function ImportantDateSheet({ date, memberSpaces, eligibleSpaces, initial
         </div>}
       </div> : <input id="important-date-emoji" className="mt-2 min-h-11 w-full rounded-lg border border-ink/20 px-3" value={emoji} disabled={busy} onChange={(event) => setEmoji(event.target.value)} />}
       <label className="mt-4 block text-sm font-semibold" htmlFor="important-date-space">空间</label>
-      {date ? <p id="important-date-space" className="mt-2 break-words text-sm">{target?.kind === 'personal' ? '我的空间' : target?.name ?? '空间不可用'}</p> : <select id="important-date-space" className="mt-2 min-h-11 w-full min-w-0 rounded-lg border border-ink/20 bg-white px-3" value={targetId} disabled={busy} onChange={(event) => { setTargetId(event.target.value); setError(''); }}>
+      {date ? <p id="important-date-space" className="mt-2 break-words text-sm">{target?.name ?? '空间不可用'}</p> : <select id="important-date-space" className="mt-2 min-h-11 w-full min-w-0 rounded-lg border border-ink/20 bg-white px-3" value={targetId} disabled={busy} onChange={(event) => { setTargetId(event.target.value); setError(''); }}>
         <option value="">请主动选择空间</option>
         {targetId && !target && <option value={targetId} disabled>当前空间已不可用</option>}
-        {memberSpaces.map((space) => <option key={space.id} value={space.id} disabled={!canSaveImportantDateTarget(space.id, eligibleSpaces)}>{space.kind === 'personal' ? '我的空间' : space.name}{canSaveImportantDateTarget(space.id, eligibleSpaces) ? '' : '（未启用重要日）'}</option>)}
+        {memberSpaces.map((space) => <option key={space.id} value={space.id} disabled={!canSaveImportantDateTarget(space.id, eligibleSpaces)}>{space.name}{canSaveImportantDateTarget(space.id, eligibleSpaces) ? '' : '（未启用重要日）'}</option>)}
       </select>}
       {!targetEnabled && <p className="mt-2 text-sm text-coral" role="alert">空间已不可用或未启用重要日，不能保存。请主动选择有效空间。</p>}
       <label className="mt-4 block text-sm font-semibold" htmlFor="important-date-repeat">重复</label>
@@ -132,7 +132,7 @@ export function ImportantDateDeleteDialog({ date, space, busy, canAct, error, on
   return <div ref={container} className={moduleView ? "ui-important-overlay ui-important-confirm-overlay font-ui" : "ui-important-confirm-overlay fixed inset-0 z-40 flex items-end bg-ink/50 p-4 md:items-center"} role="dialog" aria-modal="true" aria-labelledby="important-date-delete-title">
     <div data-delete-confirm className={`ui-delete-content ${moduleView ? 'ui-important-confirm ' : ''}mx-auto w-full max-w-md rounded-lg bg-white p-5 shadow-soft safe-bottom`}>
       <h2 id="important-date-delete-title" className="ui-delete-title">删除重要日</h2>
-      <p className="ui-delete-target">重要日：<strong>{date.name}</strong><br />空间：<strong>{space.kind === 'personal' ? '我的空间' : space.name}</strong></p>
+      <p className="ui-delete-target">重要日：<strong>{date.name}</strong><br />空间：<strong>{space.name}</strong></p>
       <p className="ui-delete-warning">这会永久删除此重要日，无法恢复。</p>
       {error && <p className="ui-delete-error" role="alert">{error}</p>}
       <div className="ui-delete-actions">

@@ -51,7 +51,7 @@ export function HomeImportantDatesSection({ userId, spaces, entry = null, initia
   const eligible = state.scope?.eligibleSpaces ?? [];
   return <section className="rounded-ui-group bg-ui-surface p-ui-4 shadow-ui-group" aria-label="重要日">
     <div className="mb-ui-2 flex min-h-ui-touch items-center justify-between gap-ui-3">
-      <h2 className="min-w-0 text-ui-section"><button className="ui-focus min-h-ui-touch text-left" type="button" aria-label="进入重要日" onClick={onViewAll}>临近重要日</button></h2>
+      <h2 className="min-w-0 text-ui-list font-ui-semibold"><button className="ui-focus min-h-ui-touch text-left" type="button" aria-label="进入重要日" onClick={onViewAll}>临近重要日</button></h2>
       <button className="ui-focus min-h-ui-touch shrink-0 text-ui-label text-ui-accent" type="button" aria-label="查看全部重要日" onClick={onViewAll}>查看全部</button>
       {onCreate && <button ref={createButtonRef} className="ui-focus grid h-11 w-11 shrink-0 place-items-center bg-transparent text-ui-accent hover:text-ui-accent-strong disabled:text-ui-muted" type="button" aria-label="新建重要日"
         disabled={creating || state.status !== 'success' || state.refreshing || !eligible.some((space) => canSaveImportantDateTarget(space.id, eligible))} onClick={onCreate}><Plus size={18} aria-hidden="true" /></button>}

@@ -97,7 +97,7 @@ test('overview handles empty, single and multiple actual rows without inventing 
     const data = { memberSpaces: [personal], eligibleSpaces: [personal], grouped: { active: rows, completed: [] } };
     const html = renderToStaticMarkup(React.createElement(ListsOverviewPage, { userId: 'me', entry: { memberSpaces: [personal], eligibleSpaces: [personal] }, initialData: data, onHubBack: noop, onNoEligible: noop, onOpenDetail: noop }));
     assert.equal((html.match(/data-list-id=/g) ?? []).length, count);
-    assert.match(html, count ? /个人清单/ : /还没有清单/);
+    assert.match(html, count ? /个人清单/ : /暂无清单/);
     assert.doesNotMatch(html, /对方|共同空间|第二参与者/);
     assert.match(html, /aria-label="新建清单"[^>]*><svg[^>]*width="18"[^>]*height="18"/);
     assert.match(html, /bg-transparent/);

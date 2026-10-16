@@ -99,8 +99,8 @@ function overviewText(overview: ModuleOverview) {
   return {
     tasks: overview.tasks.state === 'ready' ? [overview.tasks.value + ' 项', ''] : null,
     lists: overview.lists.state === 'ready' ? [overview.lists.value + ' 个', ''] : null,
-    review: overview.review.state === 'ready' ? [overview.review.value.date ?? '暂无回顾记录', overview.review.value.spaceName] : null,
-    importantDates: overview.importantDates.state === 'ready' ? [overview.importantDates.value?.name ?? '暂无未来重要日', overview.importantDates.value?.date ?? ''] : null,
+    review: overview.review.state === 'ready' ? [overview.review.value.date ?? '暂无', overview.review.value.spaceName] : null,
+    importantDates: overview.importantDates.state === 'ready' ? [overview.importantDates.value?.name ?? '暂无', overview.importantDates.value?.date ?? ''] : null,
   };
 }
 
@@ -113,10 +113,10 @@ export function ModuleHubContent({ loading, tasksAvailable, tasksError, reviewAv
   overview?: ModuleOverview; onRetryOverview?: () => void;
 }) {
   const rows = [
-    { key: 'tasks', title: '任务', description: '查看各空间的任务', Icon: ListTodo, available: tasksAvailable, error: tasksError, open: onOpenTasks, retry: onRetryTasks, color: 'text-ui-accent' },
-    { key: 'review', title: '回顾', description: '查看空间的历史回顾', Icon: BookOpen, available: reviewAvailable, error: reviewError, open: onOpenReview, retry: onRetryReview, color: 'text-ui-auxiliary' },
-    { key: 'lists', title: '清单', description: '查看各空间的清单', Icon: ListChecks, available: listsAvailable, error: listsError, open: onOpenLists, retry: onRetryLists, color: 'text-ui-accent' },
-    { key: 'importantDates', title: '重要日', description: '查看各空间的重要日', Icon: CalendarHeart, available: importantDatesAvailable, error: importantDatesError, open: onOpenImportantDates, retry: onRetryImportantDates, color: 'text-ui-auxiliary' },
+    { key: 'tasks', title: '任务', Icon: ListTodo, available: tasksAvailable, error: tasksError, open: onOpenTasks, retry: onRetryTasks, color: 'text-ui-accent' },
+    { key: 'review', title: '回顾', Icon: BookOpen, available: reviewAvailable, error: reviewError, open: onOpenReview, retry: onRetryReview, color: 'text-ui-auxiliary' },
+    { key: 'lists', title: '清单', Icon: ListChecks, available: listsAvailable, error: listsError, open: onOpenLists, retry: onRetryLists, color: 'text-ui-accent' },
+    { key: 'importantDates', title: '重要日', Icon: CalendarHeart, available: importantDatesAvailable, error: importantDatesError, open: onOpenImportantDates, retry: onRetryImportantDates, color: 'text-ui-auxiliary' },
   ] as const;
   const text = overviewText(overview);
   return <main className="ui-module-hub mx-auto min-h-screen w-full max-w-3xl bg-ui-page px-ui-4 py-ui-6 font-ui text-ui-text safe-bottom">
@@ -139,10 +139,10 @@ export function ModuleHubContent({ loading, tasksAvailable, tasksError, reviewAv
     </section>
     {loading ? <p className="mt-ui-6 text-ui-meta text-ui-muted" role="status">正在读取功能模块…</p> : <>
       {rows.some(row => row.available) && <nav aria-label="功能模块" className="mt-ui-6 overflow-hidden rounded-ui-group border border-ui-border bg-ui-surface">
-        {rows.filter(row => row.available).map(({ key, title, description, Icon, open, color }) => <button key={key} type="button" aria-label={'进入' + title} onClick={open}
-          className="ui-focus ui-module-entry flex min-h-ui-touch w-full min-w-0 items-center gap-ui-3 px-ui-4 py-ui-5 text-left">
+        {rows.filter(row => row.available).map(({ key, title, Icon, open, color }) => <button key={key} type="button" aria-label={'进入' + title} onClick={open}
+          className="ui-focus ui-module-entry flex min-h-ui-touch w-full min-w-0 items-center gap-ui-3 px-ui-4 py-ui-3 text-left">
           <Icon size={24} className={'shrink-0 ' + color} aria-hidden="true" />
-          <span className="min-w-0 flex-1"><span className="block text-ui-list font-ui-semibold">{title}</span><span className="mt-ui-1 block text-ui-meta text-ui-muted">{description}</span></span>
+          <span className="min-w-0 flex-1"><span className="block text-ui-list font-ui-semibold">{title}</span></span>
           <ChevronRight size={18} className="shrink-0 text-ui-muted" aria-hidden="true" />
         </button>)}
       </nav>}

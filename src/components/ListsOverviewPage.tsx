@@ -26,7 +26,7 @@ export function ListsRows({ rows, spaces, showSource, disabled = false, onOpen, 
       <div className="flex min-w-0 items-start justify-between gap-3">
         <button data-swipe-start className="ui-lists-open min-h-11 min-w-0 flex-1 text-left disabled:opacity-50" type="button" disabled={disabled} onClick={() => onOpen(row.list)} aria-label={`打开清单 ${row.list.name}`}>
           <span className="ui-lists-name block break-words font-semibold">{row.list.name}</span>
-          {showSource && <span className="mt-1 block break-words text-xs text-ui-muted">{space?.kind === 'personal' ? '我的空间' : space?.name ?? '空间不可用'}</span>}
+          {showSource && <span className="mt-1 block break-words text-xs text-ui-muted">{space?.name ?? '空间不可用'}</span>}
           <span className="mt-1 block text-sm text-ui-muted">已完成 {row.completedCount} / {row.totalItems}</span>
           <ChevronRight className="ui-lists-chevron" size={16} aria-hidden="true" />
         </button>
@@ -100,7 +100,7 @@ export function ListsOverviewPage({ swipeClickGuard, userId, entry = null, entry
       try {
         await createList(supabase, spaceId, name);
         setEditor(null);
-        setNotice(`已在${editingSpaces.find((space) => space.id === spaceId)?.kind === 'personal' ? '我的空间' : editingSpaces.find((space) => space.id === spaceId)?.name ?? '所选空间'}创建清单。`);
+        setNotice(`已在${editingSpaces.find((space) => space.id === spaceId)?.name ?? '所选空间'}创建清单。`);
         await refresh();
       } catch (error) {
         onInvalidateEligibility?.();
@@ -152,10 +152,10 @@ export function ListsOverviewPage({ swipeClickGuard, userId, entry = null, entry
 
   return <main {...swipe} className="ui-lists-page min-h-screen bg-ui-page font-ui text-ui-text">
     <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col">
-      <header className="sticky top-0 z-10 border-b border-ui-border bg-ui-page/95 px-4 pb-3 pt-4 backdrop-blur">
-        <div className="flex min-h-12 items-center justify-between gap-3">
-          <button className="inline-flex min-h-11 min-w-0 items-center gap-1 text-sm font-semibold text-teal" type="button" onClick={onHubBack}><ChevronLeft size={18} aria-hidden="true" />功能中心</button>
-          <h1 className="min-w-0 truncate text-xl font-bold">清单</h1>
+      <header className="ui-module-header">
+        <div className="ui-module-title-row">
+          <button className="ui-focus inline-flex min-h-11 min-w-0 items-center gap-1 text-ui-meta font-ui-semibold text-ui-accent" type="button" onClick={onHubBack}><ChevronLeft size={18} className="shrink-0" aria-hidden="true" /><span className="truncate">功能中心</span></button>
+          <h1 className="min-w-0 truncate text-ui-section">清单</h1>
           <button ref={createButton} className="ui-focus grid h-11 w-11 shrink-0 place-items-center rounded-ui-control bg-transparent text-ui-accent disabled:opacity-50" type="button" aria-label="新建清单" disabled={!canAct || !data?.eligibleSpaces.length} onClick={openCreate}><Plus size={18} aria-hidden="true" /></button>
         </div>
         {data && <div className="mt-3 w-full max-w-sm min-w-0">
@@ -164,18 +164,18 @@ export function ListsOverviewPage({ swipeClickGuard, userId, entry = null, entry
             className="h-11 w-full min-w-0 rounded-lg bg-white pl-3 text-sm font-semibold text-ink ui-focus" />
         </div>}
       </header>
-      <div className="ui-lists-body flex-1 space-y-5 px-4 py-4 safe-bottom">
+      <div className="ui-lists-body flex-1 space-y-ui-3 px-4 py-4 safe-bottom">
         {notice && <p className="rounded-lg bg-white px-4 py-3 text-sm text-ink/70" role="status">{notice}</p>}
         {syncError && <p className="rounded-lg bg-coral/10 px-4 py-3 text-sm text-coral" role="alert">{syncError}<button className="ml-2 min-h-11 font-semibold text-teal" type="button" onClick={() => void refresh()}>重试</button></p>}
         {refreshError && state.status === 'ready' && <p className="rounded-lg bg-coral/10 px-4 py-3 text-sm text-coral" role="alert">{refreshError}<button className="ml-2 min-h-11 font-semibold text-teal" type="button" onClick={() => void refresh()}>重试</button></p>}
         {state.status === 'loading' && <p className="rounded-lg bg-white px-4 py-5 text-sm text-ui-muted" role="status">正在读取清单…</p>}
         {state.status === 'error' && <div className="rounded-lg bg-white px-4 py-5" role="alert">{state.error}<button className="ml-2 min-h-11 font-semibold text-teal" type="button" onClick={() => void refresh()}>重试</button></div>}
         {data && <>
-          <section aria-label="进行中清单"><h2 className="mb-3 text-sm font-semibold text-ui-muted">进行中 · {active.length}</h2>
-            {active.length ? <ListsRows rows={active} spaces={data.eligibleSpaces} showSource={filter === 'all'} disabled={!canAct} onOpen={onOpenDetail} onRename={openRename} onDelete={openDelete} /> : <div className="ui-lists-empty" role="status"><p className="font-semibold text-ui-text">{completed.length ? '暂无进行中的清单' : '还没有清单'}</p><p className="mt-2 text-sm text-ui-muted">{completed.length ? '已完成的清单保留在下方。' : '把需要一起准备的事情，整理成一份清单。'}</p><button className="mt-4 min-h-11 rounded-ui-control px-4 font-semibold text-ui-accent" type="button" disabled={!canAct || !data?.eligibleSpaces.length} onClick={openCreate}>新建清单</button></div>}
+          <section aria-label="进行中清单"><h2 className="mb-3 text-ui-meta font-ui-medium text-ui-muted">进行中 · {active.length}</h2>
+            {active.length ? <ListsRows rows={active} spaces={data.eligibleSpaces} showSource={filter === 'all'} disabled={!canAct} onOpen={onOpenDetail} onRename={openRename} onDelete={openDelete} /> : <p className="ui-module-empty" role="status">{completed.length ? '暂无进行中的清单' : '暂无清单'}</p>}
           </section>
-          <section aria-label="已完成清单"><button className="flex min-h-14 w-full items-center justify-between rounded-lg bg-white px-4 text-left font-semibold" type="button" aria-expanded={!completedCollapsed} onClick={() => setCompletedCollapsed((value) => !value)}><span>已完成 · {completed.length}</span><ChevronDown size={18} className={completedCollapsed ? 'text-ink/45' : 'rotate-180 text-ink/45'} aria-hidden="true" /></button>
-            {!completedCollapsed && <div className="mt-3">{completed.length ? <ListsRows rows={completed} spaces={data.eligibleSpaces} showSource={filter === 'all'} disabled={!canAct} onOpen={onOpenDetail} onRename={openRename} onDelete={openDelete} /> : <p className="rounded-lg bg-white px-4 py-5 text-sm text-ui-muted">暂无已完成的清单</p>}</div>}
+          <section aria-label="已完成清单"><button className="ui-module-disclosure ui-focus" type="button" aria-expanded={!completedCollapsed} onClick={() => setCompletedCollapsed((value) => !value)}><span>已完成 · {completed.length}</span><ChevronDown size={18} className={completedCollapsed ? '' : 'rotate-180'} aria-hidden="true" /></button>
+            {!completedCollapsed && <div className="mt-3">{completed.length ? <ListsRows rows={completed} spaces={data.eligibleSpaces} showSource={filter === 'all'} disabled={!canAct} onOpen={onOpenDetail} onRename={openRename} onDelete={openDelete} /> : <p className="ui-module-empty">暂无已完成的清单</p>}</div>}
           </section>
         </>}
       </div>

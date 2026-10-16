@@ -1,5 +1,59 @@
 # Development Log
 
+## 2026-10-16 — 全域UX正式发布检查点（LOCAL ALL PASS / PRODUCTION PWA PENDING）
+
+- 用户明确确认本轮全部本地iPhone Safari验收PASS，授权Commit、正常Push及既有GitHub→Vercel自动Production；仅整轮收尾，不新设计/功能/版本。开工main/origin-main与远端main均5533b329，25 modified+4 untracked完整快照保护。
+- 累计范围复审：UX-01至UX-09、Review贴边/焦点、Space原hook右滑、登录浅色/去标语、折叠入口/分组及首页三标题；15前端+10直接测试/夹具+5治理文件。日历时间/周期、SpaceFilterDropdown实现、所有lib数据/资格/ownership/默认创建规则、后台/配置/依赖未改。Auth/OTP/Push处理函数保持，React转义及原资格保护保留，无第二套菜单/弹窗/手势框架。
+- 首次全量Node989/990：唯一失败是sheet-date-layout静态断言要求ui-safe-bottom位于class末尾，无法接受已验收桌面宽度class。仅改为精确class成员断言（另确认共享Sheet类），保留所有安全区/滚动约束和真实DOM测试；应用源码本轮未再修改。定向5/5，最终完整990/990无失败/跳过。原并行完整Browser81/81（UI26+筛选26+删除18+Space11），旧Chrome Calendar tap超时本轮未复现，未放宽timeout/删断言。
+- 最终npm run build含TypeScript、相关mjs/js语法、diff-check PASS；官方registry生产依赖audit0，未安装升级。既有chunk>500KB提示保留。375/430四模块/空结果/展开收起、Hub精简、Review外部底距0最终真实截图/DOM通过；首页10场景证据与最终源/CSS指纹一致，复用无重复截图。
+- 提交前Production公开静态资源7项HTTP200；目标/anon客户端/VAPID与新Build相同，backend契约未变。无真实Session/OTP/业务API、环境文件或凭据输出，不改Supabase/Edge/Cron等。发布实绩和准确Source/资产核验独立记录于本次报告，证据 `/private/tmp/calendar-ux-production-release/`；提交前Production release/PWA acceptance均PENDING。保持正式PWA人工检查点，用户确认前不最终CLOSED/PASS或追加closeout提交。
+
+## 2026-10-16 — 首页三板块标题最后定向调整（LOCAL VERIFIED / FINAL USER LOCAL PENDING）
+
+- 用户确认四模块顶部/空状态、次级折叠入口、Review两Sheet贴边、空间右滑、登录和功能中心本地iPhone Safari PASS，本次不再修改。开工main/origin-main5533b329，23 modified+4 untracked全部保护；另保存原本clean的两个首页文件。仅HomePage的HomeSection与HomeImportantDatesSection两处h2 class：text-ui-section→text-ui-list font-ui-semibold，实际20px/600/28行高→16px/600/24行高。复用tokens，不改全局CSS/其他标题/内容/业务。
+- 真实HomePage+当前CSS，复用现有fixture/内存I/O，仓库外临时加载首页，不新增测试实现或仿造UI。WebKit375/430、Chrome375/430/1280，各有内容/正常全空，共10场景：三个标题16px/600/24；标题操作区仍44、header至内容8、卡片间20、文字左x32（手机），卡片/正文/主标题尺寸坐标与前逐项一致。重要日h2包含原44px按钮，保留触摸热区，文字行高24。实际导航和三个创建入口资格通过，预览3条日程/2条任务及空结果内容保持。375/430前后及桌面截图已实际查看；长截图fixed底栏位置为截屏方式，非新增布局变化。
+- `node --test tests/home-aggregation.test.ts tests/home-important-dates.test.ts tests/global-create-ui.test.ts`115/115；双引擎真实渲染10场景、`npm run build`含tsc、检查脚本语法、diff-check通过。旧chunk提示保持；无必要重跑全域。证据 `/private/tmp/calendar-home-title-check/`。实际5175新源码HTTP200、公开后台目标与Build一致，原能力契约不变，无真实登录态/OTP/数据操作。
+- 仅2生产文件+DEVLOG/PROJECT_STATE/TESTING/BACKLOG接续记录。其余既有前端/测试/CSS指纹不变，不回退用户PASS成果；无业务逻辑/数据库/后台/依赖/配置/外部项目变更，未读环境文件/输出凭据。仅待首页最终本地验收，不Commit/Push/部署、新版本或最终CLOSED/PASS。
+
+## 2026-10-16 — 次级折叠入口统一及四模块完整横向复核（LOCAL VERIFIED / USER SAFARI PENDING）
+
+- 接续全部未提交工作；main/origin-main仍5533b329。开工23 modified+4 untracked逐文件快照保留。用户最新确认回顾两Sheet左右/底部、空间右滑、登录PASS，UX-01至UX-09主要视觉基本满意，本轮不重改已验收部分。
+- 真实before：任务透明、14px/500、高44、文字x16；清单白底1px描边、16px/600、文字x33；重要日白底1px描边、14px/400、高46、文字x29。清单虽写min-h-14，但现有非layer页面button规则使实际高度为44，不能把56px class当实测。主区至次级入口任务12px、另两页20px；主分组清单600/重要日400而任务/回顾500。
+- 仅提取任务已有轻量入口为小型ui-module-disclosure样式：透明/无描边阴影、14px/500/20行高、44px热区、18px灰绿Chevron、左右无额外内缩；三页接入原summary/button，不改状态/计数/过滤/排序/数据读取/列表操作。清单和重要日主分组字重及区块间距作为完全同类差异统一500/12px；展开正文原12px间距保留。回顾不新增折叠区域。
+- WebKit375/430、Chrome375，真实四组件+当前CSS，合成有内容/正常空结果，共24个页面/数据状态实例：全页收起/展开并排、返回/新建/筛选框、主分组/空结果/次级列表及实际页底均检查。三入口实际样式与坐标比对、触摸、Enter/Space、计数、展开操作、焦点和收起恢复文档高度通过；有内容时绝对y差异来自行数/内容高度，不强行对齐。375三入口x16/宽343、高44，430宽398；同等空结果入口均y253，展开正文间距12。正常空结果60px高，无白卡/图标。
+- 明确剩余：清单筛选16px/600、其他16px/400；任务筛选边框比另三页浅；任务行标题500、另三页600，来源辅助信息也有12/13px差异。筛选框既有冻结和内容强调层级需要设计确认，本轮留证不擅改。430回顾筛选398与另三页384属于原宽度约束；Review历史计数/分页/刷新、重要日日期独立卡片和完成态操作保留合理业务差异。未对全部权限/资格/仅次级有数据/分页/失败组合制作完整视觉快照，不声称所有状态已审查。
+- Node80/80、串行浏览器70/70（UI26+筛选26+删除18）、补充DOM数量断言3/3、npm run build含TypeScript、Node语法和diff-check通过；Build既有大chunk提示不变。先RED3/3复现视觉差异，再GREEN。源码五轴复审未见本次改动引入业务、权限或性能问题；App/Space/Review/登录/通知等已有文件与开工指纹相同。截图、DOM、完整报告与日志在 `/private/tmp/calendar-disclosure-review/`，已实际查看375/430并排及Chrome/页底截图。
+- 当前增量仅4个前端文件、原有UI browser fixture/测试和5份治理记录；不增加文件/依赖、不改后端/配置/真实数据，无Commit/Push/部署/版本或最终CLOSED。未读环境文件/输出凭据/继承登录态，仓库外仅临时证据。5175真实新样式/公开目标与Build对齐，LAN200；下一步只需用户复验三折叠入口并审阅剩余设计差异，无需保存删除或重验已PASS部分。
+
+## 2026-10-16 — 回顾新建/日期更正底部悬空定向修复（LOCAL LAYOUT VERIFIED / USER SAFARI PENDING）
+
+- 用户最新iPhone Safari：空间管理右滑、登录配色/标语PASS，禁止再次修改；回顾左右贴边PASS、底部悬空FAIL。用户明确撤销上一轮“保持垂直位置”约束，仅修两个Review弹窗。main/origin-main5533b329，开工23 modified+4 untracked全部27文件在仓库外快照保护；App/SpaceManagementPage及其手势源码与开工指纹相同。
+- 完整布局链实测：两个弹窗不是Portal，Overlay是视口fixed/inset0、flex-end、祖先transform/filter/contain/backdrop均无定位干扰；外层遗留py-4把Sheet抬高16px，内部safe-bottom并不能抵消外层padding。删除确认Overlay padding0，bottom贴视口。两端原四角圆角也与贴底Sheet不符；不是RPC/日期/焦点逻辑问题。
+- 测量同时发现旧UI browser HTML缺doctype进入BackCompat，form额外默认margin-bottom16px，旧32px读数混入夹具误差；正式index.html本来是standards。仅给现有测试响应补doctype，不改正式HTML。CSS1Compat双引擎375/430修复前新建top540/bottom796、更正top552/bottom796，视口底812，外距16；删除top608/bottom812，外距0。历史32px及“原位置保持”记录仅为此前检查点，不冒充真实标准页面结果。
+- 两个弹窗仅增加同一Review Sheet外层/内容类，接入现有删除确认同一几何规则组：手机外层padding0、flex-end、宽100%/max512、仅顶部24圆角、内容内部padding-bottom=max(20px,safe-area)、受视口限制且内部可滚动。桌面沿用既有居中规则并保持原max448；无新组件/Portal/定位系统、无visualViewport监听/业务改造。新建top552/bottom812/h260，更正top564/bottom812/h248（375/430双引擎相同），外距0，与删除Sheet底边相同。
+- 保留既有Keyboard Hook/Tab/IME/Escape/取消/restore/busy锁及全部日期/提交函数；Review render前业务字节不变。新增直接DOM边界：开前页面滚动、内部safe-bottom算式34px替换模型、200px短视口内部滚动及恢复812、date fill/focus/Tab、Chrome背景wheel不滚动、桌面宽度居中。模型不能证明Safari原生日期选择器/软键盘/浏览器底栏或真实notch，留给用户。
+- 针对Node35/35、定向浏览器8/8+边界2/2、TypeScript/Build/Node语法/diff-check通过；最终相关UI23+原删除18串行集成41/41通过，完整证据见TESTING。既有bundle提示保留。截图/完整祖先/Overlay/Sheet/visualViewport数据在 `/private/tmp/calendar-review-bottom/`，已查看375/430前后及正常删除同条件并排。
+- 本次增量仅ReviewHistoryPage/ReviewDetailPage/styles、原UI browser测试和5份必要治理文档。未碰已验收App/空间手势/登录、后台/依赖/配置/私密Session或环境文件；无Commit/Push/部署/版本。实际5175标准HTML/新类/公开后台配置与Build及LAN HTTP200对齐；沿用不变后台能力契约。只待两个Review弹窗真机复验，不重验已PASS的空间和登录，不最终CLOSED/PASS。
+
+## 2026-10-16 — 首轮iPhone Safari反馈：三项定向修正（当前未提交UX工作的延续）
+
+- 用户首轮本地iPhone Safari整体基本满意，指出回顾短弹窗左右留白、空间管理右滑缺口、登录深色/旧标语；仅处理这三项，不重新实施UX-01至UX-09。main/origin-main仍5533b329，开工23 modified+2 untracked；仓库外逐文件快照/指纹保护25个既有工作文件，无reset/restore/清理。
+- 回顾真实375/430双引擎RED：新建/日期更正x16、宽343/398，删除确认x0、宽375/430，原因是两个旧overlay的p-4。仅改为手机px0/原py4、与既有移动确认相同max512（桌面仍448）；原items-end/桌面居中、内部padding、safe-area、日期输入、圆角/高度策略保持。修复后x0、宽375/430；合成短内容新建y524/h256、日期更正y536/h244与修复前相同，bottom780不变，不把此次横向统一扩大成重新贴底。回顾render前业务与本轮开始快照逐字节相同。
+- 空间管理RootApp WebKit RED：真实“我的→空间管理”后，在SpaceRow文本派发touch PointerEvent down/move/up仍停留管理页。根因是SpaceManagementPage从未接入useMobileSwipe；原v0.1.20冻结仅Calendar及四模块列表，非本轮CSS/焦点改动引入的回归。复用原hook/识别器及App共享trailing-click guard，scope按账号/详情Space重置，busy禁用，右滑调用原onBack（详情→管理→我的）；SpaceRow仅展示行显式允许手势，创建/加入/危险按钮、输入等继续排除。aria-modal阻断及原dirty确认保持，没有第二套手势或新路由。
+- 登录Logo为Lucide CalendarDays SVG，不是位图。原大色块虽用UI v2 accent(67,101,82)，仍显过深；改用已在通知图标/回顾选中态使用的accent-soft(232,238,230)底+accent文字/线条。邮件/OTP两个按钮同组合，对比度5.5257:1；实际与通知图标computed颜色比较。删除旧“两个人的小日程本”，保留共享日历、44px图标行和24px到表单间距，无新宣传语/新色token。Auth state/effects/handlers与本轮开始快照逐字节相同。
+- 最终相关Node123/123、UI21/21、Space手势11/11、原删除18/18及筛选独立复跑26/26 PASS，最终TypeScript/Build/语法/diff-check PASS。首次并行浏览器75/76，唯一Chrome日历tap执行超时在单独完整筛选26项全通过，未改菜单/超时，不伪称单次76/76。详细命令、触摸边界和证据见TESTING；业务后端、原SpaceFilterDropdown/日历时间/底栏和UX既有成果保持。只修改4个原前端文件、既有UX browser测试及2个新增Space浏览器fixture/测试，并接续5份治理记录；不Commit/Push/部署/版本，不最终CLOSED/PASS。外部项目无修改，不打开环境文件/打印凭据或驱动真实Session。
+
+## 2026-10-16 — 全域UI/UX冻结修整 UX-01至UX-09 — LOCAL AUTOMATED PASS / USER ACCEPTANCE PENDING
+
+- Repo-first：main/origin-main均5533b3299295b31d3779b58aea200965df521f6f、初始clean；读取AGENTS与既有治理/审查报告。用户冻结范围分四组本地实施；不新建版本、不Commit/Push/部署、不变更后端/依赖/配置。上一轮筛选器已Production发布、用户主要交互正常但回顾间距仍有问题，未最终治理收口。
+- UX-01/02：任务/清单/回顾历史/重要日复用小型header/等宽两侧grid样式，20px/600、屏幕居中、Sticky；删除回顾52px补偿，仅历史页重排，不改详情/编辑正文。保留左右操作及safe-area；历史回顾辅助标题仍14px/500。375/430双引擎实测标题y26/h28，筛选器y76/h44，标题至筛选器22px，header133px；旧回顾筛选器y120→76。筛选器原宽度/字号/字重及菜单本身不改。
+- UX-03/04/06：功能中心仅成功空回顾/重要日主值改暂无，保留0数量、实际数据、Space上下文与错误/加载语义；四入口删重复说明、64px热区，旧约88–89px。四模块等价正常空结果复用透明14px/400/20px行高纯文字、20px上下padding，375px均y181/h60；已完成/历史等分组含义保留，历史重要日空结果也统一，无资格引导/错误/加载不混同。移除该空结果的重复新建按钮，顶部新建保持。
+- UX-05：复用useListModalKeyboard，三类新接入（回顾新建/日期更正、通知）仅opt-in Tab循环、背景滚动锁和明确opener恢复。真实WebKit先复现date子字段Tab直接跳BODY，后用控件级Tab循环修复，日期内部仍可方向键操作；IME、Review同步忙锁/取消/失败恢复保留，通知沿用原操作中可关闭语义；旧List/delete调用不启用新options。测试覆盖初始焦点、正反Tab、IME Escape、取消/Escape/恢复及忙态拒绝关闭。
+- UX-07/08/09：只修List/Important来源/保存到/确认上下文、清单创建反馈及Space管理具体空间行的实际名称，类型/资格说明不批量替换；Calendar独立来源类型文案不扩展。Auth/OTP及通知复用UI v2暖白/灰绿、44px控件和克制阴影；只移除退出登录右侧Chevron。Auth handlers、通知inspect/enable/send/disable、signOut及Review业务handlers与HEAD字节比较相同，src/lib/数据库/依赖不变。
+- TDD与最终验证：原Hub主值/副文案、真实header/empty/focus测试先失败后通过；Node全量990/990与最后局部40/40 PASS（无业务测试移除），WebKit/Chrome61/61 PASS（原删除18+筛选26+新UX17）。旧筛选几何断言更新四模块本轮冻结y76，仍校验原宽高/字体及全部菜单行为；最终npm run build含tsc、两browser脚本node --check、git diff --check PASS。原>500kB bundle提示保留，不扩展打包重构。
+- 真实组件/原hooks/原CSS仅边界I/O内存化，测试禁用env文件及拦截所有网络，未伪造UI/操作私人数据。375/430完整页面与1280桌面截图、并排before/after、metrics及焦点轨迹在仓库外 `/private/tmp/calendar-ui-consistency/`；已实际查看四模块header/空结果、回顾与Hub前后、登录/OTP/通知截图。readiness只比较公开JS/Build/实际Vite配置并核验5175及LAN HTTP200，不读取环境文件/用户Session，不调用业务API。
+- 最小用户真机验收见TESTING；手指滚动、软键盘/真实safe-area、原生日期控件及设备通知能力仍以用户结果为准。仅更新五份必要治理记录为本地自动PASS/用户待验收，不提前CLOSED/PASS；没有外部项目文件、环境文件、凭据或Production数据变更。
+
 ## 2026-10-16 — Space筛选器正式发布门禁 — LOCAL IPHONE SAFARI PASS / FINAL PRODUCTION PWA PENDING
 
 - 用户确认真实账号本地iPhone Safari功能/视觉验收PASS，冻结已验收UI；明确授权一个实现Commit、正常Push origin/main及既有GitHub→Vercel自动Production前端发布，不创建第二次手动部署。发布前main/origin-main及独立远端均为afd6e35a331af2d58db4cf5c4c16e3650928103e。

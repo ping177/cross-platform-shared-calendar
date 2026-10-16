@@ -18,6 +18,7 @@ export function MyPage({ userId, onManageSpaces }: { userId: string; onManageSpa
   const [retry, setRetry] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
   const requestGuard = useRef(createRequestGuard());
+  const notificationsButton = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const request = requestGuard.current.begin();
@@ -59,11 +60,11 @@ export function MyPage({ userId, onManageSpaces }: { userId: string; onManageSpa
       {!loading && !profile && <button className="ui-focus min-h-11 px-ui-3 text-ui-meta text-ui-accent" type="button" onClick={() => setRetry((value) => value + 1)}>重试读取资料</button>}
       <div className="ui-my-links">
         <button className="ui-space-entry ui-focus" type="button" onClick={onManageSpaces}><Layers size={20} aria-hidden="true" /><span>空间管理</span><ChevronRight size={18} aria-hidden="true" /></button>
-        <button className="ui-space-entry ui-focus" type="button" onClick={() => setShowNotifications(true)}><Bell size={20} aria-hidden="true" /><span>此设备通知设置</span><ChevronRight size={18} aria-hidden="true" /></button>
-        <button className="ui-space-entry ui-focus" type="button" onClick={() => void signOut()}><LogOut size={20} aria-hidden="true" /><span>退出登录</span><ChevronRight size={18} aria-hidden="true" /></button>
+        <button ref={notificationsButton} className="ui-space-entry ui-focus" type="button" onClick={() => setShowNotifications(true)}><Bell size={20} aria-hidden="true" /><span>此设备通知设置</span><ChevronRight size={18} aria-hidden="true" /></button>
+        <button className="ui-space-entry ui-focus" type="button" onClick={() => void signOut()}><LogOut size={20} aria-hidden="true" /><span>退出登录</span></button>
       </div>
       {error && <p className="mt-ui-4 text-ui-meta text-ui-danger" role="alert">{error}</p>}
     </main>
-    {showNotifications && <NotificationSettings onClose={() => setShowNotifications(false)} />}
+    {showNotifications && <NotificationSettings returnFocusRef={notificationsButton} onClose={() => setShowNotifications(false)} />}
   </>;
 }

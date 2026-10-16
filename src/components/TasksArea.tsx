@@ -88,20 +88,20 @@ export function TasksArea({ swipeClickGuard, screen, onScreenChange, onHubBack, 
 
   return <main {...swipe} className="ui-tasks min-h-screen bg-ui-page font-ui text-ui-text">
     <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col">
-      <header className="ui-tasks-header sticky top-0 z-10 border-b border-ui-border bg-ui-page/95 px-4 pb-3 pt-4 backdrop-blur">
-        <div className="grid min-h-12 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
+      <header className="ui-module-header">
+        <div className="ui-module-title-row">
           <button className="inline-flex min-h-ui-touch min-w-0 items-center gap-1 rounded-ui-control text-ui-meta font-ui-semibold text-ui-accent ui-focus" type="button" onClick={back}>
             <ChevronLeft size={18} className="shrink-0" aria-hidden="true" />
             <span className="truncate">{screen === 'completed' ? '任务' : '功能中心'}</span>
           </button>
-          <h1 className="min-w-0 truncate text-ui-page-title">{screen === 'completed' ? '已完成任务' : '任务'}</h1>
+          <h1 className="min-w-0 truncate text-ui-section">{screen === 'completed' ? '已完成任务' : '任务'}</h1>
           {screen === 'tasks' ? <button ref={createButton} className="grid h-11 w-11 shrink-0 justify-self-end place-items-center bg-transparent text-ui-accent hover:text-ui-accent-strong ui-focus disabled:text-ui-muted" type="button" disabled={!canAct || editor.openingCreate || create !== null || state.status !== 'ready'} onClick={() => void editor.beginCreate()} aria-label="新建任务"><Plus size={18} aria-hidden="true" /></button>
             : <span className="w-11 shrink-0" aria-hidden="true" />}
         </div>
         {data && <TaskFilterPicker spaces={data.eligibleSpaces} filter={filter} onChange={(next) => { editor.invalidateTaskRequests(); chooseFilter(next); }} />}
       </header>
 
-      <section className="flex-1 space-y-ui-4 px-ui-4 py-ui-5 ui-safe-bottom">
+      <section className="flex-1 space-y-ui-3 px-ui-4 py-ui-4 ui-safe-bottom">
         {editor.actionError && <p className="rounded-ui-control bg-ui-danger-soft px-ui-4 py-ui-3 text-ui-meta text-ui-danger" role="alert">{editor.actionError}</p>}
         {syncError && <p className="rounded-ui-control bg-ui-danger-soft px-ui-4 py-ui-3 text-ui-meta text-ui-danger" role="alert">{syncError}</p>}
         {refreshError && state.status === 'ready' && <p className="rounded-ui-control bg-ui-danger-soft px-ui-4 py-ui-3 text-ui-meta text-ui-danger" role="alert">{refreshError}<button className="ml-2 min-h-ui-touch min-w-11 rounded-ui-control font-ui-semibold text-ui-accent ui-focus" type="button" onClick={() => void refresh()}>重试</button></p>}
@@ -113,14 +113,14 @@ export function TasksArea({ swipeClickGuard, screen, onScreenChange, onHubBack, 
         {state.status === 'ready' && <>
           {screen === 'tasks' && <h2 className="text-ui-meta font-ui-medium text-ui-muted">待完成 · {state.data.grouped.open.length}</h2>}
           {state.data.eligibleSpaces.length === 0 ? <p className="rounded-ui-group border border-ui-border bg-ui-surface px-ui-4 py-ui-5 text-ui-meta text-ui-muted">暂无已开启任务的空间。可在“我的 → 空间管理”中查看模块状态。</p>
-            : list.length === 0 ? <p className="rounded-ui-group border border-ui-border bg-ui-surface px-ui-4 py-ui-5 text-ui-meta text-ui-muted">{screen === 'completed' ? '暂无已完成事项' : '暂无待完成事项'}</p>
+            : list.length === 0 ? <p className="ui-module-empty">{screen === 'completed' ? '暂无已完成任务' : '暂无待完成任务'}</p>
               : <TaskRows tasks={list} sourceSpacesById={state.data.sourceSpacesById} membersBySpaceId={state.data.membersBySpaceId} userId={userId} completed={screen === 'completed'} busyTaskId={canAct ? editor.busyTaskId : 'eligibility-pending'} openingTask={!canAct || editor.openingTask} onOpen={(task) => void editor.openTask(task)} onChangeStatus={(task, status) => void editor.changeStatus(task, status)} />}
           {screen === 'tasks' && <details key={`${userId}:${filter === 'all' ? 'all' : filter.spaceId}`} className="ui-task-completed">
-            <summary className="flex min-h-ui-touch cursor-pointer list-none items-center justify-between gap-ui-3 rounded-ui-control text-ui-meta font-ui-medium text-ui-muted ui-focus">
+            <summary className="ui-module-disclosure ui-focus">
               <span>已完成 · {state.data.grouped.completed.length}</span><ChevronDown size={18} className="ui-task-disclosure shrink-0" aria-hidden="true" />
             </summary>
             <div className="mt-ui-3">
-              {state.data.grouped.completed.length === 0 ? <p className="rounded-ui-group border border-ui-border bg-ui-surface px-ui-4 py-ui-5 text-ui-meta text-ui-muted">暂无已完成事项</p>
+              {state.data.grouped.completed.length === 0 ? <p className="ui-module-empty">暂无已完成任务</p>
                 : <TaskRows tasks={state.data.grouped.completed} sourceSpacesById={state.data.sourceSpacesById} membersBySpaceId={state.data.membersBySpaceId} userId={userId} completed busyTaskId={canAct ? editor.busyTaskId : 'eligibility-pending'} openingTask={!canAct || editor.openingTask} onOpen={(task) => void editor.openTask(task)} onChangeStatus={(task, status) => void editor.changeStatus(task, status)} />}
             </div>
           </details>}

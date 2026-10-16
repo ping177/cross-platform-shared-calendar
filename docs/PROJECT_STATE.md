@@ -12,7 +12,9 @@ v0.1.20
 
 ## Current status
 
-2026-10-16 五模块Space筛选器统一：LOCAL AUTOMATED PASS / USER-AUTHENTICATED LOCAL IPHONE SAFARI PASS / PRODUCTION RELEASE AUTHORIZED / FINAL PWA ACCEPTANCE PENDING。用户已确认本地真实账号iPhone Safari功能与视觉验收PASS，冻结实现；990/990、WebKit/Chrome44/44、TypeScript/Build/语法/diff-check与375/430真实渲染检查PASS。按授权通过既有Git→Vercel流程发布，精确Source及公开资源结果由本次独立发布报告记录；Production installed PWA最终用户验收前不CLOSED/PASS。正式版本仍v0.1.20，旧删除交互收口保持下方状态。
+2026-10-16 全域UI/UX一致性修整：**LOCAL AUTOMATED PASS / USER LOCAL IPHONE SAFARI PASS / PRODUCTION PWA ACCEPTANCE PENDING**。用户已确认本轮全部本地验收PASS并授权正式Commit/正常Push及既有GitHub→Vercel自动Production发布，设计/功能冻结。提交前发布快照：Production release = PENDING，Production iPhone PWA acceptance = PENDING；本次部署实绩、精确Source SHA和资产核验以独立发布报告为准，不以授权/Git同步推断。全量Node990/990、原并行WebKit/Chrome81/81、TypeScript/Build/语法/diff-check通过。正式版本仍v0.1.20，不新增版本、后台或功能，不最终CLOSED/PASS；部署核验后仅待用户正式PWA最小验收。
+
+此前五模块Space筛选器已发布，最近确认Production Source为 `5533b3299295b31d3779b58aea200965df521f6f`；用户报告真实iPhone PWA主要交互正常、回顾“空间”标签已消失，但顶部间距不协调。本轮本地修整接续该已知问题，不将上一轮误写成无保留最终CLOSED/PASS；正式PWA最终治理收口仍未完成。
 
 本轮删除确认UI与清单分组WebKit触摸修复 = **PRODUCTION ACCEPTED / CLOSED / PASS**。用户确认正式Production iPhone PWA最终验收PASS。验收对应应用基线 `8d7fb252c60b75688d0a736be6f761c0506ff0b5`（其前端实现提交为 `b0487c106cc654dc72de5054191480376b9aacc8`）；GitHub Production 7093050865 / Vercel `HSqce4foW3jffYGfjpmRi5rAdrKw` 成功。992/992、WebKit/Chrome18/18、TypeScript、Build、Node语法和diff-check PASS。只关闭本轮UI修复及验收，不代表整个项目已完成正式试用或所有业务E2E。正式版本仍v0.1.20；没有数据库、Edge、Cron、Auth或业务数据变更。
 
@@ -47,6 +49,18 @@ UI v2 Slice6 = LOCAL PASS / VISUAL PASS：用户已认可四张居中概览卡�
 v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3为LOCAL PASS / VISUAL PASS；Slice4为LOCAL PASS / VISUAL PROVISIONALLY ACCEPTED。Slice5月视图本地验证与离线视觉验收通过：两条短标题/准确+N、六色圆点与日期浮层，261/261相关测试、build/diff-check、28组四宽度离线检查PASS；用户确认普通月、密集月、空月及浮层满意。已授权本地commit；不代表真实账号、真机、installed PWA或Production验收。Space Color System继续Deferred；真实账号/真机/installed PWA/Production未验收。正式版本仍v0.1.20。
 
 ## Latest completed
+
+2026-10-16 — 用户确认本轮全部本地iPhone Safari PASS并授权发布。累计30文件范围复审通过；仅修一处旧静态测试的class顺序假设，安全区/滚动约束与真实DOM覆盖保留，无应用重改。最终Node990/990、原并行Browser81/81、TS/Build/语法/diff-check及生产依赖audit0；375/430视觉及此前首页10场景有效证据通过。实际Git/Production结果另行核验，正式PWA验收Pending。
+
+2026-10-16 — 首页三板块标题仅两处class调整，统一16px/600/24行高；真实HomePage及当前CSS双引擎10场景实测，卡片、正文和主标题几何/内容保持，Node115/115及TS/Build通过。此前六项本地人工验收PASS已由用户确认，当前仅待首页；完整证据 `/private/tmp/calendar-home-title-check/`。
+
+2026-10-16 — 三模块次级折叠入口统一透明/无描边、14px/500、44px热区、18px Chevron与12px区块间距；清单/重要日同级主分组标题统一14px/500。WebKit375/430、Chrome375真实四模块两种数据状态完整并排，触摸/键盘/焦点/展开收起及页底可见性通过。Node80/80、浏览器70/70、TS/Build通过；其余已验收源码保留，尚待折叠入口人工复验。证据 `/private/tmp/calendar-disclosure-review/`。
+
+2026-10-16 — 两个回顾Sheet底部悬空定向修复：外层py4是标准模式16px底部空隙来源；复用既有底部Sheet外部0/内部safe-area/顶部圆角/自然高。测试夹具补doctype排除旧32px混入的form默认margin；双引擎375/430实际gap0，Node35/35、浏览器41/41及TS/Build/语法/diff-check通过。空间管理和登录已获用户真机PASS且源码未再修改；下一步仅Review本地真机复验。
+
+2026-10-16 — 首轮本地反馈三项修正：两个回顾短弹窗375/430横向全宽、原垂直几何不变；Space管理/详情复用原右滑与返回链，真实RootApp/WebKit触摸序列及Chrome原生CDP触摸通过；登录复用浅accent-soft底+accent文字，对比度5.53:1并去旧标语。相关123/123、UI21/21、Space11/11、删除18/18、筛选复跑26/26及最终TS/Build/语法/diff-check PASS；仅待用户三项复验，详见DEVLOG/TESTING。
+
+2026-10-16 — 冻结UX-01至UX-09本地完成；四模块375/430真实渲染标题20px/600、中心偏差≤1px、筛选器y76、标题至筛选器22px；正常空结果14px/400/透明居中/60px高，功能入口64px。真实WebKit日期Tab越界已复现并局部修复；Node990/990、增量40/40、浏览器61/61及最终TS/Build/语法/diff-check PASS。用户本地真机验收Pending，不提交发布或关闭本轮。详见DEVLOG/TESTING。
 
 2026-10-16 — 五模块Space下拉UI及回顾辅助标题本地自动验证和用户真实账号iPhone Safari验收均PASS；发布范围/业务不变复审完成，确认992→990仅移除旧Calendar Sheet的两项模态测试并由新下拉真实DOM覆盖替代。用户授权单一实现提交、正常Push及既有自动Production部署；实际Git/Source/资源证据见本次发布报告，最后Production PWA验收仍Pending。
 
@@ -357,6 +371,8 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
+提交前发布快照（2026-10-16）：本轮全域UX Production release = PENDING；用户本地iPhone Safari与完整自动验证均PASS，已授权单一实现Commit及正常Push到origin/main，沿用现有GitHub→Vercel自动Production，不手动二次部署/改项目设置。发布前Source为5533b3299295b31d3779b58aea200965df521f6f（GitHub7100479452/vercel[bot] success）；正式公开HTML/JS/CSS/manifest/SW/图标HTTP200，后台目标/anon客户端/VAPID与新Build一致，无新Schema/RPC/Edge要求。本次实际Source、deployment和资产一致性由独立发布核验报告记录；Production iPhone PWA acceptance始终待用户确认，不以静态成功代替。没有Auth/数据库/Edge/Cron/Push/Realtime或业务数据操作。
+
 本轮Space筛选器发布前main/origin-main基线为afd6e35a331af2d58db4cf5c4c16e3650928103e；用户已授权正常Commit/Push及GitHub→Vercel自动Production前端发布，不主动手动部署或改配置。实际部署成功状态、精确Source SHA及正式静态资源核验由本次独立发布报告记录，不能用发布授权代替部署证据。用户认证本地5175 iPhone Safari已PASS；Production installed PWA用户最终验收仍Pending。本地Build公开后台目标与已验收Production一致，无新后端能力/配置要求。
 
 本轮删除确认与清单分组修复对应的Production应用基线为 `8d7fb252c60b75688d0a736be6f761c0506ff0b5`，GitHub Production deployment 7093050865 / Vercel `HSqce4foW3jffYGfjpmRi5rAdrKw` success。用户已确认该正式iPhone PWA验收PASS。其业务前端实现来自 `b0487c106cc654dc72de5054191480376b9aacc8`；后续8d7fb25为已核验的docs-only发布记录，正式JS/CSS/manifest/SW与通过Build一致。本轮治理收口仅修改文档，不主动触发部署或修改Production配置。
@@ -459,17 +475,19 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Last verified
 
-2026-10-16 — Space筛选器全量Node990/990、WebKit/Chrome44/44、TypeScript/Build/语法/diff-check PASS。375/430与旧版触发框真实几何/字号相同，菜单统一且无遮挡/溢出；用户确认真实账号本地iPhone Safari功能/视觉验收PASS；正式installed PWA仍待用户最终验收。旧删除修复正式PWA PASS保持，不用本轮自动结果扩大人工证据。
+2026-10-16 — 全量Node990/990（无失败/跳过）、现有原并行Browser81/81（UI26/筛选26/删除18/Space手势11）PASS；上次Chrome Calendar原生tap超时本轮未复现，未改timeout或删除断言。TypeScript/Production Build、脚本语法、diff-check通过，生产依赖audit0；旧大chunk提示保持。真实四模块375/430标题20px600/筛选y76/空文字60px/折叠44px与12px节奏、Review两Sheet底距0，最终截图和测量通过；首页16px600的10场景原证据与最终源码/CSS一致。提交前Production公开目标/anon客户端/VAPID与新Build一致，无后台能力变化；发布后Source和正式资产由独立报告核验，不驱动真实Session。
 
 ## Next Action
 
-本次独立发布报告确认Production Source与公开资源正常后，用户在已安装正式iPhone PWA完成五模块Space筛选器最小验收（详见TESTING）；收到用户Production PASS后再另行授权最终治理收口。验收前不CLOSED/PASS，不扩大到新功能或后台工作。
+在本次Git→Vercel自动Production部署及Source/静态资源核验通过后，由用户在已安装正式iPhone PWA完成最小验收：首页三个板块标题、四模块顶部/空结果/折叠入口、功能中心、Review贴底/关闭、Space右滑及必要登录/通知视觉。实际部署核验结果见本次发布报告。收到用户Production PASS前不最终CLOSED/PASS、不追加治理收口Commit、不启动新功能或工程稳定性审查；通过后等待另行治理收口指示。
 
 ## Blockers
 
 暂无明确阻塞。
 
 ## Important Context
+
+- 当前UX-01至UX-09范围以2026-10-16冻结决定为准；不重做SpaceFilterDropdown、不改变筛选资格/独立记忆/新建默认、日历时间、底栏结构、删除规则、Auth/OTP或Push订阅业务。UX-07仅修本轮明确指向具体Space的名称，不批量替换类型说明。
 
 - Avatar正式Production人工验收已由用户确认PASS；照片权限复用已审核私有Storage/本人Profile边界。未完整验证的跨设备/续期/撤销等边界继续保留，不以整体关闭推断全部场景通过。
 
@@ -564,7 +582,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Handoff Prompt
 
-五模块Space筛选器冻结实现及990/990、WebKit/Chrome44/44、TS/Build、375/430真实渲染检查PASS，用户真实账号本地iPhone Safari验收PASS。用户已授权本次实现Commit/正常Push与既有Vercel自动Production发布，Source/资源及Git最终状态见独立发布报告；下一检查点是用户正式installed PWA验收，不驱动登录态，不提前最终治理收口。原删除确认与分组CLOSED/PASS保持，本轮筛选器未CLOSED，不新增版本。
+当前全域UX整轮本地iPhone Safari验收已由用户确认PASS并明确授权正式发布；发布前基线5533b3299295b31d3779b58aea200965df521f6f。累计30文件范围复审、Node990/990、Browser原并行81/81、TypeScript/Build/语法/diff-check及生产依赖audit0通过，应用设计/功能冻结。单一实现Commit、正常Push、现有Vercel自动部署与正式资产核验结果以本次发布报告为准（证据 `/private/tmp/calendar-ux-production-release/`）；仅待用户正式installed PWA最小验收，不继承登录态、不追加最终Governance Closeout Commit、不提前CLOSED/PASS或启动下一阶段。正式版本仍v0.1.20，后端/依赖/配置保持。
 
 用户确认Profile Card Compact + Avatar v1正式Production人工验收PASS，最终状态CLOSED / PASS；Space Rename真实Production功能及最终UI也为CLOSED / PASS。Avatar已验收功能发布Source SHA：fcd3c8ad1b91bd7ec137c331e3d721ea8fae6cac。12预设及猫F+02「陶粉与燕麦」保持冻结。该整体验收不扩大为跨设备、照片替换/默认恢复、真实失败/断网重试、退出最后共同Space的新签拒绝、5分钟签名续期及iOS/Android/PWA全部边界已通过；未完整验证项继续在观察期记录。
 

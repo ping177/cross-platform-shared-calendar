@@ -18,9 +18,9 @@ export function ImportantDateIcon({ emoji }: { emoji: string | null }) {
   return emoji ? <span className="text-xl" aria-hidden="true">{emoji}</span> : <CalendarHeart size={22} className="text-teal" aria-hidden="true" />;
 }
 
-export function ImportantDatesContent({ data, filter, today, pastExpanded, canAct, onOpen, onPastToggle, onCreate }: {
+export function ImportantDatesContent({ data, filter, today, pastExpanded, canAct, onOpen, onPastToggle }: {
   data: ImportantDatesData; filter: ImportantDateFilter; today: CivilDate; pastExpanded: boolean; canAct: boolean;
-  onOpen: (date: ImportantDate) => void; onPastToggle: () => void; onCreate?: () => void;
+  onOpen: (date: ImportantDate) => void; onPastToggle: () => void;
 }) {
   const grouped = groupImportantDates(data.dates, today, filter);
   const spaces = new Map(data.eligibleSpaces.map((space) => [space.id, space]));
@@ -34,23 +34,19 @@ export function ImportantDatesContent({ data, filter, today, pastExpanded, canAc
           <span className={`mt-ui-1 block text-ui-meta font-ui-medium ${row.display.kind === 'past' ? 'text-ui-muted' : 'text-ui-accent'}`}>{row.display.kind === 'past' ? `已过 ${row.display.elapsedDays} 天` : row.primary}</span>
           {row.secondary && <span className="mt-ui-1 block text-ui-meta text-ui-muted">{row.secondary}</span>}
           <span className="mt-ui-1 block text-ui-meta text-ui-muted">{row.dateLabel} · {row.date.repeat_kind === 'annual' ? '每年' : '不重复'}</span>
-          {filter === 'all' && <span className="mt-ui-1 block break-words text-ui-label text-ui-muted">{space?.kind === 'personal' ? '我的空间' : space?.name}</span>}
+          {filter === 'all' && <span className="mt-ui-1 block break-words text-ui-label text-ui-muted">{space?.name}</span>}
         </span>
         <ChevronRight size={18} className="mt-ui-1 shrink-0 text-ui-control" aria-hidden="true" />
       </button>
     </li>;
   })}</ul>;
   return <>
-    <section aria-label="当前重要日"><h2 className="mb-ui-3 text-ui-meta text-ui-muted">重要日 · {grouped.current.length}</h2>
-      {grouped.current.length ? rows(grouped.current) : grouped.past.length ? <p className="ui-important-empty-current text-ui-meta text-ui-muted">暂无当前重要日</p> : <div className="ui-important-empty">
-        <CalendarHeart size={36} className="mx-auto text-ui-control" aria-hidden="true" />
-        <h3 className="mt-ui-4 text-ui-bar">还没有重要日</h3>
-        <p className="mt-ui-2 text-ui-meta text-ui-muted">记录生活中值得记住的日子。</p>
-        {onCreate && <button className="ui-focus mt-ui-4 inline-flex items-center justify-center gap-ui-2 px-ui-3 text-ui-meta font-ui-semibold text-ui-accent" type="button" disabled={!canAct} onClick={onCreate}><Plus size={18} aria-hidden="true" />新建重要日</button>}
-      </div>}
+    <section aria-label="当前重要日"><h2 className="mb-ui-3 text-ui-meta font-ui-medium text-ui-muted">重要日 · {grouped.current.length}</h2>
+      {grouped.current.length ? rows(grouped.current) : grouped.past.length ? <p className="ui-module-empty">暂无当前重要日</p> : <p className="ui-module-empty">暂无重要日</p>}
+
     </section>
-    <section aria-label="历史重要日"><button className="ui-important-history" type="button" aria-expanded={pastExpanded} onClick={onPastToggle}><span>历史重要日 · {grouped.past.length}</span><ChevronDown size={18} className={pastExpanded ? 'rotate-180' : ''} aria-hidden="true" /></button>
-      {pastExpanded && <div className="mt-ui-3">{grouped.past.length ? rows(grouped.past) : <p className="text-ui-meta text-ui-muted">暂无历史重要日</p>}</div>}
+    <section aria-label="历史重要日"><button className="ui-module-disclosure ui-focus" type="button" aria-expanded={pastExpanded} onClick={onPastToggle}><span>历史重要日 · {grouped.past.length}</span><ChevronDown size={18} className={pastExpanded ? 'rotate-180' : ''} aria-hidden="true" /></button>
+      {pastExpanded && <div className="mt-ui-3">{grouped.past.length ? rows(grouped.past) : <p className="ui-module-empty">暂无历史重要日</p>}</div>}
     </section>
   </>;
 }
@@ -150,9 +146,9 @@ function ImportantDatesModule({ swipeClickGuard, userId, onHubBack, onNoEligible
 
   return <main {...swipe} className="ui-important-page min-h-[100dvh] bg-ui-page font-ui text-ui-text">
     <div className="mx-auto flex min-h-[100dvh] w-full max-w-3xl flex-col">
-      <header className="ui-important-header sticky top-0 z-10 border-b border-ui-border bg-ui-page px-ui-4 pb-ui-3 pt-ui-4">
-        <div className="flex min-h-12 items-center justify-between gap-3">
-          <button className="ui-focus inline-flex min-h-11 items-center gap-1 text-ui-meta font-ui-semibold text-ui-accent" type="button" onClick={onHubBack}><ChevronLeft size={18} aria-hidden="true" />功能中心</button>
+      <header className="ui-module-header">
+        <div className="ui-module-title-row">
+          <button className="ui-focus inline-flex min-h-11 min-w-0 items-center gap-1 text-ui-meta font-ui-semibold text-ui-accent" type="button" onClick={onHubBack}><ChevronLeft size={18} className="shrink-0" aria-hidden="true" /><span className="truncate">功能中心</span></button>
           <h1 className="min-w-0 truncate text-ui-section">重要日</h1>
           <button ref={createButton} className="ui-focus grid h-11 w-11 shrink-0 place-items-center rounded-ui-control bg-transparent text-ui-accent disabled:opacity-50" type="button" aria-label="新建重要日" disabled={!canAct || !data?.eligibleSpaces.length} onClick={openCreate}><Plus size={18} aria-hidden="true" /></button>
         </div>
@@ -162,11 +158,11 @@ function ImportantDatesModule({ swipeClickGuard, userId, onHubBack, onNoEligible
             className="ui-focus h-11 w-full min-w-0 rounded-ui-control border border-ui-control bg-ui-surface px-ui-3 text-ui-body" />
         </div>}
       </header>
-      <div className="flex-1 space-y-ui-5 px-ui-4 py-ui-4 safe-bottom">
+      <div className="flex-1 space-y-ui-3 px-ui-4 py-ui-4 safe-bottom">
         {notice && <p role="status" className="text-sm text-ink/70">{notice}</p>}
         {state.refreshing && <p role="status" className="text-sm text-ink/60">{data ? '重要日更新中…' : '正在读取重要日…'}</p>}
         {state.error && <p role="alert" className="text-sm text-coral">{state.error}<button className="ml-2 min-h-11 font-semibold text-teal" type="button" onClick={() => void refresh()}>重试</button></p>}
-        {data && <ImportantDatesContent data={data} filter={filter} today={today} canAct={canAct} pastExpanded={pastExpanded} onPastToggle={() => setPastExpanded((value) => !value)} onCreate={openCreate} onOpen={(date) => { setNotice(''); setEditor({ date, initialTargetId: date.space_id }); }} />}
+        {data && <ImportantDatesContent data={data} filter={filter} today={today} canAct={canAct} pastExpanded={pastExpanded} onPastToggle={() => setPastExpanded((value) => !value)} onOpen={(date) => { setNotice(''); setEditor({ date, initialTargetId: date.space_id }); }} />}
       </div>
     </div>
     {visibleEditor && <ImportantDateSheet moduleView key={visibleEditor.date?.id ?? 'create'} date={visibleEditor.date} initialTargetId={visibleEditor.initialTargetId} memberSpaces={data?.memberSpaces ?? []} eligibleSpaces={data?.eligibleSpaces ?? []} canAct={canAct} onSubmit={save} onCancel={closeEditor} onDelete={() => { if (visibleEditor.date) { setDeleting(visibleEditor.date); setDeleteError(''); setEditor(null); } }} />}
