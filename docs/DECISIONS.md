@@ -1,5 +1,13 @@
 # Decisions
 
+## 2026-10-16 — 创建表单 Space 本地验收通过，授权正式发布
+
+用户确认日历/任务/清单/重要日及首页快捷新建本地iPhone Safari全部PASS，冻结当前补充实现，授权正常实现Commit、Push origin/main和现有GitHub→Vercel自动Production。仅原24文件源码/直接测试/治理记录，不新增设计、版本、依赖或后台/配置变更。此前六项正式PWA PASS保持；本次提交前Production release/PWA acceptance均PENDING，Source/资源另行实证，正式PWA由用户验收。收到本次Production PASS前不最终CLOSED/PASS、不追加最终Governance Closeout Commit或启动稳定性审查。下方LOCAL ONLY为当时实施边界，现由本次授权接续。
+
+## 2026-10-16 — 补齐创建表单 Space 控件，业务归属与筛选分离
+
+用户确认此前六项正式PWA PASS后，授权 LOCAL ONLY 补齐 Event/Task/List/Important Date 创建表单原生 Space 菜单遗漏。复用原顶部菜单的视觉与交互，增加 opt-in dialog 定位/焦点支持和薄 SpaceTargetDropdown，不另建菜单框架；禁止“全部空间”，可选资格/default/ownership/编辑不可迁移/真实提交均由父级保持。Review无表单控件，不新增。日期、时间、提醒、成员选择不属本轮。旧PWA PASS保留，补充本地真机及未来发布验收未完成前不最终CLOSED/PASS，不Commit/Push/部署/新版本。
+
 ## 2026-10-16 — 全域UX本地最终验收通过并授权正式发布
 
 用户确认本轮全部本地iPhone Safari PASS，包括最后首页16px/600三板块标题；冻结当前设计与功能，授权整轮实现Commit、正常Push origin/main及既有GitHub→Vercel自动Production。发布前累计diff/全量自动化/视觉及Project State Gate检查，允许仅修本轮失效的直接测试，不扩改设计或业务。没有新版本、依赖、后台/生产配置或第二次手动部署。提交前Production release/PWA acceptance均PENDING，部署实绩以独立核验报告为准；用户正式PWA验收PASS前不最终CLOSED/PASS、不追加closeout提交、不启动新功能或稳定性审查。下方旧Local Pending/未授权发布为历史检查点。

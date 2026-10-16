@@ -35,7 +35,7 @@ test('create and rename use one header submit, a close callback and name before 
     assert.ok(html.indexOf('for="list-name"') < html.indexOf('for="list-space"'));
     assert.equal((html.match(/type="submit"/g) ?? []).length, 1);
     assert.equal((html.match(/<input/g) ?? []).length, 1);
-    assert.equal((html.match(/<select/g) ?? []).length, mode === 'create' ? 1 : 0);
+    assert.equal((html.match(/data-space-target-trigger/g) ?? []).length, mode === 'create' ? 1 : 0); assert.doesNotMatch(html, /<select/);
     assert.doesNotMatch(html, /描述|选择图标|创建后添加/);
   }
 }));
@@ -59,15 +59,15 @@ async function sheetRuntime(run: (env: any) => Promise<void>) {
     useState(initial: any) { const i = cursor++; if (!(i in slots)) slots[i] = initial; return [slots[i], (value: any) => { slots[i] = typeof value === 'function' ? value(slots[i]) : value; }]; },
     useRef(initial: any) { return slots[cursor++] ??= { current: initial }; }, useEffect() {},
   };
-  const vite = await createServer({ configFile: false, envFile: false, logLevel: 'silent', ssr: { noExternal: [/^react$/], external: ['react/jsx-runtime', 'react/jsx-dev-runtime'] }, server: { middlewareMode: true, hmr: false }, appType: 'custom', plugins: [{
-    name: 'lists-v2-sheet-handlers', enforce: 'pre', resolveId(id, importer) { if (id === 'react' && importer?.endsWith('/ListSheets.tsx')) return '\0lists-v2-hooks'; },
+  const vite = await createServer({ configFile: false, envFile: false, logLevel: 'silent', ssr: { external: ['react', 'react/jsx-runtime', 'react/jsx-dev-runtime'] }, server: { middlewareMode: true, hmr: false }, appType: 'custom', plugins: [{
+    name: 'lists-v2-sheet-handlers', enforce: 'pre', transform(code, id) { if (id.endsWith('/ListSheets.tsx')) return code.replace("from 'react'", "from 'lists-v2-hooks'"); }, resolveId(id, importer) { if (id === 'lists-v2-hooks' && importer?.endsWith('/ListSheets.tsx')) return '\0lists-v2-hooks'; },
     load(id) { if (id === '\0lists-v2-hooks') return 'export const {useState,useRef,useEffect}=globalThis.__listsV2Hooks;'; },
   }] } as any);
   try {
     const { ListEditorSheet } = await vite.ssrLoadModule('/src/components/ListSheets.tsx');
     const calls: any[] = []; const props: any = { mode: 'create', memberSpaces: [personal, shared], eligibleSpaces: [personal, shared], userId: 'me', initialTargetId: 'p', onSubmit: async (...args: any[]) => { calls.push(args); }, onCancel: () => calls.push('cancel') };
     const render = () => { cursor = 0; return ListEditorSheet(props); };
-    const change = (name: string, value: string) => nodes(render()).find(n => n.props.id === name).props.onChange({ target: { value } });
+    const change = (name: string, value: string) => nodes(render()).find(n => n.props.id === name).props.onChange(name === 'list-space' ? value : { target: { value } });
     const submit = () => { nodes(render()).find(n => n.type === 'form').props.onSubmit({ preventDefault() {} }); };
     const flush = async () => { await new Promise(yes => setImmediate(yes)); };
     await run({ props, calls, render, change, submit, flush, html: () => renderToStaticMarkup(render()) });

@@ -52,10 +52,11 @@ async function runtime(run: (env: any) => Promise<void>) {
   mock.moduleQuery = { select() { return this; }, eq() { return this; }, maybeSingle: async () => ({ data: { enabled: false }, error: null }) };
   mock.moduleRpc = async (...args: any[]) => { calls.push(['toggle', ...args]); return { error: null }; };
   (globalThis as any).__importantDatesTest = mock;
-  const vite = await createServer({ configFile: false, logLevel: 'silent', ssr: { noExternal: [/^react$/], external: ['react/jsx-dev-runtime', 'react/jsx-runtime'] }, server: { middlewareMode: true, hmr: false }, appType: 'custom', plugins: [{
+  const vite = await createServer({ configFile: false, logLevel: 'silent', ssr: { external: ['react', 'react/jsx-dev-runtime', 'react/jsx-runtime'] }, server: { middlewareMode: true, hmr: false }, appType: 'custom', plugins: [{
     name: 'important-date-injected-runtime', enforce: 'pre',
+    transform(code, id) { if (id.includes('/src/components/') && !id.endsWith('/SpaceFilterDropdown.tsx')) return code.replace("from 'react'", "from 'important-date-test-hooks'"); },
     resolveId(id, importer) {
-      if (id === 'react' && importer?.includes('/components/')) return '\0important-date-hooks';
+      if (id === 'important-date-test-hooks' && importer?.includes('/components/')) return '\0important-date-hooks';
       if (id.endsWith('/important-dates-data') || id.endsWith('/important-dates-data.ts')) return '\0important-date-data';
       if (id.endsWith('/supabase') || id.endsWith('/supabase.ts')) return '\0important-date-client';
     },
@@ -126,7 +127,7 @@ test('Important Date Sheet keeps target through filter/eligibility changes and s
   const props = { memberSpaces: [space, { ...space, id: 'personal', kind: 'personal' }], eligibleSpaces: [space], initialTargetId: space.id, canAct: true,
     onSubmit: async (draft: any, id: string) => submitted.push([draft, id]), onCancel() {}, onDelete() {} };
   let tree = env.renderSheet(props);
-  const input = (id: string, value: string) => elements(tree).find((item) => item.props.id === id || item.props['aria-label'] === id).props.onChange({ target: { value } });
+  const input = (id: string, value: string) => elements(tree).find((item) => item.props.id === id || item.props['aria-label'] === id).props.onChange(id === 'important-date-space' ? value : { target: { value } });
   input('important-date-name', '生日'); input('月', '2'); input('日', '29');
   tree = env.renderSheet({ ...props, initialTargetId: 'personal' });
   assert.equal(elements(tree).find((item) => item.props.id === 'important-date-space').props.value, space.id);
@@ -339,7 +340,7 @@ test('new Sheet defaults to 08:00 and submits explicit no/previous-day choices',
   let tree = env.renderSheet(props);
   const find = (id: string) => elements(tree).find((item) => item.props.id === id || item.props['aria-label'] === id);
   assert.equal(find('important-date-reminder').props.value, 'all_day_same_day_08');
-  for (const [id, value] of [['important-date-name', '生日'], ['月', '2'], ['日', '29']]) find(id).props.onChange({ target: { value } });
+  for (const [id, value] of [['important-date-name', '生日'], ['月', '2'], ['日', '29']]) find(id).props.onChange(id === 'important-date-space' ? value : { target: { value } });
   for (const choice of ['all_day_same_day_08', '', 'all_day_previous_day_20']) {
     tree = env.renderSheet(props); find('important-date-reminder').props.onChange({ target: { value: choice } });
     tree = env.renderSheet(props);

@@ -1,5 +1,13 @@
 # Backlog
 
+## 2026-10-16 表单 Space 正式发布检查点 — LOCAL ACCEPTED / PRODUCTION PWA PENDING
+
+四模块及首页快捷新建用户本地iPhone Safari五项PASS，最终完整Node990/990、WebKit/Chrome105/105、TS/Build/语法/diff-check与audit0通过，用户授权正常Commit/Push及既有自动Production。此前六项正式PWA PASS保持；当前下一业务检查点为本次部署Source/资源核验后的用户正式PWA菜单选择/取消/滚动验收，无需保存删除或重验旧六项。下方Local Pending为历史；本次正式PWA仍Pending、不最终收口或启动新版本/稳定性审查。普通日历编辑Personal来源通用文案继续非阻塞记录，不扩修。
+
+## 2026-10-16 表单 Space 控件补充 — LOCAL AUTOMATED PASS / USER SAFARI PENDING
+
+用户确认 e70c66f 全域UX此前六项正式iPhone PWA验收PASS；下方相应Production Pending为历史检查点。新发现四类创建表单原生Space select遗漏，已复用现有菜单完成本地补齐，编辑只读及Review当前空间规则不变；自动与真实组件证据见TESTING。当前仅待用户本地iPhone Safari检查菜单选择/取消/滚动和首页复用，随后另行授权Git/发布；不最终CLOSED/PASS、不启动新版本或稳定性审查。已验收首页/顶部/空结果/折叠/Review/空间手势/登录全部保持。独立旧静态文案：普通日历编辑的Personal来源名可能仍显示通用“我的空间”，并非本轮Space picker；仅记录，不扩改。
+
 ## 2026-10-16 全域UX正式发布检查点 — LOCAL ACCEPTED / PRODUCTION PWA PENDING
 
 用户确认本轮全部本地iPhone Safari PASS，并授权整轮Commit/正常Push及既有自动Production；下方首页/折叠/其他Local Pending均已接续。最终Node990/990、原并行Browser81/81、TS/Build/语法/diff-check通过；仅修一项旧静态测试的class顺序假设，未再改设计。当前业务检查点为部署及正式资源核验后的用户installed PWA最小验收；提交前Production release/PWA均Pending，实际部署结果见本次发布报告。其他字重差异不扩展当前范围，不新版本/功能/后端；用户正式PASS前不最终收口或追加Governance Closeout Commit。

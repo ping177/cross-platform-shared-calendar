@@ -90,8 +90,11 @@ test('disabled Personal default remains selected in the TaskSheet and cannot be 
       createTarget: { spaces: [personal, shared], selectedId: personal.id, enabledIds: [shared.id], state: 'blocked', error: '', onSelect: () => undefined, onRetry: () => undefined },
       validateGlobalCreate: async () => undefined,
     }));
-    assert.match(markup, /value="personal" disabled="" selected=""/);
-    assert.match(markup, /value="shared-a"/);
+    assert.match(markup, /id="task-create-target"[^>]*>我的空间<\/button>/);
+    const { CreateTargetSelector } = await vite.ssrLoadModule('/src/components/GlobalCreateControls.tsx');
+    const tree = CreateTargetSelector({ kind: 'task', disabled: false, control: { spaces: [personal, shared], selectedId: personal.id, enabledIds: [shared.id], state: 'blocked', error: '', onSelect() {}, onRetry() {} } });
+    const picker = React.Children.toArray(tree.props.children).find((node: any) => node.props.id === 'task-create-target') as any;
+    assert.deepEqual(picker.props.spaces.map((option: any) => [option.id, option.disabled]), [['personal', true], ['shared-a', false]]);
     assert.match(markup, /未启用任务，请主动选择其他已启用任务的空间/);
     assert.match(markup, /type="submit" form="task-sheet-form" disabled=""/);
   } finally { await vite.close(); }

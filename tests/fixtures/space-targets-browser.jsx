@@ -1,0 +1,30 @@
+import React,{useState} from 'react';
+import {createRoot} from 'react-dom/client';
+import {EventSheet} from '../../src/App';
+import {TaskSheet} from '../../src/components/TaskSheet';
+import {ListEditorSheet} from '../../src/components/ListSheets';
+import {ImportantDateSheet} from '../../src/components/ImportantDateSheet';
+import '../../src/styles.css';
+const q=new URLSearchParams(location.search),mode=q.get('mode')||'event',editing=q.has('edit'),variant=q.get('entry')||'module';
+const personal={id:'p',name:'我的自定义空间',kind:'personal',created_by:'me',membershipRole:'owner',created_at:'2026-01-01'};
+const shared={id:'s',name:q.has('long')?'家庭共享空间与本年度旅行计划及日常安排的完整名称':'家庭共享空间',kind:'shared',created_by:'me',membershipRole:'owner',created_at:'2026-01-01'};
+const spaces=q.has('single')?[personal]:[personal,shared,...(q.has('many')?Array.from({length:20},(_,i)=>({...shared,id:'more'+i,name:'其他共享空间 '+i})):[])];
+const eligible=q.has('blocked')?spaces.filter(s=>s.id!=='p'):spaces;
+const members=id=>[{space_id:id,user_id:'me',role:'owner',profiles:{display_name:'测试用户'}},...(id==='p'?[]:[{space_id:id,user_id:'other',role:'member',profiles:{display_name:'家人'}}])];
+window.targetFixture={spaces,eligible,selections:[],calls:[],cancelled:0,reads:[]};
+window.targetFixture.persist=value=>q.has('busy')?new Promise(resolve=>{window.targetFixture.release=()=>resolve(value)}):Promise.resolve(value);
+window.targetFixture.query=table=>{let values;const b={insert(v){values=v;return b},update(v){values=v;return b},eq(){return b},select(){return b},then(resolve){window.targetFixture.calls.push({table,values});return window.targetFixture.persist({data:[{id:'created'}],error:null}).then(resolve)}};return b};
+window.targetFixture.rpc=(name,args)=>{window.targetFixture.calls.push({rpc:name,args});return Promise.resolve({data:[{id:'created'}],error:null})};
+function Fixture(){
+ const [open,setOpen]=useState(true),[selected,setSelected]=useState(q.get('target')||'p'),[available,setAvailable]=useState(eligible);
+ window.targetFixture.setEligible=ids=>setAvailable(spaces.filter(s=>ids.includes(s.id)));
+ const space=spaces.find(s=>s.id===selected)||personal;
+ const close=()=>{window.targetFixture.cancelled++;setOpen(false)};
+ const control={spaces,selectedId:selected,enabledIds:available.map(s=>s.id),state:mode==='task'&&!available.some(s=>s.id===selected)?'blocked':'ready',error:'',onSelect:id=>{window.targetFixture.selections.push(id);setSelected(id)},onRetry(){}};
+ const task={id:'t',space_id:'p',title:'原任务',status:'open',assigned_to_user_id:'me',due_on:null,reminder_kind:null,created_by:'me'};
+ const event={id:'e',space_id:'p',title:'原日程',description:null,starts_at:'2026-10-16T08:00:00Z',ends_at:null,all_day:false,scope:'personal',owner_user_id:'me',created_by:'me',recurrence_rule:null,reminder_kind:null};
+ const date={id:'d',space_id:'p',name:'原重要日',repeat_kind:'annual',year:null,month:10,day:20,emoji:null,reminder_kind:null};
+ const saved=()=>{};
+ return <main className="min-h-screen bg-ui-page p-4 font-ui"><button type="button" onClick={()=>{setSelected(q.get('target')||'p');setOpen(true)}}>重新打开表单</button><p>仅合成数据，实际组件与CSS。</p>{open&&(mode==='event'?<EventSheet target={editing?{kind:'event',event}:null} space={space} userId="me" members={members(space.id)} partnerId={space.id==='p'?null:'other'} onClose={close} onSaved={saved} showSourceSpace sourceSpaceLabel={space.name} createTarget={editing?undefined:control} validateCreateTarget={async()=>true}/>:mode==='task'?<TaskSheet task={editing?task:null} spaceId={space.id} spaceKind={space.kind} userId="me" members={members(space.id)} onClose={close} onSaved={async()=>{}} sourceSpaceLabel={editing?space.name:undefined} createTarget={editing?undefined:control} validateGlobalCreate={async()=>{}} moduleView={variant==='module'}/>:mode==='list'?<ListEditorSheet mode={editing?'rename':'create'} list={editing?{id:'l',space_id:'p',name:'原清单'}:undefined} userId="me" memberSpaces={spaces} eligibleSpaces={available} initialTargetId={q.get('target')||'p'} onCancel={close} onSubmit={async(name,id)=>{window.targetFixture.calls.push({kind:'list',name,space_id:id});await window.targetFixture.persist();setOpen(false)}}/>:<ImportantDateSheet date={editing?date:undefined} memberSpaces={spaces} eligibleSpaces={available} initialTargetId={q.get('target')||'p'} canAct moduleView={variant==='module'} onSubmit={async(draft,id)=>{window.targetFixture.calls.push({kind:'important',draft,space_id:id});await window.targetFixture.persist();setOpen(false)}} onCancel={close} onDelete={()=>{}}/>)}</main>;
+}
+createRoot(document.getElementById('root')).render(<Fixture/>);

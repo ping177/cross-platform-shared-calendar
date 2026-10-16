@@ -19,9 +19,9 @@ async function ui(run:(env:any)=>Promise<void>) {
   };
   (globalThis as any).__taskReminderUi=m;
   const vite=await createServer({configFile:false,envFile:false,logLevel:'silent',optimizeDeps:{noDiscovery:true,include:[]},
-    ssr:{noExternal:[/^react$/],external:['react/jsx-runtime','react/jsx-dev-runtime']},server:{middlewareMode:true,hmr:false},appType:'custom',plugins:[{
-      name:'task-reminder-fixture',enforce:'pre',resolveId(id,importer){
-        if(id==='react' && importer?.endsWith('TaskSheet.tsx')) return '\0task-hooks';
+    ssr:{external:['react','react/jsx-runtime','react/jsx-dev-runtime']},server:{middlewareMode:true,hmr:false},appType:'custom',plugins:[{
+      name:'task-reminder-fixture',enforce:'pre',transform(code,id){if(id.endsWith('/TaskSheet.tsx'))return code.replace("from 'react'","from 'task-reminder-test-hooks'");},resolveId(id,importer){
+        if(id==='task-reminder-test-hooks' && importer?.endsWith('TaskSheet.tsx')) return '\0task-hooks';
         if(/\/supabase(?:\.ts)?$/.test(id)) return '\0task-client';
       },load(id){const prefix='const m=globalThis.__taskReminderUi;';
         if(id==='\0task-hooks') return prefix+'export const {useState,useRef,useEffect}=m;';

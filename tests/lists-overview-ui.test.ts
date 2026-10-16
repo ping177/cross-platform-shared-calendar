@@ -53,9 +53,9 @@ test('New List keeps disabled Personal selected and requires an active Shared ch
       initialTargetId: personal.id,
       onSubmit: async () => undefined, onCancel: () => undefined,
     }));
-    assert.match(markup, /value="personal" selected=""/);
+    assert.match(markup, /id="list-space"[^>]*>我的空间（未启用清单）<\/button>/);
     assert.match(markup, /我的空间未启用清单/);
-    assert.match(markup, /value="shared"/);
+    assert.match(markup, /aria-haspopup="listbox"/);
     assert.match(markup, /type="submit" disabled=""/);
   } finally { await vite.close(); }
 });
@@ -68,8 +68,8 @@ test('New List shows a filtered Shared default and keeps the chosen target in sh
       mode: 'create', memberSpaces: [personal, shared], eligibleSpaces: [personal, shared], userId: 'me', initialTargetId: shared.id,
       onSubmit: async () => undefined, onCancel: () => undefined,
     }));
-    assert.match(markup, /value="shared" selected=""/);
-    assert.match(markup, /value="personal"/);
+    assert.match(markup, /id="list-space"[^>]*>共同空间<\/button>/);
+    assert.doesNotMatch(markup, /<select[^>]*id="list-space"/);
     assert.doesNotMatch(markup, /请主动选择空间/);
     const source = readFileSync(new URL('../src/components/ListSheets.tsx', import.meta.url), 'utf8');
     const overview = readFileSync(new URL('../src/components/ListsOverviewPage.tsx', import.meta.url), 'utf8');
@@ -87,7 +87,7 @@ test('New List with an invalid filtered target requires re-selection', async () 
       mode: 'create', memberSpaces: [personal, shared], eligibleSpaces: [personal], userId: 'me', initialTargetId: null,
       onSubmit: async () => undefined, onCancel: () => undefined,
     }));
-    assert.match(markup, /value="" selected=""/);
+    assert.match(markup, /id="list-space"[^>]*>请主动选择空间<\/button>/);
     assert.match(markup, /请主动选择空间/);
     assert.match(markup, /type="submit" disabled=""/);
   } finally { await vite.close(); }
@@ -101,7 +101,7 @@ test('New List keeps a newly ineligible Shared target visibly blocked until re-s
       mode: 'create', memberSpaces: [personal, shared], eligibleSpaces: [personal], userId: 'me', initialTargetId: shared.id,
       onSubmit: async () => undefined, onCancel: () => undefined,
     }));
-    assert.match(markup, /value="shared" disabled="" selected=""/);
+    assert.match(markup, /id="list-space"[^>]*>当前空间已不可用，请重新选择<\/button>/);
     assert.match(markup, /当前空间已不可用/);
     assert.match(markup, /type="submit" disabled=""/);
   } finally { await vite.close(); }

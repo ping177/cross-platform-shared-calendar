@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 import { canSaveImportantDateTarget, normalizeImportantDateDraft, type ImportantDateDraft } from '../lib/important-dates';
 import { allDayReminderOptions, defaultReminderKind } from '../lib/reminder';
 import type { CurrentSpace, ImportantDate } from '../types';
+import { SpaceTargetDropdown } from './SpaceTargetDropdown';
 
 const commonEmojis = ['🎂', '🎉', '❤️', '💍', '🎁', '🏡', '✈️', '🎓', '🌸', '⭐', '🥂', '👶'];
 
@@ -98,11 +99,11 @@ export function ImportantDateSheet({ date, memberSpaces, eligibleSpaces, initial
         </div>}
       </div> : <input id="important-date-emoji" className="mt-2 min-h-11 w-full rounded-lg border border-ink/20 px-3" value={emoji} disabled={busy} onChange={(event) => setEmoji(event.target.value)} />}
       <label className="mt-4 block text-sm font-semibold" htmlFor="important-date-space">空间</label>
-      {date ? <p id="important-date-space" className="mt-2 break-words text-sm">{target?.name ?? '空间不可用'}</p> : <select id="important-date-space" className="mt-2 min-h-11 w-full min-w-0 rounded-lg border border-ink/20 bg-white px-3" value={targetId} disabled={busy} onChange={(event) => { setTargetId(event.target.value); setError(''); }}>
-        <option value="">请主动选择空间</option>
-        {targetId && !target && <option value={targetId} disabled>当前空间已不可用</option>}
-        {memberSpaces.map((space) => <option key={space.id} value={space.id} disabled={!canSaveImportantDateTarget(space.id, eligibleSpaces)}>{space.name}{canSaveImportantDateTarget(space.id, eligibleSpaces) ? '' : '（未启用重要日）'}</option>)}
-      </select>}
+      {date ? <p id="important-date-space" className="mt-2 break-words text-sm">{target?.name ?? '空间不可用'}</p> : <SpaceTargetDropdown id="important-date-space" className="mt-2" value={targetId} disabled={busy} onChange={(id) => { setTargetId(id); setError(''); }} spaces={[
+        { id: '', name: '请主动选择空间' },
+        ...(targetId && !target ? [{ id: targetId, name: '当前空间已不可用', disabled: true }] : []),
+        ...memberSpaces.map((space) => ({ id: space.id, name: space.name + (canSaveImportantDateTarget(space.id, eligibleSpaces) ? '' : '（未启用重要日）'), disabled: !canSaveImportantDateTarget(space.id, eligibleSpaces) })),
+      ]} />}
       {!targetEnabled && <p className="mt-2 text-sm text-coral" role="alert">空间已不可用或未启用重要日，不能保存。请主动选择有效空间。</p>}
       <label className="mt-4 block text-sm font-semibold" htmlFor="important-date-repeat">重复</label>
       <span className="relative mt-2 block"><select id="important-date-repeat" className="min-h-11 w-full rounded-lg border border-ink/20 bg-white appearance-none pl-3 pr-10" value={repeat} disabled={busy} onChange={(event) => setRepeat(event.target.value as 'annual' | 'none')}><option value="annual">每年</option><option value="none">不重复</option></select></span>

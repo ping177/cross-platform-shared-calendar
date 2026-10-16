@@ -943,6 +943,9 @@ body:has(.ui-calendar-shell) {
 .ui-space-filter-option { display: flex; align-items: center; gap: var(--ui-space-2); width: 100%; min-height: var(--ui-touch-target); padding: var(--ui-space-2) var(--ui-space-3); border-radius: var(--ui-radius-control); text-align: left; font-size: inherit; font-weight: var(--ui-weight-normal); }
 .ui-space-filter-option > svg { flex: none; color: rgb(var(--ui-color-accent)); }
 .ui-space-filter-option > span { min-width: 0; overflow-wrap: anywhere; }
+.ui-space-filter-option:disabled { cursor: not-allowed; opacity: .5; }
+.ui-space-target-trigger { box-sizing: border-box; width: 100%; height: var(--ui-touch-target); padding: 0 var(--ui-select-text-reserve, 48px) 0 var(--ui-space-3); border: var(--ui-border-width) solid rgb(var(--ui-color-control)); border-radius: var(--ui-radius-control); background-color: rgb(var(--ui-color-surface)); color: rgb(var(--ui-color-text)); font-family: var(--ui-font-sans); font-size: var(--ui-text-body); font-weight: var(--ui-weight-normal); line-height: var(--ui-leading-body); }
+.ui-space-target-trigger:disabled { opacity: .5; }
 .ui-space-filter-option[aria-selected="true"] { color: rgb(var(--ui-color-accent-strong)); font-weight: var(--ui-weight-semibold); background: rgb(var(--ui-color-accent-soft)); }
 .ui-space-filter-option:focus-visible { outline: var(--ui-focus-width) solid rgb(var(--ui-color-focus)); outline-offset: -2px; }
 @media (hover: hover) { .ui-space-filter-option:hover { background: rgb(var(--ui-color-soft)); } }

@@ -16,7 +16,7 @@ test('single shared native and button-selector decoration reserves the same arro
   assert.match(css, /select[^{}]*\{[^{}]*appearance: none/s);
   assert.match(css, /@media \(forced-colors: active\)/);
 });
-test('filter buttons and unchanged native create targets keep the shared arrow and canonical disabled values', async () => {
+test('filter buttons and custom create targets keep the shared arrow and canonical disabled values', async () => {
   const vite = await createServer({ configFile: false, envFile: false, logLevel: 'silent', optimizeDeps: { noDiscovery: true, include: [] }, server: { middlewareMode: true, hmr: false }, appType: 'custom' });
   try {
     const { TaskFilterPicker } = await vite.ssrLoadModule('/src/components/TasksArea.tsx');
@@ -29,8 +29,8 @@ test('filter buttons and unchanged native create targets keep the shared arrow a
     assert.match(calendar, /ui-dropdown-trigger/); assert.match(calendar, /aria-haspopup="listbox"/); assert.doesNotMatch(calendar, /lucide-chevron-down/);
     let chosen = '';
     const target = CreateTargetSelector({ kind: 'task', disabled: true, control: { spaces: [space], selectedId: 's', enabledIds: [], state: 'blocked', error: '', onSelect: (id: string) => { chosen = id; }, onRetry() {} } });
-    const html = renderToStaticMarkup(target); assert.match(html, /<select[^>]*disabled=""/); assert.match(html, /value="s" disabled="" selected=""/);
-    const select = React.Children.toArray(target.props.children).find((el: any) => el.type === 'select') as any;
-    select.props.onChange({ target: { value: 's' } }); assert.equal(chosen, 's');
+    const html = renderToStaticMarkup(target); assert.match(html, /<button[^>]*disabled=""/); assert.match(html, /aria-haspopup="listbox"/); assert.doesNotMatch(html, /<select/);
+    const select = React.Children.toArray(target.props.children).find((el: any) => el.props.id === 'task-create-target') as any;
+    assert.equal(select.props.spaces[0].disabled, true); select.props.onChange('s'); assert.equal(chosen, 's');
   } finally { await vite.close(); }
 });

@@ -1,5 +1,24 @@
 # Development Log
 
+## 2026-10-16 — 创建表单 Space 补充修复正式发布准备（LOCAL ACCEPTED / PRODUCTION PWA PENDING）
+
+- 用户确认日历/任务/清单/重要日及首页快捷新建本地 iPhone Safari 全部 PASS，授权本次 Commit、正常 Push 及 GitHub→Vercel 自动 Production。此前整轮六项正式 PWA PASS 保留；本次正式 PWA 尚未验收，不最终 CLOSED/PASS。下方旧 LOCAL ONLY/待本地状态为历史检查点。
+- Repo-first：main/HEAD/origin-main/远端 main=e70c66f，21 modified+3 untracked无暂存；24项均为5旧生产+1新薄包装、11旧直接测试+2新fixture/browser、5治理记录，未知变更为0。代码/测试与已验收工作区指纹一致，本轮仅更新治理发布阶段，不重改UI或业务。默认/资格/ownership/API/编辑只读/顶部筛选保护保持，无“全部空间”归属项，无第二套框架、后台或依赖/配置更改。普通日历编辑来源文案保留为非阻塞遗留。
+- 最终源码完整Node990/990、WebKit/Chrome105/105（原81+表单24），均无fail/skip；TypeScript/Production Build、browser脚本及hook语法、diff-check PASS；生产依赖audit0。此前首页真实入口12/12及375/430并排证据与源码/CSS一致，可复用；本次又生成完整forms/ui/filter/Space截图与测量。没有删除断言、放宽timeout或跳过测试。
+- 发布前正式7项资源HTTP200，公开目标/publishable客户端/VAPID与最终Build一致，后端契约无变化。没有真实Session、OTP、生产业务API/数据库/后台操作，也未读取环境文件或输出凭据；临时日志和截图仅仓库外 `/private/tmp/calendar-space-release/`。
+- Project State freshness review：Current version保持v0.1.20，无新Version Index；Current status/Next Action/Deployment转为本次发布检查点，Blockers为“暂无明确阻塞。”；单一提交使用Project-State-Review: updated，正常现有hook。提交前Production release/PWA acceptance均PENDING；实际Commit/Push/部署/资产核验以独立发布报告为准，不把授权当部署成功。用户正式PWA PASS前不追加最终closeout提交；如异常仅停止报告，不自行回滚或扩修。
+
+## 2026-10-16 — 表单 Space 选择器补齐（LOCAL ONLY / USER SAFARI PENDING）
+
+- Repo-first：main/HEAD/origin-main 均 e70c66f，开工 clean。用户确认此前六项正式 Production iPhone PWA PASS，补充发现创建表单原生 Space 菜单遗漏；保留旧 PASS，不将新问题提前最终收口。
+- 检查真实入口：日历及首页日程共用 EventSheet/CreateTargetSelector，任务页及首页共用 TaskSheet/CreateTargetSelector；清单概览创建共用 ListEditorSheet，概览/详情改名归属只读；重要日页、首页快捷、日历投影编辑共用 ImportantDateSheet。四类创建原生 select 均替换，所有编辑原有不可迁移限制保留；Review 新建/更正/填写没有 Space 控件，保持页面具体 Space 上下文。
+- SpaceTargetDropdown 仅固定 allowAll=false 并委托原菜单引擎。表单模式 portal 位于现有 dialog、避开 Sheet body overflow，按 safe/visual viewport 选择上下方、最大384×320、内部滚动；监听随关闭卸载清理。支持禁用项、异步资格变化、Tab/IME/Escape 只关闭内层并恢复焦点；原页面筛选行为保持。不重新选择当前 ID，保留原生日程 audience/任务 assignment 不重置语义。
+- 父级仍构造同样 options/defaults/disabled：Task 只含已启用及当前选中项，List 保留 Personal 未启用提示且不能提交，Important 保留所有成员空间的禁用标记及主动选择占位；不改变 ownership、验证、保存、权限或 API。实际提交测试检查最终 space_id、草稿及忙态单次提交。
+- 真实截图核对发现新增 background 简写遮掉原有 Chevron；先新增真实 computed background-image 断言并 WebKit RED，再改为 background-color，保留16px现有箭头。未以共用 class 代替视觉检查。旧 Node 原生 option 断言及 hooks 注入改为新控件契约/局部注入，业务断言与测试数量保留。
+- 全量 Node 990/990；WebKit/Chrome 全部105/105（原81项+新24项），首页真实入口额外12/12。最后单条 Chevron CSS 修正后直接浏览器50/50、首页再验12/12、最终TypeScript/Build/语法/diff-check PASS，截图已刷新并查看，详见 TESTING。早期失败为旧 select 测试契约/React注入兼容问题，并非删断言或放宽超时；箭头问题单独真实复现修复。未改任何超时。
+- 375/430创建、只读编辑、长名称、多选项滚动与低字段向上展开并排；真实控件16px/400/24行高/44px热区、12px左内距/48px右预留/12px圆角。证据、矩阵和完整文件清单 `/private/tmp/calendar-space-targets/REPORT.md`，截图 index.html/verified/，全部合成数据。桌面WebKit不等于真机软键盘、动态浏览器栏或安全区最终PASS。
+- 实际5175新源码、LAN可达及公开配置对齐已核实，沿用未变后端能力契约，无OTP/Session/真实业务API；未读环境文件或输出凭据。生产代码仅5旧文件+1新薄包装，另直接测试及5治理记录；无依赖/数据库/配置/外部项目更改，无Commit/Push/部署/版本或最终CLOSED/PASS。
+
 ## 2026-10-16 — 全域UX正式发布检查点（LOCAL ALL PASS / PRODUCTION PWA PENDING）
 
 - 用户明确确认本轮全部本地iPhone Safari验收PASS，授权Commit、正常Push及既有GitHub→Vercel自动Production；仅整轮收尾，不新设计/功能/版本。开工main/origin-main与远端main均5533b329，25 modified+4 untracked完整快照保护。

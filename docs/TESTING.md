@@ -1,5 +1,26 @@
 # Testing
 
+## 创建表单 Space 发布前最终集成 — 2026-10-16 LOCAL ALL PASS / PRODUCTION PWA PENDING
+
+- 用户确认四模块新建及首页快捷新建五项本地iPhone Safari PASS，接续下方本补充旧Local Pending；此前六项正式PWA PASS保持，本次新增控件正式PWA仍PENDING。
+- 最终源码 `node --test tests/*.test.ts tests/*.test.js` **990/990 PASS**；`PLAYWRIGHT_MODULE_PATH=... SPACE_TARGET_ARTIFACTS=... UI_CONSISTENCY_ARTIFACTS=... SPACE_FILTER_ARTIFACTS=... SPACES_SWIPE_ARTIFACTS=... node --test --test-concurrency=1 tests/*.browser.mjs` **105/105 PASS**（包括最后Chevron修正），无fail/skip。沿用原3秒交互timeout；本次完整运行无失败，无应用/测试实现修改。
+- 范围包括四创建/提交ID/草稿/忙态/默认/资格/编辑只读、375/430长名/滚动/上下定位/短高、菜单Tab/Escape/IME/外点/恢复/清理、顶部筛选/创建默认、Review贴底、空间手势及原UI/登录通知/删除。首页真实HomePage12/12及并排截图与最终源码一致，复用此前证据，不冒称本轮重跑首页12项。
+- `npm run build`含tsc/Production Build PASS；既有chunk>500KB提示非阻塞；所有browser mjs及现有hook语法、`git diff --check` PASS；`npm audit --omit=dev --registry=https://registry.npmjs.org --json`生产依赖漏洞0，不更改依赖。发布前正式7项资源和公开配置一致，能力契约未改。
+- 发布及资产证据独立保存在 `/private/tmp/calendar-space-release/`：node.log/browser.log/build.log/audit.json/review.json、forms/ui/filters/spaces截图测量、pre/post静态核验。提交前Production release/PWA为PENDING；最终Source及HTTP/资产成功不代替正式登录验收。
+- 最少正式验收：已安装iPhone PWA刷新/关闭重开，四模块各打开新建选择Space并检查回显/取消/关闭，抽查首页快捷及多Space菜单滚动。无需真实保存/删除，不重验此前六项；不驱动或继承用户登录态，不提前最终CLOSED/PASS。
+
+## 表单 Space 选择器 — 2026-10-16 LOCAL ONLY / USER SAFARI PENDING
+
+- 用户已确认 e70c66f 对应此前六项正式 iPhone PWA PASS；本补充不覆盖或撤销该事实。四类创建控件原 native select，编辑没有可迁移 Space picker，Review 没有表单 Space 控件。完整真实入口/源文件检查矩阵见 `/private/tmp/calendar-space-targets/REPORT.md`。
+- `node --test tests/*.test.ts tests/*.test.js` 990/990 PASS，无删除业务用例/skip；旧原生 option 断言换实际 button/业务 options，组件 hooks 仅注入受测父级，菜单使用真实 React。此前992→990旧Calendar Sheet替换历史不变，本轮990保持。
+- `PLAYWRIGHT_MODULE_PATH=... SPACE_TARGET_ARTIFACTS=/private/tmp/calendar-space-targets/verified UI_CONSISTENCY_ARTIFACTS=... SPACE_FILTER_ARTIFACTS=... SPACES_SWIPE_ARTIFACTS=... node --test --test-concurrency=1 tests/*.browser.mjs` 105/105 PASS，无失败/跳过（原81+表单24）。保留原三秒交互超时，不放宽或删除触摸断言。真实组件/WebKit+Chrome/375+430：四创建、编辑只读、单/多 Space、实际名称、disabled、异步资格失效、快速切换、真实保存 space_id/草稿/忙态、同项不重置受众/分配、内外点击、焦点/Tab/IME/Escape、取消重开、监听清理、长名、多选项滚动、低字段向上展开、短视口与父层滚动。已有顶部筛选26项、Review贴底、Space手势、Auth/通知/删除等全部原回归保持。
+- 最终箭头修正增量：`node --test --test-concurrency=1 tests/space-targets.browser.mjs tests/space-filters.browser.mjs` 50/50 PASS（表单24+顶部26），含 computed background-image/16px尺寸/right16 实测。最终 `npm run build`（tsc+Vite）、两mjs语法、diff-check PASS；首页额外12场景及所有并排图已按最终CSS刷新。全量105为该单条CSS修正前有效集成证据，50为修正后直接回归，不声称重复跑两次全量。
+- 原 HomePage 真实快捷入口另外 WebKit/Chrome×375/430×日程/任务/重要日12/12 PASS：个人默认→选择共享→取消；模块页创建覆盖在原 space-filters 浏览器测试内，检查页面 filter 未被表单 ownership 选择改动。清单无首页快捷创建，不虚构入口。临时 Home 检查脚本及结果 home-entry.mjs/home-entry/results.json。
+- 截图实际查看创建375/430并排与长名/只读编辑等；trigger16px/400/24行高、44px高、padding0 48 0 12、border1/radius12，选项16px/选中600/灰绿反馈；375 menu343宽、430最大384，max320高，Sheet内portal不裁切/遮挡。长名菜单全文换行、trigger省略且无障碍名完整；native日期/时间不变。箭头截图缺口另以 WebKit RED 证实后仅改背景颜色写法，增量结果见下方追加记录。
+- `npm run build`含TypeScript PASS，既有chunk>500KB非阻塞；两 .browser.mjs `node --check`、diff-check PASS。JSX由真实Vite fixture build及双引擎执行验证，Node --check不支持.jsx扩展，不作为JSX语法判据。
+- Readiness：当前5175源码及LAN HTTP200；公开目标/publishable客户端/VAPID与已验收Production构建一致，src/lib/Supabase/依赖/配置及已验收App/Task/Home/Review/Space源码未改，既有schema/RPC/Edge契约无需新增。未调用真实账号或Production API，详情 readiness.json。
+- 用户最小本地检查：同Wi-Fi iPhone Safari打开电脑LAN:5175，四模块各开新建选择另一Space/回显/取消；有长名称/多选项时内部滚动并点外部；抽查首页快捷新建及编辑归属只读。无需保存、删除数据或重做已PASS六项。软键盘/原生手指滚动/动态浏览器栏/设备safe area由真机确认，自动化不冒充真机PASS。未提交发布，等待本地验收。
+
 ## 全域UX最终发布前集成 — 2026-10-16 LOCAL ALL PASS / PRODUCTION PWA PENDING
 
 - 用户已确认本轮全部本地iPhone Safari PASS，接续下方所有局部Local Pending；Production release提交前PENDING，正式installed PWA验收PENDING。发布后的Source/资源/真实状态以本次独立发布核验报告为准。

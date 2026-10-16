@@ -51,7 +51,7 @@ test('module Sheet has one header submit and close, preserves all actual fields 
     for (const field of ['important-date-name','important-date-emoji','important-date-repeat','important-date-reminder']) assert.ok(html.includes(`id="${field}"`));
     for (const label of ['开始年份（可选）','月','日']) assert.ok(html.includes(`aria-label="${label}"`));
     if (editing) { assert.doesNotMatch(html, /<select[^>]*id="important-date-space"/); assert.match(html, /删除重要日/); assert.match(html, /<option value="" selected="">不提醒/); }
-    else assert.match(html, /<option value="p" selected="">我的空间/);
+    else assert.match(html, /id="important-date-space"[^>]*aria-haspopup="listbox"[^>]*>我的空间<\/button>/);
     assert.doesNotMatch(html, /添加到日历|备注|生日类型|每月|每周|每天/);
   }
   const original = renderToStaticMarkup(React.createElement(ImportantDateSheet, { date, memberSpaces: [shared], eligibleSpaces: [shared], canAct: true, onSubmit: async () => undefined, onCancel: noop, onDelete: noop }));
@@ -63,7 +63,7 @@ test('module Sheet has one header submit and close, preserves all actual fields 
 async function sheetRuntime(run: (env: any) => Promise<void>) {
   let cursor = 0; const slots: any[] = [];
   (globalThis as any).__importantV2Hooks = { useState(initial: any) { const i = cursor++; if (!(i in slots)) slots[i] = initial; return [slots[i], (v: any) => { slots[i] = typeof v === 'function' ? v(slots[i]) : v; }]; }, useRef(value: any) { return slots[cursor++] ??= { current: value }; }, useEffect() {} };
-  const vite = await createServer({ configFile: false, envFile: false, logLevel: 'silent', appType: 'custom', server: { middlewareMode: true, hmr: false }, ssr: { noExternal: [/^react$/], external: ['react/jsx-runtime','react/jsx-dev-runtime'] }, plugins: [{ name: 'important-v2-handlers', enforce: 'pre', resolveId(id, importer) { if (id === 'react' && importer?.endsWith('/ImportantDateSheet.tsx')) return '\0important-v2-hooks'; }, load(id) { if (id === '\0important-v2-hooks') return 'export const {useState,useRef,useEffect}=globalThis.__importantV2Hooks;'; } }] } as any);
+  const vite = await createServer({ configFile: false, envFile: false, logLevel: 'silent', appType: 'custom', server: { middlewareMode: true, hmr: false }, ssr: { external: ['react', 'react/jsx-runtime','react/jsx-dev-runtime'] }, plugins: [{ name: 'important-v2-handlers', enforce: 'pre', transform(code, id) { if (id.endsWith('/ImportantDateSheet.tsx')) return code.replace("from 'react'", "from 'important-v2-hooks'"); }, resolveId(id, importer) { if (id === 'important-v2-hooks' && importer?.endsWith('/ImportantDateSheet.tsx')) return '\0important-v2-hooks'; }, load(id) { if (id === '\0important-v2-hooks') return 'export const {useState,useRef,useEffect}=globalThis.__importantV2Hooks;'; } }] } as any);
   try {
     const { ImportantDateSheet } = await vite.ssrLoadModule('/src/components/ImportantDateSheet.tsx');
     const calls: any[] = []; const props: any = { moduleView: true, date, memberSpaces: [personal, shared], eligibleSpaces: [personal, shared], canAct: true, onSubmit: async (...args: any[]) => { calls.push(args); }, onCancel: () => calls.push('cancel'), onDelete: () => calls.push('delete') };

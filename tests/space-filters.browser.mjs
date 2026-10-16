@@ -143,14 +143,17 @@ for(const engine of ['WebKit','Chrome']){
  });
 }
 
-for(const engine of ['WebKit','Chrome'])test(`${engine}: real create forms keep all/one Space preselection and independent native save targets`,async()=>{
+for(const engine of ['WebKit','Chrome'])test(`${engine}: real create forms keep all/one Space preselection and independent custom save targets`,async()=>{
  const targets={calendar:['新建日程','#event-create-target'],tasks:['新建任务','#task-create-target'],lists:['新建清单','#list-space'],important:['新建重要日','#important-date-space']};
  for(const [mode,[create,selector]] of Object.entries(targets))for(const filtered of [false,true]){
   const page=await pageFor(engine,mode);try{
    const trigger=triggerFor(page,mode);await trigger.waitFor();
    if(filtered){await trigger.tap();await page.getByRole('option',{name:'家庭共享空间',exact:true}).tap()}
-   await page.getByRole('button',{name:create,exact:true}).first().click();const target=page.locator(selector);await target.waitFor();assert.equal(await target.inputValue(),filtered?'s1':'s0');
-   assert.equal(await target.evaluate(el=>el.tagName),'SELECT');assert.equal(await page.getByRole('listbox').count(),0);assert.deepEqual(page.errors,[]);
+   await page.getByRole('button',{name:create,exact:true}).first().click();const target=page.locator(selector);await target.waitFor();
+   const expectedId=filtered?'s1':'s0',expectedName=await page.evaluate(id=>window.fixture.spaces.find(space=>space.id===id).name,expectedId);
+   assert.equal((await target.innerText()).trim(),expectedName);assert.equal(await target.evaluate(el=>el.tagName),'BUTTON');assert.equal(await page.getByRole('listbox').count(),0);
+   const filterChanges=await page.evaluate(()=>window.fixture.changes.length);await target.scrollIntoViewIfNeeded();await target.tap();const menu=page.getByRole('listbox');await menu.waitFor();assert.equal(await menu.getByRole('option',{name:expectedName,exact:true}).getAttribute('aria-selected'),'true');assert.equal(await menu.getByRole('option',{name:'全部空间',exact:true}).count(),0);
+   const nextName=filtered?'我的自定义小天地':'家庭共享空间';await menu.getByRole('option',{name:nextName,exact:true}).tap();await target.filter({hasText:nextName}).waitFor();assert.equal(await page.evaluate(()=>window.fixture.changes.length),filterChanges,'form ownership selection never changes the page filter');assert.deepEqual(page.errors,[]);
   }finally{await page.close()}
  }
 });

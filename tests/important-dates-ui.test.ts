@@ -19,7 +19,7 @@ test('Important Date create target is explicit and disabled or missing target ca
     onSubmit: async () => undefined, onCancel: noop, onDelete: noop,
   }));
   const disabled = render(personal.id, [shared]);
-  assert.match(disabled, /value="personal"[^>]*selected=""/);
+  assert.match(disabled, /id="important-date-space"[^>]*>我的空间（未启用重要日）<\/button>/);
   assert.match(disabled, /未启用重要日|空间已不可用/);
   assert.match(disabled, /type="submit" disabled=""/);
   assert.match(render(null, [shared]), /请主动选择空间/);

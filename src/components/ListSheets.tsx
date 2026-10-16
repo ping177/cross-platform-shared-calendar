@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 import { homeCreateTarget } from '../lib/global-create';
 import { canSaveListInSpace, normalizeListName } from '../lib/lists';
 import type { CurrentSpace, List } from '../types';
+import { SpaceTargetDropdown } from './SpaceTargetDropdown';
 
 // Local keyboard handling for the existing List modals; submission stays with each caller.
 export function useListModalKeyboard(open: boolean, busy: boolean, onCancel: () => void, initialFocus = 'input', submitLock?: { current: boolean }, options?: { cycleTab?: boolean; lockScroll?: boolean; restoreFocus?: () => HTMLElement | null }) {
@@ -120,11 +121,11 @@ export function ListEditorSheet({ mode, list, memberSpaces, eligibleSpaces, user
         <input id="list-name" className="mt-2 min-h-11 w-full rounded-lg border border-ink/20 px-3" value={name} onChange={(event) => setName(event.target.value)} disabled={busy} required />
         {error && <p className="mt-3 text-sm text-coral" role="alert">{error}</p>}
         <label className="mt-4 block text-sm font-semibold" htmlFor="list-space">空间</label>
-        {mode === 'create' ? <select id="list-space" className="mt-2 min-h-11 w-full min-w-0 rounded-lg border border-ink/20 bg-white px-3" value={targetId} disabled={busy} onChange={(event) => { setTargetId(event.target.value); setError(''); }}>
-          {!targetId && <option value="">请主动选择空间</option>}
-          {targetId && targetId !== personalId && !targetEnabled && <option value={targetId} disabled>当前空间已不可用，请重新选择</option>}
-          {memberSpaces.filter((space) => space.id === personalId || eligibleSpaces.some((eligible) => eligible.id === space.id)).map((space) => <option key={space.id} value={space.id}>{space.name}{eligibilityStatus !== 'ready' || canSaveListInSpace(space.id, eligibleSpaces) ? '' : '（未启用清单）'}</option>)}
-        </select> : <p id="list-space" className="mt-2 min-h-11 rounded-lg bg-mist px-3 py-3 text-sm">{target?.name ?? '空间不可用'}</p>}
+        {mode === 'create' ? <SpaceTargetDropdown id="list-space" className="mt-2" value={targetId} disabled={busy} onChange={(id) => { setTargetId(id); setError(''); }} spaces={[
+          ...(!targetId ? [{ id: '', name: '请主动选择空间' }] : []),
+          ...(targetId && targetId !== personalId && !targetEnabled ? [{ id: targetId, name: '当前空间已不可用，请重新选择', disabled: true }] : []),
+          ...memberSpaces.filter((space) => space.id === personalId || eligibleSpaces.some((eligible) => eligible.id === space.id)).map((space) => ({ id: space.id, name: space.name + (eligibilityStatus !== 'ready' || canSaveListInSpace(space.id, eligibleSpaces) ? '' : '（未启用清单）') })),
+        ]} /> : <p id="list-space" className="mt-2 min-h-11 rounded-lg bg-mist px-3 py-3 text-sm">{target?.name ?? '空间不可用'}</p>}
         {eligibilityStatus === 'loading' && <p className="mt-2 text-sm text-ink/65" role="status">正在核对清单空间资格…</p>}
         {eligibilityStatus === 'error' && <p className="mt-2 text-sm text-coral" role="alert">{eligibilityError || '清单空间读取失败。'}<button className="ml-2 min-h-11 font-semibold text-teal" type="button" onClick={onRetryEligibility}>重新读取空间资格</button></p>}
         {mode === 'create' && eligibilityStatus === 'ready' && !targetEnabled && <p className="mt-2 text-sm text-ink/65">{personalId && targetId === personalId ? '我的空间未启用清单。请先开启，或主动选择已启用清单的共享空间。' : '请主动选择已启用清单的空间。'}</p>}
