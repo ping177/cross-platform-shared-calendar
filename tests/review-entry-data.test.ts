@@ -54,28 +54,42 @@ test('save passes exact RPC arguments and returns server revision unchanged', as
   const { client, calls } = fakeClient();
   const result = await saveMyReviewEntry(client, 'review-1', 'user-1', {
     focus: '专注', progress: '', problems: '', next_plan: '下一步',
-  });
+  }, 7);
   assert.deepEqual(result, entry);
   assert.deepEqual(calls, [[
     'rpc', 'save_my_review_entry',
-    { p_review_id: 'review-1', p_focus: '专注', p_progress: '', p_problems: '', p_next_plan: '下一步' },
+    { p_review_id: 'review-1', p_focus: '专注', p_progress: '', p_problems: '', p_next_plan: '下一步', p_expected_content_revision: 7 },
   ]]);
 });
 
 test('mark uses the existing RPC and takes filled revision from its response', async () => {
   const marked = { ...entry, filled_revision: 7, updated_at: '2026-09-26T09:00:00Z' };
   const { client, calls } = fakeClient({ row: marked });
-  assert.deepEqual(await markMyReviewFilled(client, 'review-1', 'user-1'), marked);
-  assert.deepEqual(calls, [['rpc', 'mark_my_review_filled', { p_review_id: 'review-1' }]]);
+  assert.deepEqual(await markMyReviewFilled(client, 'review-1', 'user-1', 7), marked);
+  assert.deepEqual(calls, [['rpc', 'mark_my_review_filled', { p_review_id: 'review-1', p_expected_content_revision: 7 }]]);
 });
 
 test('backend rejection, changed login, and malformed canonical response fail closed', async () => {
   await assert.rejects(saveMyReviewEntry(fakeClient({ error: 'Review module is disabled' }).client,
-    'review-1', 'user-1', { focus: '', progress: '', problems: '', next_plan: '' }), { message: 'Review module is disabled' });
+    'review-1', 'user-1', { focus: '', progress: '', problems: '', next_plan: '' }, 7), { message: 'Review module is disabled' });
   await assert.rejects(markMyReviewFilled(fakeClient({ userId: 'user-2' }).client,
-    'review-1', 'user-1'), /登录状态已变化/);
+    'review-1', 'user-1', 7), /登录状态已变化/);
   await assert.rejects(readMyReviewEntry(fakeClient({ row: null }).client,
     'review-1', 'user-1'), /无法读取/);
   await assert.rejects(saveMyReviewEntry(fakeClient({ row: { ...entry, user_id: 'user-2' } }).client,
-    'review-1', 'user-1', { focus: '', progress: '', problems: '', next_plan: '' }), /无法确认/);
+    'review-1', 'user-1', { focus: '', progress: '', problems: '', next_plan: '' }, 7), /无法确认/);
+});
+
+
+test('missing or invalid expected revision rejects before any write, while revision zero is valid', async () => {
+  const draft = { focus: '', progress: '', problems: '', next_plan: '' };
+  for (const revision of [undefined, null, -1, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
+    const { client, calls } = fakeClient();
+    await assert.rejects(saveMyReviewEntry(client, 'review-1', 'user-1', draft, revision as number));
+    await assert.rejects(markMyReviewFilled(client, 'review-1', 'user-1', revision as number));
+    assert.equal(calls.length, 0);
+  }
+  const { client, calls } = fakeClient();
+  await saveMyReviewEntry(client, 'review-1', 'user-1', draft, 0);
+  assert.equal((calls[0][2] as any).p_expected_content_revision, 0);
 });

@@ -19,9 +19,9 @@ async function editorRuntime(run: (env: any) => Promise<void>, startEditing = fa
     useRef(initial: any) { return slots[cursor++] ??= { current: initial }; },
     useId() { return 'editor'; },
     useEffect(fn: any, deps: any[]) { const i = cursor++; if (!slots[i] || deps.some((d, n) => d !== slots[i][n])) { slots[i] = deps; effects.push({ i, fn }); } },
-    async read(_client: any, reviewId: string, userId: string) { calls.push(['read', reviewId, userId]); if (m.readError) throw m.readError; return { ...m.entry, review_id: reviewId, user_id: userId }; },
-    async save(_client: any, reviewId: string, userId: string, draft: any) { calls.push(['save', reviewId, userId, { ...draft }]); if (m.saveBarrier) await m.saveBarrier; if (m.saveError) throw m.saveError; m.entry = { ...m.entry, ...draft, review_id: reviewId, user_id: userId, content_revision: m.entry.content_revision + 1 }; return { ...m.entry }; },
-    async mark(_client: any, reviewId: string, userId: string) { calls.push(['mark', reviewId, userId]); if (m.markBarrier) await m.markBarrier; if (m.markError) throw m.markError; m.entry = { ...m.entry, filled_revision: m.entry.content_revision }; return { ...m.entry }; },
+    async read(_client: any, reviewId: string, userId: string) { calls.push(['read', reviewId, userId]); if (m.readBarrier) await m.readBarrier; if (m.readError) throw m.readError; return { ...m.entry, review_id: reviewId, user_id: userId }; },
+    async save(_client: any, reviewId: string, userId: string, draft: any, revision: number) { calls.push(['save', reviewId, userId, { ...draft }, revision]); if (m.saveBarrier) await m.saveBarrier; if (m.saveError) throw m.saveError; if (revision !== m.entry.content_revision) throw new Error('REVIEW_ENTRY_CONFLICT'); m.entry = { ...m.entry, ...draft, review_id: reviewId, user_id: userId, content_revision: m.entry.content_revision + 1 }; return { ...m.entry }; },
+    async mark(_client: any, reviewId: string, userId: string, revision: number) { calls.push(['mark', reviewId, userId, revision]); if (m.markBarrier) await m.markBarrier; if (m.markError) throw m.markError; if (revision !== m.entry.content_revision) throw new Error('REVIEW_ENTRY_CONFLICT'); m.entry = { ...m.entry, filled_revision: m.entry.content_revision }; return { ...m.entry }; },
   };
   (globalThis as any).__reviewV2 = m;
   (globalThis as any).window = { confirm: () => { calls.push(['confirm']); return m.confirm; } };
@@ -63,7 +63,7 @@ test('new round opens four-field editor; draft save and filled marking remain se
   await save(); await pump(); assert.match(html(), /编辑中/); assert.equal(calls.filter((c: any) => c[0] === 'mark').length, 0);
   assert.equal(findButton(render(), '我已填写').props.disabled, false);
   await findButton(render(), '我已填写').props.onClick(); await pump(); assert.match(html(), /已填写/);
-  assert.deepEqual(calls.filter((c: any) => c[0] === 'mark')[0], ['mark', 'r', 'me']);
+  assert.deepEqual(calls.filter((c: any) => c[0] === 'mark')[0], ['mark', 'r', 'me', 1]);
   assert.doesNotMatch(html(), /<textarea/);
 }, true));
 
@@ -107,4 +107,60 @@ test('changed review identity invalidates late save and loads the next round ins
   m.saveBarrier = new Promise<void>((yes) => { release = yes; }); const pending = save();
   props.reviewId = 'next'; m.entry = blank(); await pump(); release(); await pending; await pump();
   assert.doesNotMatch(html(), /旧轮草稿/);
+}, true));
+
+
+test('conflict keeps all four draft fields, blocks retry, and reload requires confirmation', () => editorRuntime(async ({ m, pump, change, render, save, html, calls }) => {
+  await pump();
+  for (const field of ['focus', 'progress', 'problems', 'next_plan']) change(field, field + ' 本机草稿');
+  m.entry = { ...blank(), focus: '手机新内容', progress: '手机进展', content_revision: 1 };
+  await save(); await pump();
+  assert.match(html(), /其他设备.*本次未保存.*输入仍保留/);
+  for (const node of nodes(render()).filter((n) => n.type === 'textarea')) assert.match(node.props.value, /本机草稿/);
+  assert.equal(findButton(render(), '保存草稿').props.disabled, true);
+  assert.equal(findButton(render(), '我已填写').props.disabled, true);
+  await save(); assert.equal(calls.filter((c: any) => c[0] === 'save').length, 1);
+  await findButton(render(), '查看最新内容').props.onClick(); await pump();
+  assert.match(html(), /手机新内容/); assert.match(nodes(render()).find((n) => n.type === 'textarea').props.value, /本机草稿/);
+  m.confirm = false; const reads = calls.filter((c: any) => c[0] === 'read').length;
+  await findButton(render(), '重新载入最新内容').props.onClick(); await pump();
+  assert.equal(calls.filter((c: any) => c[0] === 'read').length, reads);
+  assert.match(nodes(render()).find((n) => n.type === 'textarea').props.value, /本机草稿/);
+  m.confirm = true; await findButton(render(), '重新载入最新内容').props.onClick(); await pump();
+  assert.equal(nodes(render()).find((n) => n.type === 'textarea').props.value, '手机新内容');
+  assert.doesNotMatch(html(), /本次未保存/);
+  change('progress', '人工重新编辑'); await save(); await pump();
+  assert.equal(calls.filter((c: any) => c[0] === 'save').at(-1)[4], 1);
+  assert.equal(m.entry.focus, '手机新内容');
+  assert.equal(m.entry.progress, '人工重新编辑');
+}, true));
+
+test('failed confirmed reload keeps draft and conflict; reverting text does not enable marking', () => editorRuntime(async ({ m, pump, change, render, save, html }) => {
+  await pump(); change('focus', '本机内容'); m.entry = { ...blank(), focus: '另一设备', content_revision: 1 };
+  await save(); await pump(); m.readError = new Error('network');
+  await findButton(render(), '重新载入最新内容').props.onClick(); await pump();
+  assert.match(nodes(render()).find((n) => n.type === 'textarea').props.value, /本机内容/);
+  change('focus', ''); await pump();
+  assert.equal(findButton(render(), '我已填写').props.disabled, true);
+  assert.equal(findButton(render(), '保存草稿').props.disabled, true);
+  assert.match(html(), /读取失败/);
+}, true));
+
+test('stale mark fails without adopting remote content or acknowledging it', () => editorRuntime(async ({ m, pump, render, html }) => {
+  m.entry = { ...blank(), focus: '读过的内容', content_revision: 1 }; await pump();
+  m.entry = { ...m.entry, focus: '未读的新内容', content_revision: 2 };
+  await findButton(render(), '我已填写').props.onClick(); await pump();
+  assert.match(html(), /本次未完成标记/);
+  assert.equal(nodes(render()).find((n) => n.type === 'textarea').props.value, '读过的内容');
+  assert.equal(m.entry.filled_revision, null);
+}, true));
+
+
+test('late latest-content read cannot repopulate another review', () => editorRuntime(async ({ m, props, pump, change, render, save, html }) => {
+  await pump(); change('focus', '旧轮草稿'); m.entry = { ...blank(), focus: '手机内容', content_revision: 1 }; await save(); await pump();
+  let release!: () => void; m.readBarrier = new Promise<void>(yes => { release = yes; });
+  findButton(render(), '查看最新内容').props.onClick();
+  props.reviewId = 'next'; m.readBarrier = null; m.entry = { ...blank(), focus: '另一轮内容' };
+  await pump(); release(); await pump();
+  assert.match(html(), /另一轮内容/); assert.doesNotMatch(html(), /服务器最新内容|旧轮草稿/);
 }, true));

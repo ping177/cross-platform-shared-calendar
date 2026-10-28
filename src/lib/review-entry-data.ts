@@ -32,7 +32,12 @@ export async function readMyReviewEntry(client: SupabaseClient, reviewId: string
   return canonicalEntry(data, reviewId, userId);
 }
 
-export async function saveMyReviewEntry(client: SupabaseClient, reviewId: string, userId: string, draft: ReviewEntryDraft): Promise<ReviewEntry> {
+function assertExpectedRevision(revision: number) {
+  if (!Number.isSafeInteger(revision) || revision < 0) throw new Error('无法确认回顾版本，请重新载入后重试。');
+}
+
+export async function saveMyReviewEntry(client: SupabaseClient, reviewId: string, userId: string, draft: ReviewEntryDraft, expectedRevision: number): Promise<ReviewEntry> {
+  assertExpectedRevision(expectedRevision);
   await assertCurrentUser(client, userId);
   const { data, error } = await client.rpc('save_my_review_entry', {
     p_review_id: reviewId,
@@ -40,14 +45,16 @@ export async function saveMyReviewEntry(client: SupabaseClient, reviewId: string
     p_progress: draft.progress,
     p_problems: draft.problems,
     p_next_plan: draft.next_plan,
+    p_expected_content_revision: expectedRevision,
   });
   if (error) throw error;
   return canonicalEntry(data, reviewId, userId);
 }
 
-export async function markMyReviewFilled(client: SupabaseClient, reviewId: string, userId: string): Promise<ReviewEntry> {
+export async function markMyReviewFilled(client: SupabaseClient, reviewId: string, userId: string, expectedRevision: number): Promise<ReviewEntry> {
+  assertExpectedRevision(expectedRevision);
   await assertCurrentUser(client, userId);
-  const { data, error } = await client.rpc('mark_my_review_filled', { p_review_id: reviewId });
+  const { data, error } = await client.rpc('mark_my_review_filled', { p_review_id: reviewId, p_expected_content_revision: expectedRevision });
   if (error) throw error;
   return canonicalEntry(data, reviewId, userId);
 }

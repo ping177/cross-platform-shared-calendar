@@ -57,9 +57,9 @@ select is((select string_agg(round_no::text||':'||review_date::text,',' order by
 select set_config('test.date_x25',(select id::text from public.review_rounds where space_id='93000000-0000-4000-8000-000000000012' and review_date=date '2026-09-25'),true);
 select set_config('test.date_x26',(select id::text from public.review_rounds where space_id='93000000-0000-4000-8000-000000000012' and review_date=date '2026-09-26'),true);
 select set_config('test.date_x27',(select id::text from public.review_rounds where space_id='93000000-0000-4000-8000-000000000012' and review_date=date '2026-09-27'),true);
-select lives_ok($$select public.save_my_review_entry(current_setting('test.date_x25')::uuid,null,null,null,'Plan 9/25')$$,'save 9/25 plan');
-select lives_ok($$select public.save_my_review_entry(current_setting('test.date_x26')::uuid,null,null,null,'Plan 9/26')$$,'save 9/26 plan');
-select lives_ok($$select public.save_my_review_entry(current_setting('test.date_x27')::uuid,null,null,null,'Plan 9/27')$$,'save 9/27 plan');
+select lives_ok($$select public.save_my_review_entry(current_setting('test.date_x25')::uuid,null,null,null,'Plan 9/25',coalesce((select content_revision from public.review_entries where review_id=current_setting('test.date_x25')::uuid and user_id=auth.uid()),0))$$,'save 9/25 plan');
+select lives_ok($$select public.save_my_review_entry(current_setting('test.date_x26')::uuid,null,null,null,'Plan 9/26',coalesce((select content_revision from public.review_entries where review_id=current_setting('test.date_x26')::uuid and user_id=auth.uid()),0))$$,'save 9/26 plan');
+select lives_ok($$select public.save_my_review_entry(current_setting('test.date_x27')::uuid,null,null,null,'Plan 9/27',coalesce((select content_revision from public.review_entries where review_id=current_setting('test.date_x27')::uuid and user_id=auth.uid()),0))$$,'save 9/27 plan');
 select is(public.get_my_previous_review_plan(current_setting('test.date_x25')::uuid),null,'9/25 has no previous plan');
 select is(public.get_my_previous_review_plan(current_setting('test.date_x26')::uuid),'Plan 9/25','9/26 reads 9/25 despite later creation');
 select is(public.get_my_previous_review_plan(current_setting('test.date_x27')::uuid),'Plan 9/26','9/27 reads 9/26 by date');
@@ -72,7 +72,7 @@ select lives_ok($$select public.correct_review_date(current_setting('test.date_x
 select is(public.get_my_previous_review_plan(current_setting('test.date_x25')::uuid),'Plan 9/27','date correction dynamically changes previous relation');
 select is(public.get_my_previous_review_plan(current_setting('test.date_x26')::uuid),'Plan 9/25','later relation remains date-driven');
 
-select lives_ok($$select public.save_my_review_entry((select id from public.review_rounds where space_id='93000000-0000-4000-8000-000000000011' and review_date=date '2026-09-26'),null,null,null,'Personal 9/26')$$,'save Personal plan');
+select lives_ok($$select public.save_my_review_entry((select id from public.review_rounds where space_id='93000000-0000-4000-8000-000000000011' and review_date=date '2026-09-26'),null,null,null,'Personal 9/26',coalesce((select content_revision from public.review_entries where review_id=(select id from public.review_rounds where space_id='93000000-0000-4000-8000-000000000011' and review_date=date '2026-09-26') and user_id=auth.uid()),0))$$,'save Personal plan');
 select lives_ok($$select public.create_review_round('93000000-0000-4000-8000-000000000011',date '2026-09-27')$$,'Personal creates another date');
 select is(public.get_my_previous_review_plan((select id from public.review_rounds where space_id='93000000-0000-4000-8000-000000000011' and review_date=date '2026-09-27')),'Personal 9/26','Personal previous plan is date-driven and Space-scoped');
 select lives_ok($$select public.create_review_round('93000000-0000-4000-8000-000000000011',date '2026-09-28')$$,'Personal creates after an empty-plan review');

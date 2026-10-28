@@ -29,13 +29,13 @@ create temp table targets as select id,space_id,round_no,review_date from public
 grant select on targets to authenticated;
 create temp table unchanged as select to_jsonb(r) as payload from public.review_rounds r where space_id='a1000000-0000-4000-8000-000000000011' and round_no<>2;
 set local role authenticated;
-select public.save_my_review_entry((select id from targets where space_id='a1000000-0000-4000-8000-000000000011' and round_no=1),null,null,null,'earlier');
-select public.save_my_review_entry((select id from targets where space_id='a1000000-0000-4000-8000-000000000011' and round_no=2),null,null,null,'deleted plan');
+select public.save_my_review_entry((select id from targets where space_id='a1000000-0000-4000-8000-000000000011' and round_no=1),null,null,null,'earlier',coalesce((select content_revision from public.review_entries where review_id=(select id from targets where space_id='a1000000-0000-4000-8000-000000000011' and round_no=1) and user_id=auth.uid()),0));
+select public.save_my_review_entry((select id from targets where space_id='a1000000-0000-4000-8000-000000000011' and round_no=2),null,null,null,'deleted plan',coalesce((select content_revision from public.review_entries where review_id=(select id from targets where space_id='a1000000-0000-4000-8000-000000000011' and round_no=2) and user_id=auth.uid()),0));
 select set_config('request.jwt.claim.sub','a1000000-0000-4000-8000-000000000003',true);
 select throws_ok($$select public.delete_review_round((select id from targets where space_id='a1000000-0000-4000-8000-000000000011' and round_no=2))$$,'P0001','Current review participant membership is required','nonmember cannot delete');
 select set_config('request.jwt.claim.sub','a1000000-0000-4000-8000-000000000002',true);
 select throws_ok($$select public.delete_review_round((select id from targets where space_id='a1000000-0000-4000-8000-000000000012'))$$,'P0001','Current review participant membership is required','other member cannot delete Personal');
-select public.save_my_review_entry((select id from targets where space_id='a1000000-0000-4000-8000-000000000011' and round_no=2),'B content',null,null,null);
+select public.save_my_review_entry((select id from targets where space_id='a1000000-0000-4000-8000-000000000011' and round_no=2),'B content',null,null,null,coalesce((select content_revision from public.review_entries where review_id=(select id from targets where space_id='a1000000-0000-4000-8000-000000000011' and round_no=2) and user_id=auth.uid()),0));
 select is(public.delete_review_round((select id from targets where space_id='a1000000-0000-4000-8000-000000000011' and round_no=2)),(select id from targets where space_id='a1000000-0000-4000-8000-000000000011' and round_no=2),'B can delete A-created whole Shared review');
 select throws_ok($$select public.delete_review_round((select id from targets where space_id='a1000000-0000-4000-8000-000000000011' and round_no=2))$$,'P0001','Review not found','repeat delete is not reported successful');
 select set_config('request.jwt.claim.sub','a1000000-0000-4000-8000-000000000001',true);

@@ -29,8 +29,14 @@ export function deriveReviewEntryStatus(entry: ReviewEntry): ReviewEntryStatus {
   return entry.filled_revision === entry.content_revision ? '已填写' : '有更新';
 }
 
+export function isReviewEntryConflict(error: unknown): boolean {
+  return Boolean(error && typeof error === 'object' && 'message' in error && error.message === 'REVIEW_ENTRY_CONFLICT');
+}
+
 export function reviewEntryErrorMessage(error: unknown, action: 'load' | 'save' | 'mark'): string {
   const message = error && typeof error === 'object' && 'message' in error ? String(error.message) : '';
+  if (isReviewEntryConflict(error)) return `这份回顾已在其他设备更新，${action === 'mark' ? '本次未完成标记' : '本次未保存'}。你当前输入仍保留，请查看最新内容后重新载入。`;
+  if (message === 'REVIEW_CLIENT_UPDATE_REQUIRED') return '应用版本已更新，请先保留未保存的输入，再刷新应用后重试。';
   if (/Review module is disabled/i.test(message)) return '当前空间的回顾模块已关闭，暂时无法保存或标记。';
   if (/Current review participant membership is required|permission denied|row-level security/i.test(message)) {
     return '你的空间成员身份或这次回顾的参与权限已变化，请刷新后重试。';

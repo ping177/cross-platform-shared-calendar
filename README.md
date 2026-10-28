@@ -6,6 +6,12 @@ Production URL: https://cross-platform-shared-calendar.vercel.app/
 
 ## 当前阶段
 
+- 2026-10-28：v0.1.21 Slice2兼容前端正式发布获明确Git/Vercel授权；数据库及真实匿名缓存4/4由用户确认PASS，16个业务/SQL/测试指纹一致，新一轮Node996/996、双引擎14/14、TypeScript/Build通过。实际部署与资源以发布回执确认，真实用户验收PENDING、Review仍维护；v0.1.20 CLOSED/PASS保持，下方旧检查点为历史。
+
+- 2026-10-19：v0.1.21 Slice2数据库Patch/Postflight/负向探针由用户报告PASS；兼容前端发布准备READY，等待单独授权；缓存未确认时真实写入验收HOLD。Schema Cache HTTP识别尚未独立核实，前端未Commit/Push/部署，Review继续停写；详见Testing首节。下方2026-10-17为历史本地检查点，v0.1.20 CLOSED/PASS保持。
+
+- 2026-10-17：v0.1.21 Engineering Stability & Data Safety，Slice 2回顾旧稿覆盖保护已完成本地条件保存与隔离验证，LOCAL VERIFIED / REVIEW PENDING，未部署/Commit/Push。Slice1暂缓，Slices3–5未启动；Production仍v0.1.20 CLOSED / PASS。当前前端默认远端Supabase，在新Patch正式授权部署前禁止真实新RPC验收。详见[Testing](./docs/TESTING.md)首节；下方“下一阶段尚未启动”等为关闭v0.1.20时的历史记录。
+
 - 2026-10-16：**v0.1.20 CLOSED / PASS**。全域UI/UX一致性修整及创建表单Space选择器补充均完成，用户在正式installed iPhone PWA确认整轮六项及补充六项全部PASS；已验收业务代码 `b021a41d4d02543e565a121ba6a8cdb17c988361`。本地/Production验证与验收范围见 [Project State](./docs/PROJECT_STATE.md) / [Testing](./docs/TESTING.md)，不代表其他未执行业务测试或整个项目正式试用已完成。
 - 下一阶段为**独立工程稳定性审查（尚未启动）**，待用户另行指示后先只读检查，再依据证据决定是否修改；不创建新版本或在本次收口中启动工程工作。以下条目保留各历史阶段事实。
 

@@ -1,5 +1,57 @@
 # Testing
 
+## v0.1.21 Slice2 — Authorized Production Frontend Release（2026-10-28）
+
+用户确认：Production主项目ximazjhxvmktpcdbypka，唯一前向Patch/03 Postflight/04负向探针4/4及真实匿名PostgREST新签名识别4/4均PASS。上述Production操作与结果由用户提供，Codex不重跑数据库或HTTP探针、不继承真实登录态。用户已保留草稿并暂停Review编辑，已明确授权本轮Commit/正常Push origin/main/既有Vercel Production及验证。
+
+本轮重新核验main/HEAD/远端main=608fcd1，原17 modified+5 untracked；按先前记录的原始SHA，16个业务代码/SQL/测试字节全部一致。旧临时READINESS_REPORT不存在，改用保留治理记录及对话中的原始指纹并重跑必要验证，不把缺失的旧报告当作本轮证据。
+
+- `node --test tests/*.test.ts tests/*.test.js`：996/996 PASS，无fail/skip。
+- WebKit/Chrome既有review-conflict.browser.mjs：14/14 PASS，六视口及冲突四字段保留、只读最新、取消/接受确认、旧标记及读取失败恢复；envFile=false、全部请求由离线夹具拦截，无真实账号/Production数据调用。
+- `npm run build`含TypeScript/Vite PASS；原chunk>500KB提示保留。源码/SQL/测试未改、无新依赖，不重复数据库测试或Patch。
+- 发布前检查包含准确22文件范围、显式暂存、秘密格式扫描（仅报告结果不打印值）、原始指纹及canonical/Patch对齐，正常Project State Push Gate；提交带唯一Project-State-Review: updated。不得跳hook/force。
+
+发布验证必须有Git实际回执、Vercel Production成功与Source SHA、正式域名HTML/hashed JS/CSS/manifest/SW及后端一致性证据；不能单凭Push或HTTP200宣布上线。执行结果存`/private/tmp/calendar-v0121-slice2-release-20261028/RELEASE_RECEIPT.md`及同目录JSON/日志，失败明确HOLD，不用未发生的结果修改历史。
+
+验证通过后停USER ACCEPTANCE CHECKPOINT：用户关闭旧标签及PWA运行时、联网重开；iPhone Safari/installed PWA登录与正常访问；正常保存后重新进入正确、标记与状态正常；同账号两个会话同一entry同一基线，A先保存后B保存冲突且不能覆盖A；B四字段保留，查看最新只读、取消载入不清稿、明确确认才替换；双方独立填写互不覆盖，并抽查其他主要模块。Codex不驱动这些登录会话。真实验收PENDING前仍保持维护，不通知其他成员恢复写入、不标Slice2 CLOSED/PASS，不启动其他Slice。以下旧阶段为历史。
+
+## v0.1.21 Slice 2 — Schema Cache / Frontend Release Readiness（2026-10-19）
+
+**FRONTEND PREPARATION READY / WRITE ACCEPTANCE HOLD**。用户报告Production主项目`ximazjhxvmktpcdbypka`：01 Precheck两次PASS、02唯一Patch SQL Editor成功、03函数/ACL/结构/非正文元数据指纹PASS、04负向探针4/4预期P0001。Codex未重新执行或独立读取这些Production SQL结果；PostgREST缓存尚未独立核实，兼容前端未部署。下节2026-10-17为历史本地实施证据。
+
+本轮必要验证：
+- 开工HEAD608fcd1、17 modified+5 untracked，22文件与实施证据逐一一致。重新运行`node --test tests/*.test.ts tests/*.test.js`：996/996 PASS；`npm run build`含TypeScript：PASS，原chunk>500KB提示保留。
+- 既有`tests/review-conflict.browser.mjs`：WebKit/Chrome14/14 PASS，网络全部拦截为离线夹具，envFile=false，不登录、不连接Production；覆盖六宽度、冲突四字段保留、只读查看、确认取消/接受、重载后新baseline保存、过期标记及读取失败保留。初次sandbox WebKit启动abort导致before hook失败，正常进程权限下完整重跑通过；未改应用/测试、断言或超时。
+- 匿名新签名探针只取Build中的公开publishable配置，不读.env或真实Session，不索取/输出key。目标host严格匹配确认项目，两个新签名均仅NULL Review ID；负对照添加不认识参数。预期负对照PGRST202，正确参数42501且为具体函数EXECUTE拒绝，才证明新具名签名经PostgREST识别。不会用任意401/403、SQL catalog或仅NOTIFY当缓存证据。
+- 实际一次传输尝试在DNS阶段ENOTFOUND，HTTP响应0；状态NOT VERIFIED，没有更换通道/重复SQL或制造业务行。工具最初只识别legacy anon格式，在任何网络请求前发现实际是publishable，按官方apikey用法兼容后才进行这次传输。无需用户提供密钥；可在正常网络使用外部脚本再核实。
+- 复审范围仍为Slice2三个前端文件、canonical/唯一前向Patch及直接测试；锁/参与者权限、本人entry版本独立、旧接口拒绝、草稿保留/确认机制不变。无业务代码/SQL/测试/依赖变更；本轮仅必要治理状态刷新。无需重跑数据库Patch或无关全量浏览器测试。
+
+最短后续顺序：
+1. 在可用网络执行仓库外匿名路由探针，取得两个新签名识别+anon拒绝与各自负对照；若无法取得，缓存维持NOT VERIFIED，真实写入验收HOLD；按用户明确允许的后续发布验收安排，可以先申请并发布兼容构建，但必须在任何真实保存前取得签名识别证据。原SQL负向探针不能替代HTTP结果。
+2. 优先在发布前完成缓存核验和只读登录预检；若缓存核验留到后续授权的发布验收，则先在兼容Production构建匿名核验通过，再登录。目标/接口能力对齐后，用户自行在`http://127.0.0.1:5175`真实浏览器登录，进行读取/本人编辑入口/权限的最小预检，不保存或标记；遵守用户“暂停Review写入直到兼容前端发布”的最新指示。Codex不继承登录态。必要时后续授权验收可由用户用现有登录客户端、NULL Review ID负向请求确认两新签名，成功应P0001/Actor and review are required；PGRST202/203、网络或认证错误均不能PASS，不能先进行真实保存。
+3. 用户另行授权Commit/正常Push和既有Vercel发布；先Project State gate及单一review trailer，再核对Production Source SHA、HTML/hashed JS/CSS/manifest/SW与该Build、后台目标和新参数一致。执行只读Post-Push freshness review；不得跳hook/force/顺带执行数据库操作。
+4. 用户保留旧输入，关闭所有旧标签及installed PWA运行时，联网重开；不默认清站点数据/卸载，Push通知focus旧窗口不等于更新。之后由用户进行正常保存/标记、同账号两设备同基线先保存成功后保存冲突、四字段保留、查看只读/取消/确认载入、双方独立填写及Personal/历史日期状态抽查。不得把本地离线自动测试当真机验收。
+5. 用户确认后才解除维护并决定Slice2收口；失败继续保留输入/服务端数据，修复兼容前端或另审前向纠正，不恢复旧无条件RPC、不重跑Patch。当前无Commit/Push/Deploy授权、不关闭Slice2、不进入Slice3。
+
+外部证据：`/private/tmp/calendar-v0121-slice2-frontend-ready/`（node.log、build.log、browser-confirmed.log、cache-result.json、cache-probe.mjs、cache-probe-browser.js及READINESS_REPORT.md）。PostgREST错误判定依据[官方错误文档](https://docs.postgrest.org/en/stable/references/errors.html)，publishable无登录对应anon且只使用apikey头，见[Supabase官方说明](https://supabase.com/docs/guides/getting-started/api-keys)。
+
+## v0.1.21 Slice 2 — LOCAL VERIFIED / REVIEW PENDING（2026-10-17）
+
+本轮仅本地代码/前向Patch/隔离测试；Production及真实账号未操作，v0.1.20 CLOSED / PASS保持，Slice1 DEFERRED/POTENTIAL/NOT VERIFIED。
+
+- Node：直接21/21（数据参数、错误分类、真实组件handlers/effects）；最终全量 `node --test tests/*.test.ts tests/*.test.js` **996/996 PASS**，无失败/skip。先RED验证缺expected/冲突提示/恢复能力，再GREEN；保留旧测试业务断言。
+- DB：`python3 -B supabase/tests/review_entry_conflict_local.py`，只创建本轮review_cas_upgrade/fresh随机临时库。HEAD旧schema→新Patch与canonical全新建库两路径，各39聚焦+117 foundation+41 chronology+19 delete =216项，共432项PASS；代表历史entry全行指纹不变、四签名函数及ACL一致、重复Patch拒绝。原三份pgTAP回归仅补当前本人expected参数，历史Patch未改。
+- 双会话：两路径各6个实际观察到advisory wait及pg_blocking_pids的顺序，共12/12；同字段、不同字段（两设备同一基线分别改focus/progress）、过期相同payload及save后stale mark拒绝；双方各写自己的entry、mark后同内容版本save成功。完整提交顺序/最终字段/revision/filled记录在database.log。旧版--red仅证实checked接口不存在，不冒称旧版覆盖路径已双会话复现。
+- 本地API：复用已缓存PostgREST v14.5镜像、仅回环监听及本轮临时库；只用生成的合成JWT/临时login角色，auth.uid测试支持兼容真实request.jwt.claims。8/8具名HTTP调用PASS：新保存/no-op/标记200，旧签名/过期/NULL400，含正确中文旧客户端提示。应用角色无额外表写权限；未读取容器环境/真实密钥。API容器、合成role、临时库均已清理。另复跑更新后的review_delete_local.py，双路径各177项与各3个delete/save、revoke/delete、delete/create串行顺序通过。脚本rpc-routing.py与日志在外部证据目录。
+- 浏览器：`PLAYWRIGHT_MODULE_PATH=<既有缓存>/playwright/index.mjs REVIEW_CONFLICT_ARTIFACTS=/private/tmp/calendar-v0121-slice2-implementation/browser node --test tests/review-conflict.browser.mjs`，WebKit/Chrome共14/14 PASS。320/375/430/768/1024/1440无横向溢出；真实React编辑器+真实data adapter，只有Supabase边界使用合成服务端，全部网络拦截在127.0.0.1:5175夹具。冲突四字段保留、只读查看不改输入、保存/标记禁用、原生确认拒绝/接受、手动重新编辑后新基线提交、stale mark与读失败保留均覆盖。375px截图已查看。
+- 原Review创建/日期/短Sheet/键盘回归：`node --test --test-name-pattern='Review' tests/ui-consistency.browser.mjs`，双引擎10/10 PASS。未声称重跑其他无关浏览器用例。
+- 初次浏览器sandbox启动WebKit abort，按授权在本机正常进程权限下运行；首轮定位器同时命中只读div和textarea，修为role=textbox限定后14/14，不改应用断言/超时、不删除用例。
+- `npm run build`含TypeScript与Vite PASS；原>500KB chunk提示保留。新browser mjs `node --check`、新/更新Python内存compile及diff-check PASS。Python编译产生的本轮pycache已移到外部证据目录，未删除用户文件。测试夹具补强时一次缩进错误在运行前被Python拒绝，未创建数据库；修正后重新跑最终完整DB路径，不将该次计为PASS。
+
+发布门禁与人工验收（本轮不执行）：构建产物确认当前目标仍为远端Supabase，不能把现有5175当隔离后端；浏览器测试没有访问该目标。新Patch尚未部署，禁止用户此时用连接Production的本地前端试新RPC。先由用户与ChatGPT审核，再单独授权只读Production preflight及维护窗口/前向Patch；先保留旧标签未保存输入，后端postflight/新签名与实际目标对齐后，用户再用兼容本地前端做同账号两设备/双方独立填写/Personal/历史日期与四状态人工验收；通过后另行授权Git与前端发布，最后刷新旧标签/PWA并做正式验收。旧PWA在Patch后、兼容前端上线前不能保存/标记，必须事先说明这一写入中断。
+
+回退：不恢复旧无条件写RPC，不回滚或编辑已应用的Production Patch，不删历史数据。若发布后有缺陷，先保持拒绝写入/只读、保留客户端输入，用审查过的前向修正；旧前端回滚不能恢复安全写入，只能临时只读。真实手机/电脑/PWA、真实A/B和Production结果均NOT RUN，本地自动测试不能替代。
+
 ## v0.1.20 最终验收 — 2026-10-16 CLOSED / PASS
 
 用户明确确认以下两组检查均由本人在**已安装的正式 iPhone Production PWA**中完成并全部 PASS，不是 Codex 自动化或模拟验收：

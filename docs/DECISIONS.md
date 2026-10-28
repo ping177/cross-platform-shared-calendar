@@ -1,5 +1,13 @@
 # Decisions
 
+## 2026-10-28 — Slice2兼容前端正式发布授权与验收边界
+
+用户明确授权已审核Slice2的Commit、正常Push origin/main及Vercel Production验证；数据库Patch、Postflight、负向探针和真实匿名缓存识别已由用户确认。只发布现有content_revision条件保存与冲突保留方案，不重跑SQL、不新增功能；新前端Source/资源验证后由用户登录iPhone Safari/PWA及同账号双会话验收。发布成功不等于用户验收，维护停写持续到验收确认，不提前关闭Slice2或通知其他成员恢复编辑，不恢复旧无条件RPC；此前未授权记录保留为历史。
+
+## 2026-10-17 — v0.1.21 Slice 2 使用现有内容版本作原子条件写入
+
+用户批准本地实施，未授权 Production/Git。保存和标记均要求草稿基线 content_revision，保留原 Space锁、auth.uid/participant/module检查、内容实际变化才递增及filled_revision状态语义；不采用updated_at，不新增版本字段。旧签名保留但中文明确拒绝，不能保留无条件兼容旁路。冲突只读查看最新版；重新载入前明确确认丢弃本机输入，读取失败原稿保持。按本轮最小UX要求不实现草稿备份库、Diff或合并编辑器。发布会使旧客户端暂时无法保存/标记，必须另行授权维护窗口及先保留输入再刷新；详见TESTING。v0.1.20关闭结论不变，Slice1继续暂缓。
+
 ## 2026-10-16 — v0.1.20 正式收口，后续审查独立启动
 
 用户明确确认整轮UI/UX六项及创建表单Space补充六项真实Production iPhone PWA全部PASS，授权仅治理文档Commit/正常Push及状态核验；正式v0.1.20 = CLOSED / PASS，无剩余阻塞验收项，不新版本。已验收业务基线b021a41，历史实施/发布Pending由最终验收接续但保留原事实。旧来源文案及bundle提示非阻塞，不借收口修复；不把其他未执行业务测试写成PASS。后续“独立工程稳定性审查（尚未启动）”先只读，需另行用户指示，不在本轮开展。允许正常Git集成触发docs-only部署，不手动部署/改配置；仅Source SHA改变不代表应用行为变化，不重复要求整轮PWA验收。

@@ -24,7 +24,7 @@ insert into public.space_members(space_id,user_id,role) values ('{space}','{a}',
     def create(date):
         return sql(db,actor(a,f"select (public.create_review_round('{space}','{date}')).id;")).strip().splitlines()[-1]
     r=create('2030-02-01')
-    helper.ordered_pair(actor(b,f"select public.delete_review_round('{r}'); select 'LOCKED'; select pg_sleep(1);"),actor(a,f"select public.save_my_review_entry('{r}','late',null,null,null);"),second_fails=True)
+    helper.ordered_pair(actor(b,f"select public.delete_review_round('{r}'); select 'LOCKED'; select pg_sleep(1);"),actor(a,f"select public.save_my_review_entry('{r}','late',null,null,null,0);"),second_fails=True)
     assert sql(db,f"select count(*) from public.review_entries where review_id='{r}';").strip()=='0'
     r=create('2030-02-02')
     helper.ordered_pair(f"begin;delete from public.space_members where space_id='{space}' and user_id='{b}';select 'LOCKED';select pg_sleep(1);commit;",actor(b,f"select public.delete_review_round('{r}');"),second_fails=True)
@@ -47,7 +47,9 @@ def main():
         sql('postgres',f'create database "{db}" template template0;')
         try:
             sql(db,SUPPORT);sql(db,storage);sql(db,baseline if mode=='upgrade' else canonical)
-            if mode=='upgrade':sql(db,(ROOT/'supabase/patches/2026-10-15-review-delete.sql').read_text())
+            if mode=='upgrade':
+                sql(db,(ROOT/'supabase/patches/2026-10-15-review-delete.sql').read_text())
+                sql(db,(ROOT/'supabase/patches/2026-10-17-v0.1.21-review-entry-conflict.sql').read_text())
             definitions.append(sql(db,"select pg_get_functiondef('public.delete_review_round(uuid)'::regprocedure);"))
             for file in ['2026-10-15-review-delete.test.sql','2026-09-26-v0.1.14-review-foundation.test.sql','2026-09-26-v0.1.14-review-date-chronology.test.sql']:
                 out=sql(db,(ROOT/'supabase/tests'/file).read_text())

@@ -1,5 +1,17 @@
 # Backlog
 
+## 2026-10-17 — v0.1.21 Engineering Stability & Data Safety
+
+稳定性专项，不新增业务功能，v0.1.20 CLOSED / PASS保持。
+
+1. Slice 1 邀请码撤销并发与 Helper ACL：DEFERRED；风险 POTENTIAL，数据库实测 NOT VERIFIED，不继续安全测试。
+2. Slice 2 回顾旧稿覆盖保护：RELEASE AUTHORIZED / USER ACCEPTANCE PENDING；用户确认Production数据库及真实匿名缓存识别通过，已授权兼容前端Commit/Push/Vercel。实际部署/Source/资源以本轮回执核实；随后由用户完成iPhone Safari/PWA及双会话冲突验收，期间保持维护，不提前CLOSED/PASS。
+3. Slice 3 日历 Realtime 故障容错：NOT STARTED。
+4. Slice 4 创建请求重复提交：NOT STARTED。
+5. Slice 5 提醒容量及通知清理：NOT STARTED。
+
+逐项证据优先；允许 NO ACTION / DEFERRED，不强制全部修复。后续发布边界见 TESTING首节。
+
 ## 2026-10-16 v0.1.20 — CLOSED / PASS；独立工程稳定性审查尚未启动
 
 - 已完成：全域UI/UX整轮六项及创建表单Space补充六项，用户真实installed Production iPhone PWA全部PASS。本地自动/本地Safari/Production部署与资源验证均PASS；本轮无剩余阻塞性验收项。业务代码b021a41，详细范围/证据见TESTING首节及PROJECT_STATE；下方旧Pending是历史检查点，不再作为当前待办。

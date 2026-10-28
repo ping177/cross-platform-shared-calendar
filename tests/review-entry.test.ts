@@ -39,3 +39,10 @@ test('known backend rejections have clear copy without treating them as success'
   assert.match(reviewEntryErrorMessage({ message: 'Blank review entry cannot be marked filled' }, 'mark'), /至少一项/);
   assert.match(reviewEntryErrorMessage(new Error('network down'), 'save'), /未保存的内容仍保留/);
 });
+
+
+test('revision conflict and legacy client errors have distinct recovery copy', () => {
+  assert.match(reviewEntryErrorMessage({ code: 'P0001', message: 'REVIEW_ENTRY_CONFLICT' }, 'save'), /其他设备.*未保存.*输入仍保留/);
+  assert.match(reviewEntryErrorMessage({ message: 'REVIEW_ENTRY_CONFLICT' }, 'mark'), /未完成标记/);
+  assert.match(reviewEntryErrorMessage({ message: 'REVIEW_CLIENT_UPDATE_REQUIRED' }, 'save'), /刷新应用/);
+});

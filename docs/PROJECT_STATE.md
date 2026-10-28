@@ -8,9 +8,13 @@
 
 ## Current version
 
-v0.1.20
+v0.1.21
 
 ## Current status
+
+2026-10-28 — **v0.1.21 Slice2 = RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户已明确授权本轮Commit、正常Push至origin/main、既有Vercel Production部署及验证；当前处于兼容前端正式发布与验证阶段，不将授权、Push或HTTP200直接等同部署成功。Production主项目ximazjhxvmktpcdbypka的唯一数据库Patch、03 Postflight、04负向探针4/4以及真实匿名浏览器Schema Cache新签名识别4/4均由用户确认PASS；Codex不重跑数据库Patch或继承登录态。
+
+本轮重新核对16个业务代码/SQL/测试文件指纹一致，Node996/996、WebKit/Chrome离线14/14、TypeScript/Build通过，仅既有bundle提示。Source SHA、Vercel状态及正式资源一致性须由本轮发布回执核实，证据目录`/private/tmp/calendar-v0121-slice2-release-20261028/`；不预写部署或用户验收成功。真实iPhone Safari/installed PWA/同账号双会话验收仍PENDING，Review继续维护停写，仅用户执行受控验收，不主动通知其他成员恢复编辑。v0.1.20 CLOSED/PASS及Slice1 DEFERRED保持，Slices3–5未启动；下方旧检查点均为历史。
 
 2026-10-16 — **v0.1.20 = CLOSED / PASS**。全域 UI/UX 一致性修整及创建表单 Space 选择器补充修复全部完成；用户明确确认在已安装正式 iPhone Production PWA 中完成整轮六项及补充六项人工验收，全部 PASS。验收属于真实用户，不是 Codex 自动化或模拟结果。本地自动测试、本地 iPhone Safari 人工、Production 部署及静态资源核验、Production iPhone PWA 人工验收均 PASS，无剩余阻塞性验收项。
 
@@ -51,6 +55,8 @@ UI v2 Slice6 = LOCAL PASS / VISUAL PASS：用户已认可四张居中概览卡�
 v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3为LOCAL PASS / VISUAL PASS；Slice4为LOCAL PASS / VISUAL PROVISIONALLY ACCEPTED。Slice5月视图本地验证与离线视觉验收通过：两条短标题/准确+N、六色圆点与日期浮层，261/261相关测试、build/diff-check、28组四宽度离线检查PASS；用户确认普通月、密集月、空月及浮层满意。已授权本地commit；不代表真实账号、真机、installed PWA或Production验收。Space Color System继续Deferred；真实账号/真机/installed PWA/Production未验收。正式版本仍v0.1.20。
 
 ## Latest completed
+
+2026-10-28 — Slice2正式发布前复核通过：16个业务/SQL/测试指纹一致，Node996/996、双引擎14/14、TypeScript/Build/diff-check通过。用户确认数据库及缓存识别通过并授权Git/Vercel；完成兼容前端发布准备。实际部署/Source/资源核验记录由本轮回执确认，真实用户验收仍待完成。
 
 2026-10-16 — v0.1.20 全域UI/UX及表单Space补充正式 CLOSED / PASS。用户确认整轮六项与补充六项真实 Production iPhone PWA 验收全部 PASS；本地自动/人工及Production部署/资源证据齐全，业务代码基线b021a41。仅治理文档收口，无功能、样式、测试实现、后台、依赖或配置变更。下一阶段独立工程稳定性审查尚未启动。
 
@@ -379,6 +385,8 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
+v0.1.21 Slice2兼容前端正式发布采用现有origin/main→Vercel Production链路，用户已授权执行及自动核验。本轮正式Source Commit SHA、Deployment结果、域名资源及后端一致性以`/private/tmp/calendar-v0121-slice2-release-20261028/RELEASE_RECEIPT.md`实际核验回执为准，不凭Git授权/Push宣称已部署。数据库Patch/Postflight/负向探针与Schema Cache 4/4由用户确认，不再执行数据库操作；用户真实设备验收PENDING，Review维持维护状态。下方v0.1.20部署及CLOSED/PASS为历史已完成事实。
+
 已验收业务代码基线 `b021a41d4d02543e565a121ba6a8cdb17c988361`，GitHub Production Deployment `7114613389` / Vercel `jcaKrzrRQuptpwkHUGi2P8Udey2U` success，Source SHA与该业务提交一致。正式HTML/JS/CSS/manifest/SW/图标7项正常且与已验证Build逐字节一致，公开后台目标/客户端/VAPID及后端能力契约保持；用户其后明确确认本补充正式installed iPhone PWA六项全部PASS。此前整轮e70c66f的六项正式PWA PASS保留，Production release及本轮PWA验收均已完成。
 
 本次仅治理文档Commit/正常Push；既有Git集成允许自动触发docs-only部署，不手动部署或修改配置。若部署Source SHA更新为治理提交，已验收业务代码仍来自b021a41；实际治理部署/资源一致性由 `/private/tmp/calendar-v020-closeout/` 独立核验记录，不把SHA更新误写为产品功能变化，不要求重复整轮人工验收。以下部署记录均为历史检查点，其旧Pending不代表当前未验收。
@@ -446,6 +454,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Version Index
 
+- v0.1.21 — Engineering Stability & Data Safety；Slice2 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING，数据库及缓存由用户确认PASS，兼容前端发布/静态核验以本轮回执确认；Slice1 DEFERRED，Slices3–5 NOT STARTED。
 - v0.1 — 共享日历 MVP
 - v0.1-smoke-test — Supabase 验收
 - v0.1.1 — 个人事件权限
@@ -485,13 +494,15 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Last verified
 
+2026-10-17 — Slice2本地：Node996/996、直接21/21、DB升级/全新432项及12个观察锁等待顺序、本地PostgREST8/8、WebKit/Chrome新增14/14及既有Review10/10、TypeScript/Build/语法/diff-check通过；额外Review删除回归双路径通过。无Production/真实设备验收或部署，外部证据/private/tmp/calendar-v0121-slice2-implementation/。
+
 2026-10-16 — 用户明确确认整轮六项及补充六项正式installed iPhone PWA全部PASS；业务代码b021a41的最终Node990/990、Browser105/105、TS/Build/语法/diff-check及Production Source/7项资源逐字节一致证据沿用，无代码变更。收口前main/HEAD/origin-main/远端main一致、clean，最新Production仍为b021a41且静态资源与已验收业务发布一致。本次只验证docs-only/diff/治理门禁，不重跑业务测试；Governance Push/自动部署实绩见独立收口报告。
 
 2026-10-16 — 全量Node990/990（无失败/跳过）、现有原并行Browser81/81（UI26/筛选26/删除18/Space手势11）PASS；上次Chrome Calendar原生tap超时本轮未复现，未改timeout或删除断言。TypeScript/Production Build、脚本语法、diff-check通过，生产依赖audit0；旧大chunk提示保持。真实四模块375/430标题20px600/筛选y76/空文字60px/折叠44px与12px节奏、Review两Sheet底距0，最终截图和测量通过；首页16px600的10场景原证据与最终源码/CSS一致。提交前Production公开目标/anon客户端/VAPID与新Build一致，无后台能力变化；发布后Source和正式资产由独立报告核验，不驱动真实Session。
 
 ## Next Action
 
-等待用户另行启动“独立工程稳定性审查（尚未启动）”。下一阶段先只读检查项目结构与历史冗余、权限/数据安全、核心业务可靠性、测试覆盖与有效性、复杂度/维护成本、PWA与跨平台稳定性，再依据真实证据讨论是否修改。本次不开展审查，不创建实施版本或功能；v0.1.20无需继续等待已完成的验收。
+本轮Production Source/资源/后端一致性核验通过后，由用户关闭旧标签/PWA、联网重开，在iPhone Safari及installed PWA完成登录、正常保存/标记、同账号双会话旧稿冲突与四字段保留、查看/取消/确认载入及双方独立填写验收。验收完成前维持Review维护，不宣布Slice2 CLOSED/PASS；异常保留证据和草稿、最小前向修正，不恢复旧RPC、不进入Slice3。
 
 ## Blockers
 
@@ -595,6 +606,12 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 - `v0.1.9 Shared Tasks` Slice 1/2/3 are CLOSED / PASS: backend applied/postflight verified, frontend deployed through Vercel, Desktop A/B Production acceptance and iPhone smoke passed. At the v0.1.13 closeout, Structured Review / Check-in and Shared Lists were future candidates; v0.1.14/14.1 subsequently closed, and Shared Lists was selected for v0.1.15. Its design is frozen and Slice 1 DB foundation is `CLOSED / PASS` after Production postflight.
 
 ## Handoff Prompt
+
+v0.1.21 Slice2：用户确认数据库唯一Patch、Postflight、负向探针及真实匿名缓存识别4/4通过，并明确授权Commit/Push origin/main/Vercel Production。业务/SQL/测试16指纹一致，新一轮Node996/996、双引擎14/14、TypeScript/Build通过。核对本轮发布回执的实际Source、状态和资源后停在USER ACCEPTANCE CHECKPOINT；由用户进行真实iPhone Safari/PWA/双会话验收，Codex不继承登录。继续维护停写，不再执行数据库Patch，不恢复旧无条件RPC，不提前关闭Slice2；v0.1.20 CLOSED/PASS、Slice1 DEFERRED保持。
+
+下方旧handoff仅作历史记录。
+
+v0.1.21 只完成 Slice 2 本地实施和隔离验证，等待用户与 ChatGPT 审核，不自动发布或进入 Slice 3。使用现有 content_revision；保存/标记新签名必填 expected，旧签名中文拒绝；冲突保留草稿，只有明确确认才重新载入。Production仍v0.1.20 CLOSED / PASS，Slice1继续DEFERRED/POTENTIAL/NOT VERIFIED。测试及维护窗口/回退说明见TESTING首节，外部日志/private/tmp/calendar-v0121-slice2-implementation/。下方旧交接为历史。
 
 v0.1.20 = CLOSED / PASS。用户已明确确认全域UI/UX整轮六项及创建表单Space补充六项真实Production iPhone PWA全部PASS；本地自动/本地iPhone Safari/Production部署与资源核验均PASS，最近业务代码b021a41d4d02543e565a121ba6a8cdb17c988361。最后代码验证Node990/990、WebKit/Chrome105/105、TS/Build/语法/diff-check有效；本轮只治理文档收口，Git/治理部署证据 `/private/tmp/calendar-v020-closeout/`。无剩余阻塞项，不要求重验已PASS功能、不修改业务/后台/配置、不新版本。独立工程稳定性审查尚未启动，等待用户另行指示后只读开始；旧日历来源文案与bundle提示仅非阻塞遗留。下方旧交接为历史，不作为当前动作。
 

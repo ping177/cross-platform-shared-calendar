@@ -1,5 +1,25 @@
 # Development Log
 
+## 2026-10-28 — v0.1.21 Slice2兼容前端正式发布
+
+用户确认Production数据库及真实匿名Schema Cache 4/4通过，明确授权Git Commit/Push origin/main、既有Vercel Production及验证。Repo-first：main/HEAD/远端main=608fcd1，17 modified+5 untracked；16个业务/SQL/测试原始指纹逐一一致。旧临时READINESS_REPORT已不在原路径，本轮按保留治理记录及对话原始SHA核验并重新测试，证据另存release-20261028目录。
+
+Node996/996、WebKit/Chrome离线14/14、TypeScript/Build/diff-check通过，仅既有bundle提示；复核无Slice2外业务/依赖/配置修改。只提交审核22文件和必要发布状态，不含任何生产探针、临时报告、真实数据或凭据；数据库不重跑。Git/Vercel/Source/正式资源结果以独立回执记录，未取得证据不预写成功。Next Action为真实设备验收，用户验收前仍维护、不CLOSED/PASS；v0.1.20与Slice1状态保持。
+
+## 2026-10-19 — v0.1.21 Slice2 缓存确认与兼容前端发布准备
+
+用户报告Production唯一Patch、Postflight和4个负向探针通过；Codex未执行数据库变更。重核全部22文件实施指纹后，Node996/996、离线WebKit/Chrome14/14、TypeScript/Build通过，业务代码/SQL/测试无变更。匿名NULL参数新签名HTTP探针只用Build公开客户端配置，DNS ENOTFOUND、无HTTP响应，缓存保持NOT VERIFIED；不重试CLI/替换网络通道，不读真实Session/私密key，不制造业务行。原bundle提示保留。
+
+仅更新必要发布状态记录：兼容前端发布准备READY，等待单独授权；缓存未确认时真实写入验收HOLD；维护停写持续至兼容前端上线，用户先做只读登录预检，发布后才实际保存/冲突/PWA验收。Git/Vercel另行授权，不恢复旧无条件RPC、不重跑Patch、不启动Slice3。完整验证/门禁见TESTING首节，外部证据frontend-ready目录；v0.1.20 CLOSED/PASS与Slice1 DEFERRED保持。
+
+## 2026-10-17 — v0.1.21 Slice 2 本地条件保存与冲突保护
+
+- Repo-first基线608fcd1066752070e9d93ace51d5bc1cafaffa5d、clean。用户批准实施现有content_revision CAS；未继续Slice1，未动邀请码/Membership/提醒/日历或历史SQL Patch，无新依赖/字段。
+- 新增2026-10-17-v0.1.21-review-entry-conflict.sql，并同步canonical：新保存/标记签名必填expected，数据库UPDATE含版本条件；零行区分冲突/不存在/同版本no-op。旧签名拒绝且中文提示保留输入后刷新，detail为REVIEW_CLIENT_UPDATE_REQUIRED。原锁/授权/快照/历史/日期/四状态保持。
+- ReviewEntryEditor保留冲突时四字段及基线，禁止直接保存/标记重试；最新内容只读展示；重新载入须window.confirm，取消/失败均不清稿，generation隔离迟到响应。按最新授权范围采用明确丢弃确认，不实现设计候选中的备份/合并系统。
+- 完整验证、初次失败原因及最终结果见TESTING首节，日志/截图/本地API脚本仅/private/tmp/calendar-v0121-slice2-implementation/。本轮临时库/容器/合成登录角色已清理；未读真实凭据、未访问生产API/数据库、未使用真实账号。构建产物检测为远端Supabase，禁止在后端未部署时要求真实本地验收。
+- 当前仅LOCAL VERIFIED / REVIEW PENDING，Production v0.1.20 CLOSED / PASS保持；无Commit/Push/Deploy，等待用户与ChatGPT审核。
+
 ## 2026-10-16 — v0.1.20 最终 Governance Closeout（CLOSED / PASS）
 
 - 用户明确确认整轮六项UI/UX与补充六项创建Space菜单真实installed Production iPhone PWA验收全部PASS，逐项范围见TESTING首节；不是Codex自动验收。此前本地自动/本地iPhone Safari及正式部署核验均PASS，正式记录v0.1.20全域UI/UX及补充修复CLOSED / PASS，无阻塞性验收项。
