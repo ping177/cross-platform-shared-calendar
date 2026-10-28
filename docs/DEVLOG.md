@@ -1,5 +1,18 @@
 # Development Log
 
+2026-10-28 — 独立Review UI/UX Follow-up正式发布获授权；本地iPhone Safari仅阅读态左缘右滑由用户确认PASS。编辑态、dirty取消四字段保留/确认离开、阅读态标记/已完成去重及旧revision拒绝均待正式PWA人工验收。Node1000/1000、WebKit/Chrome46/46证据及代码指纹保持，不以自动化代替真机。仅原两项前端，正常Commit/Push和既有Vercel Production；部署Source/状态/七项资源结果见/private/tmp/calendar-review-ux-release-20261028/RELEASE_RECEIPT.md，不预写部署成功。无数据库操作；Slice 2 CLOSED / PASS、Slice 1 DEFERRED、Slices 3–5未开始保持。
+
+下方本地未授权/未部署为历史检查点，由本轮授权接续；Follow-up不提前CLOSED。
+
+## 2026-10-28 — 独立Review UI/UX follow-up（LOCAL VERIFIED / USER ACCEPTANCE PENDING）
+
+- 用户授权本地实施A/B，不授权Commit/Push/Deploy。开工main/HEAD=be5cf7ef7bd019887753ec3fbf6d9336031cfcc2且clean；Slice 2仍CLOSED / PASS，本次不是重新打开，也不启动Slice 3或新版本。
+- 根因：ReviewHistoryPage已接useMobileSwipe，ReviewDetailPage漏接；现复用同一Hook及App共享点击抑制器，阅读/编辑态都调用原back与未保存确认。输入、垂直滚动、模态、非右向/短距离/取消手势沿用原排除规则，未改全局手势或路由架构。
+- 阅读态本人已保存且未标当前版本时显示单一“我已填写”，复用原markFilled→markMyReviewFilled与expected content_revision；空白无完成按钮、已填写只保留状态，对方仍只读。阅读态可见失败提示，冲突保留原稿、查看最新不替换、确认后才载入。请求忙态同步上报以阻止返回/编辑，未改保存、权限或版本语义。
+- TDD先复现3个阅读态Node缺口和8个浏览器手势/按钮缺口。首轮19/21浏览器通过，两处同名阅读区域定位歧义修正；联合45/46暴露effect上报忙态的窗口，新增同步通知红灯测试并修正。最终全量Node1000/1000、WebKit/Chrome46/46、TypeScript/Build/语法/diff-check PASS，详见TESTING；原chunk>500KB提示不扩修。
+- 仅3前端文件、直接测试/夹具及必要治理；SQL/RPC/权限、默认个人空间、Realtime、依赖和其他模块保持。公开Build目标为既有Production主项目，能力沿用已验收新RPC，未读.env/真实Session/凭据、未访问生产数据库或驱动真实用户操作。外部临时证据/private/tmp/calendar-review-ux-20261028/，不修改其他项目。
+- 本地5175预览已启动；等待用户iPhone Safari本地验收，installed Production PWA新交互必须在单独授权发布后再验。未Commit/Push/Deploy，不将本地PASS当真机或发布PASS。
+
 ## 2026-10-28 — v0.1.21 Slice 2最终Governance Closeout（CLOSED / PASS）
 
 - 用户明确确认Production真实验收全部PASS，完整逐项记录见TESTING首节。正式关闭Slice 2并解除本次Review维护；Codex未操作真实登录态，未把自动化代替真机验收。

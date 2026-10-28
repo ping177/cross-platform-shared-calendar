@@ -1,5 +1,29 @@
 # Testing
 
+2026-10-28 — 独立Review UI/UX Follow-up正式发布获授权；本地iPhone Safari仅阅读态左缘右滑由用户确认PASS。编辑态、dirty取消四字段保留/确认离开、阅读态标记/已完成去重及旧revision拒绝均待正式PWA人工验收。Node1000/1000、WebKit/Chrome46/46证据及代码指纹保持，不以自动化代替真机。仅原两项前端，正常Commit/Push和既有Vercel Production；部署Source/状态/七项资源结果见/private/tmp/calendar-review-ux-release-20261028/RELEASE_RECEIPT.md，不预写部署成功。无数据库操作；Slice 2 CLOSED / PASS、Slice 1 DEFERRED、Slices 3–5未开始保持。
+
+下方本地未授权/未部署为历史检查点，由本轮授权接续；Follow-up不提前CLOSED。
+
+## 独立Review UI/UX follow-up — LOCAL VERIFIED / USER ACCEPTANCE PENDING（2026-10-28）
+
+本次仅详情右滑返回与阅读态本人完成入口；已关闭的v0.1.21 Slice 2和v0.1.20结论保持，不包含其他Slice、默认Space或Realtime调整。
+
+- `node --test tests/*.test.ts tests/*.test.js`：1000/1000 PASS，无fail/skip；新增4项编辑器行为测试。TDD原3项阅读态失败→通过，另1项同步忙态通知先红后绿。直接Entry/数据/交互集25/25通过；最终全量包含同一组测试。
+- `PLAYWRIGHT_MODULE_PATH=<existing cached playwright> REVIEW_UX_ARTIFACTS=/private/tmp/calendar-review-ux-20261028/browser REVIEW_CONFLICT_ARTIFACTS=/private/tmp/calendar-review-ux-20261028/conflict SPACES_SWIPE_ARTIFACTS=/private/tmp/calendar-review-ux-20261028/spaces node --test --test-concurrency=1 tests/review-ux.browser.mjs tests/review-conflict.browser.mjs tests/spaces-swipe.browser.mjs`：46/46 PASS，无fail/skip（新21 + 原冲突14 + 原Space手势11）。envFile=false、真实组件/Hook和内存I/O边界，全部请求拦截为127.0.0.1:5175夹具，无真实账号/Production调用。
+- 新用例：阅读与未改编辑右滑返回；有修改时取消保留四字段/确认离开/顶部返回同规则；垂直/反向/短距/鼠标/取消/textarea排除，日期/删除模态阻止父级手势；请求忙时阻止返回/编辑；320/430/1024无横溢、44px按钮及键盘触发；本人阅读直接标记、空白/已完成无重复按钮、Personal可用、对方只读；旧revision失败、不接受新稿、不自动重试，确认载入后使用新revision。
+- Chrome增加原生CDP左边缘触摸返回检查；WebKit使用真实DOM合成PointerEvent，不替代iPhone原生边缘/系统手势、软键盘或PWA验收。新旧组件pageerror均为空。已查看WebKit/Chrome 430px阅读截图，沿用既有视觉样式。
+- 测试过程保留：新用例修复前8/8选中浏览器检查失败；首轮19/21两处同名阅读区定位歧义，仅精确限定原稿区域；联合45/46发现父页effect忙态延迟，修为事件内同步通知，补红灯测试后最终46/46通过。未放宽断言、3秒timeout或删除失败用例。
+- `npm run build`含TypeScript/Vite PASS，既有chunk>500KB提示保留；`node --check tests/review-ux.browser.mjs`、`git diff --check` PASS。SQL、数据请求模块和shared gesture核心与已验收版本相同，无新依赖/后端操作。
+
+环境Gate：Build公开目标仅ximazjhxvmktpcdbypka.supabase.co；继续使用已完成Production验收的mark_my_review_filled(uuid,bigint)及保存签名，expected revision仍必填。依据既有Patch/Postflight/缓存和用户验收证据，不冒称本轮重新查询生产。预览固定5175，本轮未部署；正式installed PWA仍是旧UI。
+
+用户最小人工验收（Codex不操作登录会话）：
+1. 同Wi-Fi iPhone Safari打开本地5175并自行登录，阅读态与未改编辑态从左边缘右滑返回历史；垂直滚动/textarea输入不误返回。
+2. 四字段作未保存修改，右滑取消后完整保留，再明确确认离开；顶部返回继续同规则。
+3. 本人已保存草稿在阅读态直接“我已填写”，重入状态正确；空白/已填写无重复完成动作，对方无可写入口。
+4. 同账号两个会话同一回顾：A编辑保存新版本，B旧阅读页直接标记必须冲突且不把A新内容标完成；查看最新只读、取消载入保留、确认载入后可标当前版本。抽查原编辑保存/四字段冲突保留。
+5. 已安装Production PWA的新手势/按钮在另行授权发布后验证；本轮本地自动化不声明真机/PWA通过，不要求当前Production PWA已显示未发布改动。
+
 ## v0.1.21 Slice 2 — CLOSED / PASS（2026-10-28，用户Production真实验收）
 
 用户明确确认以下全部PASS；由用户在真实Production执行并报告，Codex未驱动登录、OTP或真实账号会话，不扩写为其他未执行场景通过：

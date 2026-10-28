@@ -1,5 +1,13 @@
 # Decisions
 
+2026-10-28 — 独立Review UI/UX Follow-up正式发布获授权；本地iPhone Safari仅阅读态左缘右滑由用户确认PASS。编辑态、dirty取消四字段保留/确认离开、阅读态标记/已完成去重及旧revision拒绝均待正式PWA人工验收。Node1000/1000、WebKit/Chrome46/46证据及代码指纹保持，不以自动化代替真机。仅原两项前端，正常Commit/Push和既有Vercel Production；部署Source/状态/七项资源结果见/private/tmp/calendar-review-ux-release-20261028/RELEASE_RECEIPT.md，不预写部署成功。无数据库操作；Slice 2 CLOSED / PASS、Slice 1 DEFERRED、Slices 3–5未开始保持。
+
+下方本地未授权/未部署为历史检查点，由本轮授权接续；Follow-up不提前CLOSED。
+
+## 2026-10-28 — 独立Review UI/UX follow-up：复用手势与本人完成契约
+
+用户已明确确认并授权本地实现两项交互，作为Slice 2关闭后的独立follow-up，不重新打开Slice 2、不归入其他Slice；现有治理未强制每个独立小改动新建正式编号，本次不新建Version Index条目。规格边界：详情阅读/编辑共享原back、dirty确认和既有useMobileSwipe/App点击抑制器，不另建全局手势；本人已保存非空内容阅读态直接调用原标记函数，必须带所见content_revision，冲突/重新载入保护完整保留。空白/已完成不新增冗余动作、对方只读；标记失败在阅读态可见、请求忙态事件内同步阻止返回。沿用既有视觉、不增依赖、不改SQL/RPC/权限/默认空间/Realtime；先离线测试与iPhone Safari本地验收，Git及Production/PWA发布验收另行授权。
+
 ## 2026-10-28 — Slice 2真实验收通过，仅治理收口
 
 用户明确确认Production真实验收全部PASS并授权Governance Commit/正常Push origin/main。Slice 2正式CLOSED / PASS，解除本次Review写入维护；仅关闭此Slice，v0.1.21整体IN PROGRESS，Slice 1继续DEFERRED、Slices 3–5未开始，v0.1.20 CLOSED / PASS保持。回顾边缘返回/完成入口独立登记UI/UX待办，默认空间待产品讨论、对方状态短延迟观察，均不在收口实施或认定为并发安全失败。正常文档Push允许现有Vercel自动部署，仅核验Source/资源保持；不改业务/SQL/测试、重跑Patch或恢复旧无条件接口。下方旧授权/验收Pending为当时历史边界。

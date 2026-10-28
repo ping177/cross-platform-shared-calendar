@@ -1,11 +1,15 @@
 # Backlog
 
+2026-10-28 — 独立Review UI/UX Follow-up正式发布获授权；本地iPhone Safari仅阅读态左缘右滑由用户确认PASS。编辑态、dirty取消四字段保留/确认离开、阅读态标记/已完成去重及旧revision拒绝均待正式PWA人工验收。Node1000/1000、WebKit/Chrome46/46证据及代码指纹保持，不以自动化代替真机。仅原两项前端，正常Commit/Push和既有Vercel Production；部署Source/状态/七项资源结果见/private/tmp/calendar-review-ux-release-20261028/RELEASE_RECEIPT.md，不预写部署成功。无数据库操作；Slice 2 CLOSED / PASS、Slice 1 DEFERRED、Slices 3–5未开始保持。
+
+下方本地未授权/未部署为历史检查点，由本轮授权接续；Follow-up不提前CLOSED。
+
 ## 2026-10-28 — Slice 2验收反馈：独立UI/UX待办与非阻塞观察
 
-以下均不代表Slice 2并发安全修复失败，也不阻塞其CLOSED / PASS；本次只登记，不实施、不创建新版本。
+以下均不代表Slice 2并发安全修复失败，也不阻塞其CLOSED / PASS。原Closeout仅登记；用户随后授权A/B独立本地follow-up，现LOCAL VERIFIED / USER ACCEPTANCE PENDING（未Commit/Push/部署），不新版本、不重开Slice 2。
 
-- A — 回顾填写/编辑详情不能左边缘向右滑返回列表：独立小范围UI/UX待办。优先调查已有移动手势体系是否遗漏页面接入，不重新设计全局手势；必须复用并保护未保存输入的离开确认。
-- B — 已保存草稿标记“我已填写”需重新进入回顾并点“编辑我的回顾”：独立小范围UI/UX待办，后续简化操作路径；保留现有版本校验、本人Entry权限与状态语义。
+- A — 回顾详情右滑返回：独立follow-up已补齐页面遗漏的useMobileSwipe与App共享guard，阅读/编辑态复用原back/未保存确认，未重设计全局手势。LOCAL VERIFIED；iPhone/PWA人工验收及发布待完成。
+- B — 简化“我已填写”：独立follow-up已在本人已保存非空内容阅读态接入原mark处理，expected revision/冲突保护保持，已完成无重复按钮、对方只读。LOCAL VERIFIED；人工验收及发布待完成。
 - C — 新建回顾默认个人空间：非阻塞产品讨论项，是否调整默认方式待用户决定，本次不改。
 - D — 共享空间对方填写状态短暂同步延迟：用户接受，非阻塞观察项；先记录实际影响，不主动扩大Realtime修改范围。
 

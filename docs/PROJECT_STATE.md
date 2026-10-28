@@ -12,6 +12,8 @@ v0.1.21
 
 ## Current status
 
+**独立Review UI/UX Follow-up = RELEASE AUTHORIZED / PWA ACCEPTANCE PENDING**。2026-10-28 — 独立Review UI/UX Follow-up正式发布获授权；本地iPhone Safari仅阅读态左缘右滑由用户确认PASS。编辑态、dirty取消四字段保留/确认离开、阅读态标记/已完成去重及旧revision拒绝均待正式PWA人工验收。Node1000/1000、WebKit/Chrome46/46证据及代码指纹保持，不以自动化代替真机。仅原两项前端，正常Commit/Push和既有Vercel Production；部署Source/状态/七项资源结果见/private/tmp/calendar-review-ux-release-20261028/RELEASE_RECEIPT.md，不预写部署成功。无数据库操作；Slice 2 CLOSED / PASS、Slice 1 DEFERRED、Slices 3–5未开始保持。
+
 2026-10-28 — **v0.1.21 Slice 2 = CLOSED / PASS**。用户明确确认Production真实验收全部PASS：PWA登录、回顾四字段保存及重入保留、双方独立填写与“我已填写”状态、同账号双会话旧稿拒绝、冲突四字段保留、查看最新不清稿、取消载入保留及明确确认才替换；日历、任务、清单、重要日和空间管理抽查正常。解除本次Review写入维护，可恢复正常使用；Codex未操作真实登录会话。
 
 已验收功能发布Commit `069f6fe5e22356991ee4eda2d409f6a100886ff8`，Production数据库Patch/Postflight/Negative Probes/Schema Cache、Vercel部署及七项线上资源核验均PASS；最后代码验证Node996/996、WebKit/Chrome14/14、TypeScript/Build PASS。本轮仅治理收口，不改业务/SQL/测试或重跑数据库。v0.1.21整体仍IN PROGRESS：Slice 1 DEFERRED，Slices 3–5 NOT STARTED；v0.1.20 CLOSED / PASS保持。后续UI/UX反馈及非阻塞观察单独记录BACKLOG，不算本Slice并发保护失败。下方旧检查点为历史。
@@ -55,6 +57,8 @@ UI v2 Slice6 = LOCAL PASS / VISUAL PASS：用户已认可四张居中概览卡�
 v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3为LOCAL PASS / VISUAL PASS；Slice4为LOCAL PASS / VISUAL PROVISIONALLY ACCEPTED。Slice5月视图本地验证与离线视觉验收通过：两条短标题/准确+N、六色圆点与日期浮层，261/261相关测试、build/diff-check、28组四宽度离线检查PASS；用户确认普通月、密集月、空月及浮层满意。已授权本地commit；不代表真实账号、真机、installed PWA或Production验收。Space Color System继续Deferred；真实账号/真机/installed PWA/Production未验收。正式版本仍v0.1.20。
 
 ## Latest completed
+
+两项Follow-up本地实施与自动验证完成，用户仅确认阅读态右滑本地iPhone Safari PASS；本轮获明确发布授权。实际发布回执与正式PWA验收分别记录，不混淆二者。
 
 2026-10-28 — Slice 2 Production真实用户验收全部PASS，正式CLOSED / PASS并解除Review维护；完成治理收口及后续反馈登记。功能发布、数据库与自动化证据保留，真实验收逐项见TESTING首节。
 
@@ -385,6 +389,8 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
+独立Follow-up按已授权正常origin/main→Vercel Production发布；准确Source SHA、部署状态、正式七项资源和后端目标以/private/tmp/calendar-review-ux-release-20261028/RELEASE_RECEIPT.md实际回执为准。仅两项现有前端，无Supabase Patch或配置变更；正式PWA人工验收PENDING，旧本地未部署记录为历史。
+
 Slice 2已验收功能Source Commit：`069f6fe5e22356991ee4eda2d409f6a100886ff8`；Vercel官方GitHub集成Production Deployment `7374948037` / Vercel `8i4etxVi573b447kmC1aZzbYZom1` success，Source匹配，正式HTML/JS/CSS/manifest/SW/两个图标7/7与Build逐字节一致。公开Supabase目标为ximazjhxvmktpcdbypka，数据库及缓存验证PASS，用户随后确认Production真实验收全部PASS；Review维护已解除。
 
 本轮仅文档收口，正常Git Push可触发现有Vercel自动部署，不手动二次部署或更改配置；已验收业务资源保持。治理部署精确Source/状态及资源核验由`/private/tmp/calendar-v0121-slice2-closeout-20261028/`独立回执记录，不预写未发生的结果、不把治理SHA变化当业务变化。原功能发布证据在`/private/tmp/calendar-v0121-slice2-release-20261028/RELEASE_RECEIPT.md`。无需重复已PASS的整轮真实验收；下方旧部署记录为历史。
@@ -504,7 +510,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-Slice 2已收口，Review恢复正常使用；观察实际使用反馈，等待用户决定下一项独立工作。建议另行授权后先只读核实Slice 3，或选择BACKLOG中的小范围UI/UX事项；本轮不启动任何后续开发，不重启Slice 1安全测试、不恢复旧无条件RPC。
+核对发布回执的Production Source与资源后，由用户在正式PWA验收编辑态右滑、dirty取消四字段保留/确认离开、阅读态标记、已完成无重复按钮及旧revision拒绝。停在USER ACCEPTANCE CHECKPOINT，不提前关闭Follow-up或启动其他Slice。
 
 ## Blockers
 
@@ -610,6 +616,8 @@ Slice 2已收口，Review恢复正常使用；观察实际使用反馈，等待�
 - `v0.1.9 Shared Tasks` Slice 1/2/3 are CLOSED / PASS: backend applied/postflight verified, frontend deployed through Vercel, Desktop A/B Production acceptance and iPhone smoke passed. At the v0.1.13 closeout, Structured Review / Check-in and Shared Lists were future candidates; v0.1.14/14.1 subsequently closed, and Shared Lists was selected for v0.1.15. Its design is frozen and Slice 1 DB foundation is `CLOSED / PASS` after Production postflight.
 
 ## Handoff Prompt
+
+2026-10-28 — 独立Review UI/UX Follow-up正式发布获授权；本地iPhone Safari仅阅读态左缘右滑由用户确认PASS。编辑态、dirty取消四字段保留/确认离开、阅读态标记/已完成去重及旧revision拒绝均待正式PWA人工验收。Node1000/1000、WebKit/Chrome46/46证据及代码指纹保持，不以自动化代替真机。仅原两项前端，正常Commit/Push和既有Vercel Production；部署Source/状态/七项资源结果见/private/tmp/calendar-review-ux-release-20261028/RELEASE_RECEIPT.md，不预写部署成功。无数据库操作；Slice 2 CLOSED / PASS、Slice 1 DEFERRED、Slices 3–5未开始保持。 发布静态核验后停USER ACCEPTANCE CHECKPOINT，由用户自行操作正式PWA，不继承登录态。
 
 v0.1.21整体IN PROGRESS；Slice 2 CLOSED / PASS，用户明确确认Production真实验收全部PASS，本次Review维护解除、正常使用恢复。已验收功能基线069f6fe5，后端及Schema Cache/自动化/部署资源证据PASS；本轮仅治理收口。Slice 1继续DEFERRED（POTENTIAL / NOT VERIFIED），Slices 3–5未开始，v0.1.20 CLOSED / PASS保持。BACKLOG另记回顾详情边缘返回与“我已填写”入口优化，默认空间待讨论、对方状态短延迟观察；均不阻塞Slice 2。等待用户选择并授权下一项工作，不自动开发或重跑数据库Patch、不恢复旧无条件RPC。
 

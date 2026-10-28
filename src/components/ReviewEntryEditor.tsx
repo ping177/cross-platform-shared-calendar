@@ -14,7 +14,7 @@ const fields = [
 
 const emptyDraft: ReviewEntryDraft = { focus: '', progress: '', problems: '', next_plan: '' };
 
-export function ReviewEntryEditor({ reviewId, userId, startEditing = false, onDirtyChange }: { reviewId: string; userId: string; startEditing?: boolean; onDirtyChange?: (dirty: boolean) => void }) {
+export function ReviewEntryEditor({ reviewId, userId, startEditing = false, onDirtyChange, onBusyChange }: { reviewId: string; userId: string; startEditing?: boolean; onDirtyChange?: (dirty: boolean) => void; onBusyChange?: (busy: boolean) => void }) {
   const id = useId();
   const [entry, setEntry] = useState<ReviewEntry | null>(null);
   const [draft, setDraft] = useState<ReviewEntryDraft>(emptyDraft);
@@ -30,12 +30,17 @@ export function ReviewEntryEditor({ reviewId, userId, startEditing = false, onDi
   const generation = useRef(0);
   const submitting = useRef(false);
 
+  function updateBusy(value: typeof busy) {
+    onBusyChange?.(Boolean(value));
+    setBusy(value);
+  }
+
   function loadEntry() {
     const request = ++generation.current;
     submitting.current = false;
     setEntry(null);
     setDraft(emptyDraft);
-    setBusy(null);
+    updateBusy(null);
     setError('');
     setConflict(false);
     setLatest(null);
@@ -84,7 +89,7 @@ export function ReviewEntryEditor({ reviewId, userId, startEditing = false, onDi
     if (!currentEntry || !dirty || conflict || submitting.current) return;
     const request = generation.current;
     submitting.current = true;
-    setBusy('save');
+    updateBusy('save');
     setError('');
     try {
       const saved = await saveMyReviewEntry(supabase, reviewId, userId, draft, currentEntry.content_revision);
@@ -99,7 +104,7 @@ export function ReviewEntryEditor({ reviewId, userId, startEditing = false, onDi
     } finally {
       if (request === generation.current) {
         submitting.current = false;
-        setBusy(null);
+        updateBusy(null);
       }
     }
   }
@@ -108,7 +113,7 @@ export function ReviewEntryEditor({ reviewId, userId, startEditing = false, onDi
     if (!currentEntry || !markReady || submitting.current) return;
     const request = generation.current;
     submitting.current = true;
-    setBusy('mark');
+    updateBusy('mark');
     setError('');
     try {
       const marked = await markMyReviewFilled(supabase, reviewId, userId, currentEntry.content_revision);
@@ -124,7 +129,7 @@ export function ReviewEntryEditor({ reviewId, userId, startEditing = false, onDi
     } finally {
       if (request === generation.current) {
         submitting.current = false;
-        setBusy(null);
+        updateBusy(null);
       }
     }
   }
@@ -134,7 +139,7 @@ export function ReviewEntryEditor({ reviewId, userId, startEditing = false, onDi
     if (replaceDraft && !window.confirm('重新载入会替换当前四项输入，未保存内容将丢弃。确定重新载入最新内容吗？')) return;
     const request = generation.current;
     submitting.current = true;
-    setBusy('load');
+    updateBusy('load');
     try {
       const loaded = await readMyReviewEntry(supabase, reviewId, userId);
       if (request !== generation.current) return;
@@ -148,7 +153,7 @@ export function ReviewEntryEditor({ reviewId, userId, startEditing = false, onDi
     } catch (loadError) {
       if (request === generation.current) setError(reviewEntryErrorMessage(loadError, 'load'));
     } finally {
-      if (request === generation.current) { submitting.current = false; setBusy(null); }
+      if (request === generation.current) { submitting.current = false; updateBusy(null); }
     }
   }
 
@@ -175,10 +180,14 @@ export function ReviewEntryEditor({ reviewId, userId, startEditing = false, onDi
     {latest && <div className="mt-ui-4 min-w-0" aria-label="服务器最新回顾内容"><h3 className="mb-ui-3 text-ui-list font-ui-semibold">服务器最新内容（只读）</h3><ReviewReadOnlyEntry entry={latest} participant="mine" /></div>}
   </section>;
 
-  if (!editing) return <div className="min-w-0">
+  if (!editing) return <div className="min-w-0" aria-busy={Boolean(busy)}>
     <ReviewReadOnlyEntry entry={currentEntry} participant="mine" />
     {conflictPanel}
-    <button ref={editButton} className="ui-focus mt-ui-4 min-h-ui-touch min-w-11 rounded-ui-control px-ui-3 text-ui-meta font-ui-semibold text-ui-accent" type="button" onClick={() => setEditing(true)}>{status === '未填写' ? '填写我的回顾' : '编辑我的回顾'}</button>
+    {error && !conflict && <p className="mt-ui-3 rounded-ui-control bg-ui-danger-soft px-ui-4 py-ui-3 text-ui-meta text-ui-danger" role="alert">{error}</p>}
+    <div className="mt-ui-4 flex flex-wrap gap-ui-3">
+      <button ref={editButton} className="ui-focus min-h-ui-touch min-w-11 rounded-ui-control px-ui-3 text-ui-meta font-ui-semibold text-ui-accent disabled:opacity-50" type="button" disabled={Boolean(busy)} onClick={() => setEditing(true)}>{status === '未填写' ? '填写我的回顾' : '编辑我的回顾'}</button>
+      {hasReviewEntryContent(currentEntry) && status !== '已填写' && <button className="ui-focus min-h-ui-touch rounded-ui-control bg-ui-accent px-ui-3 text-ui-meta font-ui-semibold text-ui-on-accent disabled:opacity-50" type="button" disabled={!markReady} onClick={() => void markFilled()}>{busy === 'mark' ? '标记中…' : '我已填写'}</button>}
+    </div>
   </div>;
 
   return (

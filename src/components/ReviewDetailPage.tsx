@@ -8,6 +8,8 @@ import { supabase } from '../lib/supabase';
 import { ReviewEntryEditor } from './ReviewEntryEditor';
 import { ReviewReadOnlyEntry } from './ReviewReadOnlyEntry';
 import { useListModalKeyboard } from './ListSheets';
+import { useMobileSwipe } from './useMobileSwipe';
+import type { SwipeClickGuard } from '../lib/mobile-swipe';
 
 function detailError(error: unknown, fallback: string): string {
   const message = error instanceof Error ? error.message : '';
@@ -16,13 +18,14 @@ function detailError(error: unknown, fallback: string): string {
   return /[\u3400-\u9fff]/u.test(message) ? message : fallback;
 }
 
-export function ReviewDetailPanels({ detail, userId, mobilePanel, onMobilePanelChange, onDirtyChange, startEditing = false }: {
+export function ReviewDetailPanels({ detail, userId, mobilePanel, onMobilePanelChange, onDirtyChange, onBusyChange, startEditing = false }: {
   detail: ReviewDetail;
   userId: string;
   mobilePanel: 'mine' | 'other';
   startEditing?: boolean;
   onMobilePanelChange: (panel: 'mine' | 'other') => void;
   onDirtyChange: (dirty: boolean) => void;
+  onBusyChange?: (busy: boolean) => void;
 }) {
   const shared = detail.other !== null;
   return <>
@@ -33,7 +36,7 @@ export function ReviewDetailPanels({ detail, userId, mobilePanel, onMobilePanelC
     <div className={`mt-4 grid min-w-0 gap-4 ${shared ? 'md:grid-cols-2 md:items-start' : ''}`}>
       <div className={`min-w-0 ${shared && mobilePanel !== 'mine' ? 'hidden md:block' : ''}`} id="review-mine-panel" role={shared ? 'tabpanel' : undefined} aria-labelledby={shared ? 'review-mine-tab' : undefined}>
         <h2 className="mb-ui-3 text-ui-section">我</h2>
-        <ReviewEntryEditor reviewId={detail.round.id} userId={userId} startEditing={startEditing} onDirtyChange={onDirtyChange} />
+        <ReviewEntryEditor reviewId={detail.round.id} userId={userId} startEditing={startEditing} onDirtyChange={onDirtyChange} onBusyChange={onBusyChange} />
       </div>
       {detail.other && <div className={`min-w-0 ${mobilePanel !== 'other' ? 'hidden md:block' : ''}`} id="review-other-panel" role="tabpanel" aria-labelledby="review-other-tab">
         <h2 className="mb-ui-3 text-ui-section">对方</h2>
@@ -43,7 +46,7 @@ export function ReviewDetailPanels({ detail, userId, mobilePanel, onMobilePanelC
   </>;
 }
 
-export function ReviewDetailPage({ target, userId, onBack, onDirtyChange, onUnavailable }: { target: ReviewDetailTarget; userId: string; onBack: () => void; onDirtyChange: (dirty: boolean) => void; onUnavailable?: (reason: 'space' | 'review') => void }) {
+export function ReviewDetailPage({ swipeClickGuard, target, userId, onBack, onDirtyChange, onUnavailable }: { swipeClickGuard?: SwipeClickGuard; target: ReviewDetailTarget; userId: string; onBack: () => void; onDirtyChange: (dirty: boolean) => void; onUnavailable?: (reason: 'space' | 'review') => void }) {
   const [detail, setDetail] = useState<ReviewDetail | null>(null);
   const detailRef = useRef<ReviewDetail | null>(null);
   const [phase, setPhase] = useState<'loading' | 'ready' | 'error' | 'unavailable'>('loading');
@@ -53,6 +56,7 @@ export function ReviewDetailPage({ target, userId, onBack, onDirtyChange, onUnav
   const [previousPlan, setPreviousPlan] = useState<string | null>(null);
   const [mobilePanel, setMobilePanel] = useState<'mine' | 'other'>('mine');
   const [dirty, setDirty] = useState(false);
+  const [entryBusy, setEntryBusy] = useState(false);
   const [dateOpen, setDateOpen] = useState(false);
   const [dateDraft, setDateDraft] = useState('');
   const [dateError, setDateError] = useState('');
@@ -133,7 +137,7 @@ export function ReviewDetailPage({ target, userId, onBack, onDirtyChange, onUnav
   }, [target.spaceId, target.reviewId, target.justCreated, userId]);
 
   function back() {
-    if (deleting.current || submittingDate.current) return;
+    if (deleting.current || submittingDate.current || entryBusy) return;
     if (phase === 'ready' && !canLeaveReviewDetail(dirty, () => window.confirm('有未保存的回顾内容，确定返回历史列表吗？'))) return;
     onBack();
   }
@@ -194,7 +198,10 @@ export function ReviewDetailPage({ target, userId, onBack, onDirtyChange, onUnav
     }
   }
 
-  return <main className="ui-review-page mx-auto min-h-screen w-full max-w-5xl bg-ui-page px-ui-4 py-ui-6 font-ui text-ui-text ui-safe-bottom">
+  const swipe = useMobileSwipe({ enabled: !dateOpen && !deleteOpen && !dateBusy && !deleteBusy && !entryBusy,
+    scope: `${userId}:${target.spaceId}:${target.reviewId}`, direction: 'right', clickGuard: swipeClickGuard, onSwipe: back });
+
+  return <main {...swipe} className="ui-review-page mx-auto min-h-screen w-full max-w-5xl bg-ui-page px-ui-4 py-ui-6 font-ui text-ui-text ui-safe-bottom">
     <header className="flex min-h-11 min-w-0 items-center gap-3">
       <button className="ui-focus inline-flex min-h-ui-touch shrink-0 items-center gap-ui-1 rounded-ui-control text-ui-meta font-ui-semibold text-ui-accent" type="button" onClick={back}><ChevronLeft size={18} />回顾列表</button>
       <span className="min-w-0 break-words text-ui-meta text-ui-muted">回顾详情</span>
@@ -217,7 +224,7 @@ export function ReviewDetailPage({ target, userId, onBack, onDirtyChange, onUnav
         {previousState === 'ready' && <div className="mt-ui-3 max-h-36 min-w-0 overflow-y-auto whitespace-pre-wrap break-words text-ui-body text-ui-muted">{previousPlan ?? '上一份计划暂无内容'}</div>}
       </section>}
       <fieldset className="min-w-0" disabled={deleteBusy}>
-      <ReviewDetailPanels detail={detail} userId={userId} mobilePanel={mobilePanel} onMobilePanelChange={setMobilePanel} onDirtyChange={setDirty} startEditing={target.justCreated} />
+      <ReviewDetailPanels detail={detail} userId={userId} mobilePanel={mobilePanel} onMobilePanelChange={setMobilePanel} onDirtyChange={setDirty} onBusyChange={setEntryBusy} startEditing={target.justCreated} />
       </fieldset>
       <section className="mt-ui-6 border-t border-ui-border pt-ui-4">
         <button className="ui-focus min-h-ui-touch rounded-ui-control px-ui-3 text-ui-meta font-ui-semibold text-ui-danger disabled:opacity-50" type="button" disabled={deleteBusy || dateBusy} onClick={() => { if (!deleting.current && !submittingDate.current) { setDeleteError(''); setDeleteOpen(true); } }}>{deleteBusy ? '删除中…' : '删除回顾'}</button>

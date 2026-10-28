@@ -6,6 +6,12 @@ Production URL: https://cross-platform-shared-calendar.vercel.app/
 
 ## 当前阶段
 
+2026-10-28 — 独立Review UI/UX Follow-up正式发布获授权；本地iPhone Safari仅阅读态左缘右滑由用户确认PASS。编辑态、dirty取消四字段保留/确认离开、阅读态标记/已完成去重及旧revision拒绝均待正式PWA人工验收。Node1000/1000、WebKit/Chrome46/46证据及代码指纹保持，不以自动化代替真机。仅原两项前端，正常Commit/Push和既有Vercel Production；部署Source/状态/七项资源结果见/private/tmp/calendar-review-ux-release-20261028/RELEASE_RECEIPT.md，不预写部署成功。无数据库操作；Slice 2 CLOSED / PASS、Slice 1 DEFERRED、Slices 3–5未开始保持。
+
+下方本地未授权/未部署为历史检查点，由本轮授权接续；Follow-up不提前CLOSED。
+
+- 2026-10-28：独立Review UI/UX follow-up本地完成（详情右滑返回/未保存确认、阅读态本人直接“我已填写”），Node1000/1000、WebKit/Chrome46/46、TypeScript/Build PASS。未Commit/Push/部署，等待用户本地iPhone Safari验收；正式PWA新交互待后续单独授权发布，不重新打开Slice 2或启动其他Slice。
+
 - 2026-10-28：**v0.1.21 Slice 2 CLOSED / PASS**，用户确认Production真实验收全部PASS，Review维护解除。已验收功能发布069f6fe5，数据库/缓存、自动化及部署/资源核验均PASS；本轮仅治理收口。v0.1.21整体IN PROGRESS，Slice 1 DEFERRED、Slices 3–5未开始；独立UI/UX反馈见BACKLOG。v0.1.20 CLOSED / PASS保持，下方旧检查点为历史。
 
 - 2026-10-19：v0.1.21 Slice2数据库Patch/Postflight/负向探针由用户报告PASS；兼容前端发布准备READY，等待单独授权；缓存未确认时真实写入验收HOLD。Schema Cache HTTP识别尚未独立核实，前端未Commit/Push/部署，Review继续停写；详见Testing首节。下方2026-10-17为历史本地检查点，v0.1.20 CLOSED/PASS保持。
