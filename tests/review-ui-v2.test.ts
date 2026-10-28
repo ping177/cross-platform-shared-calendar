@@ -57,12 +57,12 @@ test('historical entry starts in reading view, exposes four saved fields and onl
 
 test('new round opens four-field editor; draft save and filled marking remain separate', () => editorRuntime(async ({ pump, change, render, save, calls, html }) => {
   await pump(); assert.equal(nodes(render()).filter((n) => n.type === 'textarea').length, 4);
-  assert.equal(findButton(render(), '我已填写').props.disabled, true);
+  assert.equal(findButton(render(), '标记已填写').props.disabled, true);
   for (const field of ['focus', 'progress', 'problems', 'next_plan']) change(field, field + ' 内容');
-  await pump(); assert.equal(findButton(render(), '我已填写').props.disabled, true);
+  await pump(); assert.equal(findButton(render(), '标记已填写').props.disabled, true);
   await save(); await pump(); assert.match(html(), /编辑中/); assert.equal(calls.filter((c: any) => c[0] === 'mark').length, 0);
-  assert.equal(findButton(render(), '我已填写').props.disabled, false);
-  await findButton(render(), '我已填写').props.onClick(); await pump(); assert.match(html(), /已填写/);
+  assert.equal(findButton(render(), '标记已填写').props.disabled, false);
+  await findButton(render(), '标记已填写').props.onClick(); await pump(); assert.match(html(), /已填写/);
   assert.deepEqual(calls.filter((c: any) => c[0] === 'mark')[0], ['mark', 'r', 'me', 1]);
   assert.doesNotMatch(html(), /<textarea/);
 }, true));
@@ -70,7 +70,7 @@ test('new round opens four-field editor; draft save and filled marking remain se
 test('saved edit of filled content becomes 有更新 without marking the other participant', () => editorRuntime(async ({ m, pump, change, render, save, html, calls }) => {
   m.entry = { ...blank(), focus: '原内容', content_revision: 1, filled_revision: 1 }; await pump();
   findButton(render(), '编辑我的回顾').props.onClick(); change('focus', '新内容'); await save(); await pump();
-  assert.match(html(), /有更新/); assert.equal(findButton(render(), '我已填写').props.disabled, false);
+  assert.match(html(), /有更新/); assert.equal(findButton(render(), '标记已填写').props.disabled, false);
   assert.equal(calls.filter((c: any) => c[0] === 'mark').length, 0);
 }));
 
@@ -97,7 +97,7 @@ test('save and mark reject duplicate submission while busy; permission failure k
   assert.equal(calls.filter((c: any) => c[0] === 'save').length, 1); assert.equal(findButton(render(), '取消').props.disabled, true);
   m.saveError = new Error('permission denied'); release(); await first; await pump(); assert.match(html(), /参与权限已变化/); assert.match(html(), /保留草稿/);
   m.saveBarrier = null; m.saveError = null; await save(); await pump();
-  m.markBarrier = new Promise<void>((yes) => { release = yes; }); const mark = findButton(render(), '我已填写').props.onClick;
+  m.markBarrier = new Promise<void>((yes) => { release = yes; }); const mark = findButton(render(), '标记已填写').props.onClick;
   const marking = mark(); await mark(); assert.equal(calls.filter((c: any) => c[0] === 'mark').length, 1);
   m.markError = new Error('Review module is disabled'); release(); await marking; await pump(); assert.match(html(), /模块已关闭/); assert.match(html(), /编辑中/);
 }, true));
@@ -118,7 +118,7 @@ test('conflict keeps all four draft fields, blocks retry, and reload requires co
   assert.match(html(), /其他设备.*本次未保存.*输入仍保留/);
   for (const node of nodes(render()).filter((n) => n.type === 'textarea')) assert.match(node.props.value, /本机草稿/);
   assert.equal(findButton(render(), '保存草稿').props.disabled, true);
-  assert.equal(findButton(render(), '我已填写').props.disabled, true);
+  assert.equal(findButton(render(), '标记已填写').props.disabled, true);
   await save(); assert.equal(calls.filter((c: any) => c[0] === 'save').length, 1);
   await findButton(render(), '查看最新内容').props.onClick(); await pump();
   assert.match(html(), /手机新内容/); assert.match(nodes(render()).find((n) => n.type === 'textarea').props.value, /本机草稿/);
@@ -141,7 +141,7 @@ test('failed confirmed reload keeps draft and conflict; reverting text does not 
   await findButton(render(), '重新载入最新内容').props.onClick(); await pump();
   assert.match(nodes(render()).find((n) => n.type === 'textarea').props.value, /本机内容/);
   change('focus', ''); await pump();
-  assert.equal(findButton(render(), '我已填写').props.disabled, true);
+  assert.equal(findButton(render(), '标记已填写').props.disabled, true);
   assert.equal(findButton(render(), '保存草稿').props.disabled, true);
   assert.match(html(), /读取失败/);
 }, true));
@@ -149,7 +149,7 @@ test('failed confirmed reload keeps draft and conflict; reverting text does not 
 test('stale mark fails without adopting remote content or acknowledging it', () => editorRuntime(async ({ m, pump, render, html }) => {
   m.entry = { ...blank(), focus: '读过的内容', content_revision: 1 }; await pump();
   m.entry = { ...m.entry, focus: '未读的新内容', content_revision: 2 };
-  await findButton(render(), '我已填写').props.onClick(); await pump();
+  await findButton(render(), '标记已填写').props.onClick(); await pump();
   assert.match(html(), /本次未完成标记/);
   assert.equal(nodes(render()).find((n) => n.type === 'textarea').props.value, '读过的内容');
   assert.equal(m.entry.filled_revision, null);
@@ -168,35 +168,35 @@ test('late latest-content read cannot repopulate another review', () => editorRu
 test('reading a saved draft can mark it filled directly with its own revision and no save', () => editorRuntime(async ({ m, pump, render, calls, html }) => {
   m.entry = { ...blank(), focus: '已保存专注', progress: '已保存进展', content_revision: 4 };
   await pump();
-  const mark = findButton(render(), '我已填写'); assert.ok(mark, 'saved reading view needs a direct mark action');
+  const mark = findButton(render(), '标记已填写'); assert.ok(mark, 'saved reading view needs a direct mark action');
   assert.equal(nodes(render()).filter((n) => n.type === 'textarea').length, 0);
   await mark.props.onClick(); await pump();
   assert.deepEqual(calls.filter((c: any) => c[0] === 'mark'), [['mark', 'r', 'me', 4]]);
   assert.equal(calls.filter((c: any) => c[0] === 'save').length, 0);
   assert.equal(m.entry.filled_revision, 4); assert.match(html(), /已填写/);
-  assert.equal(findButton(render(), '我已填写'), undefined, 'completed reading view has no duplicate mark action');
+  assert.equal(findButton(render(), '标记已填写'), undefined, 'completed reading view has no duplicate mark action');
 }));
 
 test('reading-view mark reports stale revision without adopting or marking remote content', () => editorRuntime(async ({ m, pump, render, html, calls }) => {
   m.entry = { ...blank(), focus: '已经阅读的稿', content_revision: 3 }; await pump();
   m.entry = { ...m.entry, focus: '其他会话新稿', content_revision: 4 };
-  const mark = findButton(render(), '我已填写'); assert.ok(mark);
+  const mark = findButton(render(), '标记已填写'); assert.ok(mark);
   await mark.props.onClick(); await pump();
   assert.match(html(), /本次未完成标记/); assert.match(html(), /已经阅读的稿/);
   assert.doesNotMatch(html(), /其他会话新稿/);
-  assert.equal(m.entry.filled_revision, null); assert.equal(findButton(render(), '我已填写').props.disabled, true);
+  assert.equal(m.entry.filled_revision, null); assert.equal(findButton(render(), '标记已填写').props.disabled, true);
   assert.equal(calls.filter((c: any) => c[0] === 'mark').length, 1);
 }));
 
 test('reading-view blank stays unmarkable; mark errors stay visible and preserve saved content', () => editorRuntime(async ({ m, pump, render, html, props, calls }) => {
-  await pump(); assert.equal(findButton(render(), '我已填写'), undefined);
+  await pump(); assert.equal(findButton(render(), '标记已填写'), undefined);
   props.reviewId = 'saved'; m.entry = { ...blank(), focus: '重试保留内容', content_revision: 2 }; await pump();
   m.markError = new Error('network');
-  const mark = findButton(render(), '我已填写'); assert.ok(mark);
+  const mark = findButton(render(), '标记已填写'); assert.ok(mark);
   await mark.props.onClick(); await pump();
   assert.match(html(), /role="alert"[^>]*>标记失败/); assert.match(html(), /重试保留内容/);
-  assert.equal(findButton(render(), '我已填写').props.disabled, false);
-  m.markError = null; await findButton(render(), '我已填写').props.onClick(); await pump();
+  assert.equal(findButton(render(), '标记已填写').props.disabled, false);
+  m.markError = null; await findButton(render(), '标记已填写').props.onClick(); await pump();
   assert.equal(m.entry.filled_revision, 2);
   assert.deepEqual(calls.filter((c: any) => c[0] === 'mark').map((c: any) => c[3]), [2, 2]);
 }));
@@ -206,8 +206,23 @@ test('reading mark reports busy synchronously before the parent can navigate', (
   props.onBusyChange = (busy: boolean) => calls.push(['busy', busy]);
   await pump(); let release!: () => void;
   m.markBarrier = new Promise<void>(resolve => { release = resolve; });
-  findButton(render(), '我已填写').props.onClick();
+  findButton(render(), '标记已填写').props.onClick();
   assert.equal(calls.filter((c: any) => c[0] === 'busy').at(-1)[1], true, 'parent must lock in the event handler, not a later effect');
   release(); await pump();
   assert.equal(calls.filter((c: any) => c[0] === 'busy').at(-1)[1], false);
+}));
+
+
+test('reading completion is a status-row text action matching the separate edit entry', () => editorRuntime(async ({ m, pump, render }) => {
+  m.entry = { ...blank(), focus: '已保存', content_revision: 1 }; await pump();
+  const mark = findButton(render(), '标记已填写'); const edit = findButton(render(), '编辑我的回顾');
+  assert.ok(mark); assert.ok(edit);
+  for (const token of ['min-h-ui-touch', 'rounded-ui-control', 'px-ui-3', 'text-ui-meta', 'font-ui-semibold', 'text-ui-accent']) {
+    assert.ok(mark.props.className.split(' ').includes(token));
+    assert.ok(edit.props.className.split(' ').includes(token));
+  }
+  assert.doesNotMatch(mark.props.className, /(?:^| )border(?: |$)/);
+  const content = nodes(render()).find((n) => n.type.name === 'ReviewReadOnlyEntry');
+  assert.ok(findButton(content, '标记已填写'), 'mark action belongs to the saved-content status row');
+  assert.doesNotMatch(mark.props.className, /bg-ui-accent|text-ui-on-accent/);
 }));

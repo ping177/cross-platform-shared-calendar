@@ -8,6 +8,7 @@ const mode = new URLSearchParams(location.search).get('mode');
 const own = { review_id: 'review', user_id: 'me', focus: '已保存专注', progress: '已保存进展', problems: '已保存问题', next_plan: '已保存计划', content_revision: 3, filled_revision: null, updated_at: '2030-01-01T00:00:00Z' };
 if (mode === 'blank') Object.assign(own, { focus: null, progress: null, problems: null, next_plan: null, content_revision: 0 });
 if (mode === 'completed') own.filled_revision = 3;
+if (mode === 'updated') own.filled_revision = 1;
 window.reviewUx = {
   row: own, calls: [], dirty: false, backs: 0, hold: false, error: null,
   remote() { this.row = { ...this.row, focus: '其他会话新专注', content_revision: this.row.content_revision + 1 }; },

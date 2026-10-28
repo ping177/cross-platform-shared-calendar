@@ -181,12 +181,13 @@ export function ReviewEntryEditor({ reviewId, userId, startEditing = false, onDi
   </section>;
 
   if (!editing) return <div className="min-w-0" aria-busy={Boolean(busy)}>
-    <ReviewReadOnlyEntry entry={currentEntry} participant="mine" />
+    <ReviewReadOnlyEntry entry={currentEntry} participant="mine">
+      {hasReviewEntryContent(currentEntry) && status !== '已填写' && <button className="ui-focus min-h-ui-touch rounded-ui-control bg-transparent px-ui-3 text-ui-meta font-ui-semibold text-ui-accent disabled:opacity-50" type="button" disabled={!markReady} onClick={() => void markFilled()}>{busy === 'mark' ? '标记中…' : '标记已填写'}</button>}
+    </ReviewReadOnlyEntry>
     {conflictPanel}
     {error && !conflict && <p className="mt-ui-3 rounded-ui-control bg-ui-danger-soft px-ui-4 py-ui-3 text-ui-meta text-ui-danger" role="alert">{error}</p>}
     <div className="mt-ui-4 flex flex-wrap gap-ui-3">
       <button ref={editButton} className="ui-focus min-h-ui-touch min-w-11 rounded-ui-control px-ui-3 text-ui-meta font-ui-semibold text-ui-accent disabled:opacity-50" type="button" disabled={Boolean(busy)} onClick={() => setEditing(true)}>{status === '未填写' ? '填写我的回顾' : '编辑我的回顾'}</button>
-      {hasReviewEntryContent(currentEntry) && status !== '已填写' && <button className="ui-focus min-h-ui-touch rounded-ui-control bg-ui-accent px-ui-3 text-ui-meta font-ui-semibold text-ui-on-accent disabled:opacity-50" type="button" disabled={!markReady} onClick={() => void markFilled()}>{busy === 'mark' ? '标记中…' : '我已填写'}</button>}
     </div>
   </div>;
 
@@ -194,9 +195,9 @@ export function ReviewEntryEditor({ reviewId, userId, startEditing = false, onDi
     <section className="min-w-0" aria-label="填写我的回顾" aria-busy={Boolean(busy)}>
       <h3 className="text-ui-section">填写回顾</h3>
       <p className="mt-ui-2 text-ui-meta text-ui-muted" role="status" aria-live="polite">填写状态：<strong className="font-ui-semibold text-ui-text">{status}</strong></p>
-      <p className="mt-ui-1 text-ui-meta text-ui-muted">保存草稿后，再单独标记「我已填写」。</p>
-      {dirty && <p className="mt-ui-1 text-ui-meta text-ui-muted" role="status">有未保存修改，请先保存再标记「我已填写」。</p>}
-      {!dirty && status === '未填写' && <p className="mt-ui-1 text-ui-meta text-ui-muted">至少保存一项内容后可标记「我已填写」。</p>}
+      <p className="mt-ui-1 text-ui-meta text-ui-muted">保存草稿后，可点击「标记已填写」。</p>
+      {dirty && <p className="mt-ui-1 text-ui-meta text-ui-muted" role="status">有未保存修改，请先保存再点击「标记已填写」。</p>}
+      {!dirty && status === '未填写' && <p className="mt-ui-1 text-ui-meta text-ui-muted">至少保存一项内容后可点击「标记已填写」。</p>}
       {conflictPanel}
       {error && !conflict && <p className="mt-ui-3 rounded-ui-control bg-ui-danger-soft px-ui-4 py-ui-3 text-ui-meta text-ui-danger" role="alert">{error}</p>}
       <form className="mt-ui-6 space-y-ui-6" onSubmit={(event) => void save(event)}>
@@ -218,7 +219,7 @@ export function ReviewEntryEditor({ reviewId, userId, startEditing = false, onDi
             {busy === 'save' ? '保存中…' : '保存草稿'}
           </button>
           <button className="ui-focus min-h-ui-touch min-w-0 rounded-ui-control bg-ui-accent px-ui-3 font-ui-semibold text-ui-on-accent disabled:opacity-50" type="button" disabled={!markReady} onClick={() => void markFilled()}>
-            {busy === 'mark' ? '标记中…' : '我已填写'}
+            {busy === 'mark' ? '标记中…' : '标记已填写'}
           </button>
           <button className="ui-focus col-span-2 min-h-ui-touch rounded-ui-control px-ui-3 text-ui-meta font-ui-semibold text-ui-muted disabled:opacity-50" type="button" disabled={Boolean(busy)} onClick={cancel}>取消</button>
         </div>

@@ -43,7 +43,7 @@ async function swipe(target, { dx = 120, dy = 3, cancel = false, pointerType = '
   }, { dx, dy, cancel, pointerType });
 }
 const edit = page => page.getByRole('button', { name: '编辑我的回顾', exact: true });
-const mark = page => page.getByRole('button', { name: '我已填写', exact: true });
+const mark = page => page.getByRole('button', { name: '标记已填写', exact: true });
 const labels = ['近期专注事项', '近期进展', '面临问题', '下一步计划'];
 async function fill(page) { for (const label of labels) await page.getByRole('textbox', { name: label, exact: true }).fill(label + ' 未保存'); }
 async function assertDraft(page) { for (const label of labels) assert.equal(await page.getByRole('textbox', { name: label, exact: true }).inputValue(), label + ' 未保存'); }
@@ -96,16 +96,28 @@ for (const engine of ['WebKit', 'Chrome']) {
       assert.equal(await page.evaluate(() => window.reviewUx.backs), 0); assert.deepEqual(page.errors, []);
     } finally { await page.close(); }
   });
-  for (const width of [320, 430, 1024]) test(`${engine} ${width}: saved reading view marks own revision directly; counterpart remains read-only`, async () => {
-    const page = await pageFor(engine, '', width);
+  for (const width of [320, 375, 390, 430, 1024]) test(`${engine} ${width}: saved reading view marks own revision directly; counterpart remains read-only`, async () => {
+    const page = await pageFor(engine, 'updated', width);
     try {
       assert.equal(await page.locator('textarea').count(), 0); assert.equal(await mark(page).count(), 1);
       const box = await mark(page).boundingBox(); assert.ok(box.height >= 44);
+      const content = page.getByLabel('我的回顾内容', { exact: true });
+      const status = content.getByRole('status');
+      assert.match(await status.innerText(), /有更新/);
+      const statusBox = await status.boundingBox();
+      assert.ok(box.x >= statusBox.x + statusBox.width, 'status and action never overlap');
+      assert.ok(Math.abs(box.y + box.height / 2 - statusBox.y - statusBox.height / 2) < 2, 'status and action share a row');
+      const styles = await mark(page).evaluate(el => { const s = getComputedStyle(el); return { font: s.fontSize, weight: s.fontWeight, border: s.borderTopWidth, background: s.backgroundColor }; });
+      const editStyles = await edit(page).evaluate(el => { const s = getComputedStyle(el); return { font: s.fontSize, weight: s.fontWeight }; });
+      assert.equal(styles.font, editStyles.font); assert.equal(styles.weight, editStyles.weight);
+      assert.equal(styles.border, '0px'); assert.equal(styles.background, 'rgba(0, 0, 0, 0)');
+      assert.ok(parseFloat(styles.font) < parseFloat(await page.locator('#review-mine-panel > h2').evaluate(el => getComputedStyle(el).fontSize)));
+      assert.ok((await edit(page).boundingBox()).y > (await content.locator('.rounded-ui-group').boundingBox()).y, 'edit stays below content');
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
-      if (out && width === 430) await page.screenshot({ path: `${out}/${engine}-reading.png`, fullPage: true });
+      if (out && [375, 390, 430].includes(width)) await page.screenshot({ path: `${out}/${engine}-${width}-reading.png`, fullPage: true });
       await mark(page).focus(); await page.keyboard.press('Enter');
       await page.waitForFunction(() => window.reviewUx.row.filled_revision === 3);
-      await page.waitForFunction(() => !Array.from(document.querySelectorAll('button')).some(b => b.textContent === '我已填写'));
+      await page.waitForFunction(() => !Array.from(document.querySelectorAll('button')).some(b => b.textContent === '标记已填写'));
       const calls = await page.evaluate(() => window.reviewUx.calls);
       assert.deepEqual(calls, [{ name: 'mark_my_review_filled', args: { p_review_id: 'review', p_expected_content_revision: 3 } }]);
       assert.match(await page.getByLabel('我的回顾内容', { exact: true }).innerText(), /填写状态：已填写/);

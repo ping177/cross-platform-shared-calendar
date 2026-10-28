@@ -42,7 +42,7 @@ for (const engine of ['WebKit', 'Chrome']) {
       assert.match(await page.getByRole('alert').innerText(), /其他设备.*本次未保存.*输入仍保留/);
       for (const label of labels) assert.equal(await page.getByRole('textbox', { name: label, exact: true }).inputValue(), label + ' 电脑未保存');
       assert.equal(await page.getByRole('button', { name: '保存草稿', exact: true }).isDisabled(), true);
-      assert.equal(await page.getByRole('button', { name: '我已填写', exact: true }).isDisabled(), true);
+      assert.equal(await page.getByRole('button', { name: '标记已填写', exact: true }).isDisabled(), true);
       await page.getByRole('button', { name: '查看最新内容', exact: true }).focus(); await page.keyboard.press('Enter');
       await page.getByLabel('服务器最新回顾内容', { exact: true }).waitFor();
       assert.match(await page.getByLabel('服务器最新回顾内容', { exact: true }).innerText(), /手机新专注/);
@@ -68,7 +68,7 @@ for (const engine of ['WebKit', 'Chrome']) {
     const page = await pageFor(engine);
     try {
       await page.evaluate(() => window.reviewFixture.remote());
-      await page.getByRole('button', { name: '我已填写', exact: true }).click();
+      await page.getByRole('button', { name: '标记已填写', exact: true }).click();
       await page.getByRole('alert').waitFor(); assert.match(await page.getByRole('alert').innerText(), /本次未完成标记/);
       assert.equal(await page.evaluate(() => window.reviewFixture.row.filled_revision), null);
       await fillDraft(page); await page.evaluate(() => { window.reviewFixture.readError = true; });
