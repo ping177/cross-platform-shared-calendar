@@ -1,5 +1,15 @@
 # Decisions
 
+## 2026-10-28 — Slice 3发布授权与轻量最终验收
+
+用户本地页面基本操作正常并授权本次Commit/正常Push/Vercel Production；只发布现有已验证最小修复、直接测试及必要治理。用户无实际日程，最终Production人工仅确认页面打开、日期/月切换和刷新无异常；非空数据不宣称人工PASS，Realtime故障边界沿用自动化，不制造线上故障。Source/资源核验与用户最终确认分开，Slice 3不提前CLOSED/PASS，其他Slice状态不变。
+
+## 2026-10-28 — Slice 3 日历读取不依赖实时连接
+
+用户明确授权本地实施已确认的最小修复，规格为“REST 可用且具备读取权限时可正常加载/刷新”。仅在 useCalendarEvents 有可见 Space 时独立启动原读取循环；CHANNEL_ERROR/TIMED_OUT/CLOSED 只记录 syncError，不暂停或作废 REST、不把同步故障当成读取失败，也不因单纯断线取消已完成读取的操作资格。每个新/恢复订阅调用原 changed 作完整补偿读取，重复 SUBSCRIBED 不触发重复读取；全部可见频道就绪才清除同步异常。补偿、真实变更及主动刷新仍须完整 canonical 成功才恢复资格，不放行仅展示快照。
+
+成员核验、分页、Space 隔离、Auth/request generation、卸载清理、事件保存规则及公共 createCalendarReadLoop 均保持。无轮询/新缓存/新依赖或后端更改；只完成本地实施及验证，Git/部署另行授权，Slice 2不重开、Slices 4–5不启动。
+
 2026-10-28 — **独立 Review UI/UX Follow-up CLOSED / ACCEPTED（按实际验收范围）**。用户确认最终 Production 视觉满意并明确结束本轮，不再追加人工验收；保留阅读/编辑双入口。阅读态右滑真机 PASS，其余边界 AUTOMATED PASS / MANUAL NOT RUN，详见 [Testing](./TESTING.md)。Slice 2 CLOSED / PASS 保持，Slice 3 仅授权只读调查，未授权实施；下方 Follow-up Pending 为历史。
 
 本次接受范围由用户明确决定；结束追加人工验收不等于把自动化测试改称真机 PASS。Slice 3 调查不授权修复、数据库/Realtime 配置变更、真实登录态自动验收或 Slices 4–5。

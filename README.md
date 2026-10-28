@@ -6,6 +6,8 @@ Production URL: https://cross-platform-shared-calendar.vercel.app/
 
 ## 当前阶段
 
+2026-10-28 — **v0.1.21 Slice 3 = LOCAL VERIFIED / RELEASE AUTHORIZED / FINAL ACCEPTANCE PENDING**。用户报告本地日历页面基本操作正常，并明确授权本次Commit、正常Push origin/main及既有Vercel Production发布。仅发布已验证的Calendar REST / Realtime Decoupling；无额外业务改动。用户当前无实际日程，不能声称真实非空数据验收通过；Production仅待页面打开、日期/月切换、刷新无异常的轻量确认，故障边界沿用自动化，不要求制造线上Realtime故障。Slice 2及Follow-up关闭、Slice 1暂缓、Slices 4–5未开始保持。 发布与资源核验实绩见独立回执；下方本地未授权/未发布为历史检查点。
+
 2026-10-28 — **独立 Review UI/UX Follow-up CLOSED / ACCEPTED**。用户确认最终 Production 视觉满意并结束本轮；阅读态右滑真机 PASS，其他列明边界为 AUTOMATED PASS / MANUAL NOT RUN，不追加人工验收。双入口保留，业务基线412ad4f8及部署/资源已核验；详见 [Testing](./docs/TESTING.md)。Slice 2 CLOSED / PASS 保持，Slice 3 仅只读调查、未实施；下方 Pending/未发布为历史检查点。
 
 2026-10-28 — 独立Review UI/UX Follow-up正式发布获授权；本地iPhone Safari仅阅读态左缘右滑由用户确认PASS。编辑态、dirty取消四字段保留/确认离开、阅读态标记/已完成去重及旧revision拒绝均待正式PWA人工验收。Node1000/1000、WebKit/Chrome46/46证据及代码指纹保持，不以自动化代替真机。仅原两项前端，正常Commit/Push和既有Vercel Production；部署Source/状态/七项资源结果见/private/tmp/calendar-review-ux-release-20261028/RELEASE_RECEIPT.md，不预写部署成功。无数据库操作；Slice 2 CLOSED / PASS、Slice 1 DEFERRED、Slices 3–5未开始保持。

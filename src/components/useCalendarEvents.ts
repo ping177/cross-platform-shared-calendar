@@ -64,7 +64,6 @@ export function useCalendarEvents(userId: string, memberSpaces: CurrentSpace[], 
 
   useEffect(() => {
     let active = true;
-    let subscribed = false;
     const connected = new Set<string>();
     const channels: ReturnType<typeof supabase.channel>[] = [];
     const readScope = scopeKey;
@@ -112,13 +111,12 @@ export function useCalendarEvents(userId: string, memberSpaces: CurrentSpace[], 
           if (channelStatus === 'SUBSCRIBED') {
             const wasConnected = connected.has(visibleSpace.id);
             connected.add(visibleSpace.id);
-            if (connected.size === spaces.length && !subscribed) { subscribed = true; readLoop.start(); }
-            else if (!wasConnected && subscribed) changed();
+            // Each new/recovered subscription closes its own missed-change window.
+            if (!wasConnected) changed();
             if (connected.size === spaces.length) setSyncError('');
           } else if (channelStatus === 'CHANNEL_ERROR' || channelStatus === 'TIMED_OUT' || channelStatus === 'CLOSED') {
-            connected.delete(visibleSpace.id); subscribed = false; readLoop.pause();
-            requestGuard.current.invalidate(); canonical.current = null;
-            setSyncError('日程实时同步暂不可用，请重试。'); setStatus('error'); settle(false);
+            connected.delete(visibleSpace.id);
+            setSyncError('日程实时同步暂不可用，请重试。');
           }
         });
       channels.push(channel);
@@ -126,6 +124,9 @@ export function useCalendarEvents(userId: string, memberSpaces: CurrentSpace[], 
     if (!spaces.length) {
       setPresentation(undefined); current.current.options.onInvalidate?.();
       setError('未找到可用空间，请重试。'); setStatus('error'); settle(false);
+    } else {
+      // REST availability and read authority do not depend on Realtime health.
+      readLoop.start();
     }
     return () => {
       active = false; reload.current = () => undefined; readLoop.stop();

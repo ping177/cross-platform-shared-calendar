@@ -25,10 +25,10 @@ async function runtime(run: (env: any) => Promise<void>, showMonthDetails = true
   let latest: any, latestEvents: any; let cursor = 0; const slots: any[] = []; const effects: any[] = []; const cleanups = new Map();
   const listeners = new Map<string, Set<any>>(); const auth = new Set<any>(); const calls: any[] = []; const timers = new Set<any>();
   const surface = { visibilityState: 'visible', querySelector: () => null, addEventListener(key: string, fn: any) { if (!listeners.has(key)) listeners.set(key, new Set()); listeners.get(key)!.add(fn); }, removeEventListener(key: string, fn: any) { listeners.get(key)?.delete(fn); } };
-  const m: any = { timeZone: 'Asia/Shanghai', rows: [row()], members: [personal, shared], eligible: [personal, shared], userId: 'me', eventFailure: false, dateFailure: false,
+  const m: any = { timeZone: 'Asia/Shanghai', rows: [row()], members: [personal, shared], eligible: [personal, shared], userId: 'me', eventFailure: false, dateFailure: false, autoSubscribe: true, stateWrites: 0,
     timer: (fn: any) => { timers.add(fn); return fn; }, clearTimer: (fn: any) => timers.delete(fn),
     useState(initial: any) { const i = cursor++; if (!(i in slots)) slots[i] = typeof initial === 'function' ? initial() : initial;
-      return [slots[i], (value: any) => { slots[i] = typeof value === 'function' ? value(slots[i]) : value; }]; },
+      return [slots[i], (value: any) => { m.stateWrites += 1; slots[i] = typeof value === 'function' ? value(slots[i]) : value; }]; },
     useRef(value: any) { return slots[cursor++] ??= { current: value }; },
     useCallback(fn: any, deps: any[]) { const i = cursor++; if (!slots[i] || deps.length !== slots[i].deps.length || deps.some((v, n) => v !== slots[i].deps[n])) slots[i] = { fn, deps }; return slots[i].fn; },
     useEffect(fn: any, deps: any[]) { const i = cursor++; if (!slots[i] || deps.length !== slots[i].length || deps.some((v, n) => v !== slots[i][n])) { slots[i] = deps; effects.push({ i, fn }); } },
@@ -54,7 +54,7 @@ async function runtime(run: (env: any) => Promise<void>, showMonthDetails = true
   };
   const channels: any[] = [];
   m.supabase = { auth: { onAuthStateChange(fn: any) { auth.add(fn); return { data: { subscription: { unsubscribe: () => auth.delete(fn) } } }; } },
-    channel(name: string) { calls.push(['channel', name]); const c: any = { on(_e: any, config: any, fn: any) { c.changed = fn; c.config = config; return c; }, subscribe(fn: any) { c.status = fn; fn('SUBSCRIBED'); return c; } }; channels.push(c); return c; },
+    channel(name: string) { calls.push(['channel', name]); const c: any = { on(_e: any, config: any, fn: any) { c.changed = fn; c.config = config; return c; }, subscribe(fn: any) { c.status = fn; if (m.autoSubscribe) fn('SUBSCRIBED'); return c; } }; channels.push(c); return c; },
     removeChannel(c: any) { channels.splice(channels.indexOf(c), 1); }, from() { throw new Error('Unexpected database call'); }, rpc() { throw new Error('No RPC allowed'); } };
   (globalThis as any).__calendarDates = m;
   const vite = await createServer({ configFile: false, envFile: false, logLevel: 'silent', optimizeDeps: { noDiscovery: true, include: [] },
@@ -477,6 +477,90 @@ test('unknown module hint retains previous safe view without claiming new scope 
 const eventCard = (tree: any, title = '普通日程') => nodes(tree).find((el) => el.type?.name === 'EventCard' && el.props.occurrence.title === title);
 const eventSheet = (tree: any) => nodes(tree).find((el) => el.type?.name === 'EventSheet');
 
+test('Calendar REST starts before any Realtime subscription and partial subscriptions still receive changes', () => runtime(async (e) => {
+  e.m.autoSubscribe = false;
+  let tree = await e.pump(); assert.ok(eventCard(tree));
+  assert.equal(e.calls.filter((c: any) => c[0] === 'events').length, 1);
+  e.channels[0].status('SUBSCRIBED'); tree = await e.pump(); assert.ok(eventCard(tree));
+  const original = e.m.events;
+  e.m.events = async () => { const data = await original(); data.events[0].title = 'partial channel update'; return data; };
+  e.channels[0].changed(); tree = await e.pump(); assert.ok(eventCard(tree, 'partial channel update'));
+  assert.equal(e.channels.length, 2); // The second channel has never subscribed.
+}));
+
+for (const status of ['CHANNEL_ERROR', 'TIMED_OUT', 'CLOSED']) test(`Calendar ${status} during REST preserves valid response and separates sync warning`, () => runtime(async (e) => {
+  e.m.autoSubscribe = false; const original = e.m.events, pending = deferred(); let reads = 0;
+  e.m.events = () => { reads += 1; return pending.promise; };
+  await e.pump(); assert.equal(reads, 1);
+  e.channels[0].status(status); let tree = await e.pump();
+  assert.match(renderToStaticMarkup(tree), /日程实时同步暂不可用/); assert.equal(button(tree, '重试'), undefined);
+  pending.resolve(await original()); tree = await e.pump(); assert.ok(eventCard(tree));
+  assert.equal(button(tree, '重试'), undefined); assert.match(renderToStaticMarkup(tree), /日程实时同步暂不可用/);
+  eventCard(tree).props.onEdit(eventCard(tree).props.occurrence); tree = await e.pump(); assert.ok(eventSheet(tree));
+}));
+
+test('Calendar disconnected REST failure remains retryable and successful reads retain sync warning', () => runtime(async (e) => {
+  e.m.autoSubscribe = false; e.m.eventFailure = true;
+  let tree = await e.pump(); e.channels[0].status('TIMED_OUT'); tree = await e.pump();
+  assert.match(renderToStaticMarkup(tree), /日程读取失败/); assert.match(renderToStaticMarkup(tree), /日程实时同步暂不可用/);
+  assert.equal(eventCard(tree), undefined); e.m.eventFailure = false;
+  button(tree, '重试').props.onClick(); tree = await e.pump(); assert.ok(eventCard(tree));
+  e.channels[0].status('CLOSED'); tree = await e.pump(); assert.equal(button(tree, '重试'), undefined);
+}));
+
+test('Calendar disconnected saved refresh reconciles canonical changes without blocking qualified editing', () => runtime(async (e) => {
+  let tree = await e.pump(); e.channels[0].status('CHANNEL_ERROR'); tree = await e.pump();
+  eventCard(tree).props.onEdit(eventCard(tree).props.occurrence); tree = await e.pump(); const editor = eventSheet(tree); assert.ok(editor);
+  const original = e.m.events;
+  e.m.events = async () => { const data = await original(); data.events[0].title = 'saved while disconnected'; return data; };
+  editor.props.onClose(); editor.props.onSaved(); tree = await e.pump();
+  assert.ok(eventCard(tree, 'saved while disconnected')); assert.equal(eventSheet(tree), undefined);
+  assert.match(renderToStaticMarkup(tree), /日程实时同步暂不可用/);
+}));
+
+test('Calendar each recovered channel compensates once even while another channel is unavailable', () => runtime(async (e) => {
+  await e.pump(); const count = () => e.calls.filter((c: any) => c[0] === 'events').length;
+  const before = count(); for (const channel of e.channels) channel.status('CHANNEL_ERROR'); await e.pump(); assert.equal(count(), before);
+  e.channels[0].status('SUBSCRIBED'); let tree = await e.pump(); assert.equal(count(), before + 1);
+  assert.match(renderToStaticMarkup(tree), /日程实时同步暂不可用/);
+  e.channels[0].status('SUBSCRIBED'); await e.pump(); assert.equal(count(), before + 1);
+  e.channels[1].status('SUBSCRIBED'); tree = await e.pump(); assert.equal(count(), before + 2);
+  assert.doesNotMatch(renderToStaticMarkup(tree), /日程实时同步暂不可用/);
+  for (const channel of e.channels) channel.status('SUBSCRIBED'); await e.pump(); assert.equal(count(), before + 2);
+}));
+
+test('Calendar disconnected REST still rejects lost membership instead of authorizing retained rows', () => runtime(async (e) => {
+  let tree = await e.pump(); e.channels[0].status('CLOSED'); const original = e.m.events;
+  e.m.events = async () => { const data = await original(); data.membersBySpaceId.shared = [{ user_id: 'other', space_id: shared.id }]; return data; };
+  eventCard(tree).props.onEdit(eventCard(tree).props.occurrence); tree = await e.pump(); const editor = eventSheet(tree); assert.ok(editor);
+  editor.props.onClose(); editor.props.onSaved(); tree = await e.pump();
+  assert.equal(eventCard(tree), undefined); assert.equal(eventSheet(tree), undefined); assert.equal(e.latestEvents(), undefined);
+  assert.match(renderToStaticMarkup(tree), /空间成员身份已变化/);
+}));
+
+for (const boundary of ['logout', 'account', 'space', 'unmount']) test(`Calendar offline pending REST rejects stale completion after ${boundary}`, () => runtime(async (e) => {
+  e.m.autoSubscribe = false; const original = e.m.events, pending = deferred(); let reads = 0;
+  e.m.events = async () => {
+    if (++reads === 1) return pending.promise;
+    const data = await original(); data.events[0].title = 'new scope';
+    if (boundary === 'account') for (const members of Object.values(data.membersBySpaceId) as any[]) for (const member of members) member.user_id = 'other';
+    return data;
+  };
+  await e.pump(); assert.equal(reads, 1); const channels = [...e.channels];
+  if (boundary === 'logout') { for (const fn of [...e.auth]) fn('SIGNED_OUT', null); await e.pump(); }
+  if (boundary === 'account') { e.props.session = { user: { id: 'other' } }; await e.pump(); }
+  if (boundary === 'space') { e.props.allSpaces = [shared]; e.props.spaces = [shared]; e.props.calendarFilter = { spaceId: shared.id }; await e.pump(); }
+  if (boundary === 'unmount') e.unmount();
+  const before = e.m.stateWrites; pending.resolve(await original()); await tick(); await tick();
+  for (const channel of channels) { channel.status('SUBSCRIBED'); channel.changed(); }
+  assert.equal(e.m.stateWrites, before);
+  if (boundary === 'unmount') { assert.equal(e.channels.length, 0); assert.equal(e.auth.size, 0); }
+  else {
+    const tree = e.render(); assert.equal(eventCard(tree), undefined);
+    if (boundary !== 'logout') assert.ok(eventCard(tree, 'new scope'));
+  }
+}));
+
 test('Calendar Event cold success publishes presentation-only slot; warm first render keeps Events before canonical read', () => runtime(async (e) => {
   assert.match(renderToStaticMarkup(e.render()), /正在读取日程/);
   await e.pump(); const snapshot = e.latestEvents(); assert.ok(snapshot);
@@ -573,12 +657,14 @@ test('Calendar Event empty validated result warms without loading; cold error re
   assert.match(renderToStaticMarkup(tree), /日程读取失败/); assert.ok(button(tree, '重试'));
 }));
 
-test('Calendar Event reconnect retains view but denies stale click until current canonical result', () => runtime(async (e) => {
+test('Calendar Event disconnect keeps qualified editing; reconnect denies stale click until current canonical result', () => runtime(async (e) => {
   let tree = await e.pump(); e.channels[0].status('CHANNEL_ERROR'); tree = await e.pump();
-  const card = eventCard(tree); assert.ok(card); card.props.onEdit(card.props.occurrence); tree = await e.pump(); assert.equal(eventSheet(tree), undefined);
+  const card = eventCard(tree); assert.ok(card); card.props.onEdit(card.props.occurrence); tree = await e.pump(); assert.ok(eventSheet(tree));
+  eventSheet(tree).props.onClose(); tree = await e.pump();
   const pending = deferred(), original = e.m.events; e.m.events = () => pending.promise;
   e.channels[0].status('SUBSCRIBED'); tree = await e.pump(); assert.ok(eventCard(tree));
   eventCard(tree).props.onEdit(eventCard(tree).props.occurrence); await e.pump();
+  assert.equal(eventSheet(e.render()), undefined);
   const fresh = await original(); fresh.events[0].title = 'reconnected canonical'; pending.resolve(fresh);
   tree = await e.pump(); assert.equal(eventSheet(tree).props.target.event, fresh.events[0]);
 }));

@@ -1,5 +1,22 @@
 # Development Log
 
+## 2026-10-28 — Slice 3正式发布授权与门禁
+
+用户报告本地日历基本操作正常，明确授权Commit/正常Push origin/main及既有Vercel Production。开工HEAD/远端main=66d024d6、8 modified+2 untracked、未暂存；原10文件精确范围保持。重新Build与上轮已测试产物逐字节一致，四项业务/测试SHA256锁定并在治理更新后复核；语法/diff-check及生产依赖audit0通过（镜像不实现audit，改用官方接口，无依赖修改）。全量Node1013/1013、Browser96/96和TDD红绿证据沿用，不无故重跑大规模测试。
+
+仅治理刷新发布授权与人工范围；业务仍仅useCalendarEvents.ts，无后端/配置/保存规则/其他Slice扩改。发布前Project State字段审查及唯一updated trailer，通过Push Gate后正常Push；只读Post-Push freshness、远端/工作区、Vercel Source与success及七项公开资源/Supabase目标核验。执行实绩记`/private/tmp/calendar-v0121-slice3-release-20261028/RELEASE_RECEIPT.md`，不预写发布成功、不自动追加治理Commit。
+
+用户当前无实际日程，不能写真实非空日历PASS；Production最终仅用户确认打开、日期/月切换和刷新无异常，故障场景以自动化为证，不主动制造故障。Slice 3不提前关闭；异常停止报告，回退需另行授权。无Production数据库/真实登录态操作，未手工读取或输出秘密，外部仅临时证据目录，不改其他项目。
+
+## 2026-10-28 — v0.1.21 Slice 3 本地实施（LOCAL VERIFIED / READY FOR USER ACCEPTANCE）
+
+- Repo-first：HEAD/origin/main=66d024d6df7d46b8619eb3595fd8a041f763fa15、CLEAN，六份治理文件/AGENTS齐全。用户本轮已批准只读调查提出的最小方案和本地实施，明确不授权Commit/Push/Deploy。
+- 根因及改动：原首次读取等待全部SUBSCRIBED，失败时pause并作废canonical/请求。现在仅useCalendarEvents.ts业务改动（7增6删），独立start；三种频道失败只setSyncError，有效REST结果可提交。每个新/恢复频道调用原changed补偿，各频道不相互阻塞，重复状态不重复读取。原无Space错误、REST错误、完整分页/成员核验/旧响应隔离/保存回调/公共读取循环不改。
+- TDD：新增12个Node回归及调整1个旧用例（断线本身应保留已确认编辑资格；重连补偿仍须等新canonical）。选中13项在修复前0/13，修复后相关96/96。全量Node1013/1013、双引擎相关Browser96/96（新增20+筛选26+表单24+UI26）、独立tsc/build、mjs/ts语法与diff-check PASS，无fail/skip；既有bundle>500KB提示保留。
+- 浏览器使用真实React StrictMode/Hook/完整reader/成员adapter，仅Supabase I/O内存替换；新夹具覆盖502来源分页/重复例外、故障/重试/保存后刷新、恢复补偿、权限/账号/Space/logout/unmount。首轮受沙箱浏览器启动限制，授权范围内提升启动后发现新夹具模块求值过早；改延迟访问内存client，未放宽3秒timeout或断言。最终完整四文件Browser96/96通过。JSX由Vite实际编译验证（node --check不支持.jsx扩展名）。
+- 五轴及安全复核PASS，无明确BLOCKER：唯一数据业务变更在该Hook；相关调用/保存/权限/分页与公共loop保持，无后端、依赖、其他模块实现修改。Build公开目标仍为ximazjhxvmktpcdbypka；对照已验收66d024d6业务树，所需表/adapter/权限契约完全不变，本轮无新增后台能力要求，不冒称重新审计Production数据库。
+- 仅必要治理同步当前状态/下一步与验收边界，不新版本、不重开Slice2。未手工读取/输出.env或凭据，构建工具按既有配置加载环境；无真实账号或Production业务操作，无外部项目变更。临时日志/private/tmp/calendar-v0121-slice3-local-20261028/。本地5175已由本仓库Vite监听，未更换端口；下一步用户本地验收，Git/发布等待独立授权。
+
 2026-10-28 — **独立 Review UI/UX Follow-up = CLOSED / ACCEPTED（按实际验收范围收口）**。用户确认最终 Production 视觉满意并明确结束本轮，不再追加人工验收。阅读页右滑返回由用户真机验证 PASS；最终“标记已填写”的位置、字号、布局获视觉确认，阅读页与编辑页两个入口保留。编辑态右滑、dirty 取消四字段保留/确认离开、阅读态标记/已完成去重及旧 revision 拒绝等未逐项真机检查，记录为 AUTOMATED PASS / MANUAL NOT RUN，不冒称人工 PASS，且不再作为本轮待验收阻塞。
 
 已发布业务基线 `412ad4f8c5ac3ce13df7d46f6a9d8f2d2890269b`；Vercel Production `7379031279` success、Source 匹配，HTML/JS/CSS/manifest/SW/两个图标 7/7 与最终 Build 逐字节一致。既有 Node1000/1000、WebKit/Chrome46/46及最终布局针对性 Node31/31、WebKit/Chrome39/39、TypeScript/Build PASS 证据沿用，本次仅治理，不重跑业务或数据库。

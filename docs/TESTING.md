@@ -1,5 +1,33 @@
 # Testing
 
+## Slice 3 发布与最终验收边界（2026-10-28）
+
+用户报告本地日历基本操作正常，并明确授权发布已测试10文件范围；下方“本地人工尚未执行/未授权发布”为历史检查点。四项源码/测试指纹在本轮锁定并复核，重新`npm run build`与已测试Build逐字节一致，TypeScript、语法、diff-check及官方生产依赖audit0通过；沿用全量Node1013/1013、WebKit/Chrome96/96及修复前13项失败/修复后通过证据，不改代码或放宽测试。
+
+发布结果由`/private/tmp/calendar-v0121-slice3-release-20261028/RELEASE_RECEIPT.md`记录：必须Vercel Production Source精确匹配本次Commit且success，正式HTML/JS/CSS/manifest/SW/两个图标与本地Build逐字节比对，公开Supabase目标仍为ximazjhxvmktpcdbypka。API/成员/分页/保存适配器与已验收基线保持，无新增后台能力要求；不查询Production业务数据，不重跑数据库探针。
+
+Production用户最终验收PENDING：仅正常打开日历、日期/月切换、刷新无异常。用户无实际日程，真实非空数据MANUAL NOT RUN；Realtime断线/超时/重连及多数据分页继续AUTOMATED PASS，不要求线上故障注入。部署成功不等于Slice 3 CLOSED / PASS。
+
+## v0.1.21 Slice 3 — LOCAL VERIFIED / READY FOR USER ACCEPTANCE（2026-10-28）
+
+仅前端日历读取控制流修复，未Commit/Push/Deploy；不把以下离线自动化记为真实账号、Production或真机PASS。Slice 2及Follow-up关闭结论保持。
+
+- RED：`node --test --test-name-pattern='Calendar (REST starts|CHANNEL_ERROR during|TIMED_OUT during|CLOSED during|disconnected|each recovered|offline pending|Event disconnect keeps)' tests/calendar-important-dates.test.ts`，12新增+1修改用例在修复前13/13失败，均命中读取/资格控制流缺陷。
+- GREEN：`node --test tests/calendar-refresh.test.ts tests/aggregate-calendar.test.ts tests/calendar-important-dates.test.ts`，96/96 PASS。保留既有完整分页、跨Space、recurrence及A1→B→A2/迟到读/成员失效保护，新增未订阅/部分订阅、三种错误、读取途中断线仍采用有效结果、断线保存刷新/重试、REST真失败、逐频道补偿/重复通知去重、离线权限/账号/Space/logout/unmount边界。旧reconnect用例仅按新目标允许断线前已核实的canonical继续确认；仍明确断言补偿读取未完成时不能使用旧快照打开编辑器。
+- 全量：`node --test tests/*.test.ts tests/*.test.js`，1013/1013 PASS，无fail/skip。
+- 浏览器：`PLAYWRIGHT_MODULE_PATH=/Users/wp/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs node --test --test-concurrency=1 tests/calendar-realtime.browser.mjs tests/space-filters.browser.mjs tests/space-targets.browser.mjs tests/ui-consistency.browser.mjs`，WebKit/Chrome共96/96 PASS（新增20+既有76），无fail/skip；保留3秒交互超时。新fixture为真实React StrictMode、useCalendarEvents、readAggregateCalendar与readSpaceMembers，只有Supabase边界为内存数据，envFile=false，所有请求拦截到127.0.0.1:5175。验证第二页来源、canonical重复例外、无连接/断线/重连/正常实时变更及权限边界，pageerror为空；不验证真实RLS或服务端消息投递。
+- `node_modules/.bin/tsc -b`、`npm run build`、`node --check tests/calendar-realtime.browser.mjs`、`node --check tests/calendar-important-dates.test.ts`、`git diff --check` PASS。仅既有大chunk提示。新JSX夹具由Vite编译及两引擎实际执行验证。
+- 初次浏览器运行先因沙箱启动受限，再因新增fixture过早读取window.calendarFixture导致启动超时；修复fixture模块初始化次序后冷启动2/2及完整96/96 PASS，未改产品来迎合夹具或降低断言。日志在/private/tmp/calendar-v0121-slice3-local-20261028/。
+
+环境对齐：新Build公开Supabase目标为既有Production主项目ximazjhxvmktpcdbypka；supabase配置、aggregate reader、space-members、App保存/调用、公共读取循环和request guard均与已验收66d024d6业务树逐字节一致，无新表/RPC/Edge能力需求。本轮复用既有Production基线能力与验收证据，不执行live数据库探针、不更改后端；本地5175监听进程来自当前仓库。
+
+用户本地验收（尚未执行，Codex不驱动登录态）：
+1. 自行在本地5175登录，查看日/周/月、Space筛选、普通/重复日程及原有编辑流程。
+2. 如能安全模拟“仅WebSocket不可用、REST仍可用”，确认仍能加载/重试/保存后刷新，单独显示同步异常；全网断线不能作为REST可用的对照。
+3. 恢复实时连接，确认补偿读取及另一会话的后续变更正常；真实无权/退出/Space切换不得显示或授权旧数据。难以人工安全模拟的故障边界保留上述自动化证据，不强行操作Production配置。
+
+本地人工通过后再决定单独授权Git/Production发布；目前不关闭Slice 3，不启动其他Slice。
+
 2026-10-28 — **独立 Review UI/UX Follow-up = CLOSED / ACCEPTED（按实际验收范围收口）**。用户确认最终 Production 视觉满意并明确结束本轮，不再追加人工验收。阅读页右滑返回由用户真机验证 PASS；最终“标记已填写”的位置、字号、布局获视觉确认，阅读页与编辑页两个入口保留。编辑态右滑、dirty 取消四字段保留/确认离开、阅读态标记/已完成去重及旧 revision 拒绝等未逐项真机检查，记录为 AUTOMATED PASS / MANUAL NOT RUN，不冒称人工 PASS，且不再作为本轮待验收阻塞。
 
 已发布业务基线 `412ad4f8c5ac3ce13df7d46f6a9d8f2d2890269b`；Vercel Production `7379031279` success、Source 匹配，HTML/JS/CSS/manifest/SW/两个图标 7/7 与最终 Build 逐字节一致。既有 Node1000/1000、WebKit/Chrome46/46及最终布局针对性 Node31/31、WebKit/Chrome39/39、TypeScript/Build PASS 证据沿用，本次仅治理，不重跑业务或数据库。
