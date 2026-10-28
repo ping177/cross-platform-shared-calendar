@@ -1,5 +1,9 @@
 # Decisions
 
+2026-10-28 — **独立 Review UI/UX Follow-up CLOSED / ACCEPTED（按实际验收范围）**。用户确认最终 Production 视觉满意并明确结束本轮，不再追加人工验收；保留阅读/编辑双入口。阅读态右滑真机 PASS，其余边界 AUTOMATED PASS / MANUAL NOT RUN，详见 [Testing](./TESTING.md)。Slice 2 CLOSED / PASS 保持，Slice 3 仅授权只读调查，未授权实施；下方 Follow-up Pending 为历史。
+
+本次接受范围由用户明确决定；结束追加人工验收不等于把自动化测试改称真机 PASS。Slice 3 调查不授权修复、数据库/Realtime 配置变更、真实登录态自动验收或 Slices 4–5。
+
 2026-10-28 — 独立Review UI/UX Follow-up正式发布获授权；本地iPhone Safari仅阅读态左缘右滑由用户确认PASS。编辑态、dirty取消四字段保留/确认离开、阅读态标记/已完成去重及旧revision拒绝均待正式PWA人工验收。Node1000/1000、WebKit/Chrome46/46证据及代码指纹保持，不以自动化代替真机。仅原两项前端，正常Commit/Push和既有Vercel Production；部署Source/状态/七项资源结果见/private/tmp/calendar-review-ux-release-20261028/RELEASE_RECEIPT.md，不预写部署成功。无数据库操作；Slice 2 CLOSED / PASS、Slice 1 DEFERRED、Slices 3–5未开始保持。
 
 下方本地未授权/未部署为历史检查点，由本轮授权接续；Follow-up不提前CLOSED。

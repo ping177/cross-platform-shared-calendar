@@ -1,5 +1,11 @@
 # Testing
 
+2026-10-28 — **独立 Review UI/UX Follow-up = CLOSED / ACCEPTED（按实际验收范围收口）**。用户确认最终 Production 视觉满意并明确结束本轮，不再追加人工验收。阅读页右滑返回由用户真机验证 PASS；最终“标记已填写”的位置、字号、布局获视觉确认，阅读页与编辑页两个入口保留。编辑态右滑、dirty 取消四字段保留/确认离开、阅读态标记/已完成去重及旧 revision 拒绝等未逐项真机检查，记录为 AUTOMATED PASS / MANUAL NOT RUN，不冒称人工 PASS，且不再作为本轮待验收阻塞。
+
+已发布业务基线 `412ad4f8c5ac3ce13df7d46f6a9d8f2d2890269b`；Vercel Production `7379031279` success、Source 匹配，HTML/JS/CSS/manifest/SW/两个图标 7/7 与最终 Build 逐字节一致。既有 Node1000/1000、WebKit/Chrome46/46及最终布局针对性 Node31/31、WebKit/Chrome39/39、TypeScript/Build PASS 证据沿用，本次仅治理，不重跑业务或数据库。
+
+v0.1.21 整体 IN PROGRESS；Slice 2 CLOSED / PASS、Slice 1 DEFERRED 保持。Slice 3 仅获只读调查授权，尚未实施；Slices 4–5 NOT STARTED。不新建版本条目。下方 Follow-up 的 LOCAL/PENDING/未发布及人工验收清单均为历史检查点，由本次范围收口接续。
+
 2026-10-28 — 用户确认最终视觉满意并明确授权正常Commit/Push origin/main及Vercel Production：阅读页“标记已填写”在填写状态右侧，无边框/色块、至少44px触摸高；卡片下独立编辑入口保留，两项字号字重一致且低于区域标题，编辑页保留原入口。只发布最终布局，旧实心/描边方案已否决。视觉确认不等于正式PWA功能验收；Follow-up保持PWA ACCEPTANCE PENDING，Slice 2 CLOSED / PASS、Slice 1 DEFERRED、Slices 3–5未开始。无数据库/权限/Realtime/手势或保存逻辑变更。实际部署Source/状态/资源结果由/private/tmp/calendar-review-final-release-20261028/RELEASE_RECEIPT.md确认，不预写成功。
 
 下方LOCAL/未授权/视觉PENDING为历史检查点，由本轮视觉确认及发布授权接续；未扩写功能人工验收PASS。
