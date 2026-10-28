@@ -1,5 +1,9 @@
 # Decisions
 
+## 2026-10-28 — Slice 2真实验收通过，仅治理收口
+
+用户明确确认Production真实验收全部PASS并授权Governance Commit/正常Push origin/main。Slice 2正式CLOSED / PASS，解除本次Review写入维护；仅关闭此Slice，v0.1.21整体IN PROGRESS，Slice 1继续DEFERRED、Slices 3–5未开始，v0.1.20 CLOSED / PASS保持。回顾边缘返回/完成入口独立登记UI/UX待办，默认空间待产品讨论、对方状态短延迟观察，均不在收口实施或认定为并发安全失败。正常文档Push允许现有Vercel自动部署，仅核验Source/资源保持；不改业务/SQL/测试、重跑Patch或恢复旧无条件接口。下方旧授权/验收Pending为当时历史边界。
+
 ## 2026-10-28 — Slice2兼容前端正式发布授权与验收边界
 
 用户明确授权已审核Slice2的Commit、正常Push origin/main及Vercel Production验证；数据库Patch、Postflight、负向探针和真实匿名缓存识别已由用户确认。只发布现有content_revision条件保存与冲突保留方案，不重跑SQL、不新增功能；新前端Source/资源验证后由用户登录iPhone Safari/PWA及同账号双会话验收。发布成功不等于用户验收，维护停写持续到验收确认，不提前关闭Slice2或通知其他成员恢复编辑，不恢复旧无条件RPC；此前未授权记录保留为历史。

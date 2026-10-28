@@ -6,7 +6,7 @@ Production URL: https://cross-platform-shared-calendar.vercel.app/
 
 ## 当前阶段
 
-- 2026-10-28：v0.1.21 Slice2兼容前端正式发布获明确Git/Vercel授权；数据库及真实匿名缓存4/4由用户确认PASS，16个业务/SQL/测试指纹一致，新一轮Node996/996、双引擎14/14、TypeScript/Build通过。实际部署与资源以发布回执确认，真实用户验收PENDING、Review仍维护；v0.1.20 CLOSED/PASS保持，下方旧检查点为历史。
+- 2026-10-28：**v0.1.21 Slice 2 CLOSED / PASS**，用户确认Production真实验收全部PASS，Review维护解除。已验收功能发布069f6fe5，数据库/缓存、自动化及部署/资源核验均PASS；本轮仅治理收口。v0.1.21整体IN PROGRESS，Slice 1 DEFERRED、Slices 3–5未开始；独立UI/UX反馈见BACKLOG。v0.1.20 CLOSED / PASS保持，下方旧检查点为历史。
 
 - 2026-10-19：v0.1.21 Slice2数据库Patch/Postflight/负向探针由用户报告PASS；兼容前端发布准备READY，等待单独授权；缓存未确认时真实写入验收HOLD。Schema Cache HTTP识别尚未独立核实，前端未Commit/Push/部署，Review继续停写；详见Testing首节。下方2026-10-17为历史本地检查点，v0.1.20 CLOSED/PASS保持。
 

@@ -1,5 +1,12 @@
 # Development Log
 
+## 2026-10-28 — v0.1.21 Slice 2最终Governance Closeout（CLOSED / PASS）
+
+- 用户明确确认Production真实验收全部PASS，完整逐项记录见TESTING首节。正式关闭Slice 2并解除本次Review维护；Codex未操作真实登录态，未把自动化代替真机验收。
+- 已验收功能Commit069f6fe5e22356991ee4eda2d409f6a100886ff8，origin/main/远端main与开工HEAD一致且clean。既有Vercel Production7374948037成功、Source匹配、正式七项资源与Build逐字节一致；数据库Patch/Postflight/Negative Probes及匿名Schema Cache由用户确认PASS。最后代码Node996/996、WebKit/Chrome14/14、TypeScript/Build PASS仍有效，本次不重跑业务测试或数据库操作。
+- 仅README与PROJECT_STATE/DEVLOG/TESTING/BACKLOG/DECISIONS六份治理文档：更新Slice 2最终验收、维护解除、现有版本条目、下一步及交接，登记四项独立反馈；不改业务/SQL/测试/依赖/配置。v0.1.21整体仍IN PROGRESS，Slice 1 DEFERRED，Slices 3–5未开始，v0.1.20 CLOSED / PASS保持。
+- 检查docs差异、非治理文件指纹与Project State Push Gate；正常Commit/Push后只读freshness核验，若既有Vercel自动部署则核对Source/状态和业务资源不变。执行实绩仅由`/private/tmp/calendar-v0121-slice2-closeout-20261028/`回执确认，不预写Git或部署成功。未读环境秘密、未连接Production数据库、未改外部项目；下一项工作等待用户选择与授权。
+
 ## 2026-10-28 — v0.1.21 Slice2兼容前端正式发布
 
 用户确认Production数据库及真实匿名Schema Cache 4/4通过，明确授权Git Commit/Push origin/main、既有Vercel Production及验证。Repo-first：main/HEAD/远端main=608fcd1，17 modified+5 untracked；16个业务/SQL/测试原始指纹逐一一致。旧临时READINESS_REPORT已不在原路径，本轮按保留治理记录及对话原始SHA核验并重新测试，证据另存release-20261028目录。

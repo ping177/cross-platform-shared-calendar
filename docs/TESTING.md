@@ -1,5 +1,21 @@
 # Testing
 
+## v0.1.21 Slice 2 — CLOSED / PASS（2026-10-28，用户Production真实验收）
+
+用户明确确认以下全部PASS；由用户在真实Production执行并报告，Codex未驱动登录、OTP或真实账号会话，不扩写为其他未执行场景通过：
+
+- PWA正常登录、打开回顾；四项草稿保存成功，重新进入完整保留。
+- 共享空间双方“我已填写”状态正确，双方各自填写、状态独立。
+- 同账号两个会话编辑同一回顾，先保存后的旧稿请求正确被拒绝，不能覆盖新内容；冲突四字段完整保留。
+- 查看服务器最新内容不覆盖当前草稿；取消重新载入保持草稿；只有用户明确确认后才替换为服务器最新内容。
+- 日历、任务、清单、重要日及空间管理抽查正常。
+
+已验收功能发布Commit `069f6fe5e22356991ee4eda2d409f6a100886ff8`。Vercel官方集成Production7374948037 success、Source一致；正式HTML/JS/CSS/manifest/SW/两个图标7/7与Build逐字节一致，Supabase公开目标ximazjhxvmktpcdbypka。Production唯一Patch、03 Postflight、04 Negative Probes 4/4、真实匿名PostgREST Schema Cache 4/4均已由用户确认PASS。最后代码Node996/996、离线WebKit/Chrome14/14、TypeScript/Build/diff-check PASS，既有bundle提示非阻塞。
+
+判定：**Slice 2 CLOSED / PASS，解除本次Review写入维护，恢复正常使用。** v0.1.21整体未完成，Slice 1 DEFERRED，Slices 3–5 NOT STARTED；v0.1.20 CLOSED / PASS保持。BACKLOG中的回顾边缘返回/完成入口为独立UI/UX待办；默认空间待产品讨论、状态短延迟接受并观察，不算并发保护失败。
+
+本次仅docs收口：检查文档差异、`git diff --check`、非治理文件指纹和既有Push Gate，不重跑Node/浏览器/Build或数据库。治理Push若触发自动部署，仅核对成功/Source及已验收资源保持，不因治理SHA变化要求重复整轮真机验收；结果存仓库外closeout-20261028回执。下方USER ACCEPTANCE PENDING/维护等均为历史检查点，由本节最终验收接续。
+
 ## v0.1.21 Slice2 — Authorized Production Frontend Release（2026-10-28）
 
 用户确认：Production主项目ximazjhxvmktpcdbypka，唯一前向Patch/03 Postflight/04负向探针4/4及真实匿名PostgREST新签名识别4/4均PASS。上述Production操作与结果由用户提供，Codex不重跑数据库或HTTP探针、不继承真实登录态。用户已保留草稿并暂停Review编辑，已明确授权本轮Commit/正常Push origin/main/既有Vercel Production及验证。

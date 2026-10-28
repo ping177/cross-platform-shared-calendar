@@ -1,16 +1,25 @@
 # Backlog
 
+## 2026-10-28 — Slice 2验收反馈：独立UI/UX待办与非阻塞观察
+
+以下均不代表Slice 2并发安全修复失败，也不阻塞其CLOSED / PASS；本次只登记，不实施、不创建新版本。
+
+- A — 回顾填写/编辑详情不能左边缘向右滑返回列表：独立小范围UI/UX待办。优先调查已有移动手势体系是否遗漏页面接入，不重新设计全局手势；必须复用并保护未保存输入的离开确认。
+- B — 已保存草稿标记“我已填写”需重新进入回顾并点“编辑我的回顾”：独立小范围UI/UX待办，后续简化操作路径；保留现有版本校验、本人Entry权限与状态语义。
+- C — 新建回顾默认个人空间：非阻塞产品讨论项，是否调整默认方式待用户决定，本次不改。
+- D — 共享空间对方填写状态短暂同步延迟：用户接受，非阻塞观察项；先记录实际影响，不主动扩大Realtime修改范围。
+
 ## 2026-10-17 — v0.1.21 Engineering Stability & Data Safety
 
 稳定性专项，不新增业务功能，v0.1.20 CLOSED / PASS保持。
 
 1. Slice 1 邀请码撤销并发与 Helper ACL：DEFERRED；风险 POTENTIAL，数据库实测 NOT VERIFIED，不继续安全测试。
-2. Slice 2 回顾旧稿覆盖保护：RELEASE AUTHORIZED / USER ACCEPTANCE PENDING；用户确认Production数据库及真实匿名缓存识别通过，已授权兼容前端Commit/Push/Vercel。实际部署/Source/资源以本轮回执核实；随后由用户完成iPhone Safari/PWA及双会话冲突验收，期间保持维护，不提前CLOSED/PASS。
+2. Slice 2 回顾旧稿覆盖保护：CLOSED / PASS（2026-10-28）；数据库/缓存、自动化、正式部署资源及用户Production真实验收全部PASS，Review维护解除。仅关闭本Slice，整体v0.1.21未完成。
 3. Slice 3 日历 Realtime 故障容错：NOT STARTED。
 4. Slice 4 创建请求重复提交：NOT STARTED。
 5. Slice 5 提醒容量及通知清理：NOT STARTED。
 
-逐项证据优先；允许 NO ACTION / DEFERRED，不强制全部修复。后续发布边界见 TESTING首节。
+逐项证据优先；允许 NO ACTION / DEFERRED，不强制全部修复。Slice 2最终验收与范围见TESTING首节。
 
 ## 2026-10-16 v0.1.20 — CLOSED / PASS；独立工程稳定性审查尚未启动
 
