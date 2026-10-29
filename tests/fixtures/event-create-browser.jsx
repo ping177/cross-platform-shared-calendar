@@ -11,10 +11,11 @@ f.client = {auth:{getUser:async()=>({data:{user:{id:f.user}},error:null})}, from
   return {
     async insert(payload) {
       f.calls.push(structuredClone(payload));
+      if(f.holdRetry && f.calls.length>1) await new Promise(resolve=>{f.releaseRetry=resolve});
       if(f.rows.some(row=>row.id===payload.id)) return {error:{code:'23505'}};
       if(f.scenario==='transport' && f.calls.length===1) throw Error('offline before commit');
       f.rows.push({...structuredClone(payload),parent_event_id:null,series_id:null,recurrence_until:null});
-      if(f.scenario==='hold') await new Promise(resolve=>{f.release=resolve});
+      if(f.scenario==='hold'||f.scenario==='slow-success') await new Promise(resolve=>{f.release=resolve});
       if(f.scenario==='collision') f.rows[0].title='different object';
       if(f.scenario==='lost' || f.scenario==='hold' || f.scenario==='collision' || f.scenario==='reconcile') return {error:Error('lost response')};
       return {error:null};
@@ -29,6 +30,6 @@ function Fixture() {
   const space=spaces.find(s=>s.id===spaceId);
   return <main data-user={user} data-space={spaceId}><p>Synthetic offline EventSheet</p>{open&&<EventSheet target={null} space={space} userId={user} members={[{space_id:spaceId,user_id:user,role:'owner'}]} partnerId={null}
     createTarget={{spaces,selectedId:spaceId,state:'ready',error:'',onSelect:setSpaceId,onRetry(){}}}
-    validateCreateTarget={async()=>f.allowed} onSaved={()=>{f.saved++}} onClose={()=>{f.closed++;setOpen(false)}}/>}</main>;
+    validateCreateTarget={async()=>{f.verifications=(f.verifications||0)+1;if((f.scenario==='slow-pre'&&f.verifications===1)||(f.scenario==='slow-post'&&f.verifications===2))await new Promise(resolve=>{f.release=resolve});return f.allowed}} onSaved={()=>{f.saved++}} onClose={()=>{f.closed++;setOpen(false)}}/>}</main>;
 }
 createRoot(document.getElementById('root')).render(<React.StrictMode><Fixture/></React.StrictMode>);

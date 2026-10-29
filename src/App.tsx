@@ -1903,8 +1903,8 @@ export function EventSheet({
           </div>
         ) : createLocked || (!event && busy) ? (
           <div className="mt-5 space-y-4" role="status">
-            <p>{busy ? '正在确认创建结果，请稍候。' : uncertainCreateMessage}</p>
-            <button type="button" className="min-h-11 rounded-lg bg-teal px-4 font-semibold text-white" disabled={busy} onClick={() => void save()}>核对并重试原始创建</button>
+            <p>{busy ? '保存中，请稍候。' : uncertainCreateMessage}</p>
+            {!busy && <button type="button" className="min-h-11 rounded-lg bg-teal px-4 font-semibold text-white" onClick={() => void save()}>核对并重试原始创建</button>}
           </div>
         ) : confirmingCreateTargetId && !event ? (
           <div className="mt-5 space-y-4">

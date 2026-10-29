@@ -1,5 +1,16 @@
 # Development Log
 
+2026-10-29 — **Slice 4 Follow-up RELEASE AUTHORIZED / FINAL ACCEPTANCE PENDING**。用户明确授权本次7文件Commit、正常Push origin/main及既有Vercel Production；只发布App.tsx等待状态文案与重试按钮渲染条件，三份测试/夹具和三份治理。源码/测试指纹保持，沿用Node151/151、WebKit/Chrome62/62及14项先失败后通过证据，不重复全量。UUID/原始内容绑定、权限复核、提交锁、迟到响应及普通/重复保存规则不变；不声称改善保存耗时。发布Source、七项资源、Supabase目标和Git结果由`/private/tmp/calendar-create-wait-release/RELEASE_RECEIPT.md`记录，不预写成功。用户此前核心功能PWA验收PASS，本提示补丁仍待最终人工确认；Slice 4不提前关闭，Slice 2/3保持CLOSED / PASS，Slice 1暂缓、Slice 5未启动。下方未授权/本地未发布为历史。
+
+## 2026-10-29 — Slice 4 保存等待提示Follow-up（仅本地）
+
+- 用户正式iPhone PWA：普通创建/刷新/编辑PASS、重复创建PASS，未观察到重复；仅记录报告范围，不关闭Slice 4。
+- 根因：createIntent.pending表示已经发送但尚未完成的意图，包含正常等待。EventSheet将createLocked或新建busy共用一个分支，该分支总渲染重试按钮，busy时仅disabled；正常路径复现为按钮可见但disabled，尚无正常路径实际可点击的证据。正常晚到成功不是先报失败再恢复，没有计时触发或新增请求循环。
+- 业务仅src/App.tsx两行：busy文案改为保存中，重试按钮仅!busy时渲染。未降低安全要求、修改超时、UUID/原始payload绑定或请求流程。既有请求前后verify和busy/锁持续覆盖异常读回与权限复核。
+- Slice 4正常成功路径相对之前新增提交后完整validateCreateTarget复核，以及前后verify各一个额外auth.getUser（父级验证器本身已有前后auth和Space/成员读取），存在额外串行等待。仅异常才精确读回events；正常成功不读回对象。没有Production网络计时，不能归因所有慢保存，也不在UI修复中删除安全核验。
+- 三份测试/夹具补充慢前置校验、慢insert正常成功、慢后置复核（普通/重复）、未知结果重试过程中隐藏操作，保留丢失响应/冲突/并发/权限/账号/Space往返/卸载与Calendar回归。新增14浏览器断言修改前14失败，修改后所有62/62 PASS；相关Node151/151、Build含TypeScript、语法/diff PASS；没有本补丁后全量Node重跑，历史1048/1048属于原发布阶段。既有chunk提示非阻塞。
+- 更新PROJECT_STATE/TESTING本地状态，未Commit/Push/Deploy、无Production数据或数据库/配置改动、未操作真实登录、未手工读取或输出秘密；其他项目未改，仅/private/tmp/calendar-create-wait-followup保存诊断。Slice 2/3保持CLOSED/PASS，Slice 5未启动，等待本补丁发布授权。
+
 2026-10-29 — **Slice 4 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户明确授权本次13文件Commit、正常Push origin/main及既有Vercel Production。七份业务/测试指纹匹配，沿用全量Node1048/1048、相关46/46、WebKit/Chrome20+52项通过证据；业务无扩改。Production catalog未直接核验：无可用SQL连接工具，已安装Supabase CLI调用被系统SIGKILL，未读取数据库凭据或绕过登录。仓库UUID/schema/RLS/grant合同支持本实现；线上真实创建行为仍由用户验收，不宣称Production写入已验证。发布Source/资源/目标/Git结果见`/private/tmp/calendar-slice4-release/RELEASE_RECEIPT.md`，不预写部署成功。刷新/关闭重开不恢复意图，跨意图重复风险保留。Slice 4不提前关闭；Slices 2–3/Follow-up保持关闭、Slice 1暂缓、Slice 5未启动。下方LOCAL/未授权为历史。
 
 ## 2026-10-29 — Slice 4 创建意图最小幂等保护（LOCAL VERIFIED / 未发布）

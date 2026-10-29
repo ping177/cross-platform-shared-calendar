@@ -38,7 +38,7 @@ for(const engine of ['WebKit','Chrome']){
  }finally{await page.close()}});
  for(const change of ['permission','account','space','unmount'])test(`${engine}: in-flight ${change} change cannot consume an old result or send twice`,async()=>{const page=await pageFor(engine,'hold');try{await submit(page);await page.waitForFunction(()=>!!window.eventCreateFixture.release);
   assert.equal(await page.locator('#event-sheet-form').count(),0);assert.equal(await page.getByRole('button',{name:'关闭',exact:true}).isDisabled(),true);
-  await retry(page).evaluate(el=>{el.click();el.click()});assert.equal(await page.evaluate(()=>window.eventCreateFixture.calls.length),1);
+  assert.equal(await retry(page).count(),0);assert.equal(await page.evaluate(()=>window.eventCreateFixture.calls.length),1);
   await page.evaluate(change=>{const f=window.eventCreateFixture;if(change==='permission')f.allowed=false;if(change==='account')f.setUser('other');if(change==='space')f.setSpace('s');if(change==='unmount')f.unmount()},change);
   if(change==='unmount') await page.getByRole('dialog').waitFor({state:'hidden'});
   if(change==='account') await page.waitForFunction(()=>document.querySelector('main').dataset.user==='other');
@@ -49,4 +49,25 @@ for(const engine of ['WebKit','Chrome']){
   await page.evaluate(()=>{window.eventCreateFixture.visible=true;window.eventCreateFixture.release()});await page.waitForFunction(()=>window.eventCreateFixture.reads.length>0);
   await page.evaluate(()=>new Promise(r=>setTimeout(r,20)));assert.equal(await page.evaluate(()=>window.eventCreateFixture.saved),0);assert.equal(await page.evaluate(()=>window.eventCreateFixture.closed),0);assert.deepEqual(page.errors,[]);
  }finally{await page.close()}});
+}
+
+for(const engine of ['WebKit','Chrome']) {
+ for(const scenario of ['slow-pre','slow-success','slow-post']) for(const recurring of [false,true]) test(`${engine}: ${scenario} ${recurring?'series':'ordinary'} waits without a retry action and accepts late success`,async()=>{
+  const page=await pageFor(engine,scenario);try{
+   await submit(page,recurring);await page.waitForFunction(()=>!!window.eventCreateFixture.release);
+   assert.equal(await retry(page).count(),0,'in-flight work must not display a retry operation');
+   assert.match(await page.getByRole('status').innerText(),/保存中/);
+   assert.equal(await page.getByRole('button',{name:'保存中',exact:true}).isDisabled(),true);
+   await page.evaluate(()=>{window.eventCreateFixture.release()});await page.getByRole('dialog').waitFor({state:'hidden'});
+   assert.deepEqual(await page.evaluate(()=>{const f=window.eventCreateFixture;return [f.calls.length,f.rows.length,f.saved,f.reads.length]}),[1,1,1,0]);assert.deepEqual(page.errors,[]);
+  }finally{await page.close()}
+ });
+ test(`${engine}: uncertain retry hides its action while running and reconciles once`,async()=>{
+  const page=await pageFor(engine,'lost');try{
+   await submit(page);await retry(page).waitFor();await page.evaluate(()=>{const f=window.eventCreateFixture;f.visible=true;f.holdRetry=true});
+   await retry(page).click();await page.waitForFunction(()=>!!window.eventCreateFixture.releaseRetry);assert.equal(await retry(page).count(),0);assert.match(await page.getByRole('status').innerText(),/保存中/);
+   await page.evaluate(()=>window.eventCreateFixture.releaseRetry());await page.getByRole('dialog').waitFor({state:'hidden'});
+   assert.deepEqual(await page.evaluate(()=>{const f=window.eventCreateFixture;return [f.calls.length,f.rows.length,f.saved,JSON.stringify(f.calls[0])===JSON.stringify(f.calls[1])]}),[2,1,1,true]);assert.deepEqual(page.errors,[]);
+  }finally{await page.close()}
+ });
 }

@@ -1,5 +1,18 @@
 # Testing
 
+2026-10-29 — **Slice 4 Follow-up RELEASE AUTHORIZED / FINAL ACCEPTANCE PENDING**。用户明确授权本次7文件Commit、正常Push origin/main及既有Vercel Production；只发布App.tsx等待状态文案与重试按钮渲染条件，三份测试/夹具和三份治理。源码/测试指纹保持，沿用Node151/151、WebKit/Chrome62/62及14项先失败后通过证据，不重复全量。UUID/原始内容绑定、权限复核、提交锁、迟到响应及普通/重复保存规则不变；不声称改善保存耗时。发布Source、七项资源、Supabase目标和Git结果由`/private/tmp/calendar-create-wait-release/RELEASE_RECEIPT.md`记录，不预写成功。用户此前核心功能PWA验收PASS，本提示补丁仍待最终人工确认；Slice 4不提前关闭，Slice 2/3保持CLOSED / PASS，Slice 1暂缓、Slice 5未启动。下方未授权/本地未发布为历史。
+
+## 2026-10-29 — Slice 4 保存等待提示回归（LOCAL VERIFIED / 未发布）
+
+用户报告Production 2f3cffb正式iPhone PWA普通创建/刷新/编辑、重复创建PASS，未观察到重复；UX补丁不代表最终收口。新UI只区分busy和已结束的不确定结果，不更改请求或安全保护。
+
+- RED：既有离线EventSheet/StrictMode夹具新增14项，`node --test --test-name-pattern='waits without|uncertain retry hides' tests/event-create.browser.mjs`修改前14/14失败（处理中按钮仍存在）。
+- GREEN：既有PLAYWRIGHT_MODULE_PATH，`node --test --test-concurrency=1 tests/event-create.browser.mjs tests/calendar-realtime.browser.mjs tests/calendar-snapshot.browser.mjs` **62/62 PASS**。覆盖慢前置/insert/后置（普通和系列）、晚到成功只写一次且无异常读回、响应丢失后原UUID重试、重试在途隐藏操作及既有冲突/权限/账号/Space/卸载/关闭安全。旧忙态断言从disabled按钮改为不渲染，Node同tick/并发锁断言保留。所有页面I/O合成、envFile=false、127.0.0.1:5175隔离，不使用真实账号/Production数据，不延长3秒超时。
+- `node --test tests/event-create-intent.test.ts tests/calendar-create.test.ts tests/shared-form-ui-v2.test.ts tests/calendar-important-dates.test.ts tests/aggregate-calendar.test.ts tests/calendar-refresh.test.ts` **151/151 PASS**；保留UUID/payload、冲突匹配、双提交/旧响应与Slice 3回归。未全量重跑Node，历史1048证据不归属本补丁。
+- `npm run build`（含TypeScript）、`node --check tests/event-create.browser.mjs`、`git diff --check` PASS，既有chunk提示保留。
+
+正常在途按钮在修复前为disabled，未离线复现实际可点击的正常路径；只证明提前展示会误导。成功路径保留新增后置权限复核及前后额外getUser，有串行耗时但没有Production计时，未声称本补丁使保存变快。未知状态仅在请求异常/复核失败且未确认结果后开放原始重试，不按等待时长猜测超时。未发布/未提交，诊断/private/tmp/calendar-create-wait-followup。
+
 2026-10-29 — **Slice 4 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户明确授权本次13文件Commit、正常Push origin/main及既有Vercel Production。七份业务/测试指纹匹配，沿用全量Node1048/1048、相关46/46、WebKit/Chrome20+52项通过证据；业务无扩改。Production catalog未直接核验：无可用SQL连接工具，已安装Supabase CLI调用被系统SIGKILL，未读取数据库凭据或绕过登录。仓库UUID/schema/RLS/grant合同支持本实现；线上真实创建行为仍由用户验收，不宣称Production写入已验证。发布Source/资源/目标/Git结果见`/private/tmp/calendar-slice4-release/RELEASE_RECEIPT.md`，不预写部署成功。刷新/关闭重开不恢复意图，跨意图重复风险保留。Slice 4不提前关闭；Slices 2–3/Follow-up保持关闭、Slice 1暂缓、Slice 5未启动。下方LOCAL/未授权为历史。
 
 ## 2026-10-29 — v0.1.21 Slice 4 mounted-form Create Idempotency（LOCAL VERIFIED / READY FOR RELEASE）

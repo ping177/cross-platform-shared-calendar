@@ -91,6 +91,7 @@ test('Event saving disables header and close; failure retains values and retry k
   const input = nodes(e.render()).find(n => n.type === 'input' && !n.props.type);
   input.props.onChange({ target: { value: '保留的日程' } });
   const release = e.hold(); e.fail(new Error('保存失败')); const pending = e.submit();
+  assert.doesNotMatch(e.html(), /核对并重试原始创建/); assert.match(e.html(), /保存中，请稍候/);
   assert.equal(nodes(e.render()).find(n => n.props.type === 'submit').props.disabled, true);
   assert.equal(nodes(e.render()).find(n => n.props['aria-label'] === '关闭').props.disabled, true);
   release(); await pending; assert.match(e.html(), /创建结果尚未确认/); assert.equal(nodes(e.render()).some(n => n.type === 'form'), false); assert.equal(e.calls.includes('close'), false);
