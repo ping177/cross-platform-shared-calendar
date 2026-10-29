@@ -1,5 +1,20 @@
 # Testing
 
+2026-10-29 — **Snapshot范围补丁 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户明确授权已审核10文件Commit、正常Push origin/main及既有Vercel Production；四项源码/测试指纹保持，沿用Node128/128、全量1020/1020、Browser28/28证据。实际部署Source/状态及资源比对记`/private/tmp/calendar-snapshot-release-20261029/RELEASE_RECEIPT.md`，不预写部署成功。发布后仅用户在iPhone PWA确认日→周→日、月→周→月、已覆盖范围不误报未完整确认、新范围正常读取及刷新；允许正常后台更新提示，真实非空数据未人工验收。Slice 3不提前关闭，其他Slice状态保持；下方未授权/未发布为历史。
+
+## Calendar Important Dates 范围补充修复 — LOCAL VERIFIED / READY FOR RELEASE（2026-10-29）
+
+本地补丁尚未发布，Production仍为已知a9fd99ae / Slice 3 FINAL ACCEPTANCE PENDING。原REST/Realtime发布授权不适用于本补丁；没有真实账号/PWA/Production人工PASS声明。上轮只读RCA确认snapshot存在、空结果可保留，根因是view/边界全相等及子范围成功替换单槽，属于既有缺陷。
+
+- RED：`node --test --test-name-pattern='Calendar covered round trip|Calendar contained success|Calendar covered failed|Calendar covered snapshot' tests/calendar-important-dates.test.ts`，新增7项中6项失败、Event/卸载保护1项通过；命中周/月包含和成功后覆盖收缩问题。
+- GREEN相关：`node --test tests/calendar-important-dates.test.ts tests/important-date-projection-flow.test.ts tests/important-date-projection-data.test.ts tests/calendar-refresh.test.ts tests/aggregate-calendar.test.ts`，128/128 PASS；全量`node --test tests/*.test.ts tests/*.test.js`，1020/1020 PASS，无fail/skip。
+- 覆盖：空/非空周→日→周、月→周→日→周→月（逐步真实成功与pending状态、恢复App-owned快照）；更新/删除为空替换当前区间、外侧展示及原覆盖保持；日→周/周→月/部分重叠/不相交仍未确认；失败与retry、A→B迟到读、membership/role/module/user/Space/filter/timezone/logout失效、卸载及Event不重复触发重要日读取。保留既有完整分页、候选条件、请求竞态及Slice 3解耦回归。
+- Browser：`PLAYWRIGHT_MODULE_PATH=/Users/wp/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs node --test --test-concurrency=1 tests/calendar-snapshot.browser.mjs tests/calendar-realtime.browser.mjs`，最终WebKit/Chrome28/28 PASS（快照新增8+既有REST/Realtime20），无fail/skip；3秒timeout不变。新夹具使用真实React StrictMode、CurrentSpaceApp/投影/提示组件，仅canonical I/O内存替换；envFile=false、所有网络拦截到127.0.0.1:5175，无真实账号或Production请求。
+- 首次Browser组合已有20项通过，新增夹具缺配置导出而未进入断言；补齐后新8/8及最终组合28/28 PASS，未降低断言。`node_modules/.bin/tsc -b`、`npm run build`、`node --check tests/calendar-snapshot.browser.mjs`、`node --check tests/calendar-important-dates.test.ts`、diff-check PASS；JSX由Vite编译/浏览器实际执行。仅既有大chunk提示。
+- 源码/测试/Build指纹与日志存于/private/tmp/calendar-snapshot-fix-20261029/，发布前可比对。Build公开Supabase目标仍为已知Production主项目ximazjhxvmktpcdbypka；reader、权限/分页、App、Event hook、编辑适配器/服务端契约均未变，无新schema/RPC/Edge能力需求，不重复连接Production做数据库探针。
+
+保留的行为：已覆盖范围可继续显示并在后台更新；范围外是最后已验证展示，不冒称本次子读取已刷新外部数据。未覆盖范围不能报0或假设完整，较大/不相交范围成功后仅记录实际读取范围；快照不授予编辑权。后续单独授权发布后，再由用户在PWA轻量复验日/周/月往返；本轮到此停止，不操作登录态或提前收口Slice 3。
+
 ## Slice 3 发布与最终验收边界（2026-10-28）
 
 用户报告本地日历基本操作正常，并明确授权发布已测试10文件范围；下方“本地人工尚未执行/未授权发布”为历史检查点。四项源码/测试指纹在本轮锁定并复核，重新`npm run build`与已测试Build逐字节一致，TypeScript、语法、diff-check及官方生产依赖audit0通过；沿用全量Node1013/1013、WebKit/Chrome96/96及修复前13项失败/修复后通过证据，不改代码或放宽测试。

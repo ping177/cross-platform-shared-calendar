@@ -26,6 +26,10 @@ export type CalendarImportantDatesRetention = {
   onValidated?: (data: CalendarImportantDatesSnapshot) => void; onInvalidate?: () => void;
 };
 export const calendarImportantDateTimeZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone;
+function containsCalendarRange(validated: ImportantDateRange, current: ImportantDateRange) {
+  return compareImportantDateCivilDates(validated.start, current.start) <= 0
+    && compareImportantDateCivilDates(validated.end, current.end) >= 0;
+}
 export function validCalendarImportantDatesSnapshot(snapshot: CalendarImportantDatesSnapshot | null | undefined, userId: string,
   memberSpaces: ModuleEntry['memberSpaces'], entry: ModuleEntry | null, filterKey: string, timeZone: string) {
   if ((filterKey !== 'all' && !memberSpaces.some((space) => space.id === filterKey))
@@ -87,11 +91,9 @@ export function useImportantDateProjection(userId: string, request: ImportantDat
     if (data) return { requestKey: key, status: 'success', view: { kind: 'home', items: data.items }, scope: data.scope, error: '', refreshing: true };
     const calendar = safeCalendarPresentation(); const current = inputs.current;
     if (!calendar || current.request.kind !== 'calendar') return loading(key);
-    // The old complete range stays attached to the snapshot. Rendering against
-    // new cells exposes only the intersection, never new-range completeness.
-    const calendarComplete = calendar.view === current.calendarRetention!.view
-      && compareImportantDateCivilDates(calendar.range.start, current.request.range.start) === 0
-      && compareImportantDateCivilDates(calendar.range.end, current.request.range.end) === 0;
+    // Coverage belongs to civil dates, independent of the current view type.
+    // A partly overlapping range still exposes only its validated intersection.
+    const calendarComplete = containsCalendarRange(calendar.range, current.request.range);
     return { requestKey: key, status: 'success', view: { kind: 'calendar', items: calendar.items }, scope: calendar.scope,
       error: '', refreshing: true, calendarComplete };
   };
@@ -137,8 +139,19 @@ export function useImportantDateProjection(userId: string, request: ImportantDat
         inputs.current.retention?.onValidated?.(presentation.current);
       }
       if (target.kind === 'calendar' && view.kind === 'calendar' && context.calendarRetention) {
+        const previous = safeCalendarPresentation();
         calendarPresentation.current = { userId: context.userId, scope, filterKey: context.calendarRetention.filterKey,
           view: context.calendarRetention.view, range: target.range, timeZone: context.calendarRetention.timeZone, items: view.items };
+        if (previous && sameModuleScope(scope, previous.scope.memberSpaces, previous.scope.eligibleSpaces)
+          && containsCalendarRange(previous.range, target.range)) {
+          // Refresh just this interval; outside rows retain their last validated
+          // display values. Never union ranges or promote them to edit authority.
+          calendarPresentation.current = { ...calendarPresentation.current, view: previous.view, range: previous.range, items: [
+            ...previous.items.filter((item) => compareImportantDateCivilDates(item.occurrenceDate, target.range.start) < 0),
+            ...view.items,
+            ...previous.items.filter((item) => compareImportantDateCivilDates(item.occurrenceDate, target.range.end) > 0),
+          ] };
+        }
         inputs.current.calendarRetention?.onValidated?.(calendarPresentation.current);
       }
     } catch (error) {

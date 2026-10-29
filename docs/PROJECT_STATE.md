@@ -12,6 +12,8 @@ v0.1.21
 
 ## Current status
 
+2026-10-29 — **Snapshot范围补丁 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户明确授权已审核10文件Commit、正常Push origin/main及既有Vercel Production；四项源码/测试指纹保持，沿用Node128/128、全量1020/1020、Browser28/28证据。实际部署Source/状态及资源比对记`/private/tmp/calendar-snapshot-release-20261029/RELEASE_RECEIPT.md`，不预写部署成功。发布后仅用户在iPhone PWA确认日→周→日、月→周→月、已覆盖范围不误报未完整确认、新范围正常读取及刷新；允许正常后台更新提示，真实非空数据未人工验收。Slice 3不提前关闭，其他Slice状态保持；下方未授权/未发布为历史。
+
 2026-10-28 — **v0.1.21 Slice 3 = LOCAL VERIFIED / RELEASE AUTHORIZED / FINAL ACCEPTANCE PENDING**。用户报告本地日历页面基本操作正常，并明确授权本次Commit、正常Push origin/main及既有Vercel Production发布。仅发布已验证的Calendar REST / Realtime Decoupling；无额外业务改动。用户当前无实际日程，不能声称真实非空数据验收通过；Production仅待页面打开、日期/月切换、刷新无异常的轻量确认，故障边界沿用自动化，不要求制造线上Realtime故障。Slice 2及Follow-up关闭、Slice 1暂缓、Slices 4–5未开始保持。 实际部署Source/资源及最终Git结果以本轮回执为准，不预写发布成功。
 
 2026-10-28 — **独立 Review UI/UX Follow-up = CLOSED / ACCEPTED（按实际验收范围收口）**。用户确认最终 Production 视觉满意并明确结束本轮，不再追加人工验收。阅读页右滑返回由用户真机验证 PASS；最终“标记已填写”的位置、字号、布局获视觉确认，阅读页与编辑页两个入口保留。编辑态右滑、dirty 取消四字段保留/确认离开、阅读态标记/已完成去重及旧 revision 拒绝等未逐项真机检查，记录为 AUTOMATED PASS / MANUAL NOT RUN，不冒称人工 PASS，且不再作为本轮待验收阻塞。
@@ -63,6 +65,8 @@ UI v2 Slice6 = LOCAL PASS / VISUAL PASS：用户已认可四张居中概览卡�
 v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3为LOCAL PASS / VISUAL PASS；Slice4为LOCAL PASS / VISUAL PROVISIONALLY ACCEPTED。Slice5月视图本地验证与离线视觉验收通过：两条短标题/准确+N、六色圆点与日期浮层，261/261相关测试、build/diff-check、28组四宽度离线检查PASS；用户确认普通月、密集月、空月及浮层满意。已授权本地commit；不代表真实账号、真机、installed PWA或Production验收。Space Color System继续Deferred；真实账号/真机/installed PWA/Production未验收。正式版本仍v0.1.20。
 
 ## Latest completed
+
+2026-10-29 — Snapshot补丁发布获用户明确授权；已审核10文件范围与四项源码/测试及已测试Build指纹匹配。Node128/128、全量1020/1020、Browser28/28证据沿用，不扩改业务。Production实绩见发布回执，最终人工验收PENDING。
 
 2026-10-28 — 用户报告Slice 3本地日历基本操作正常并授权发布；四项业务/测试指纹保持，重新Build与已测试产物逐字节一致，语法/diff及生产依赖audit通过。全量Node1013/1013、双引擎Browser96/96证据沿用；无代码扩改，不提前关闭Slice 3。
 
@@ -397,6 +401,8 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
+Snapshot补丁采用已授权origin/main→既有Vercel Production发布；实际Source、success状态、七项资源与本地Build逐字节比对及Supabase目标由`/private/tmp/calendar-snapshot-release-20261029/RELEASE_RECEIPT.md`记录，不以Push替代部署证据。无数据库/RLS/RPC/Realtime或保存规则变化；发布前a9fd99ae仅作历史与兼容回退参考，异常停止报告、不自动回退。
+
 Slice 3本次获授权通过origin/main→既有Vercel Production发布；实际Source SHA、success状态、七项公开资源与Build比对及Supabase目标由`/private/tmp/calendar-v0121-slice3-release-20261028/RELEASE_RECEIPT.md`核验记录，不以本地Build或Push替代部署证据。无数据库/RLS/RPC/Realtime配置变化；发布前Production基线66d024d6（业务412ad4f8）仅作历史与兼容回退参考，异常时停止报告，不自动回退。
 
 最终业务基线 `412ad4f8c5ac3ce13df7d46f6a9d8f2d2890269b` 已部署 Production（GitHub `7379031279` success、Source 匹配，7/7 公开资源与 Build 逐字节一致）；用户确认最终视觉满意并结束本轮。收口仅治理文档，允许既有 Vercel Git 集成自动部署；其执行与资源核验结果由本轮报告确认，不预写部署成功。无数据库或配置变更；下方旧部署为历史。
@@ -472,7 +478,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Version Index
 
-- v0.1.21 — Engineering Stability & Data Safety；整体IN PROGRESS，Slice 2 CLOSED / PASS（Production真实验收通过、Review维护解除）；Slice 1 DEFERRED，Slice 3 RELEASE AUTHORIZED / FINAL ACCEPTANCE PENDING，Slices 4–5 NOT STARTED。
+- v0.1.21 — Engineering Stability & Data Safety；整体IN PROGRESS，Slice 2 CLOSED / PASS（Production真实验收通过、Review维护解除）；Slice 1 DEFERRED，Slice 3已部署 / FINAL ACCEPTANCE PENDING（范围补丁RELEASE AUTHORIZED / USER ACCEPTANCE PENDING），Slices 4–5 NOT STARTED。
 - v0.1 — 共享日历 MVP
 - v0.1-smoke-test — Supabase 验收
 - v0.1.1 — 个人事件权限
@@ -512,6 +518,8 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Last verified
 
+2026-10-29 — 范围补丁相关Node128/128、全量1020/1020、Browser28/28、TypeScript/Build/语法/diff-check PASS；仅既有bundle提示。四项源码/测试及Build指纹、详细命令/边界见TESTING首节及临时日志目录；未做真实账号或Production验收。
+
 2026-10-28 — 发布前四项源码/测试SHA256锁定并核对保持；重新Build与保留产物逐字节一致，TypeScript/语法/diff检查及官方生产依赖audit0通过。沿用Node1013/1013、Browser96/96，无新真实账号测试或后端能力变化。
 
 2026-10-28 — Slice 3相关Node96/96、全量1013/1013、双引擎Browser96/96、tsc/build及语法/diff-check PASS；无真实登录态自动验收或Production业务操作。环境Gate基于公开Build目标与已验收后台契约保持一致；详见TESTING首节。
@@ -526,7 +534,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-Production部署与资源核验通过后，由用户轻量确认日历打开、日期/月切换及刷新无异常；无实际日程，不要求非空数据或手动故障验收。等待用户最终确认后再决定Slice 3收口，不自动进入Slice 4或5。
+部署及资源核验通过后，由用户在正式iPhone PWA轻量确认日→周→日、月→周→月、已覆盖范围无错误未完整提示、新范围正常读取及基本切换/刷新；允许后台更新提示，不声称真实非空数据验收。待用户反馈再决定Slice 3收口，不进入Slices 4–5。
 
 ## Blockers
 
@@ -633,7 +641,7 @@ Production部署与资源核验通过后，由用户轻量确认日历打开、�
 
 ## Handoff Prompt
 
-Slice 3 LOCAL VERIFIED / RELEASE AUTHORIZED / FINAL ACCEPTANCE PENDING：用户报告本地基本操作正常，明确授权10文件Commit/正常Push及既有Vercel Production；仅已验证REST/Realtime解耦，代码/测试指纹保持。Node1013/1013、Browser96/96、TypeScript/Build证据有效，实际Git/部署Source/公开资源见`/private/tmp/calendar-v0121-slice3-release-20261028/RELEASE_RECEIPT.md`。不提前CLOSED/PASS；用户无实际日程，最终仅轻量确认页面打开、日期/月切换、刷新无异常，故障场景以自动化覆盖。Codex不操作真实登录态/Production业务数据或后端配置；Slice 2/Follow-up关闭、Slice 1暂缓、Slices 4–5未开始保持。
+2026-10-29 — **Snapshot范围补丁 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户明确授权已审核10文件Commit、正常Push origin/main及既有Vercel Production；四项源码/测试指纹保持，沿用Node128/128、全量1020/1020、Browser28/28证据。实际部署Source/状态及资源比对记`/private/tmp/calendar-snapshot-release-20261029/RELEASE_RECEIPT.md`，不预写部署成功。发布后仅用户在iPhone PWA确认日→周→日、月→周→月、已覆盖范围不误报未完整确认、新范围正常读取及刷新；允许正常后台更新提示，真实非空数据未人工验收。Slice 3不提前关闭，其他Slice状态保持；下方未授权/未发布为历史。 完成发布核验后停USER ACCEPTANCE CHECKPOINT，不自动追加治理收口Commit。
 
 下方旧handoff仅作历史记录。
 

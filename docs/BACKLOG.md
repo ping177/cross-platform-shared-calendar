@@ -1,5 +1,9 @@
 # Backlog
 
+2026-10-29 — **Snapshot范围补丁 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户明确授权已审核10文件Commit、正常Push origin/main及既有Vercel Production；四项源码/测试指纹保持，沿用Node128/128、全量1020/1020、Browser28/28证据。实际部署Source/状态及资源比对记`/private/tmp/calendar-snapshot-release-20261029/RELEASE_RECEIPT.md`，不预写部署成功。发布后仅用户在iPhone PWA确认日→周→日、月→周→月、已覆盖范围不误报未完整确认、新范围正常读取及刷新；允许正常后台更新提示，真实非空数据未人工验收。Slice 3不提前关闭，其他Slice状态保持；下方未授权/未发布为历史。
+
+2026-10-29 — Slice 3验收发现的重要日已覆盖范围反复降级：最小补充修复LOCAL VERIFIED / READY FOR RELEASE，未发布，详见 [Testing](./TESTING.md)。原REST/Realtime修复已部署但整个Slice 3仍FINAL ACCEPTANCE PENDING；Slice 2/Follow-up保持关闭。
+
 2026-10-28 — **v0.1.21 Slice 3 = LOCAL VERIFIED / RELEASE AUTHORIZED / FINAL ACCEPTANCE PENDING**。用户报告本地日历页面基本操作正常，并明确授权本次Commit、正常Push origin/main及既有Vercel Production发布。仅发布已验证的Calendar REST / Realtime Decoupling；无额外业务改动。用户当前无实际日程，不能声称真实非空数据验收通过；Production仅待页面打开、日期/月切换、刷新无异常的轻量确认，故障边界沿用自动化，不要求制造线上Realtime故障。Slice 2及Follow-up关闭、Slice 1暂缓、Slices 4–5未开始保持。 发布与资源核验实绩见独立回执；下方本地未授权/未发布为历史检查点。
 
 2026-10-28 — **独立 Review UI/UX Follow-up CLOSED / ACCEPTED**。用户确认最终 Production 视觉满意并结束本轮，不追加人工验收；阅读态右滑真机 PASS，其余边界仅自动化覆盖（MANUAL NOT RUN），详见 [Testing](./TESTING.md)。Slice 2 不重开，Slice 3 仅获只读调查授权、未实施，Slices 4–5 NOT STARTED；下方 Follow-up Pending 为历史。
@@ -23,7 +27,7 @@
 
 1. Slice 1 邀请码撤销并发与 Helper ACL：DEFERRED；风险 POTENTIAL，数据库实测 NOT VERIFIED，不继续安全测试。
 2. Slice 2 回顾旧稿覆盖保护：CLOSED / PASS（2026-10-28）；数据库/缓存、自动化、正式部署资源及用户Production真实验收全部PASS，Review维护解除。仅关闭本Slice，整体v0.1.21未完成。
-3. Slice 3 日历 Realtime 故障容错：LOCAL VERIFIED / RELEASE AUTHORIZED / FINAL ACCEPTANCE PENDING（2026-10-28）；本地页面基本操作正常（用户报告），发布结果由本轮回执确认；真实非空日历未验收，Production仅待轻量页面确认。
+3. Slice 3 日历 Realtime 故障容错：已部署a9fd99ae / FINAL ACCEPTANCE PENDING；验收发现既有Important Dates范围完整性缺陷，补充修复本地LOCAL VERIFIED / READY FOR RELEASE（2026-10-29），未授权发布、不提前收口。
 4. Slice 4 创建请求重复提交：NOT STARTED。
 5. Slice 5 提醒容量及通知清理：NOT STARTED。
 

@@ -398,6 +398,68 @@ test('disjoint month transition and retained empty range remain incomplete until
   tree = await e.pump(); assert.match(renderToStaticMarkup(tree), /1 个重要日/);
 }));
 
+for (const empty of [false, true]) for (const path of [['week', 'today', 'week'], ['month', 'week', 'today', 'week', 'month']])
+test(`Calendar covered round trip ${path.join(' -> ')} keeps ${empty ? 'empty' : 'nonempty'} validated coverage`, () => runtime(async (e) => {
+  e.m.rows = empty ? [] : [row('early', shared.id, { day: 5 }), row(), row('later', shared.id, { day: 20 })];
+  e.props.viewMode = path[0]; await e.pump(); const original = e.latest(), loader = e.m.dates;
+  for (const mode of path.slice(1)) {
+    const pending = deferred(); e.m.dates = async (...args: any[]) => { const data = await loader(...args); await pending.promise; return data; };
+    e.props.viewMode = mode; let tree = await e.pump();
+    assert.match(renderToStaticMarkup(tree), /重要日更新中/);
+    assert.doesNotMatch(renderToStaticMarkup(tree), /当前范围尚未完整确认|正在读取重要日/);
+    pending.resolve(null); tree = await e.pump();
+    assert.doesNotMatch(renderToStaticMarkup(tree), /当前范围尚未完整确认|重要日更新中/);
+    assert.deepEqual(e.latest().range, original.range); assert.equal(e.latest().view, original.view);
+    assert.deepEqual(e.latest().items, original.items);
+  }
+  e.restore(); const pending = deferred(); e.m.dates = () => pending.promise;
+  const tree = await e.pump(); assert.doesNotMatch(renderToStaticMarkup(tree), /当前范围尚未完整确认|正在读取重要日/);
+  pending.resolve(await loader('me', [personal.id, shared.id], {}, null, null)); await e.pump();
+}, false));
+
+test('Calendar contained success replaces only the read interval, including deletion to empty, without widening coverage', () => runtime(async (e) => {
+  e.m.rows = [row('before', shared.id, { day: 5, name: 'before unchanged' }), row(), row('after', shared.id, { day: 20, name: 'after unchanged' })];
+  e.props.viewMode = 'month'; await e.pump(); const originalRange = e.latest().range, loader = e.m.dates;
+  e.m.rows = [row('before', shared.id, { day: 5, name: 'outside unread change' }), row('fresh', shared.id, { name: 'fresh day' }), row('after', shared.id, { day: 20, name: 'outside unread change' })];
+  e.props.viewMode = 'today'; await e.pump();
+  assert.deepEqual(e.latest().range, originalRange);
+  assert.deepEqual(e.latest().items.map((item: any) => [item.importantDateId, item.name]), [['before', 'before unchanged'], ['fresh', 'fresh day'], ['after', 'after unchanged']]);
+  e.m.rows = e.m.rows.filter((r: any) => r.id !== 'fresh'); e.dispatch('focus'); await e.pump();
+  assert.deepEqual(e.latest().items.map((item: any) => item.importantDateId), ['before', 'after']);
+  const pending = deferred(); e.m.dates = () => pending.promise; e.props.viewMode = 'month';
+  let tree = await e.pump(); assert.doesNotMatch(renderToStaticMarkup(tree), /当前范围尚未完整确认/);
+  pending.resolve(await loader('me', [personal.id, shared.id], {}, null, null)); await e.pump();
+  // A partly overlapping new month cannot turn the union into validated coverage.
+  const next = deferred(); e.m.dates = () => next.promise; e.props.selectedDate = new Date(2026, 10, 10);
+  tree = await e.pump(); assert.match(renderToStaticMarkup(tree), /当前范围尚未完整确认/);
+  next.resolve(await loader('me', [personal.id, shared.id], {}, null, null)); await e.pump();
+  assert.deepEqual(e.latest().range, { start: { year: 2026, month: 10, day: 26 }, end: { year: 2026, month: 12, day: 6 } });
+}, false));
+
+test('Calendar covered failed refresh retains completeness and late reads cannot patch a newer broad snapshot', () => runtime(async (e) => {
+  e.props.viewMode = 'month'; await e.pump(); const originalRange = e.latest().range, loader = e.m.dates;
+  e.m.dateFailure = true; e.props.viewMode = 'today'; let tree = await e.pump();
+  assert.match(renderToStaticMarkup(tree), /重要日更新失败/); assert.doesNotMatch(renderToStaticMarkup(tree), /当前范围尚未完整确认/);
+  e.m.dateFailure = false; const first = deferred(), second = deferred(); e.m.dates = () => first.promise;
+  button(tree, '重试重要日').props.onClick(); await e.pump();
+  e.m.dates = () => second.promise; e.props.viewMode = 'week'; await e.pump();
+  const current = await loader('me', [personal.id, shared.id], {}, null, null); current.dates[0] = { ...current.dates[0], name: 'current week' };
+  second.resolve(current); tree = await e.pump(); assert.ok(button(tree, '打开重要日 current week')); const latest = e.latest();
+  first.resolve({ ...current, dates: [row('stale', shared.id, { name: 'late day' })] }); tree = await e.pump();
+  assert.equal(e.latest(), latest); assert.deepEqual(latest.range, originalRange); assert.equal(button(tree, '打开重要日 late day'), undefined);
+}, false));
+
+test('Calendar covered snapshot does not reread on Event updates and pending subrange cannot publish after unmount', () => runtime(async (e) => {
+  e.props.viewMode = 'month'; await e.pump(); e.props.viewMode = 'today'; await e.pump();
+  const count = e.calls.filter((c: any) => c[0] === 'projection').length;
+  for (const channel of e.channels) channel.changed(); await e.pump();
+  assert.equal(e.calls.filter((c: any) => c[0] === 'projection').length, count);
+  const pending = deferred(), loader = e.m.dates; e.m.dates = () => pending.promise; e.props.viewMode = 'week'; await e.pump();
+  const latest = e.latest(); e.unmount(); const writes = e.m.stateWrites;
+  pending.resolve(await loader('me', [personal.id, shared.id], {}, null, null)); await tick(); await tick();
+  assert.equal(e.latest(), latest); assert.equal(e.m.stateWrites, writes); assert.equal(e.channels.length, 0); assert.equal(e.auth.size, 0);
+}, false));
+
 for (const changedRange of [false, true]) test(`retained ${changedRange ? 'intersection' : 'same range'} survives refresh error and recovers on retry`, () => runtime(async (e) => {
   await e.pump(); const old = e.latest(); e.m.dateFailure = true;
   if (changedRange) e.props.viewMode = 'month'; else e.dispatch('focus');

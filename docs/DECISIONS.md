@@ -1,5 +1,13 @@
 # Decisions
 
+2026-10-29 — **Snapshot范围补丁 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户明确授权已审核10文件Commit、正常Push origin/main及既有Vercel Production；四项源码/测试指纹保持，沿用Node128/128、全量1020/1020、Browser28/28证据。实际部署Source/状态及资源比对记`/private/tmp/calendar-snapshot-release-20261029/RELEASE_RECEIPT.md`，不预写部署成功。发布后仅用户在iPhone PWA确认日→周→日、月→周→月、已覆盖范围不误报未完整确认、新范围正常读取及刷新；允许正常后台更新提示，真实非空数据未人工验收。Slice 3不提前关闭，其他Slice状态保持；下方未授权/未发布为历史。
+
+## 2026-10-29 — Calendar Important Dates 同作用域包含范围复用
+
+沿用现有单份session-local/App-owned validated snapshot，不新增普通Cache。完整性按civil日期包含关系判断，不绑定view类型；已验证空结果与非空结果同样适用。成功子范围读取仅在原snapshot仍通过用户/成员/模块/Space-filter/时区校验且canonical返回scope一致时，替换该子区间内全部展示项（包含删除为空），保留原范围边界与外侧最后验证内容，按日期前段/新结果/后段维持排序。较大、部分重叠或不相交的新范围仅在完整成功后替换为其实际范围，不合成区间并集。
+
+后台revalidation及合理更新提示保持；未覆盖范围仍明确未完整确认。范围外保留值不声明为本次读取的新结果，展示snapshot不授予编辑权，原fresh exact target与权限校验保持。用户仅授权本地修复/测试，不Commit/Push/Deploy，Slice 3不关闭；本轮不改SQL/RPC/Realtime配置或其他Slice。
+
 ## 2026-10-28 — Slice 3发布授权与轻量最终验收
 
 用户本地页面基本操作正常并授权本次Commit/正常Push/Vercel Production；只发布现有已验证最小修复、直接测试及必要治理。用户无实际日程，最终Production人工仅确认页面打开、日期/月切换和刷新无异常；非空数据不宣称人工PASS，Realtime故障边界沿用自动化，不制造线上故障。Source/资源核验与用户最终确认分开，Slice 3不提前CLOSED/PASS，其他Slice状态不变。

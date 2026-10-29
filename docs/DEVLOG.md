@@ -1,5 +1,18 @@
 # Development Log
 
+2026-10-29 — **Snapshot范围补丁 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户明确授权已审核10文件Commit、正常Push origin/main及既有Vercel Production；四项源码/测试指纹保持，沿用Node128/128、全量1020/1020、Browser28/28证据。实际部署Source/状态及资源比对记`/private/tmp/calendar-snapshot-release-20261029/RELEASE_RECEIPT.md`，不预写部署成功。发布后仅用户在iPhone PWA确认日→周→日、月→周→月、已覆盖范围不误报未完整确认、新范围正常读取及刷新；允许正常后台更新提示，真实非空数据未人工验收。Slice 3不提前关闭，其他Slice状态保持；下方未授权/未发布为历史。
+
+本轮只更新发布治理，不扩改代码/测试。重建Build、语法/diff及生产依赖audit后核验原指纹，正常Push Gate通过后发布，Post-Push只读核验；执行结果见发布回执，无Production数据/登录态操作。
+
+## 2026-10-29 — Important Dates 范围补充修复（LOCAL VERIFIED / READY FOR RELEASE）
+
+- Repo-first：HEAD/origin/main=a9fd99aeb49d97af8362a4ad14f518b5baccfaa1且CLEAN，治理/AGENTS齐全。Production已发布REST/Realtime修复，验收发现既有范围判定缺陷；上轮只读比较及空/非空内存复现证明不是Slice 3引入。用户本轮批准包含关系修复，并明确要求跨视图往返不因子范围成功而丢掉有效大范围覆盖。
+- 业务只改useImportantDateProjection.ts（18增5删）：civil包含判断；当前完整成功后，若安全旧snapshot同scope且包含target，仅替换target内occurrences并保留原边界及外侧最后验证展示；不合并未验证区间、不增加全局/多view缓存或读取权威。原分页/数据reader、Auth/成员/模块/Space/filter/时区失效、request generation/卸载、后台revalidation/提示、编辑保存权限及useCalendarEvents/App未改。
+- TDD先加7项：4个空/非空周→日→周/月→周→日→周→月，区间内更新/删除为空及不虚扩覆盖，失败/迟到读与Event/卸载保护；修复前6失败、既有保护1通过，修复后相关Node128/128、全量1020/1020通过。新增真实React StrictMode/CurrentSpaceApp/投影/状态组件浏览器8项，两引擎验证往返、App-owned快照重挂载、子范围变化/新范围、竞态与Event读取隔离；与既有REST/Realtime20项最终组合28/28 PASS。无fail/skip。
+- 初次组合Browser既有20项通过，新夹具少isSupabaseConfigured导出导致构建失败；只补夹具导出，保留3秒超时和全部断言。最终新8/8、完整组合28/28通过。TypeScript、npm run build、mjs/ts语法、diff-check PASS，JSX由Vite实际编译并在两引擎运行验证。仅既有bundle>500KB提示。
+- 正确性/简洁性/架构/安全/性能复核无BLOCKER。范围外仅最后验证显示，较大视图返回仍后台重读，不承诺所有数据实时最新；用户/权限与旧响应保护不放宽。Build公开目标仍ximazjhxvmktpcdbypka；reader/App/编辑/Realtime契约与a9fd99ae一致，无新增后端能力要求，不进行live数据库审计。
+- 本地日志与四项源码/测试及Build SHA256清单：/private/tmp/calendar-snapshot-fix-20261029/。仅本轮代码/直接测试及必要治理，未Commit/Push/Deploy、未操作真实登录态/Production业务数据，无依赖/后台/配置或外部项目改动；未手工读取或输出.env/凭据，构建工具按既有配置加载环境。固定5175规则保持；等待正式发布授权，Slice 3不提前CLOSED/PASS。
+
 ## 2026-10-28 — Slice 3正式发布授权与门禁
 
 用户报告本地日历基本操作正常，明确授权Commit/正常Push origin/main及既有Vercel Production。开工HEAD/远端main=66d024d6、8 modified+2 untracked、未暂存；原10文件精确范围保持。重新Build与上轮已测试产物逐字节一致，四项业务/测试SHA256锁定并在治理更新后复核；语法/diff-check及生产依赖audit0通过（镜像不实现audit，改用官方接口，无依赖修改）。全量Node1013/1013、Browser96/96和TDD红绿证据沿用，不无故重跑大规模测试。
