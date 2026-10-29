@@ -12,7 +12,7 @@ v0.1.21
 
 ## Current status
 
-2026-10-29 — **静默刷新补丁 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户明确授权本次9文件Commit、正常Push origin/main及既有Vercel Production。业务仅CalendarImportantDates.tsx一行提示条件，源码/测试/已测试Build指纹匹配；沿用Node130/130、Browser28/28及TDD6项失败→通过证据。实际部署Source/状态、资源和Git结果由`/private/tmp/calendar-quiet-release-20261029/RELEASE_RECEIPT.md`记录，不预写成功。发布后用户在正式iPhone PWA复验已覆盖范围切换/返回静默、新范围仍提示未完成、基本刷新正常；真实非空数据未人工验收。Slice 3不提前关闭，Slice 2/Follow-up保持关闭，Slice 1暂缓，Slices 4–5未启动；下方旧本地未授权为历史。
+2026-10-29 — **v0.1.21 Slice 3 CLOSED / PASS**。USER_REPORTED_PRODUCTION_PWA_ACCEPTANCE = PASS：用户在正式iPhone PWA确认日/周/月切换、范围未完整误报修复、完整快照后台更新提示修复及日历基本使用正常。交付含REST/Realtime解耦、Important Dates Snapshot范围包含/覆盖保留、完整快照静默刷新。最终业务发布b90b81b6eac5dcee85e084e3e123b41260bc97f7，Production7403767389 success、Source匹配、七项资源与Build逐字节一致，Supabase ximazjhxvmktpcdbypka。最终相关Node130/130、Browser28/28、TypeScript/Build/语法/diff PASS；历史全量1020/1020属于范围修复阶段，不是静默提示修改后全量重跑。用户无实际日程，真实非空日历MANUAL E2E NOT RUN；Realtime故障以自动化覆盖。v0.1.21整体IN PROGRESS，Slice 1 DEFERRED、Slice 2/Follow-up保持关闭；Slice 4仅获只读调查授权，Slices 4–5未实施。下方旧Pending为历史。
 
 2026-10-29 — **Snapshot范围补丁 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户明确授权已审核10文件Commit、正常Push origin/main及既有Vercel Production；四项源码/测试指纹保持，沿用Node128/128、全量1020/1020、Browser28/28证据。实际部署Source/状态及资源比对记`/private/tmp/calendar-snapshot-release-20261029/RELEASE_RECEIPT.md`，不预写部署成功。发布后仅用户在iPhone PWA确认日→周→日、月→周→月、已覆盖范围不误报未完整确认、新范围正常读取及刷新；允许正常后台更新提示，真实非空数据未人工验收。Slice 3不提前关闭，其他Slice状态保持；下方未授权/未发布为历史。
 
@@ -68,7 +68,7 @@ v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3�
 
 ## Latest completed
 
-2026-10-29 — 用户授权静默刷新补丁发布；业务/测试与已测试Build指纹匹配，Node130/130、Browser28/28证据有效，业务仍仅显示条件一行。实际发布结果见回执，最终PWA人工验收PENDING。
+2026-10-29 — Slice 3三项修复及用户报告Production PWA最终验收PASS，正式CLOSED / PASS；仅治理收口，最终Node130/130/Browser28/28与范围修复阶段历史全量1020/1020分开归属。非空E2E未人工执行。
 
 2026-10-29 — Snapshot补丁发布获用户明确授权；已审核10文件范围与四项源码/测试及已测试Build指纹匹配。Node128/128、全量1020/1020、Browser28/28证据沿用，不扩改业务。Production实绩见发布回执，最终人工验收PENDING。
 
@@ -405,7 +405,7 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
-静默刷新补丁获授权通过origin/main→既有Vercel Production发布；实际Source/success、七项资源与Build逐字节比对及Supabase目标记`/private/tmp/calendar-quiet-release-20261029/RELEASE_RECEIPT.md`。无后端/保存规则或Snapshot契约变更。发布前5a6b02c7仅作历史与兼容回退参考，异常停止报告、不自动回退。
+已验收业务Source b90b81b6eac5dcee85e084e3e123b41260bc97f7 / Vercel Production7403767389 success，七项资源与Build一致，目标ximazjhxvmktpcdbypka。用户最终Production PWA验收PASS；本次仅文档收口，允许既有Git集成自动部署，实绩由本轮报告确认，无后端或配置变更。
 
 Snapshot补丁采用已授权origin/main→既有Vercel Production发布；实际Source、success状态、七项资源与本地Build逐字节比对及Supabase目标由`/private/tmp/calendar-snapshot-release-20261029/RELEASE_RECEIPT.md`记录，不以Push替代部署证据。无数据库/RLS/RPC/Realtime或保存规则变化；发布前a9fd99ae仅作历史与兼容回退参考，异常停止报告、不自动回退。
 
@@ -484,7 +484,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Version Index
 
-- v0.1.21 — Engineering Stability & Data Safety；整体IN PROGRESS，Slice 2 CLOSED / PASS（Production真实验收通过、Review维护解除）；Slice 1 DEFERRED，Slice 3已部署 / FINAL ACCEPTANCE PENDING（范围补丁RELEASE AUTHORIZED / USER ACCEPTANCE PENDING），Slices 4–5 NOT STARTED。
+- v0.1.21 — Engineering Stability & Data Safety；整体IN PROGRESS，Slices 2–3 CLOSED / PASS；Slice 1 DEFERRED，Slice 4只读调查/未实施，Slice 5 NOT STARTED。
 - v0.1 — 共享日历 MVP
 - v0.1-smoke-test — Supabase 验收
 - v0.1.1 — 个人事件权限
@@ -540,7 +540,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-部署与资源核验通过后，由用户在正式iPhone PWA确认已覆盖范围日/周/月切换及返回不再反复显示更新提示、已验证内容保持、新范围正常提示/加载和刷新正常；真实非空数据未人工验收。等待反馈后再决定Slice 3收口，不进入Slices 4–5。
+依据Slice 4创建请求重复提交的只读证据决定是否另行授权最小实施；调查完成后停止等待授权。Slice 3已关闭，不重开Slice 1/2，不进入Slice 5。
 
 ## Blockers
 
@@ -647,7 +647,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Handoff Prompt
 
-2026-10-29 — **静默刷新补丁 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户明确授权本次9文件Commit、正常Push origin/main及既有Vercel Production。业务仅CalendarImportantDates.tsx一行提示条件，源码/测试/已测试Build指纹匹配；沿用Node130/130、Browser28/28及TDD6项失败→通过证据。实际部署Source/状态、资源和Git结果由`/private/tmp/calendar-quiet-release-20261029/RELEASE_RECEIPT.md`记录，不预写成功。发布后用户在正式iPhone PWA复验已覆盖范围切换/返回静默、新范围仍提示未完成、基本刷新正常；真实非空数据未人工验收。Slice 3不提前关闭，Slice 2/Follow-up保持关闭，Slice 1暂缓，Slices 4–5未启动；下方旧本地未授权为历史。 发布核验后停USER ACCEPTANCE CHECKPOINT，不自动追加收口提交。
+2026-10-29 — **v0.1.21 Slice 3 CLOSED / PASS**。USER_REPORTED_PRODUCTION_PWA_ACCEPTANCE = PASS：用户在正式iPhone PWA确认日/周/月切换、范围未完整误报修复、完整快照后台更新提示修复及日历基本使用正常。交付含REST/Realtime解耦、Important Dates Snapshot范围包含/覆盖保留、完整快照静默刷新。最终业务发布b90b81b6eac5dcee85e084e3e123b41260bc97f7，Production7403767389 success、Source匹配、七项资源与Build逐字节一致，Supabase ximazjhxvmktpcdbypka。最终相关Node130/130、Browser28/28、TypeScript/Build/语法/diff PASS；历史全量1020/1020属于范围修复阶段，不是静默提示修改后全量重跑。用户无实际日程，真实非空日历MANUAL E2E NOT RUN；Realtime故障以自动化覆盖。v0.1.21整体IN PROGRESS，Slice 1 DEFERRED、Slice 2/Follow-up保持关闭；Slice 4仅获只读调查授权，Slices 4–5未实施。下方旧Pending为历史。 当前仅继续Slice 4只读调查，确认创建/重试/幂等机制及响应丢失风险；不修改代码/测试/后端或实施，结束后等待授权。
 
 下方旧handoff仅作历史记录。
 

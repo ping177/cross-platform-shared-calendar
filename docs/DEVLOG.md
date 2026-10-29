@@ -1,5 +1,9 @@
 # Development Log
 
+2026-10-29 — **v0.1.21 Slice 3 CLOSED / PASS**。USER_REPORTED_PRODUCTION_PWA_ACCEPTANCE = PASS：用户在正式iPhone PWA确认日/周/月切换、范围未完整误报修复、完整快照后台更新提示修复及日历基本使用正常。交付含REST/Realtime解耦、Important Dates Snapshot范围包含/覆盖保留、完整快照静默刷新。最终业务发布b90b81b6eac5dcee85e084e3e123b41260bc97f7，Production7403767389 success、Source匹配、七项资源与Build逐字节一致，Supabase ximazjhxvmktpcdbypka。最终相关Node130/130、Browser28/28、TypeScript/Build/语法/diff PASS；历史全量1020/1020属于范围修复阶段，不是静默提示修改后全量重跑。用户无实际日程，真实非空日历MANUAL E2E NOT RUN；Realtime故障以自动化覆盖。v0.1.21整体IN PROGRESS，Slice 1 DEFERRED、Slice 2/Follow-up保持关闭；Slice 4仅获只读调查授权，Slices 4–5未实施。下方旧Pending为历史。
+
+本次仅六治理文件收口，检查diff/非治理树及Push Gate，授权Commit/正常Push后只读复核freshness/远端/CLEAN；不重跑业务测试或数据库。Phase A成功后直接进行Slice 4只读调查，不修改文件或实施。
+
 2026-10-29 — **静默刷新补丁 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户明确授权本次9文件Commit、正常Push origin/main及既有Vercel Production。业务仅CalendarImportantDates.tsx一行提示条件，源码/测试/已测试Build指纹匹配；沿用Node130/130、Browser28/28及TDD6项失败→通过证据。实际部署Source/状态、资源和Git结果由`/private/tmp/calendar-quiet-release-20261029/RELEASE_RECEIPT.md`记录，不预写成功。发布后用户在正式iPhone PWA复验已覆盖范围切换/返回静默、新范围仍提示未完成、基本刷新正常；真实非空数据未人工验收。Slice 3不提前关闭，Slice 2/Follow-up保持关闭，Slice 1暂缓，Slices 4–5未启动；下方旧本地未授权为历史。
 
 本轮按原9文件范围发布，重建Build/语法/diff及生产依赖audit后核验指纹；无代码扩改。Project State Push Gate及唯一updated trailer，正常Push后只读freshness、Source、七项公开资源/Supabase目标核验，执行实绩见回执。无后台/配置或真实账号操作，异常停止、不自动扩修。

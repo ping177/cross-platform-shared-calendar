@@ -1,5 +1,7 @@
 # Backlog
 
+2026-10-29 — **Slice 3 CLOSED / PASS**，用户报告正式iPhone PWA最终验收PASS；真实非空E2E未人工执行，Realtime故障以自动化覆盖。三项已交付修复及分阶段测试证据见 [Testing](./TESTING.md)。v0.1.21整体仍IN PROGRESS；Slice 1暂缓、Slice 2/Follow-up保持关闭，Slice 4仅只读调查，Slices 4–5未实施。下方Pending为历史。
+
 2026-10-29 — **静默刷新补丁 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户明确授权本次9文件Commit、正常Push origin/main及既有Vercel Production。业务仅CalendarImportantDates.tsx一行提示条件，源码/测试/已测试Build指纹匹配；沿用Node130/130、Browser28/28及TDD6项失败→通过证据。实际部署Source/状态、资源和Git结果由`/private/tmp/calendar-quiet-release-20261029/RELEASE_RECEIPT.md`记录，不预写成功。发布后用户在正式iPhone PWA复验已覆盖范围切换/返回静默、新范围仍提示未完成、基本刷新正常；真实非空数据未人工验收。Slice 3不提前关闭，Slice 2/Follow-up保持关闭，Slice 1暂缓，Slices 4–5未启动；下方旧本地未授权为历史。
 
 2026-10-29 — 静默刷新补丁LOCAL VERIFIED / READY FOR RELEASE；仅完整快照后台更新提示条件一行，读取/失效/权限不变；未发布，Slice 3不关闭。详见TESTING首节。
@@ -31,7 +33,7 @@
 
 1. Slice 1 邀请码撤销并发与 Helper ACL：DEFERRED；风险 POTENTIAL，数据库实测 NOT VERIFIED，不继续安全测试。
 2. Slice 2 回顾旧稿覆盖保护：CLOSED / PASS（2026-10-28）；数据库/缓存、自动化、正式部署资源及用户Production真实验收全部PASS，Review维护解除。仅关闭本Slice，整体v0.1.21未完成。
-3. Slice 3 日历 Realtime 故障容错：已部署a9fd99ae / FINAL ACCEPTANCE PENDING；验收发现既有Important Dates范围完整性缺陷，补充修复本地LOCAL VERIFIED / READY FOR RELEASE（2026-10-29），未授权发布、不提前收口。
+3. Slice 3 日历 Realtime 故障容错及重要日验收修正：CLOSED / PASS（2026-10-29），用户报告Production PWA最终通过；证据边界见TESTING首节。
 4. Slice 4 创建请求重复提交：NOT STARTED。
 5. Slice 5 提醒容量及通知清理：NOT STARTED。
 
