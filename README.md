@@ -6,6 +6,10 @@ Production URL: https://cross-platform-shared-calendar.vercel.app/
 
 ## 当前阶段
 
+2026-10-29 — **静默刷新补丁 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户明确授权本次9文件Commit、正常Push origin/main及既有Vercel Production。业务仅CalendarImportantDates.tsx一行提示条件，源码/测试/已测试Build指纹匹配；沿用Node130/130、Browser28/28及TDD6项失败→通过证据。实际部署Source/状态、资源和Git结果由`/private/tmp/calendar-quiet-release-20261029/RELEASE_RECEIPT.md`记录，不预写成功。发布后用户在正式iPhone PWA复验已覆盖范围切换/返回静默、新范围仍提示未完成、基本刷新正常；真实非空数据未人工验收。Slice 3不提前关闭，Slice 2/Follow-up保持关闭，Slice 1暂缓，Slices 4–5未启动；下方旧本地未授权为历史。
+
+2026-10-29 — **Calendar Important Dates静默刷新修正 LOCAL VERIFIED / READY FOR RELEASE**。用户确认Production范围修复有效；常规后台刷新仍反复显示更新提示，根因仅提示未区分calendarComplete。业务只改CalendarImportantDates.tsx一行：有有效完整快照时静默刷新；首次/未覆盖及错误/重试提示保留，读取和快照生命周期不变。Node130/130、WebKit/Chrome28/28、TypeScript/Build通过，未Commit/Push/Deploy。Production已知5a6b02c7，Slice 3仍FINAL ACCEPTANCE PENDING；Slice 2/Follow-up保持关闭，Slice 1暂缓，Slices 4–5未开始。旧发布授权不延伸本补丁。
+
 2026-10-29 — **Snapshot范围补丁 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户明确授权已审核10文件Commit、正常Push origin/main及既有Vercel Production；四项源码/测试指纹保持，沿用Node128/128、全量1020/1020、Browser28/28证据。实际部署Source/状态及资源比对记`/private/tmp/calendar-snapshot-release-20261029/RELEASE_RECEIPT.md`，不预写部署成功。发布后仅用户在iPhone PWA确认日→周→日、月→周→月、已覆盖范围不误报未完整确认、新范围正常读取及刷新；允许正常后台更新提示，真实非空数据未人工验收。Slice 3不提前关闭，其他Slice状态保持；下方未授权/未发布为历史。
 
 2026-10-29 — **Slice 3 Production FINAL ACCEPTANCE PENDING；Calendar Important Dates 范围补充修复 LOCAL VERIFIED / READY FOR RELEASE**。用户在Production PWA发现的往返完整性提示已离线复现，属于Slice 3前已有问题。最小修复仅useImportantDateProjection.ts：按已验证范围包含关系复用；同作用域子范围成功读取替换该区间展示项并保留外侧内容/原覆盖。Node1020/1020、相关128/128、双引擎Browser28/28及TypeScript/Build通过；补丁未Commit/Push/Deploy，等待独立发布授权。Slice 2 CLOSED / PASS、Follow-up CLOSED / ACCEPTED、Slice 1 DEFERRED、Slices 4–5 NOT STARTED保持。下方旧发布授权仅属a9fd99ae，不授权本补丁发布。 详情见 [Testing](./docs/TESTING.md)。

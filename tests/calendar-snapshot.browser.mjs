@@ -56,7 +56,7 @@ for (const engine of ['WebKit', 'Chrome']) {
       const range = await page.evaluate(() => window.snapshotFixture.validated.at(-1).range);
       for (const view of ['week', 'today', 'week', 'month', 'week', 'today', 'week']) {
         await switchPending(page, view); await assertCovered(page);
-        assert.equal(await page.getByText('重要日更新中…', { exact: true }).count(), 1);
+        assert.equal(await page.getByText('重要日更新中…', { exact: true }).count(), 0);
         if (!empty && view !== 'month') assert.ok(await page.getByRole('button', { name: '打开重要日 当天重要日', exact: true }).count());
         await finish(page); await assertCovered(page);
         assert.deepEqual(await page.evaluate(() => window.snapshotFixture.validated.at(-1).range), range);
@@ -64,7 +64,8 @@ for (const engine of ['WebKit', 'Chrome']) {
       await page.evaluate(() => window.snapshotFixture.setMounted(false));
       await page.waitForFunction(() => window.snapshotFixture.channels.length === 0);
       await page.evaluate(() => { const f = window.snapshotFixture; f.hold = true; f.setMounted(true); });
-      await page.getByText('重要日更新中…', { exact: true }).waitFor(); await assertCovered(page); await finish(page);
+      await page.waitForFunction(() => window.snapshotFixture.pending.length > 0); await assertCovered(page);
+      assert.equal(await page.getByText('重要日更新中…', { exact: true }).count(), 0); await finish(page);
       assert.deepEqual(page.errors, []);
     } finally { await page.close(); }
   });
@@ -80,7 +81,8 @@ for (const engine of ['WebKit', 'Chrome']) {
       assert.deepEqual(await page.evaluate(() => window.snapshotFixture.validated.at(-1).items.map(item => item.name)), ['周初重要日', '月内重要日']);
       await switchPending(page, 'month'); await assertCovered(page); await finish(page);
       await page.evaluate(() => { const f = window.snapshotFixture; f.hold = true; f.setDate(new Date(2026, 10, 10)); });
-      await page.getByText('当前范围尚未完整确认。', { exact: true }).waitFor(); await finish(page);
+      await page.getByText('当前范围尚未完整确认。', { exact: true }).waitFor();
+      assert.equal(await page.getByText('重要日更新中…', { exact: true }).count(), 1); await finish(page);
       assert.deepEqual(await page.evaluate(() => window.snapshotFixture.validated.at(-1).range), { start: { year: 2026, month: 10, day: 26 }, end: { year: 2026, month: 12, day: 6 } });
       assert.deepEqual(page.errors, []);
     } finally { await page.close(); }

@@ -12,6 +12,8 @@ v0.1.21
 
 ## Current status
 
+2026-10-29 — **静默刷新补丁 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户明确授权本次9文件Commit、正常Push origin/main及既有Vercel Production。业务仅CalendarImportantDates.tsx一行提示条件，源码/测试/已测试Build指纹匹配；沿用Node130/130、Browser28/28及TDD6项失败→通过证据。实际部署Source/状态、资源和Git结果由`/private/tmp/calendar-quiet-release-20261029/RELEASE_RECEIPT.md`记录，不预写成功。发布后用户在正式iPhone PWA复验已覆盖范围切换/返回静默、新范围仍提示未完成、基本刷新正常；真实非空数据未人工验收。Slice 3不提前关闭，Slice 2/Follow-up保持关闭，Slice 1暂缓，Slices 4–5未启动；下方旧本地未授权为历史。
+
 2026-10-29 — **Snapshot范围补丁 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户明确授权已审核10文件Commit、正常Push origin/main及既有Vercel Production；四项源码/测试指纹保持，沿用Node128/128、全量1020/1020、Browser28/28证据。实际部署Source/状态及资源比对记`/private/tmp/calendar-snapshot-release-20261029/RELEASE_RECEIPT.md`，不预写部署成功。发布后仅用户在iPhone PWA确认日→周→日、月→周→月、已覆盖范围不误报未完整确认、新范围正常读取及刷新；允许正常后台更新提示，真实非空数据未人工验收。Slice 3不提前关闭，其他Slice状态保持；下方未授权/未发布为历史。
 
 2026-10-28 — **v0.1.21 Slice 3 = LOCAL VERIFIED / RELEASE AUTHORIZED / FINAL ACCEPTANCE PENDING**。用户报告本地日历页面基本操作正常，并明确授权本次Commit、正常Push origin/main及既有Vercel Production发布。仅发布已验证的Calendar REST / Realtime Decoupling；无额外业务改动。用户当前无实际日程，不能声称真实非空数据验收通过；Production仅待页面打开、日期/月切换、刷新无异常的轻量确认，故障边界沿用自动化，不要求制造线上Realtime故障。Slice 2及Follow-up关闭、Slice 1暂缓、Slices 4–5未开始保持。 实际部署Source/资源及最终Git结果以本轮回执为准，不预写发布成功。
@@ -65,6 +67,8 @@ UI v2 Slice6 = LOCAL PASS / VISUAL PASS：用户已认可四张居中概览卡�
 v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3为LOCAL PASS / VISUAL PASS；Slice4为LOCAL PASS / VISUAL PROVISIONALLY ACCEPTED。Slice5月视图本地验证与离线视觉验收通过：两条短标题/准确+N、六色圆点与日期浮层，261/261相关测试、build/diff-check、28组四宽度离线检查PASS；用户确认普通月、密集月、空月及浮层满意。已授权本地commit；不代表真实账号、真机、installed PWA或Production验收。Space Color System继续Deferred；真实账号/真机/installed PWA/Production未验收。正式版本仍v0.1.20。
 
 ## Latest completed
+
+2026-10-29 — 用户授权静默刷新补丁发布；业务/测试与已测试Build指纹匹配，Node130/130、Browser28/28证据有效，业务仍仅显示条件一行。实际发布结果见回执，最终PWA人工验收PENDING。
 
 2026-10-29 — Snapshot补丁发布获用户明确授权；已审核10文件范围与四项源码/测试及已测试Build指纹匹配。Node128/128、全量1020/1020、Browser28/28证据沿用，不扩改业务。Production实绩见发布回执，最终人工验收PENDING。
 
@@ -401,6 +405,8 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
+静默刷新补丁获授权通过origin/main→既有Vercel Production发布；实际Source/success、七项资源与Build逐字节比对及Supabase目标记`/private/tmp/calendar-quiet-release-20261029/RELEASE_RECEIPT.md`。无后端/保存规则或Snapshot契约变更。发布前5a6b02c7仅作历史与兼容回退参考，异常停止报告、不自动回退。
+
 Snapshot补丁采用已授权origin/main→既有Vercel Production发布；实际Source、success状态、七项资源与本地Build逐字节比对及Supabase目标由`/private/tmp/calendar-snapshot-release-20261029/RELEASE_RECEIPT.md`记录，不以Push替代部署证据。无数据库/RLS/RPC/Realtime或保存规则变化；发布前a9fd99ae仅作历史与兼容回退参考，异常停止报告、不自动回退。
 
 Slice 3本次获授权通过origin/main→既有Vercel Production发布；实际Source SHA、success状态、七项公开资源与Build比对及Supabase目标由`/private/tmp/calendar-v0121-slice3-release-20261028/RELEASE_RECEIPT.md`核验记录，不以本地Build或Push替代部署证据。无数据库/RLS/RPC/Realtime配置变化；发布前Production基线66d024d6（业务412ad4f8）仅作历史与兼容回退参考，异常时停止报告，不自动回退。
@@ -534,7 +540,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-部署及资源核验通过后，由用户在正式iPhone PWA轻量确认日→周→日、月→周→月、已覆盖范围无错误未完整提示、新范围正常读取及基本切换/刷新；允许后台更新提示，不声称真实非空数据验收。待用户反馈再决定Slice 3收口，不进入Slices 4–5。
+部署与资源核验通过后，由用户在正式iPhone PWA确认已覆盖范围日/周/月切换及返回不再反复显示更新提示、已验证内容保持、新范围正常提示/加载和刷新正常；真实非空数据未人工验收。等待反馈后再决定Slice 3收口，不进入Slices 4–5。
 
 ## Blockers
 
@@ -641,7 +647,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Handoff Prompt
 
-2026-10-29 — **Snapshot范围补丁 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户明确授权已审核10文件Commit、正常Push origin/main及既有Vercel Production；四项源码/测试指纹保持，沿用Node128/128、全量1020/1020、Browser28/28证据。实际部署Source/状态及资源比对记`/private/tmp/calendar-snapshot-release-20261029/RELEASE_RECEIPT.md`，不预写部署成功。发布后仅用户在iPhone PWA确认日→周→日、月→周→月、已覆盖范围不误报未完整确认、新范围正常读取及刷新；允许正常后台更新提示，真实非空数据未人工验收。Slice 3不提前关闭，其他Slice状态保持；下方未授权/未发布为历史。 完成发布核验后停USER ACCEPTANCE CHECKPOINT，不自动追加治理收口Commit。
+2026-10-29 — **静默刷新补丁 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户明确授权本次9文件Commit、正常Push origin/main及既有Vercel Production。业务仅CalendarImportantDates.tsx一行提示条件，源码/测试/已测试Build指纹匹配；沿用Node130/130、Browser28/28及TDD6项失败→通过证据。实际部署Source/状态、资源和Git结果由`/private/tmp/calendar-quiet-release-20261029/RELEASE_RECEIPT.md`记录，不预写成功。发布后用户在正式iPhone PWA复验已覆盖范围切换/返回静默、新范围仍提示未完成、基本刷新正常；真实非空数据未人工验收。Slice 3不提前关闭，Slice 2/Follow-up保持关闭，Slice 1暂缓，Slices 4–5未启动；下方旧本地未授权为历史。 发布核验后停USER ACCEPTANCE CHECKPOINT，不自动追加收口提交。
 
 下方旧handoff仅作历史记录。
 

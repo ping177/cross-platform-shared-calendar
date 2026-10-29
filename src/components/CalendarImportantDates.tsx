@@ -15,7 +15,7 @@ export function CalendarImportantDateStatus({ interaction }: { interaction: Cale
   const available = !state.scope || state.scope.eligibleSpaces.length > 0;
   return <div className="min-w-0 space-y-2 break-words text-sm text-ink/60">
     {available && state.status === 'loading' && <p role="status">正在读取重要日…</p>}
-    {available && retained && state.refreshing && <p role="status">重要日更新中…</p>}
+    {available && retained && state.refreshing && !state.calendarComplete && <p role="status">重要日更新中…</p>}
     {retained && !state.calendarComplete && <p role="status">当前范围尚未完整确认。</p>}
     {state.status === 'error' && <p role="alert" className="text-coral">{retained ? '重要日更新失败，请重试。' : state.error}<button type="button" className="ml-2 min-h-11 font-semibold text-teal" onClick={() => void refresh()}>重试重要日</button></p>}
     {editor.notice && <p role="status">{editor.notice}</p>}

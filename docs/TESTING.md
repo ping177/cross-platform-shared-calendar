@@ -1,5 +1,17 @@
 # Testing
 
+2026-10-29 — **静默刷新补丁 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户明确授权本次9文件Commit、正常Push origin/main及既有Vercel Production。业务仅CalendarImportantDates.tsx一行提示条件，源码/测试/已测试Build指纹匹配；沿用Node130/130、Browser28/28及TDD6项失败→通过证据。实际部署Source/状态、资源和Git结果由`/private/tmp/calendar-quiet-release-20261029/RELEASE_RECEIPT.md`记录，不预写成功。发布后用户在正式iPhone PWA复验已覆盖范围切换/返回静默、新范围仍提示未完成、基本刷新正常；真实非空数据未人工验收。Slice 3不提前关闭，Slice 2/Follow-up保持关闭，Slice 1暂缓，Slices 4–5未启动；下方旧本地未授权为历史。
+
+## Calendar完整快照静默刷新 — LOCAL VERIFIED（2026-10-29）
+
+用户确认已发布范围完整性修复有效；本补丁只在CalendarImportantDateStatus的“重要日更新中”条件加!calendarComplete。没有改请求、snapshot包含/替换/失效、编辑权限、Home或其他模块。已覆盖范围后台刷新静默，未覆盖范围和真实错误/重试继续明确显示。
+
+TDD：四个空/非空往返用例及两个新增同范围focus刷新用例，修改前6/6失败；修改后相关Node130/130 PASS，命令为node --test tests/calendar-important-dates.test.ts tests/important-date-projection-flow.test.ts tests/important-date-projection-data.test.ts tests/calendar-refresh.test.ts tests/aggregate-calendar.test.ts。断言同范围focus恰有一次新读取、非空显示保留、失败提示与重试仍可见。原cold/失效、权限/成员/Space/filter/user/timezone、迟到响应/卸载、范围包含及REST/Realtime回归保持。
+
+浏览器最终WebKit/Chrome28/28 PASS：PLAYWRIGHT_MODULE_PATH=<既有playwright缓存> node --test --test-concurrency=1 tests/calendar-snapshot.browser.mjs tests/calendar-realtime.browser.mjs。真实Calendar/React StrictMode与内存I/O，envFile=false/127.0.0.1:5175路由隔离；空/非空往返和重新挂载在pending时无更新提示，但未覆盖新范围仍显示更新及不完整提示；数据更新/删除与旧请求隔离、REST/Realtime继续通过。无fail/skip，不放宽3秒timeout。
+
+node_modules/.bin/tsc -b、npm run build、两个修改测试文件的node --check、git diff --check PASS，仅既有bundle提示。未运行无必要的全量/发布操作。请求Hook/数据层与HEAD逐字节不变，正常revalidation没有被取消，不存在本轮新引入的请求调度。日志和指纹/private/tmp/calendar-quiet-refresh-20261029/。本补丁未部署，不声称Production或真实非空日历人工PASS。
+
 2026-10-29 — **Snapshot范围补丁 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户明确授权已审核10文件Commit、正常Push origin/main及既有Vercel Production；四项源码/测试指纹保持，沿用Node128/128、全量1020/1020、Browser28/28证据。实际部署Source/状态及资源比对记`/private/tmp/calendar-snapshot-release-20261029/RELEASE_RECEIPT.md`，不预写部署成功。发布后仅用户在iPhone PWA确认日→周→日、月→周→月、已覆盖范围不误报未完整确认、新范围正常读取及刷新；允许正常后台更新提示，真实非空数据未人工验收。Slice 3不提前关闭，其他Slice状态保持；下方未授权/未发布为历史。
 
 ## Calendar Important Dates 范围补充修复 — LOCAL VERIFIED / READY FOR RELEASE（2026-10-29）

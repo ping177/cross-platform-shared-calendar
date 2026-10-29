@@ -405,8 +405,7 @@ test(`Calendar covered round trip ${path.join(' -> ')} keeps ${empty ? 'empty' :
   for (const mode of path.slice(1)) {
     const pending = deferred(); e.m.dates = async (...args: any[]) => { const data = await loader(...args); await pending.promise; return data; };
     e.props.viewMode = mode; let tree = await e.pump();
-    assert.match(renderToStaticMarkup(tree), /重要日更新中/);
-    assert.doesNotMatch(renderToStaticMarkup(tree), /当前范围尚未完整确认|正在读取重要日/);
+    assert.doesNotMatch(renderToStaticMarkup(tree), /重要日更新中|当前范围尚未完整确认|正在读取重要日/);
     pending.resolve(null); tree = await e.pump();
     assert.doesNotMatch(renderToStaticMarkup(tree), /当前范围尚未完整确认|重要日更新中/);
     assert.deepEqual(e.latest().range, original.range); assert.equal(e.latest().view, original.view);
@@ -824,3 +823,15 @@ test('adjacent-month date click opens its details on the first tap while explici
   assert.ok(button(tree, '关闭日期详情')); assert.match(renderToStaticMarkup(tree), /11月1日/);
   e.props.selectedDate = new Date(2026,11,1); tree = await e.pump(); assert.equal(button(tree, '关闭日期详情'), undefined);
 }, false));
+
+for (const empty of [false, true]) test(`Calendar complete ${empty ? 'empty' : 'nonempty'} same-range refresh stays quiet but errors remain visible`, () => runtime(async (e) => {
+  if (empty) e.m.rows = [];
+  await e.pump(); const loader = e.m.dates, pending = deferred(); const before = e.calls.filter((c: any) => c[0] === 'projection').length;
+  e.m.dates = async (...args: any[]) => { const data = await loader(...args); await pending.promise; return data; };
+  e.dispatch('focus'); let tree = await e.pump();
+  assert.equal(e.calls.filter((c: any) => c[0] === 'projection').length, before + 1);
+  assert.doesNotMatch(renderToStaticMarkup(tree), /重要日更新中|当前范围尚未完整确认|正在读取重要日/);
+  if (!empty) assert.ok(button(tree, '打开重要日 同名重要日'));
+  pending.resolve(null); await e.pump(); e.m.dates = loader; e.m.dateFailure = true; e.dispatch('focus'); tree = await e.pump();
+  assert.match(renderToStaticMarkup(tree), /重要日更新失败/); assert.ok(button(tree, '重试重要日'));
+}));
