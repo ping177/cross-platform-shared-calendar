@@ -1,5 +1,9 @@
 # Development Log
 
+2026-10-29 — **Slice 4 CLOSED / PASS**，用户正式iPhone PWA最终验收PASS；交付、分阶段证据与人工边界见[TESTING](./TESTING.md)首节。跨刷新/关闭重开恢复不在范围，故障注入仅自动化覆盖，保存耗时未测量/未优化。整体v0.1.21 IN PROGRESS；Slice 1暂缓、Slices 2–3/回顾Follow-up保持关闭，Slice 5只读调查获授权、未实施。下方旧状态为历史。
+
+本轮仅六治理文件收口，diff/非治理树检查；按授权Governance Commit/正常Push后只读Freshness及Git核验。Phase A成功后只读调查Slice 5，不再修改文件或新增Commit，不重跑业务测试或数据库。
+
 2026-10-29 — **Slice 4 Follow-up RELEASE AUTHORIZED / FINAL ACCEPTANCE PENDING**。用户明确授权本次7文件Commit、正常Push origin/main及既有Vercel Production；只发布App.tsx等待状态文案与重试按钮渲染条件，三份测试/夹具和三份治理。源码/测试指纹保持，沿用Node151/151、WebKit/Chrome62/62及14项先失败后通过证据，不重复全量。UUID/原始内容绑定、权限复核、提交锁、迟到响应及普通/重复保存规则不变；不声称改善保存耗时。发布Source、七项资源、Supabase目标和Git结果由`/private/tmp/calendar-create-wait-release/RELEASE_RECEIPT.md`记录，不预写成功。用户此前核心功能PWA验收PASS，本提示补丁仍待最终人工确认；Slice 4不提前关闭，Slice 2/3保持CLOSED / PASS，Slice 1暂缓、Slice 5未启动。下方未授权/本地未发布为历史。
 
 ## 2026-10-29 — Slice 4 保存等待提示Follow-up（仅本地）

@@ -1,5 +1,7 @@
 # Testing
 
+2026-10-29 — **v0.1.21 Slice 4 CLOSED / PASS**。用户明确报告最终正式iPhone PWA人工验收通过：普通日程创建/刷新/编辑、重复日程创建PASS，未观察到重复；最新等待提示修复后保存正常、显示保存中，未报告提前出现重试按钮。交付同一表单意图稳定UUID/原始提交、权限下异常或冲突读回核对、提交锁/迟到响应保护及等待UI修正。已验收业务Source e5a3cf152cb68cf822c34c090bc831906f339f53，Production部署7407802024 success且Source匹配，七项资源与已测试Build一致，目标ximazjhxvmktpcdbypka。相关Node151/151、Browser62/62、TypeScript/Build/语法/diff/生产audit通过；历史全量1048属于核心修复阶段，不冒称本次Follow-up后全量重跑。跨刷新/关闭重开不恢复意图；Production故障注入MANUAL NOT RUN、由自动化覆盖；保存耗时未定量测量也未优化。这些边界不阻碍已验收范围收口。整体v0.1.21仍IN PROGRESS，Slice 1 DEFERRED、Slices 2–3 CLOSED / PASS、回顾Follow-up CLOSED / ACCEPTED保持；Slice 5仅只读调查授权，未实施。下方Pending/未发布为历史。
+
 2026-10-29 — **Slice 4 Follow-up RELEASE AUTHORIZED / FINAL ACCEPTANCE PENDING**。用户明确授权本次7文件Commit、正常Push origin/main及既有Vercel Production；只发布App.tsx等待状态文案与重试按钮渲染条件，三份测试/夹具和三份治理。源码/测试指纹保持，沿用Node151/151、WebKit/Chrome62/62及14项先失败后通过证据，不重复全量。UUID/原始内容绑定、权限复核、提交锁、迟到响应及普通/重复保存规则不变；不声称改善保存耗时。发布Source、七项资源、Supabase目标和Git结果由`/private/tmp/calendar-create-wait-release/RELEASE_RECEIPT.md`记录，不预写成功。用户此前核心功能PWA验收PASS，本提示补丁仍待最终人工确认；Slice 4不提前关闭，Slice 2/3保持CLOSED / PASS，Slice 1暂缓、Slice 5未启动。下方未授权/本地未发布为历史。
 
 ## 2026-10-29 — Slice 4 保存等待提示回归（LOCAL VERIFIED / 未发布）

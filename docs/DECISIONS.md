@@ -1,5 +1,7 @@
 # Decisions
 
+2026-10-29 — **Slice 4 CLOSED / PASS**，用户正式iPhone PWA最终验收PASS；交付、分阶段证据与人工边界见[TESTING](./TESTING.md)首节。跨刷新/关闭重开恢复不在范围，故障注入仅自动化覆盖，保存耗时未测量/未优化。整体v0.1.21 IN PROGRESS；Slice 1暂缓、Slices 2–3/回顾Follow-up保持关闭，Slice 5只读调查获授权、未实施。下方旧状态为历史。
+
 2026-10-29 — **Slice 4 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户明确授权本次13文件Commit、正常Push origin/main及既有Vercel Production。七份业务/测试指纹匹配，沿用全量Node1048/1048、相关46/46、WebKit/Chrome20+52项通过证据；业务无扩改。Production catalog未直接核验：无可用SQL连接工具，已安装Supabase CLI调用被系统SIGKILL，未读取数据库凭据或绕过登录。仓库UUID/schema/RLS/grant合同支持本实现；线上真实创建行为仍由用户验收，不宣称Production写入已验证。发布Source/资源/目标/Git结果见`/private/tmp/calendar-slice4-release/RELEASE_RECEIPT.md`，不预写部署成功。刷新/关闭重开不恢复意图，跨意图重复风险保留。Slice 4不提前关闭；Slices 2–3/Follow-up保持关闭、Slice 1暂缓、Slice 5未启动。下方LOCAL/未授权为历史。
 
 ## 2026-10-29 — Slice 4 创建意图边界（LOCAL VERIFIED / 未发布）
