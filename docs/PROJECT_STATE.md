@@ -12,6 +12,10 @@ v0.1.21
 
 ## Current status
 
+2026-10-29 — **Slice 4 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户明确授权本次13文件Commit、正常Push origin/main及既有Vercel Production。七份业务/测试指纹匹配，沿用全量Node1048/1048、相关46/46、WebKit/Chrome20+52项通过证据；业务无扩改。Production catalog未直接核验：无可用SQL连接工具，已安装Supabase CLI调用被系统SIGKILL，未读取数据库凭据或绕过登录。仓库UUID/schema/RLS/grant合同支持本实现；线上真实创建行为仍由用户验收，不宣称Production写入已验证。发布Source/资源/目标/Git结果见`/private/tmp/calendar-slice4-release/RELEASE_RECEIPT.md`，不预写部署成功。刷新/关闭重开不恢复意图，跨意图重复风险保留。Slice 4不提前关闭；Slices 2–3/Follow-up保持关闭、Slice 1暂缓、Slice 5未启动。下方LOCAL/未授权为历史。
+
+2026-10-29 — **v0.1.21 Slice 4 LOCAL VERIFIED / READY FOR RELEASE（尚未发布）**。仅同一挂载的新建日程表单：首发固定客户端UUID与原始提交，未知结果冻结内容/Space并复用原ID重试；冲突/传输异常按当前权限精确读回核对，无法确认不报成功；关闭需明确风险确认。不提供跨刷新或关闭/重开意图恢复，不宣称杜绝所有重复。全量Node1048/1048、WebKit/Chrome创建20/20及既有回归52/52、TypeScript/Build/语法/diff通过。仅本地代码/测试/治理，未Commit/Push/Deploy或修改后端。Slices 2–3 CLOSED / PASS、Follow-up CLOSED / ACCEPTED、Slice 1 DEFERRED、Slice 5 NOT STARTED；整体仍IN PROGRESS。下方旧只读/未实施状态为历史。
+
 2026-10-29 — **v0.1.21 Slice 3 CLOSED / PASS**。USER_REPORTED_PRODUCTION_PWA_ACCEPTANCE = PASS：用户在正式iPhone PWA确认日/周/月切换、范围未完整误报修复、完整快照后台更新提示修复及日历基本使用正常。交付含REST/Realtime解耦、Important Dates Snapshot范围包含/覆盖保留、完整快照静默刷新。最终业务发布b90b81b6eac5dcee85e084e3e123b41260bc97f7，Production7403767389 success、Source匹配、七项资源与Build逐字节一致，Supabase ximazjhxvmktpcdbypka。最终相关Node130/130、Browser28/28、TypeScript/Build/语法/diff PASS；历史全量1020/1020属于范围修复阶段，不是静默提示修改后全量重跑。用户无实际日程，真实非空日历MANUAL E2E NOT RUN；Realtime故障以自动化覆盖。v0.1.21整体IN PROGRESS，Slice 1 DEFERRED、Slice 2/Follow-up保持关闭；Slice 4仅获只读调查授权，Slices 4–5未实施。下方旧Pending为历史。
 
 2026-10-29 — **Snapshot范围补丁 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户明确授权已审核10文件Commit、正常Push origin/main及既有Vercel Production；四项源码/测试指纹保持，沿用Node128/128、全量1020/1020、Browser28/28证据。实际部署Source/状态及资源比对记`/private/tmp/calendar-snapshot-release-20261029/RELEASE_RECEIPT.md`，不预写部署成功。发布后仅用户在iPhone PWA确认日→周→日、月→周→月、已覆盖范围不误报未完整确认、新范围正常读取及刷新；允许正常后台更新提示，真实非空数据未人工验收。Slice 3不提前关闭，其他Slice状态保持；下方未授权/未发布为历史。
@@ -67,6 +71,10 @@ UI v2 Slice6 = LOCAL PASS / VISUAL PASS：用户已认可四张居中概览卡�
 v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3为LOCAL PASS / VISUAL PASS；Slice4为LOCAL PASS / VISUAL PROVISIONALLY ACCEPTED。Slice5月视图本地验证与离线视觉验收通过：两条短标题/准确+N、六色圆点与日期浮层，261/261相关测试、build/diff-check、28组四宽度离线检查PASS；用户确认普通月、密集月、空月及浮层满意。已授权本地commit；不代表真实账号、真机、installed PWA或Production验收。Space Color System继续Deferred；真实账号/真机/installed PWA/Production未验收。正式版本仍v0.1.20。
 
 ## Latest completed
+
+Slice 4已测试源码/测试指纹匹配、发布授权和范围审查完成；Production契约直接核验边界已如实记录，未扩改代码。
+
+2026-10-29 — Slice 4同表单创建意图UUID/原始内容固定、未知结果安全重试/关闭警告、权限与旧响应保护及本地自动验证完成；详细测试及范围限制见TESTING首节。未发布，不关闭Slice 4。
 
 2026-10-29 — Slice 3三项修复及用户报告Production PWA最终验收PASS，正式CLOSED / PASS；仅治理收口，最终Node130/130/Browser28/28与范围修复阶段历史全量1020/1020分开归属。非空E2E未人工执行。
 
@@ -405,6 +413,10 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
+本次Slice 4按用户授权经origin/main与既有Vercel Production集成发布；实际Source SHA、部署状态、七项资源/Supabase目标及Git结果以`/private/tmp/calendar-slice4-release/RELEASE_RECEIPT.md`为准，不以Push代替部署证据。无后端变更，Production catalog与真实写入未验证。下方未发布为历史。
+
+2026-10-29 — Slice 4仅本地实施和验证，未Commit/Push/Deploy，本轮未改变Production；发布与真实用户验收另行授权。Slice 3已验收业务基线b90b81b6eac5dcee85e084e3e123b41260bc97f7保持；本次开始时Git基线02f271468599a7dee97b2f0e43da3364848fe0d7。未执行Production数据库探测/写入。
+
 已验收业务Source b90b81b6eac5dcee85e084e3e123b41260bc97f7 / Vercel Production7403767389 success，七项资源与Build一致，目标ximazjhxvmktpcdbypka。用户最终Production PWA验收PASS；本次仅文档收口，允许既有Git集成自动部署，实绩由本轮报告确认，无后端或配置变更。
 
 Snapshot补丁采用已授权origin/main→既有Vercel Production发布；实际Source、success状态、七项资源与本地Build逐字节比对及Supabase目标由`/private/tmp/calendar-snapshot-release-20261029/RELEASE_RECEIPT.md`记录，不以Push替代部署证据。无数据库/RLS/RPC/Realtime或保存规则变化；发布前a9fd99ae仅作历史与兼容回退参考，异常停止报告、不自动回退。
@@ -484,7 +496,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Version Index
 
-- v0.1.21 — Engineering Stability & Data Safety；整体IN PROGRESS，Slices 2–3 CLOSED / PASS；Slice 1 DEFERRED，Slice 4只读调查/未实施，Slice 5 NOT STARTED。
+- v0.1.21 — Engineering Stability & Data Safety；整体IN PROGRESS，Slices 2–3 CLOSED / PASS；Slice 1 DEFERRED，Slice 4 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING（仅同表单意图），Slice 5 NOT STARTED。
 - v0.1 — 共享日历 MVP
 - v0.1-smoke-test — Supabase 验收
 - v0.1.1 — 个人事件权限
@@ -540,7 +552,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-依据Slice 4创建请求重复提交的只读证据决定是否另行授权最小实施；调查完成后停止等待授权。Slice 3已关闭，不重开Slice 1/2，不进入Slice 5。
+停在USER ACCEPTANCE CHECKPOINT：由用户在正式PWA验证普通日程/重复系列根创建、目标归属及基本编辑刷新；Production显式UUID写入尚无真实验收。未知结果/重试/冲突以离线自动化覆盖，不在Production制造故障；刷新/关闭重开恢复明确不做。待用户反馈后另行授权治理收口，不进入Slice 5。
 
 ## Blockers
 
@@ -548,7 +560,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Important Context
 
-- v0.1.21仅Slice 2并发保护及用户确认场景已CLOSED / PASS，整体未完成。回顾边缘返回/完成入口独立 Follow-up 已按实际验收范围关闭，创建默认空间待产品讨论，对方状态短延迟暂观察；不在收口中扩大手势或Realtime范围。
+- v0.1.21 Slices 2–3已CLOSED / PASS，Slice 4仅本地验证完成，整体未完成。回顾边缘返回/完成入口独立 Follow-up 已按实际验收范围关闭，创建默认空间待产品讨论，对方状态短延迟暂观察；不在收口中扩大手势或Realtime范围。
 
 - 本次仅复用 Space 筛选菜单的展示/交互能力，表单禁止“全部空间”；父级保留资格、ownership、默认值、编辑不可迁移限制、草稿及提交验证。此前“不重做筛选器”仍有效：只增加默认关闭的弹窗模式，原页面筛选器无重新设计。
 
@@ -647,7 +659,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Handoff Prompt
 
-2026-10-29 — **v0.1.21 Slice 3 CLOSED / PASS**。USER_REPORTED_PRODUCTION_PWA_ACCEPTANCE = PASS：用户在正式iPhone PWA确认日/周/月切换、范围未完整误报修复、完整快照后台更新提示修复及日历基本使用正常。交付含REST/Realtime解耦、Important Dates Snapshot范围包含/覆盖保留、完整快照静默刷新。最终业务发布b90b81b6eac5dcee85e084e3e123b41260bc97f7，Production7403767389 success、Source匹配、七项资源与Build逐字节一致，Supabase ximazjhxvmktpcdbypka。最终相关Node130/130、Browser28/28、TypeScript/Build/语法/diff PASS；历史全量1020/1020属于范围修复阶段，不是静默提示修改后全量重跑。用户无实际日程，真实非空日历MANUAL E2E NOT RUN；Realtime故障以自动化覆盖。v0.1.21整体IN PROGRESS，Slice 1 DEFERRED、Slice 2/Follow-up保持关闭；Slice 4仅获只读调查授权，Slices 4–5未实施。下方旧Pending为历史。 当前仅继续Slice 4只读调查，确认创建/重试/幂等机制及响应丢失风险；不修改代码/测试/后端或实施，结束后等待授权。
+2026-10-29 — **Slice 4 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户明确授权本次13文件Commit、正常Push origin/main及既有Vercel Production。七份业务/测试指纹匹配，沿用全量Node1048/1048、相关46/46、WebKit/Chrome20+52项通过证据；业务无扩改。Production catalog未直接核验：无可用SQL连接工具，已安装Supabase CLI调用被系统SIGKILL，未读取数据库凭据或绕过登录。仓库UUID/schema/RLS/grant合同支持本实现；线上真实创建行为仍由用户验收，不宣称Production写入已验证。发布Source/资源/目标/Git结果见`/private/tmp/calendar-slice4-release/RELEASE_RECEIPT.md`，不预写部署成功。刷新/关闭重开不恢复意图，跨意图重复风险保留。Slice 4不提前关闭；Slices 2–3/Follow-up保持关闭、Slice 1暂缓、Slice 5未启动。下方LOCAL/未授权为历史。 后续仅等待用户验收反馈；发布结果由回执核验。
 
 下方旧handoff仅作历史记录。
 

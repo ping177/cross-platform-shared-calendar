@@ -1,5 +1,15 @@
 # Decisions
 
+2026-10-29 — **Slice 4 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户明确授权本次13文件Commit、正常Push origin/main及既有Vercel Production。七份业务/测试指纹匹配，沿用全量Node1048/1048、相关46/46、WebKit/Chrome20+52项通过证据；业务无扩改。Production catalog未直接核验：无可用SQL连接工具，已安装Supabase CLI调用被系统SIGKILL，未读取数据库凭据或绕过登录。仓库UUID/schema/RLS/grant合同支持本实现；线上真实创建行为仍由用户验收，不宣称Production写入已验证。发布Source/资源/目标/Git结果见`/private/tmp/calendar-slice4-release/RELEASE_RECEIPT.md`，不预写部署成功。刷新/关闭重开不恢复意图，跨意图重复风险保留。Slice 4不提前关闭；Slices 2–3/Follow-up保持关闭、Slice 1暂缓、Slice 5未启动。下方LOCAL/未授权为历史。
+
+## 2026-10-29 — Slice 4 创建意图边界（LOCAL VERIFIED / 未发布）
+
+本轮只保护同一挂载EventSheet内的一次创建意图。通过既有目标/成员与账号校验后，在首次insert前固定UUID及深拷贝的提交内容（含created_by/Space/归属/时区/recurrence）；任何发送后不确定结果均复用原值，不按标题/时间去重、不upsert。异常后按当前会话RLS以Space+ID精确select，核对全部提交字段及系列根身份；核对失败或权限变化保持不确定，不关闭/不回调成功。重试核验原始归属成员，不随当前草稿漂移。成功响应前后继续校验权限，请求代次与卸载保护阻止旧回调。
+
+未知结果期间隐藏可编辑草稿并禁用Space选择；显式重试原始创建。关闭按钮/Escape弹出风险确认，取消恢复焦点；确认关闭放弃本地意图，不声称撤销服务端创建。刷新、强制退出、关闭后重开和其他独立表单均无持久意图恢复，可能产生跨意图重复，这是用户冻结的范围限制。权限/账号变化不允许原意图迁移至新账号或Space。普通和重复日程共用创建路径，重复规则/展开、已有事件编辑删除及Slice 3机制保持。
+
+仓库schema/RLS/trigger及表级grant允许显式events UUID：默认gen_random_uuid不强制替换ID，INSERT仍须当前Space成员且created_by=auth.uid()，SELECT仍须成员；不需要SQL/RPC变更。此结论基于当前仓库合同和离线测试，未查询Production catalog或实际业务数据。未来正式发布仍需环境对齐门禁；本轮仅本地代码/测试/治理，不Commit/Push/Deploy。Slices 2–3与Follow-up保持关闭，Slice 1暂缓、Slice 5未实施。
+
 2026-10-29 — **Slice 3 CLOSED / PASS**，用户报告正式iPhone PWA最终验收PASS；真实非空E2E未人工执行，Realtime故障以自动化覆盖。三项已交付修复及分阶段测试证据见 [Testing](./TESTING.md)。v0.1.21整体仍IN PROGRESS；Slice 1暂缓、Slice 2/Follow-up保持关闭，Slice 4仅只读调查，Slices 4–5未实施。下方Pending为历史。
 
 2026-10-29 — **静默刷新补丁 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户明确授权本次9文件Commit、正常Push origin/main及既有Vercel Production。业务仅CalendarImportantDates.tsx一行提示条件，源码/测试/已测试Build指纹匹配；沿用Node130/130、Browser28/28及TDD6项失败→通过证据。实际部署Source/状态、资源和Git结果由`/private/tmp/calendar-quiet-release-20261029/RELEASE_RECEIPT.md`记录，不预写成功。发布后用户在正式iPhone PWA复验已覆盖范围切换/返回静默、新范围仍提示未完成、基本刷新正常；真实非空数据未人工验收。Slice 3不提前关闭，Slice 2/Follow-up保持关闭，Slice 1暂缓，Slices 4–5未启动；下方旧本地未授权为历史。

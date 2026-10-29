@@ -103,8 +103,10 @@ test('form preserves title when target changes and inserts final target with dup
   let release = () => {}; e.m.saveWait = new Promise<void>(r => { release = r; }); e.m.saveError = true;
   const confirmation = confirm(); confirmation.props.onClick(); confirmation.props.onClick(); await e.flush();
   assert.equal(e.m.payloads.length, 1); assert.equal(e.m.payloads[0].space_id, 'personal');
-  release(); await e.flush(); assert.equal(closed, 0); assert.equal(title().props.value, '保留草稿');
-  e.m.saveWait = null; e.m.saveError = false; submit(); confirm().props.onClick(); await e.flush(); assert.equal(e.m.payloads.length, 2); assert.equal(closed, 1);
+  release(); await e.flush(); assert.equal(closed, 0); assert.equal(title(), undefined);
+  assert.ok(nodes(renderForm()).some(n => n.type === 'p' && String(n.props.children).includes('创建结果尚未确认')));
+  e.m.saveWait = null; e.m.saveError = false;
+  nodes(renderForm()).find(n => n.type === 'button' && n.props.children === '核对并重试原始创建').props.onClick(); await e.flush(); assert.equal(e.m.payloads.length, 2); assert.deepEqual(e.m.payloads[1], e.m.payloads[0]); assert.match(e.m.payloads[0].id, /^[0-9a-f-]{36}$/); assert.equal(closed, 1);
 }));
 
 test('no available Space keeps unique plus disabled with explanation', () => runtime(async e => {

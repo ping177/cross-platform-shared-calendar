@@ -1,5 +1,9 @@
 # Backlog
 
+2026-10-29 — **Slice 4 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户明确授权本次13文件Commit、正常Push origin/main及既有Vercel Production。七份业务/测试指纹匹配，沿用全量Node1048/1048、相关46/46、WebKit/Chrome20+52项通过证据；业务无扩改。Production catalog未直接核验：无可用SQL连接工具，已安装Supabase CLI调用被系统SIGKILL，未读取数据库凭据或绕过登录。仓库UUID/schema/RLS/grant合同支持本实现；线上真实创建行为仍由用户验收，不宣称Production写入已验证。发布Source/资源/目标/Git结果见`/private/tmp/calendar-slice4-release/RELEASE_RECEIPT.md`，不预写部署成功。刷新/关闭重开不恢复意图，跨意图重复风险保留。Slice 4不提前关闭；Slices 2–3/Follow-up保持关闭、Slice 1暂缓、Slice 5未启动。下方LOCAL/未授权为历史。
+
+2026-10-29 — **v0.1.21 Slice 4 LOCAL VERIFIED / READY FOR RELEASE，未发布**。同一新建表单内UUID与原始提交固定、权限下精确读回核对、未知结果冻结/重试和关闭警告已完成本地验证。跨刷新/关闭重开恢复明确不做，仍可能跨意图重复；验证与限制见[TESTING](./TESTING.md)首节。Slices 2–3/Follow-up保持关闭，Slice 1暂缓，Slice 5未开始，整体IN PROGRESS。等待正式Git/发布授权；下方旧状态为历史。
+
 2026-10-29 — **Slice 3 CLOSED / PASS**，用户报告正式iPhone PWA最终验收PASS；真实非空E2E未人工执行，Realtime故障以自动化覆盖。三项已交付修复及分阶段测试证据见 [Testing](./TESTING.md)。v0.1.21整体仍IN PROGRESS；Slice 1暂缓、Slice 2/Follow-up保持关闭，Slice 4仅只读调查，Slices 4–5未实施。下方Pending为历史。
 
 2026-10-29 — **静默刷新补丁 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户明确授权本次9文件Commit、正常Push origin/main及既有Vercel Production。业务仅CalendarImportantDates.tsx一行提示条件，源码/测试/已测试Build指纹匹配；沿用Node130/130、Browser28/28及TDD6项失败→通过证据。实际部署Source/状态、资源和Git结果由`/private/tmp/calendar-quiet-release-20261029/RELEASE_RECEIPT.md`记录，不预写成功。发布后用户在正式iPhone PWA复验已覆盖范围切换/返回静默、新范围仍提示未完成、基本刷新正常；真实非空数据未人工验收。Slice 3不提前关闭，Slice 2/Follow-up保持关闭，Slice 1暂缓，Slices 4–5未启动；下方旧本地未授权为历史。

@@ -19,8 +19,8 @@ async function sheet(kind: 'Event' | 'Task' | 'Important', run: (e: any) => Prom
     useEffect(fn: () => any, deps: any[]) { const i = cursor++; if (!(i in slots) || deps.some((v, n) => v !== slots[i][n])) { slots[i] = deps; effects.push(fn); } },
     useMemo(fn: () => any) { return fn(); },
   };
-  const query: any = { insert(value: any) { calls.push(['insert', value]); return query; }, update(value: any) { calls.push(['update', value]); return query; }, delete() { calls.push(['delete']); return query; }, eq() { return query; }, select() { return query; }, then(resolve: any) { return (wait ?? Promise.resolve()).then(() => ({ data: [{ id: 'e' }], error: failure })).then(resolve); } };
-  (globalThis as any).__sharedForms = { ...hooks, supabase: { from() { return query; }, async rpc(name: string, args: any) { calls.push(['rpc', name, args]); return { error: failure }; } } };
+  const query: any = { insert(value: any) { calls.push(['insert', value]); return query; }, update(value: any) { calls.push(['update', value]); return query; }, delete() { calls.push(['delete']); return query; }, eq() { return query; }, select() { return query; }, async maybeSingle() { return { data: null, error: failure }; }, then(resolve: any) { return (wait ?? Promise.resolve()).then(() => ({ data: [{ id: 'e' }], error: failure })).then(resolve); } };
+  (globalThis as any).__sharedForms = { ...hooks, supabase: { auth: { async getUser() { return { data: { user: { id: 'me' } }, error: null }; } }, from() { return query; }, async rpc(name: string, args: any) { calls.push(['rpc', name, args]); return { error: failure }; } } };
   const vite = await createServer({ configFile: false, envFile: false, logLevel: 'silent', optimizeDeps: { noDiscovery: true, include: [] }, ssr: { external: ['react', 'react/jsx-runtime', 'react/jsx-dev-runtime'] }, server: { middlewareMode: true, hmr: false }, appType: 'custom', plugins: [{ name: 'shared-form-handlers', enforce: 'pre', transform(code, id) { if ((id.includes('/src/components/') && !id.endsWith('/SpaceFilterDropdown.tsx')) || id.endsWith('/src/App.tsx')) return code.replace("from 'react'", "from 'shared-form-test-hooks'"); }, resolveId(id, importer) {
     if (id === 'shared-form-test-hooks' && (importer?.includes('/components/') || importer?.endsWith('/App.tsx'))) return '\0shared-hooks';
     if (/\/supabase(?:\.ts)?$/.test(id)) return '\0shared-client';
@@ -93,8 +93,8 @@ test('Event saving disables header and close; failure retains values and retry k
   const release = e.hold(); e.fail(new Error('保存失败')); const pending = e.submit();
   assert.equal(nodes(e.render()).find(n => n.props.type === 'submit').props.disabled, true);
   assert.equal(nodes(e.render()).find(n => n.props['aria-label'] === '关闭').props.disabled, true);
-  release(); await pending; assert.match(e.html(), /保留的日程|保存失败/); assert.equal(e.calls.includes('close'), false);
-  e.fail(null); await e.submit(); const writes = e.calls.filter((c: any) => Array.isArray(c));
+  release(); await pending; assert.match(e.html(), /创建结果尚未确认/); assert.equal(nodes(e.render()).some(n => n.type === 'form'), false); assert.equal(e.calls.includes('close'), false);
+  e.fail(null); e.click('核对并重试原始创建'); await new Promise(setImmediate); const writes = e.calls.filter((c: any) => Array.isArray(c));
   assert.deepEqual(writes[0], writes[1]); assert.deepEqual(e.calls.slice(-2), ['close', 'saved']);
 }));
 

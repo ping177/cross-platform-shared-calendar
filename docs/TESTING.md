@@ -1,5 +1,18 @@
 # Testing
 
+2026-10-29 — **Slice 4 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户明确授权本次13文件Commit、正常Push origin/main及既有Vercel Production。七份业务/测试指纹匹配，沿用全量Node1048/1048、相关46/46、WebKit/Chrome20+52项通过证据；业务无扩改。Production catalog未直接核验：无可用SQL连接工具，已安装Supabase CLI调用被系统SIGKILL，未读取数据库凭据或绕过登录。仓库UUID/schema/RLS/grant合同支持本实现；线上真实创建行为仍由用户验收，不宣称Production写入已验证。发布Source/资源/目标/Git结果见`/private/tmp/calendar-slice4-release/RELEASE_RECEIPT.md`，不预写部署成功。刷新/关闭重开不恢复意图，跨意图重复风险保留。Slice 4不提前关闭；Slices 2–3/Follow-up保持关闭、Slice 1暂缓、Slice 5未启动。下方LOCAL/未授权为历史。
+
+## 2026-10-29 — v0.1.21 Slice 4 mounted-form Create Idempotency（LOCAL VERIFIED / READY FOR RELEASE）
+
+- 全量 `node --test tests/*.test.ts tests/*.test.js`：**1048/1048 PASS**，无fail/skip。含新增26个create-intent用例，以及既有创建、编辑/删除、recurrence、Calendar REST/Realtime和Important Dates Snapshot回归。针对意图/真实EventSheet hook harness/共享表单 `node --test tests/event-create-intent.test.ts tests/calendar-create.test.ts tests/shared-form-ui-v2.test.ts`：46/46 PASS。
+- WebKit/Chrome：**72/72 PASS（分轮）**。`tests/event-create.browser.mjs`最终20/20；相同业务源码下既有`calendar-realtime.browser.mjs`20/20、`calendar-snapshot.browser.mjs`8/8、`space-targets.browser.mjs`24/24。命令使用既有`PLAYWRIGHT_MODULE_PATH`及`node --test --test-concurrency=1`。新夹具是真实EventSheet/React StrictMode，只有Supabase I/O内存替身；envFile=false、所有网络拦截至127.0.0.1:5175，未使用真实登录或数据。
+- 创建专项覆盖：普通/重复系列根正常创建、提交前明确拒绝、发送抛错/超时、服务端写入但响应丢失、同UUID原内容重试、同tick/并发、当前RLS可读且匹配/不可读/缺失/所有字段不匹配、原始归属核验、深拷贝recurrence、快速账号/Space往返及卸载后旧响应、权限变化、关闭警告取消保留/确认离开。精确读取限定Space+ID；不把23505直接当成功。
+- 初轮浏览器发现WebKit取消原生关闭确认后焦点丢失，已修正为恢复表单标题焦点；真实DOM回归验证取消后Escape仍能再次警告。另一轮账号往返/卸载夹具未等React提交便释放响应，修正为等待实际DOM状态，未延长3秒超时或放宽断言。共享表单与旧创建测试更新为未知结果冻结并通过原始重试入口恢复，增加稳定UUID/完整payload等值断言。
+- `npx tsc -b`、`npm run build`、新增Node/browser语法及`git diff --check` PASS；保留原有大chunk非阻塞提示。诊断日志位于`/private/tmp/calendar-slice4-local/`，非持久业务数据。未新增依赖、未改数据库/RLS/RPC/Realtime配置或其他项目。
+- 兼容性仅核对仓库`supabase/schema.sql` events UUID默认、events INSERT/SELECT RLS、owner trigger和authenticated表级grant；没有Production catalog实测或真实RLS/网络故障验收。发布前执行环境对齐门禁，真实账号/iPhone PWA验收由用户完成。刷新、关闭重开持久恢复明确排除：确认关闭不能撤销可能已成功的写入，独立意图仍可能重复；不宣称彻底杜绝重复。
+
+Slice 4未发布/未关闭；Slices 2–3 CLOSED / PASS、Follow-up CLOSED / ACCEPTED保持，Slice 1 DEFERRED、Slice 5 NOT STARTED。本轮禁止Commit/Push/Deploy。
+
 2026-10-29 — **v0.1.21 Slice 3 CLOSED / PASS**。USER_REPORTED_PRODUCTION_PWA_ACCEPTANCE = PASS：用户在正式iPhone PWA确认日/周/月切换、范围未完整误报修复、完整快照后台更新提示修复及日历基本使用正常。交付含REST/Realtime解耦、Important Dates Snapshot范围包含/覆盖保留、完整快照静默刷新。最终业务发布b90b81b6eac5dcee85e084e3e123b41260bc97f7，Production7403767389 success、Source匹配、七项资源与Build逐字节一致，Supabase ximazjhxvmktpcdbypka。最终相关Node130/130、Browser28/28、TypeScript/Build/语法/diff PASS；历史全量1020/1020属于范围修复阶段，不是静默提示修改后全量重跑。用户无实际日程，真实非空日历MANUAL E2E NOT RUN；Realtime故障以自动化覆盖。v0.1.21整体IN PROGRESS，Slice 1 DEFERRED、Slice 2/Follow-up保持关闭；Slice 4仅获只读调查授权，Slices 4–5未实施。下方旧Pending为历史。
 
 2026-10-29 — **静默刷新补丁 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户明确授权本次9文件Commit、正常Push origin/main及既有Vercel Production。业务仅CalendarImportantDates.tsx一行提示条件，源码/测试/已测试Build指纹匹配；沿用Node130/130、Browser28/28及TDD6项失败→通过证据。实际部署Source/状态、资源和Git结果由`/private/tmp/calendar-quiet-release-20261029/RELEASE_RECEIPT.md`记录，不预写成功。发布后用户在正式iPhone PWA复验已覆盖范围切换/返回静默、新范围仍提示未完成、基本刷新正常；真实非空数据未人工验收。Slice 3不提前关闭，Slice 2/Follow-up保持关闭，Slice 1暂缓，Slices 4–5未启动；下方旧本地未授权为历史。

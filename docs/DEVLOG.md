@@ -1,5 +1,17 @@
 # Development Log
 
+2026-10-29 — **Slice 4 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户明确授权本次13文件Commit、正常Push origin/main及既有Vercel Production。七份业务/测试指纹匹配，沿用全量Node1048/1048、相关46/46、WebKit/Chrome20+52项通过证据；业务无扩改。Production catalog未直接核验：无可用SQL连接工具，已安装Supabase CLI调用被系统SIGKILL，未读取数据库凭据或绕过登录。仓库UUID/schema/RLS/grant合同支持本实现；线上真实创建行为仍由用户验收，不宣称Production写入已验证。发布Source/资源/目标/Git结果见`/private/tmp/calendar-slice4-release/RELEASE_RECEIPT.md`，不预写部署成功。刷新/关闭重开不恢复意图，跨意图重复风险保留。Slice 4不提前关闭；Slices 2–3/Follow-up保持关闭、Slice 1暂缓、Slice 5未启动。下方LOCAL/未授权为历史。
+
+## 2026-10-29 — Slice 4 创建意图最小幂等保护（LOCAL VERIFIED / 未发布）
+
+- 业务仅`src/App.tsx` EventSheet接入与`src/lib/event-create-intent.ts`局部助手。首发前通过目标成员及auth校验后固定UUID/原始payload；后续异常、超时、响应丢失沿用原ID+原文。服务端PK阻止同ID并行插入，客户端原提交锁和意图锁防止双回调。
+- 所有发送后异常均尝试在当前权限下以Space+ID精确读回，逐字段核对（timestamps按同一瞬间、JSON字段不依赖key顺序），并拒绝非根/已截断系列；主键冲突本身不证明成功。再次核验账号、原始归属成员、空间及请求代次，未确认保持冻结状态，不静默创建新意图。没有upsert或按业务字段去重。
+- 未知结果替换编辑区域为明确说明/原始重试，Space禁用；关闭/Escape需确认“可能已保存，重开可能重复”，取消恢复焦点；等待网络时关闭/修改不可用。卸载或账号/Space换回旧上下文的迟到结果不回调成功。没有新缓存、持久化、全局框架或额外重试调度。
+- 既有schema显式UUID/RLS/grant/trigger核对通过，未做Production查询/变更；普通/重复日程均只保护系列根insert，编辑/删除/recurrence与Calendar读取和Snapshot代码不改。
+- 全量Node1048/1048、相关46/46；WebKit/Chrome创建20/20+既有Calendar/Space52/52（分轮）PASS；tsc、Build、语法、diff PASS。失败修正及命令详见TESTING首节；原有chunk提示保留，无fail/skip。代码/安全/范围审查通过，无本地技术阻塞。
+- 更新六份必要治理，PROJECT_STATE为Slice 4 LOCAL VERIFIED / READY FOR RELEASE；Slices 2–3及Follow-up保持关闭，Slice 1暂缓，Slice 5未实施。仅本地修改，未Commit/Push/Deploy；未读/打印.env或真实会话凭据，Build按既有工具配置加载环境但未输出值；外部仅临时诊断日志，未改其他项目。
+- 明确剩余边界：刷新、退出、确认关闭后重开无持久意图恢复，独立意图可重复；未知状态不能证明服务端没有创建。待正式发布授权及环境门禁，真实账号/设备验收尚未执行，不宣布Slice 4 CLOSED / PASS。
+
 2026-10-29 — **v0.1.21 Slice 3 CLOSED / PASS**。USER_REPORTED_PRODUCTION_PWA_ACCEPTANCE = PASS：用户在正式iPhone PWA确认日/周/月切换、范围未完整误报修复、完整快照后台更新提示修复及日历基本使用正常。交付含REST/Realtime解耦、Important Dates Snapshot范围包含/覆盖保留、完整快照静默刷新。最终业务发布b90b81b6eac5dcee85e084e3e123b41260bc97f7，Production7403767389 success、Source匹配、七项资源与Build逐字节一致，Supabase ximazjhxvmktpcdbypka。最终相关Node130/130、Browser28/28、TypeScript/Build/语法/diff PASS；历史全量1020/1020属于范围修复阶段，不是静默提示修改后全量重跑。用户无实际日程，真实非空日历MANUAL E2E NOT RUN；Realtime故障以自动化覆盖。v0.1.21整体IN PROGRESS，Slice 1 DEFERRED、Slice 2/Follow-up保持关闭；Slice 4仅获只读调查授权，Slices 4–5未实施。下方旧Pending为历史。
 
 本次仅六治理文件收口，检查diff/非治理树及Push Gate，授权Commit/正常Push后只读复核freshness/远端/CLEAN；不重跑业务测试或数据库。Phase A成功后直接进行Slice 4只读调查，不修改文件或实施。

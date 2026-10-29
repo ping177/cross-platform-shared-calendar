@@ -52,6 +52,7 @@ import {
   type OccurrenceScope,
 } from './lib/event-edit-mutation';
 import { eventEditTargetForEvent, eventEditTargetForOccurrence } from './lib/event-edit-target';
+import { createEventIntent, abandonCreateMessage, uncertainCreateMessage } from './lib/event-create-intent';
 import { canConfirmCreate, canUseCreateTarget, createSubmitLock, resetEventAudienceForTarget, targetMembersValid } from './lib/global-create';
 import { eventEditUiState, occurrenceActionCopy, type OccurrenceAction } from './lib/event-edit-ui';
 import { memberDisplayNameForUser } from './lib/member';
@@ -1551,6 +1552,25 @@ export function EventSheet({
   const [busy, setBusy] = useState(false);
   const [confirmingCreateTargetId, setConfirmingCreateTargetId] = useState<string | null>(null);
   const submitLock = useRef(createSubmitLock());
+  const createIntent = useRef(createEventIntent());
+  const createLocked = !event && createIntent.current.pending;
+  const mountedCreate = useRef(true);
+  const createContext = `${userId}:${space.id}:${event?.id ?? 'new'}`;
+  const currentCreateContext = useRef({ key: createContext, generation: 0 });
+  if (currentCreateContext.current.key !== createContext) {
+    currentCreateContext.current = { key: createContext, generation: currentCreateContext.current.generation + 1 };
+  }
+  const createGeneration = currentCreateContext.current.generation;
+  const isCurrentCreate = () => mountedCreate.current && currentCreateContext.current.generation === createGeneration;
+  useEffect(() => { mountedCreate.current = true; return () => { mountedCreate.current = false; }; }, []);
+  function closeSheet() {
+    if (busy) return;
+    if (!event && createIntent.current.pending && !window.confirm(abandonCreateMessage)) {
+      createHeading.current?.focus();
+      return;
+    }
+    onClose();
+  }
   const previousCreateSpaceId = useRef(space.id);
   const createHeading = useRef<HTMLHeadingElement>(null);
   const canChoosePartner = Boolean(partnerId);
@@ -1573,7 +1593,7 @@ export function EventSheet({
     if (pendingOccurrenceAction) setPendingOccurrenceAction(null);
     else if (confirmingDelete) setConfirmingDelete(false);
     else if (confirmingCreateTargetId) setConfirmingCreateTargetId(null);
-    else onClose();
+    else closeSheet();
   } };
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
@@ -1730,7 +1750,7 @@ export function EventSheet({
 
     const saveDraft = draft;
 
-    if (!event && createTarget) {
+    if (!event && createTarget && !createIntent.current.pending) {
       if (!createReady) { setError('请先确认保存空间及成员。'); return; }
       if (!confirmed) { setConfirmingCreateTargetId(space.id); return; }
       if (!canConfirmCreate(confirmingCreateTargetId, createTarget.selectedId, space.id)) return;
@@ -1772,27 +1792,26 @@ export function EventSheet({
         result = await supabase.rpc('save_event_edit', eventSaveRpcArgs(target!, identity, updatePayload));
         if (!result.error && (!result.data || result.data.id !== event.id)) throw new Error('未能确认保存结果，请刷新后重试。');
       } else {
-        try {
-          const identity = newEventIdentity(space.kind, saveDraft.audience, userId, partnerId);
-          if (!await validateCreateTarget(identity.owner_user_id)) throw new Error('此空间已不在你的成员列表中，请重新选择。');
-        } catch (targetError) {
-          setBusy(false);
-          const message = getErrorMessage(targetError);
-          setError(createTarget && !/[\u3400-\u9fff]/.test(message) ? '无法确认保存空间及成员，请重试。' : message);
-          setConfirmingCreateTargetId(null);
-          return;
-        }
         if (space.kind === 'shared' && draft.audience === 'partner' && !partnerId) {
           setBusy(false);
           setError('另一位成员加入空间后，才能创建其个人日程。');
           return;
         }
 
-        result = await supabase.from('events').insert({
-          ...contentPayload,
-          space_id: space.id,
-          ...newEventIdentity(space.kind, saveDraft.audience, userId, partnerId),
+        const payload = { ...contentPayload, space_id: space.id, created_by: userId,
+          ...newEventIdentity(space.kind, saveDraft.audience, userId, partnerId) };
+        await createIntent.current.save(payload, {
+          verify: async (original) => {
+            if (!isCurrentCreate()) return false;
+            const valid = await validateCreateTarget(original.owner_user_id as string | null);
+            const auth = await supabase.auth.getUser();
+            return valid && !auth.error && auth.data.user?.id === userId && isCurrentCreate();
+          },
+          insert: async (original) => await supabase.from('events').insert(original),
+          read: async (id, spaceId) => await supabase.from('events').select('*').eq('space_id', spaceId).eq('id', id).maybeSingle(),
         });
+        if (!isCurrentCreate()) return;
+        result = { error: null };
       }
 
       if (result.error) {
@@ -1802,12 +1821,13 @@ export function EventSheet({
         return;
       }
 
-      createdSuccessfully = !event && Boolean(createTarget);
+      createdSuccessfully = !event;
       completeSuccessfulMutation();
     } catch (saveError) {
+      if (!event && !isCurrentCreate()) return;
       setBusy(false);
       setConfirmingCreateTargetId(null);
-      setError(createTarget ? '保存失败，请确认目标空间及成员后重试。' : getErrorMessage(saveError));
+      setError(!event && createIntent.current.pending ? uncertainCreateMessage : createTarget ? '保存失败，请确认目标空间及成员后重试。' : getErrorMessage(saveError));
     } finally {
       if (!createdSuccessfully) submitLock.current.release();
     }
@@ -1855,7 +1875,7 @@ export function EventSheet({
           </div>
         </div> : <>
         <header className="ui-event-sheet-header">
-          <button className="ui-focus grid h-11 w-11 place-items-center disabled:opacity-60" type="button" onClick={onClose} disabled={busy} aria-label="关闭">
+          <button className="ui-focus grid h-11 w-11 place-items-center disabled:opacity-60" type="button" onClick={closeSheet} disabled={busy} aria-label="关闭">
             <X size={20} aria-hidden="true" />
           </button>
           <h2 id="event-sheet-title" ref={createHeading} tabIndex={-1} className="min-w-0 text-ui-bar">{event ? canManage ? editUi.isRecurringOccurrenceEdit ? '编辑此重复事件' : '编辑日程' : '日程详情' : '新建日程'}</h2>
@@ -1866,7 +1886,7 @@ export function EventSheet({
         {error && <div className="mt-4"><Notice tone="error" message={error} /></div>}
         {event && showSourceSpace && <p className="mt-3 text-sm font-semibold text-teal">所属空间：{sourceSpaceLabel ?? spaceLabel(space)}</p>}
         {!event && (createTarget
-          ? <div className="mt-4"><CreateTargetSelector control={{ ...createTarget, onSelect: (id) => { setDraft(resetEventAudienceForTarget); setConfirmingCreateTargetId(null); createTarget.onSelect(id); } }} kind="event" disabled={busy} /></div>
+          ? <div className="mt-4"><CreateTargetSelector control={{ ...createTarget, onSelect: (id) => { if (createIntent.current.pending) return; setDraft(resetEventAudienceForTarget); setConfirmingCreateTargetId(null); createTarget.onSelect(id); } }} kind="event" disabled={busy || createLocked} /></div>
           : <p className="mt-3 text-sm font-semibold text-teal">保存到：{space.name}</p>)}
 
         {event && space.kind === 'shared' && editUi.isRecurringOccurrenceEdit && <p className="mt-3 text-sm text-ink/70">归属修改对整个重复系列生效，包括已有拆分段；其他内容按下方选择的范围保存。</p>}
@@ -1880,6 +1900,11 @@ export function EventSheet({
             <ReadOnlyField label="提醒" value={reminderKindLabel(event.reminder_kind)} />
             <ReadOnlyField label="重复" value={recurrenceSummary(event.recurrence_rule)} />
             <ReadOnlyField label="描述" value={event.description || '无'} />
+          </div>
+        ) : createLocked || (!event && busy) ? (
+          <div className="mt-5 space-y-4" role="status">
+            <p>{busy ? '正在确认创建结果，请稍候。' : uncertainCreateMessage}</p>
+            <button type="button" className="min-h-11 rounded-lg bg-teal px-4 font-semibold text-white" disabled={busy} onClick={() => void save()}>核对并重试原始创建</button>
           </div>
         ) : confirmingCreateTargetId && !event ? (
           <div className="mt-5 space-y-4">
