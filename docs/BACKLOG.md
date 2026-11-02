@@ -1,5 +1,11 @@
 # Backlog
 
+## 2026-11-02 — 版本收口与暂缓项保留
+
+2026-11-02 — **Slice 5 Reminder Capacity CLOSED / PASS；v0.1.21 CLOSED / PASS（已接受范围）**。用户明确接受Production观察并授权收口。Slices 2–5 CLOSED / PASS；Slice 1仍DEFERRED，未实施、未完成，风险POTENTIAL/数据库实测NOT VERIFIED保留。仓库BACKLOG允许NO ACTION / DEFERRED、不强制全部修复，据此关闭已接受版本范围，不抹去暂缓项。Notification Cleanup用户确认不需要，不是未解决缺陷。后续回顾编辑入口为独立本地UI follow-up，不重新打开已关闭Slice。下方Pending/HOLD均为历史。
+
+业务发布48b032907929576bbb34a465b087f2d2afb463e0；send-reminders ACTIVE v6、verify_jwt=false，三份改动源码独立回读一致；用户REST Gate 2 PASS（非空仅2条），全量Node1066/1066、针对85/85、类型/Build/语法/diff通过，Vercel Source匹配。用户提供Dashboard截图并确认可接受：部署约12分钟，新版以来11次调用无报告错误；最近一小时57次调用、4xx/5xx均0%，页面平均1554ms/最大8998ms。小时汇总跨越旧/新版本，不全部归属v6；无Production高负载或重复发送E2E实测。部署后唯一Cron复核曾超时，发布前确认唯一active每分钟任务，本次未修改调度。上述观察与边界不阻碍用户已接受范围收口；不补造人工故障/负载PASS。
+
 ## 2026-11-02 — Slice 5 Capacity发布 / Notification Cleanup范围确认
 
 容量修复Gate 1保持相同源码验证，Gate 2由用户Production SQL/REST实证PASS，旧工具/REST HOLD解除；现已授权仅发布容量修复，实际部署与观察见TESTING及发布回执，不提前关闭Slice 5。Slices 2–4 CLOSED / PASS、Slice 1 DEFERRED保持。
@@ -61,7 +67,7 @@ Slice 5容量修复HOLD：逐claim补位已测空转负载翻倍，按用户约�
 2. Slice 2 回顾旧稿覆盖保护：CLOSED / PASS（2026-10-28）；数据库/缓存、自动化、正式部署资源及用户Production真实验收全部PASS，Review维护解除。仅关闭本Slice，整体v0.1.21未完成。
 3. Slice 3 日历 Realtime 故障容错及重要日验收修正：CLOSED / PASS（2026-10-29），用户报告Production PWA最终通过；证据边界见TESTING首节。
 4. Slice 4 创建请求重复提交与等待提示修正：CLOSED / PASS（2026-10-29）；用户最终Production PWA确认，范围/限制见TESTING首节。
-5. Slice 5 提醒容量：RELEASE AUTHORIZED / FINAL ACCEPTANCE PENDING（Gate 2 PASS，发布实绩单独核验）；Notification Cleanup：USER CONFIRMED NOT REQUIRED，本版本不实施。
+5. Slice 5 提醒容量：CLOSED / PASS（用户接受Production观察及验证边界）；Notification Cleanup：USER CONFIRMED NOT REQUIRED，本版本不实施。
 
 逐项证据优先；允许 NO ACTION / DEFERRED，不强制全部修复。Slice 2最终验收与范围见TESTING首节。
 

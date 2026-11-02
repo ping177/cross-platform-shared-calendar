@@ -1,5 +1,11 @@
 # Testing
 
+## 2026-11-02 — Slice 5最终验收证据及边界
+
+2026-11-02 — **Slice 5 Reminder Capacity CLOSED / PASS；v0.1.21 CLOSED / PASS（已接受范围）**。用户明确接受Production观察并授权收口。Slices 2–5 CLOSED / PASS；Slice 1仍DEFERRED，未实施、未完成，风险POTENTIAL/数据库实测NOT VERIFIED保留。仓库BACKLOG允许NO ACTION / DEFERRED、不强制全部修复，据此关闭已接受版本范围，不抹去暂缓项。Notification Cleanup用户确认不需要，不是未解决缺陷。后续回顾编辑入口为独立本地UI follow-up，不重新打开已关闭Slice。下方Pending/HOLD均为历史。
+
+业务发布48b032907929576bbb34a465b087f2d2afb463e0；send-reminders ACTIVE v6、verify_jwt=false，三份改动源码独立回读一致；用户REST Gate 2 PASS（非空仅2条），全量Node1066/1066、针对85/85、类型/Build/语法/diff通过，Vercel Source匹配。用户提供Dashboard截图并确认可接受：部署约12分钟，新版以来11次调用无报告错误；最近一小时57次调用、4xx/5xx均0%，页面平均1554ms/最大8998ms。小时汇总跨越旧/新版本，不全部归属v6；无Production高负载或重复发送E2E实测。部署后唯一Cron复核曾超时，发布前确认唯一active每分钟任务，本次未修改调度。上述观察与边界不阻碍用户已接受范围收口；不补造人工故障/负载PASS。
+
 ## 2026-11-02 — Slice 5 Production Gate 2 PASS / 发布授权
 
 证据来源：用户本人在Production Dashboard执行只读SQL并确认配置，及本人执行`/private/tmp/calendar-slice5-rest-gate.py`后回传脱敏摘要（status=PASS、read_only=true）。不重新执行已通过检查，不把旧版运行健康当新版验收。下方REST HOLD/CLI超时为历史。

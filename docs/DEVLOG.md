@@ -1,5 +1,11 @@
 # Development Log
 
+## 2026-11-02 — Slice 5与版本范围治理收口
+
+2026-11-02 — **Slice 5 Reminder Capacity CLOSED / PASS；v0.1.21 CLOSED / PASS（已接受范围）**。用户明确接受Production观察并授权收口。Slices 2–5 CLOSED / PASS；Slice 1仍DEFERRED，未实施、未完成，风险POTENTIAL/数据库实测NOT VERIFIED保留。仓库BACKLOG允许NO ACTION / DEFERRED、不强制全部修复，据此关闭已接受版本范围，不抹去暂缓项。Notification Cleanup用户确认不需要，不是未解决缺陷。后续回顾编辑入口为独立本地UI follow-up，不重新打开已关闭Slice。下方Pending/HOLD均为历史。
+
+业务发布48b032907929576bbb34a465b087f2d2afb463e0；send-reminders ACTIVE v6、verify_jwt=false，三份改动源码独立回读一致；用户REST Gate 2 PASS（非空仅2条），全量Node1066/1066、针对85/85、类型/Build/语法/diff通过，Vercel Source匹配。用户提供Dashboard截图并确认可接受：部署约12分钟，新版以来11次调用无报告错误；最近一小时57次调用、4xx/5xx均0%，页面平均1554ms/最大8998ms。小时汇总跨越旧/新版本，不全部归属v6；无Production高负载或重复发送E2E实测。部署后唯一Cron复核曾超时，发布前确认唯一active每分钟任务，本次未修改调度。上述观察与边界不阻碍用户已接受范围收口；不补造人工故障/负载PASS。
+
 ## 2026-11-02 — Slice 5 Gate 2补齐 / Capacity正式发布授权
 
 接受用户本人已完成的Production SQL、Dashboard及真实REST脱敏证据，Gate 2 PASS；空读200/0、非空与20精确身份200/count2/rows2、分页206/count2/rows1被原guard拒绝。只2条真实样本，不声明20条负载或长期验收。Codex复用现有CLI登录读取ACTIVE v5/verify_jwt=false，执行通道已恢复；不重复SQL、REST、钥匙串或登录，不读取输出密钥。
