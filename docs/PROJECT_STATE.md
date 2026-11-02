@@ -12,6 +12,8 @@ v0.1.21
 
 ## Current status
 
+独立Review编辑入口UI follow-up：RELEASE AUTHORIZED / USER ACCEPTANCE PENDING。用户明确授权本次6文件Commit、正常Push及Vercel Production；仅唯一编辑入口位置/样式/中文文案，不改变权限或后台合同。自动化验证与实际发布结果见TESTING及独立回执，不预写人工PASS。v0.1.21已接受范围CLOSED / PASS、Slice 1 DEFERRED保持。
+
 2026-11-02 — **Slice 5 Reminder Capacity CLOSED / PASS；v0.1.21 CLOSED / PASS（已接受范围）**。用户明确接受Production观察并授权收口。Slices 2–5 CLOSED / PASS；Slice 1仍DEFERRED，未实施、未完成，风险POTENTIAL/数据库实测NOT VERIFIED保留。仓库BACKLOG允许NO ACTION / DEFERRED、不强制全部修复，据此关闭已接受版本范围，不抹去暂缓项。Notification Cleanup用户确认不需要，不是未解决缺陷。后续回顾编辑入口为独立本地UI follow-up，不重新打开已关闭Slice。下方Pending/HOLD均为历史。
 
 历史记录如下：
@@ -455,6 +457,8 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
+本次独立Review UI经既有origin/main→Vercel Production发布，实际Source SHA、状态、七项资源与已测试Build比对及Supabase目标由`/private/tmp/calendar-review-edit-release/RELEASE_RECEIPT.md`记录，不预写成功；不修改数据库/Edge/Auth或提醒配置。下方为历史部署证据。
+
 业务发布48b032907929576bbb34a465b087f2d2afb463e0；send-reminders ACTIVE v6、verify_jwt=false，三份改动源码独立回读一致；用户REST Gate 2 PASS（非空仅2条），全量Node1066/1066、针对85/85、类型/Build/语法/diff通过，Vercel Source匹配。用户提供Dashboard截图并确认可接受：部署约12分钟，新版以来11次调用无报告错误；最近一小时57次调用、4xx/5xx均0%，页面平均1554ms/最大8998ms。小时汇总跨越旧/新版本，不全部归属v6；无Production高负载或重复发送E2E实测。部署后唯一Cron复核曾超时，发布前确认唯一active每分钟任务，本次未修改调度。上述观察与边界不阻碍用户已接受范围收口；不补造人工故障/负载PASS。
 
 历史记录如下：
@@ -608,7 +612,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-独立回顾详情编辑入口UI follow-up：仅本地实现及测试，等待用户手机/PWA验收与另行发布授权；不重开Slices 2–5，不实施Slice 1或Notification Cleanup。
+USER ACCEPTANCE CHECKPOINT：用户在正式iPhone PWA检查已有回顾详情顶部“编辑”容易发现、适度突出、窄屏正常且仍只编辑本人内容；不重开已关闭Slices，不开始其他功能。
 
 ## Blockers
 
@@ -717,7 +721,7 @@ Slice 5 Gate 2已按用户真实Production证据PASS，不要求重复SQL/REST/�
 
 ## Handoff Prompt
 
-v0.1.21与Slice 5按用户接受范围正式关闭，Slice 1仍DEFERRED。继续独立回顾详情页编辑入口本地UI优化，不Commit/Push/Deploy UI，等待用户验收与发布授权。历史证据及边界见TESTING最新节。
+v0.1.21已接受范围与Slice 5关闭，Slice 1仍DEFERRED。独立Review编辑入口UI本轮获正式发布授权；实际Source/资源见发布回执，下一步正式iPhone PWA用户验收，不预写人工PASS，不自动开始其他功能。
 
 历史记录如下：
 

@@ -1,5 +1,19 @@
 # Testing
 
+## 独立Review编辑入口UI正式发布授权 / USER ACCEPTANCE PENDING
+
+用户明确授权本次已审查6文件Commit、正常Push及Vercel Production。业务仅ReviewEntryEditor.tsx按钮位置/强调样式/中文文案；两份直接测试与三份治理记录，无扩改。因上一轮没有独立源码指纹清单，本轮保存源码/测试及既有Build指纹并复跑直接Node、双浏览器与Build；实际结果和发布Source/七项资源、目标核验见`/private/tmp/calendar-review-edit-release/RELEASE_RECEIPT.md`，不把历史测试记录冒充独立哈希证据。发布后由用户在正式iPhone PWA确认顶部入口、窄屏和本人编辑权限，不提前人工PASS。v0.1.21收口及Slice 1 DEFERRED保持，不改数据库/Edge/Auth/提醒，不操作真实登录态。下方本地未授权为历史。
+
+
+## 2026-11-02 — 独立Review编辑入口UI / LOCAL VERIFIED / READY FOR REVIEW
+
+仅ReviewEntryEditor.tsx把原唯一编辑按钮从正文后移至“我”区域顶部、正文前，统一中文“编辑”，使用既有bg-ui-accent-soft/text-ui-accent及44px触控高度。未新增重复入口、不改变本人数据加载/权限/忙态禁用、startEditing、焦点恢复、保存RPC、版本冲突或填写状态；对方只读不增加按钮。日期/轮次与其他操作保持，未重开Slices 2–5，Slice 1仍DEFERRED。
+
+验证：相关Review Node53/53、WebKit/Chrome离线UI/冲突41/41 PASS，覆盖320/375/390/430/1024px、空/非空、唯一顶部强调入口、本人编辑/对方只读、busy、错误/冲突及原手势保护；TypeScript/Build、浏览器脚本语法、diff-check PASS。旧断言要求底部按钮及旧文案，已按确认需求更新，权限/标记/冲突断言保留。首次沙箱浏览器未启动，不作为有效RED；未声称完整TDD红绿证据。WebKit375px截图人工检查无重叠，其他设备真实PWA验收仍由用户完成。既有大chunk提示保留，无新依赖。日志/截图位于/private/tmp/calendar-review-edit-*.log及/private/tmp/calendar-review-edit-screens/。
+
+仅本地未暂存，不Commit/Push/Deploy。Phase A最终治理aff0fdd8ecb7eb07cec83414fb38e6588b42bf71已Push并确认当阶段CLEAN、POST_PUSH_STATE_CURRENT；后续UI改动独立等待用户验收和发布授权。未读取或输出密钥，不改数据库/Edge配置或其他项目；外部仅临时验证文件。
+
+
 ## 2026-11-02 — Slice 5最终验收证据及边界
 
 2026-11-02 — **Slice 5 Reminder Capacity CLOSED / PASS；v0.1.21 CLOSED / PASS（已接受范围）**。用户明确接受Production观察并授权收口。Slices 2–5 CLOSED / PASS；Slice 1仍DEFERRED，未实施、未完成，风险POTENTIAL/数据库实测NOT VERIFIED保留。仓库BACKLOG允许NO ACTION / DEFERRED、不强制全部修复，据此关闭已接受版本范围，不抹去暂缓项。Notification Cleanup用户确认不需要，不是未解决缺陷。后续回顾编辑入口为独立本地UI follow-up，不重新打开已关闭Slice。下方Pending/HOLD均为历史。

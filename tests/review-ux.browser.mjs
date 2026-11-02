@@ -29,7 +29,7 @@ async function pageFor(engine, mode = '', width = 375) {
     return route.fulfill({ contentType: 'text/html', body: `<!doctype html><html lang="zh-CN"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><div id="root"></div><link rel="stylesheet" href="/${files.find(f => f.fileName.endsWith('.css')).fileName}"><script type="module" src="/${files.find(f => f.isEntry).fileName}"></script></html>` });
   });
   await page.goto('http://127.0.0.1:5175/__review_ux?mode=' + mode);
-  await page.getByRole('button', { name: mode === 'blank' ? '填写我的回顾' : '编辑我的回顾', exact: true }).waitFor();
+  await page.getByRole('button', { name: mode === 'blank' ? '编辑' : '编辑', exact: true }).waitFor();
   return page;
 }
 // Synthetic PointerEvents exercise the real DOM/Hook in both engines; native Chrome touch is covered below.
@@ -42,7 +42,7 @@ async function swipe(target, { dx = 120, dy = 3, cancel = false, pointerType = '
     el.dispatchEvent(new PointerEvent(o.cancel ? 'pointercancel' : 'pointerup', { ...p, buttons: 0, clientX: x + o.dx, clientY: y + o.dy }));
   }, { dx, dy, cancel, pointerType });
 }
-const edit = page => page.getByRole('button', { name: '编辑我的回顾', exact: true });
+const edit = page => page.getByRole('button', { name: '编辑', exact: true });
 const mark = page => page.getByRole('button', { name: '标记已填写', exact: true });
 const labels = ['近期专注事项', '近期进展', '面临问题', '下一步计划'];
 async function fill(page) { for (const label of labels) await page.getByRole('textbox', { name: label, exact: true }).fill(label + ' 未保存'); }
@@ -112,7 +112,9 @@ for (const engine of ['WebKit', 'Chrome']) {
       assert.equal(styles.font, editStyles.font); assert.equal(styles.weight, editStyles.weight);
       assert.equal(styles.border, '0px'); assert.equal(styles.background, 'rgba(0, 0, 0, 0)');
       assert.ok(parseFloat(styles.font) < parseFloat(await page.locator('#review-mine-panel > h2').evaluate(el => getComputedStyle(el).fontSize)));
-      assert.ok((await edit(page).boundingBox()).y > (await content.locator('.rounded-ui-group').boundingBox()).y, 'edit stays below content');
+      const editBox = await edit(page).boundingBox();
+      assert.ok(editBox.y + editBox.height <= (await content.boundingBox()).y, 'edit precedes status and content');
+      assert.equal(await edit(page).count(), 1);
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
       if (out && [375, 390, 430].includes(width)) await page.screenshot({ path: `${out}/${engine}-${width}-reading.png`, fullPage: true });
       await mark(page).focus(); await page.keyboard.press('Enter');
@@ -190,3 +192,24 @@ test('Chrome: native left-edge touch returns once without a trailing click', asy
     assert.equal(await page.evaluate(() => window.reviewUx.backs), 1); assert.deepEqual(page.errors, []);
   } finally { await page.close(); }
 });
+
+for (const engine of ['WebKit', 'Chrome']) {
+  test(`${engine}: one highlighted edit action precedes content on narrow screens`, async () => {
+    for (const mode of ['', 'blank']) {
+      const page = await pageFor(engine, mode, 320);
+      try {
+        const button = edit(page);
+        assert.equal(await button.count(), 1);
+        const b = await button.boundingBox();
+        const content = await page.getByRole('heading', { name: '近期专注事项', exact: true }).boundingBox();
+        assert.ok(b.height >= 44 && b.y + b.height <= content.y);
+        assert.ok(b.x >= 0 && b.x + b.width <= 320);
+        assert.notEqual(await button.evaluate(el => getComputedStyle(el).backgroundColor), 'rgba(0, 0, 0, 0)');
+        await button.click();
+        await page.getByRole('textbox', { name: '近期专注事项', exact: true }).waitFor();
+        assert.equal(await edit(page).count(), 0);
+        assert.deepEqual(page.errors, []);
+      } finally { await page.close(); }
+    }
+  });
+}

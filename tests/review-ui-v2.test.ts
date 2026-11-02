@@ -52,7 +52,7 @@ test('historical entry starts in reading view, exposes four saved fields and onl
   await pump(); const text = html();
   for (const value of ['专注内容', '进展内容', '问题内容', '计划内容', '已填写']) assert.ok(text.includes(value));
   assert.doesNotMatch(text, /<textarea|对方|保存草稿|Review/);
-  findButton(render(), '编辑我的回顾').props.onClick(); await pump(); assert.equal(nodes(render()).filter((n) => n.type === 'textarea').length, 4);
+  findButton(render(), '编辑').props.onClick(); await pump(); assert.equal(nodes(render()).filter((n) => n.type === 'textarea').length, 4);
 }));
 
 test('new round opens four-field editor; draft save and filled marking remain separate', () => editorRuntime(async ({ pump, change, render, save, calls, html }) => {
@@ -69,16 +69,16 @@ test('new round opens four-field editor; draft save and filled marking remain se
 
 test('saved edit of filled content becomes 有更新 without marking the other participant', () => editorRuntime(async ({ m, pump, change, render, save, html, calls }) => {
   m.entry = { ...blank(), focus: '原内容', content_revision: 1, filled_revision: 1 }; await pump();
-  findButton(render(), '编辑我的回顾').props.onClick(); change('focus', '新内容'); await save(); await pump();
+  findButton(render(), '编辑').props.onClick(); change('focus', '新内容'); await save(); await pump();
   assert.match(html(), /有更新/); assert.equal(findButton(render(), '标记已填写').props.disabled, false);
   assert.equal(calls.filter((c: any) => c[0] === 'mark').length, 0);
 }));
 
 test('cancel respects unsaved confirmation and restores canonical saved draft only after acceptance', () => editorRuntime(async ({ m, pump, change, render, html, calls }) => {
-  await pump(); findButton(render(), '填写我的回顾').props.onClick(); change('focus', '未保存'); await pump();
+  await pump(); findButton(render(), '编辑').props.onClick(); change('focus', '未保存'); await pump();
   m.confirm = false; findButton(render(), '取消').props.onClick(); assert.match(html(), /未保存/); assert.match(html(), /<textarea/);
   m.confirm = true; findButton(render(), '取消').props.onClick(); await pump(); assert.doesNotMatch(html(), /<textarea|未保存/);
-  findButton(render(), '填写我的回顾').props.onClick(); assert.equal(nodes(render()).find((n) => n.type === 'textarea').props.value, '');
+  findButton(render(), '编辑').props.onClick(); assert.equal(nodes(render()).find((n) => n.type === 'textarea').props.value, '');
   assert.equal(calls.filter((c: any) => ['save', 'mark'].includes(c[0])).length, 0);
 }));
 
@@ -213,14 +213,16 @@ test('reading mark reports busy synchronously before the parent can navigate', (
 }));
 
 
-test('reading completion is a status-row text action matching the separate edit entry', () => editorRuntime(async ({ m, pump, render }) => {
+test('reading completion stays a status-row action while edit is highlighted above content', () => editorRuntime(async ({ m, pump, render }) => {
   m.entry = { ...blank(), focus: '已保存', content_revision: 1 }; await pump();
-  const mark = findButton(render(), '标记已填写'); const edit = findButton(render(), '编辑我的回顾');
+  const mark = findButton(render(), '标记已填写'); const edit = findButton(render(), '编辑');
   assert.ok(mark); assert.ok(edit);
-  for (const token of ['min-h-ui-touch', 'rounded-ui-control', 'px-ui-3', 'text-ui-meta', 'font-ui-semibold', 'text-ui-accent']) {
+  for (const token of ['min-h-ui-touch', 'rounded-ui-control', 'text-ui-meta', 'font-ui-semibold', 'text-ui-accent']) {
     assert.ok(mark.props.className.split(' ').includes(token));
     assert.ok(edit.props.className.split(' ').includes(token));
   }
+  assert.match(edit.props.className, /bg-ui-accent-soft/);
+  assert.equal(nodes(render()).filter((n) => n.type === 'button' && words(n) === '编辑').length, 1);
   assert.doesNotMatch(mark.props.className, /(?:^| )border(?: |$)/);
   const content = nodes(render()).find((n) => n.type.name === 'ReviewReadOnlyEntry');
   assert.ok(findButton(content, '标记已填写'), 'mark action belongs to the saved-content status row');

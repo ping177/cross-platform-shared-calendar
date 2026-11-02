@@ -181,14 +181,14 @@ export function ReviewEntryEditor({ reviewId, userId, startEditing = false, onDi
   </section>;
 
   if (!editing) return <div className="min-w-0" aria-busy={Boolean(busy)}>
+    <div className="mb-ui-3 flex justify-end">
+      <button ref={editButton} className="ui-focus min-h-ui-touch min-w-11 rounded-ui-control bg-ui-accent-soft px-ui-4 text-ui-meta font-ui-semibold text-ui-accent disabled:opacity-50" type="button" disabled={Boolean(busy)} onClick={() => setEditing(true)}>编辑</button>
+    </div>
     <ReviewReadOnlyEntry entry={currentEntry} participant="mine">
       {hasReviewEntryContent(currentEntry) && status !== '已填写' && <button className="ui-focus min-h-ui-touch rounded-ui-control bg-transparent px-ui-3 text-ui-meta font-ui-semibold text-ui-accent disabled:opacity-50" type="button" disabled={!markReady} onClick={() => void markFilled()}>{busy === 'mark' ? '标记中…' : '标记已填写'}</button>}
     </ReviewReadOnlyEntry>
     {conflictPanel}
     {error && !conflict && <p className="mt-ui-3 rounded-ui-control bg-ui-danger-soft px-ui-4 py-ui-3 text-ui-meta text-ui-danger" role="alert">{error}</p>}
-    <div className="mt-ui-4 flex flex-wrap gap-ui-3">
-      <button ref={editButton} className="ui-focus min-h-ui-touch min-w-11 rounded-ui-control px-ui-3 text-ui-meta font-ui-semibold text-ui-accent disabled:opacity-50" type="button" disabled={Boolean(busy)} onClick={() => setEditing(true)}>{status === '未填写' ? '填写我的回顾' : '编辑我的回顾'}</button>
-    </div>
   </div>;
 
   return (
