@@ -1,3 +1,4 @@
+import { Pencil } from 'lucide-react';
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { markMyReviewFilled, readMyReviewEntry, saveMyReviewEntry } from '../lib/review-entry-data';
 import { deriveReviewEntryStatus, hasReviewEntryContent, isReviewEntryConflict, isReviewEntryDirty, reviewEntryDraft, reviewEntryErrorMessage, type ReviewEntryDraft } from '../lib/review-entry';
@@ -157,17 +158,19 @@ export function ReviewEntryEditor({ reviewId, userId, startEditing = false, onDi
     }
   }
 
+  const heading = <h2 className="mb-ui-3 text-ui-section">我</h2>;
+
   if (phase === 'error') return (
-    <section className="min-w-0 rounded-ui-group border border-ui-border bg-ui-surface p-ui-4" aria-label="我的回顾内容">
+    <>{heading}<section className="min-w-0 rounded-ui-group border border-ui-border bg-ui-surface p-ui-4" aria-label="我的回顾内容">
       <p className="text-ui-meta text-ui-danger" role="alert">{error}</p>
       <button type="button" className="ui-focus mt-ui-3 min-h-ui-touch min-w-11 rounded-ui-control bg-ui-soft px-ui-4 font-ui-semibold text-ui-accent" onClick={loadEntry}>重试读取</button>
-    </section>
+    </section></>
   );
 
   if (phase !== 'ready' || !currentEntry) return (
-    <section className="min-w-0 rounded-ui-group border border-ui-border bg-ui-surface p-ui-4" aria-label="我的回顾内容" aria-busy="true">
+    <>{heading}<section className="min-w-0 rounded-ui-group border border-ui-border bg-ui-surface p-ui-4" aria-label="我的回顾内容" aria-busy="true">
       <p className="text-ui-meta text-ui-muted" role="status">正在读取回顾内容…</p>
-    </section>
+    </section></>
   );
 
   const conflictPanel = conflict && <section className="mt-ui-3 min-w-0 rounded-ui-control border border-ui-border bg-ui-surface p-ui-4" aria-label="回顾版本冲突">
@@ -181,8 +184,9 @@ export function ReviewEntryEditor({ reviewId, userId, startEditing = false, onDi
   </section>;
 
   if (!editing) return <div className="min-w-0" aria-busy={Boolean(busy)}>
-    <div className="mb-ui-3 flex justify-end">
-      <button ref={editButton} className="ui-focus min-h-ui-touch min-w-11 rounded-ui-control bg-ui-accent-soft px-ui-4 text-ui-meta font-ui-semibold text-ui-accent disabled:opacity-50" type="button" disabled={Boolean(busy)} onClick={() => setEditing(true)}>编辑</button>
+    <div className="mb-ui-2 flex min-w-0 items-center justify-between gap-ui-3">
+      <h2 className="text-ui-section">我</h2>
+      <button ref={editButton} className="ui-focus inline-flex min-h-ui-touch min-w-11 shrink-0 items-center justify-center gap-ui-1 rounded-ui-control bg-transparent px-ui-1 text-ui-meta font-ui-semibold text-ui-accent disabled:opacity-50" type="button" disabled={Boolean(busy)} onClick={() => setEditing(true)}><Pencil size={16} aria-hidden="true" />编辑</button>
     </div>
     <ReviewReadOnlyEntry entry={currentEntry} participant="mine">
       {hasReviewEntryContent(currentEntry) && status !== '已填写' && <button className="ui-focus min-h-ui-touch rounded-ui-control bg-transparent px-ui-3 text-ui-meta font-ui-semibold text-ui-accent disabled:opacity-50" type="button" disabled={!markReady} onClick={() => void markFilled()}>{busy === 'mark' ? '标记中…' : '标记已填写'}</button>}
@@ -192,7 +196,7 @@ export function ReviewEntryEditor({ reviewId, userId, startEditing = false, onDi
   </div>;
 
   return (
-    <section className="min-w-0" aria-label="填写我的回顾" aria-busy={Boolean(busy)}>
+    <>{heading}<section className="min-w-0" aria-label="填写我的回顾" aria-busy={Boolean(busy)}>
       <h3 className="text-ui-section">填写回顾</h3>
       <p className="mt-ui-2 text-ui-meta text-ui-muted" role="status" aria-live="polite">填写状态：<strong className="font-ui-semibold text-ui-text">{status}</strong></p>
       <p className="mt-ui-1 text-ui-meta text-ui-muted">保存草稿后，可点击「标记已填写」。</p>
@@ -224,6 +228,6 @@ export function ReviewEntryEditor({ reviewId, userId, startEditing = false, onDi
           <button className="ui-focus col-span-2 min-h-ui-touch rounded-ui-control px-ui-3 text-ui-meta font-ui-semibold text-ui-muted disabled:opacity-50" type="button" disabled={Boolean(busy)} onClick={cancel}>取消</button>
         </div>
       </form>
-    </section>
+    </section></>
   );
 }

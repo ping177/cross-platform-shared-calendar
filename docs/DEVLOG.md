@@ -1,5 +1,19 @@
 # Development Log
 
+## Review最终同行透明入口发布授权 / USER ACCEPTANCE PENDING
+
+用户明确授权仅本次7文件Commit、正常Push及Vercel Production。组件与测试范围不变，保持“我”左侧与透明Pencil SVG＋编辑右侧同行居中、墨绿色、44px点击高度及8px状态行间距，禁止恢复旧独立行背景按钮；不改权限、保存RPC、状态、冲突或其他业务。上一轮未单独保存源码哈希清单，本轮锁定4份组件/测试指纹并复跑直接Node、双浏览器及Build，比较旧/新本地产物；实际结果、Source/七项资源/目标见`/private/tmp/calendar-review-pencil-release/RELEASE_RECEIPT.md`，不虚构历史指纹证据或人工PASS。真实iPhone验收由用户执行，停止于USER ACCEPTANCE CHECKPOINT。v0.1.21关闭、Slice 1暂缓保持；下方未授权为历史，不再作为本轮限制。
+
+
+## Review标题同行与透明铅笔入口 / LOCAL VERIFIED / READY FOR REVIEW
+
+用户确认最终样式，本轮只做本地修正，授权不包含Commit/Push/Deploy。将“我”标题从ReviewDetailPage移入ReviewEntryEditor：阅读态flex同行垂直居中，右侧唯一入口为既有Lucide Pencil 16px SVG+中文“编辑”，继承text-ui-accent墨绿色，gap-ui-1；bg-transparent、无边框阴影，44px点击高度及轻量水平padding。填写状态行紧接标题行、间距8px。读取中/错误/编辑态仍保留“我”标题；其他卡片、导航/日期/参与者切换未变。权限/忙态/原编辑处理、保存RPC、版本冲突及填写状态逻辑完全未改，无新依赖。
+
+测试：双浏览器新增断言修复前因标题未同行失败；修复后相关Review Node53/53、WebKit/Chrome离线UI与冲突41/41 PASS，覆盖320/375/390窄屏空/非空、唯一入口/单一SVG、同排居中、透明无边框阴影、图文同色、44px点击高度和8px状态行间距，并保留对方只读/权限变化/忙态/保存/冲突/手势回归。TypeScript/Build、浏览器语法、diff-check PASS；既有大chunk提示保留。新增间距断言改为测量整行容器，避免把44px行内文字居中偏移当成行间距。
+
+截图已检查WebKit375px和Chrome390px：标题操作同行，无可见背景，无重叠或横向溢出，原按钮独立行空白消除。其余宽度有自动化几何断言。日志/private/tmp/calendar-review-pencil-{red,node,browser,build}.log，截图/private/tmp/calendar-review-pencil-screens/。真实iPhone/PWA验收由用户完成，不操作登录态。未改数据库、Edge、认证、提醒或其他项目，不读取/输出密钥；外部仅临时日志截图。等待用户验收及单独发布授权，版本收口与Slice 1 DEFERRED保持。下方旧授权仅属已发布d894e152，不延伸本修正。
+
+
 ## 独立Review编辑入口UI正式发布授权 / USER ACCEPTANCE PENDING
 
 用户明确授权本次已审查6文件Commit、正常Push及Vercel Production。业务仅ReviewEntryEditor.tsx按钮位置/强调样式/中文文案；两份直接测试与三份治理记录，无扩改。因上一轮没有独立源码指纹清单，本轮保存源码/测试及既有Build指纹并复跑直接Node、双浏览器与Build；实际结果和发布Source/七项资源、目标核验见`/private/tmp/calendar-review-edit-release/RELEASE_RECEIPT.md`，不把历史测试记录冒充独立哈希证据。发布后由用户在正式iPhone PWA确认顶部入口、窄屏和本人编辑权限，不提前人工PASS。v0.1.21收口及Slice 1 DEFERRED保持，不改数据库/Edge/Auth/提醒，不操作真实登录态。下方本地未授权为历史。

@@ -111,7 +111,7 @@ for (const engine of ['WebKit', 'Chrome']) {
       const editStyles = await edit(page).evaluate(el => { const s = getComputedStyle(el); return { font: s.fontSize, weight: s.fontWeight }; });
       assert.equal(styles.font, editStyles.font); assert.equal(styles.weight, editStyles.weight);
       assert.equal(styles.border, '0px'); assert.equal(styles.background, 'rgba(0, 0, 0, 0)');
-      assert.ok(parseFloat(styles.font) < parseFloat(await page.locator('#review-mine-panel > h2').evaluate(el => getComputedStyle(el).fontSize)));
+      assert.ok(parseFloat(styles.font) < parseFloat(await page.locator('#review-mine-panel h2').evaluate(el => getComputedStyle(el).fontSize)));
       const editBox = await edit(page).boundingBox();
       assert.ok(editBox.y + editBox.height <= (await content.boundingBox()).y, 'edit precedes status and content');
       assert.equal(await edit(page).count(), 1);
@@ -194,17 +194,27 @@ test('Chrome: native left-edge touch returns once without a trailing click', asy
 });
 
 for (const engine of ['WebKit', 'Chrome']) {
-  test(`${engine}: one highlighted edit action precedes content on narrow screens`, async () => {
-    for (const mode of ['', 'blank']) {
-      const page = await pageFor(engine, mode, 320);
+  test(`${engine}: one transparent pencil edit action aligns with own heading on narrow screens`, async () => {
+    for (const width of [320, 375, 390]) for (const mode of ['', 'blank']) {
+      const page = await pageFor(engine, mode, width);
       try {
         const button = edit(page);
         assert.equal(await button.count(), 1);
         const b = await button.boundingBox();
         const content = await page.getByRole('heading', { name: '近期专注事项', exact: true }).boundingBox();
         assert.ok(b.height >= 44 && b.y + b.height <= content.y);
-        assert.ok(b.x >= 0 && b.x + b.width <= 320);
-        assert.notEqual(await button.evaluate(el => getComputedStyle(el).backgroundColor), 'rgba(0, 0, 0, 0)');
+        assert.ok(b.x >= 0 && b.x + b.width <= width);
+        const heading = await page.getByRole('heading', { name: '我', exact: true }).boundingBox();
+        assert.ok(Math.abs(heading.y + heading.height / 2 - b.y - b.height / 2) < 2);
+        assert.ok(heading.x + heading.width < b.x);
+        const style = await button.evaluate(el => { const s = getComputedStyle(el); return { background: s.backgroundColor, border: s.borderTopWidth, shadow: s.boxShadow, color: s.color }; });
+        assert.equal(style.background, 'rgba(0, 0, 0, 0)');
+        assert.equal(style.border, '0px'); assert.equal(style.shadow, 'none');
+        const svg = button.locator('svg'); assert.equal(await svg.count(), 1);
+        assert.equal(await svg.getAttribute('aria-hidden'), 'true');
+        assert.equal(await svg.evaluate(el => getComputedStyle(el).color), style.color);
+        const statusRow = await page.getByLabel('我的回顾内容', { exact: true }).getByRole('status').locator('..').boundingBox();
+        assert.ok(statusRow.y >= b.y + b.height && statusRow.y - b.y - b.height <= 8);
         await button.click();
         await page.getByRole('textbox', { name: '近期专注事项', exact: true }).waitFor();
         assert.equal(await edit(page).count(), 0);

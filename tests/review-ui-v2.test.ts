@@ -213,7 +213,7 @@ test('reading mark reports busy synchronously before the parent can navigate', (
 }));
 
 
-test('reading completion stays a status-row action while edit is highlighted above content', () => editorRuntime(async ({ m, pump, render }) => {
+test('reading completion stays a status-row action while edit is transparent beside the own heading', () => editorRuntime(async ({ m, pump, render }) => {
   m.entry = { ...blank(), focus: '已保存', content_revision: 1 }; await pump();
   const mark = findButton(render(), '标记已填写'); const edit = findButton(render(), '编辑');
   assert.ok(mark); assert.ok(edit);
@@ -221,7 +221,8 @@ test('reading completion stays a status-row action while edit is highlighted abo
     assert.ok(mark.props.className.split(' ').includes(token));
     assert.ok(edit.props.className.split(' ').includes(token));
   }
-  assert.match(edit.props.className, /bg-ui-accent-soft/);
+  assert.match(edit.props.className, /bg-transparent/);
+  assert.doesNotMatch(edit.props.className, /bg-ui-accent-soft|shadow|border/);
   assert.equal(nodes(render()).filter((n) => n.type === 'button' && words(n) === '编辑').length, 1);
   assert.doesNotMatch(mark.props.className, /(?:^| )border(?: |$)/);
   const content = nodes(render()).find((n) => n.type.name === 'ReviewReadOnlyEntry');

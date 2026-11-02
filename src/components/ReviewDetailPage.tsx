@@ -35,7 +35,6 @@ export function ReviewDetailPanels({ detail, userId, mobilePanel, onMobilePanelC
     </div>}
     <div className={`mt-4 grid min-w-0 gap-4 ${shared ? 'md:grid-cols-2 md:items-start' : ''}`}>
       <div className={`min-w-0 ${shared && mobilePanel !== 'mine' ? 'hidden md:block' : ''}`} id="review-mine-panel" role={shared ? 'tabpanel' : undefined} aria-labelledby={shared ? 'review-mine-tab' : undefined}>
-        <h2 className="mb-ui-3 text-ui-section">我</h2>
         <ReviewEntryEditor reviewId={detail.round.id} userId={userId} startEditing={startEditing} onDirtyChange={onDirtyChange} onBusyChange={onBusyChange} />
       </div>
       {detail.other && <div className={`min-w-0 ${mobilePanel !== 'other' ? 'hidden md:block' : ''}`} id="review-other-panel" role="tabpanel" aria-labelledby="review-other-tab">
