@@ -46,6 +46,7 @@ function dependencies(overrides: Partial<RunSendRemindersDependencies> = {}): Ru
     fetchImportantDateCandidatePage: pages([important()]),
     fetchRecurringExceptions: async () => ({ exceptions: [], exceptionsScanned: 0, exceptionTruncated: false }),
     fetchMemberships: async () => [{ space_id: space, user_id: 'member' }],
+    lookupLedger: async () => [],
     fetchSubscriptions: async () => [subscription()],
     claim: async () => uuid(11), claimRecurring: async () => uuid(12), claimImportantDate: async () => uuid(13),
     checkImportantDate: async () => {},
@@ -346,4 +347,16 @@ test('Event pre-send recheck failure prevents push after ownership changed and f
   assert.equal(checks,1);assert.equal(sends,0);
   assert.equal(finalized.length,1);assert.equal(finalized[0].status,'failed');
   assert.equal(result.sent,0);
+});
+
+test('capacity prefilter covers all four source identities without losing deterministic ordering',async()=>{
+ const ledger=new Set<string>(),sent=new Set<string>();let claims=0;const reads:number[]=[];
+ const task={id:uuid(4),space_id:space,space_kind:'shared' as const,personal_owner_id:'member',title:'Task 4',assigned_to_user_id:null,status:'open' as const,due_on:'2026-10-02',reminder_kind:'all_day_same_day_08' as const,time_zone:'UTC',reminder_schedule_changed_at:marker};
+ const claim=async(input:any)=>{claims++;const source=input.eventId??input.logicalSeriesId??input.importantDateId??input.taskId;const key=JSON.stringify([source,input.subscriptionId,input.dueAt,input.occurrenceDate??null]);if(ledger.has(key))return null;ledger.add(key);return key};
+ const deps=dependencies({fetchTaskCandidatePage:pages([task]),checkTask:async()=>{},fetchSubscriptions:async()=>Array.from({length:25},(_,n)=>subscription(String(n).padStart(3,'0'))),
+ lookupLedger:async ids=>{reads.push(ids.length);return ids.filter(i=>ledger.has(JSON.stringify([i.event_id??i.important_date_id??i.task_id,i.subscription_id,new Date(i.due_at).toISOString(),i.occurrence_date]))).map(i=>({...i,status:'sent'}))},
+ claim,claimTask:claim,claimRecurring:claim,claimImportantDate:claim,
+ send:async(sub,payload)=>{const key=sub.id+payload.tag;assert.ok(!sent.has(key));sent.add(key);return {classification:'delivered',provider:'synthetic',status:201}}});
+ const results=[];for(let n=0;n<3;n++)results.push(await runSendReminders(context(),deps));
+ assert.deepEqual(results.map(r=>r.sent),[50,50,0]);assert.equal(claims,100);assert.equal(sent.size,100);assert.ok(reads.every(n=>n<=20));
 });

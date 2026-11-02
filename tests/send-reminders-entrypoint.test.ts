@@ -18,7 +18,7 @@ Object.assign(globalThis, { Deno: { env: { get: (name: string) => values[name] }
 await import('../supabase/functions/send-reminders/index.ts');
 
 test('entrypoint wires candidate/claim/check RPCs and failed finalize without provider dispatch', async () => {
-  for (const mode of ['reject', 'check-error', 'scan-incomplete', 'event-incomplete', 'recurring-incomplete', 'exception-incomplete', 'exception-duplicate', 'task-reject', 'task-check-error', 'task-scan-incomplete'] as const) {
+  for (const mode of ['reject', 'check-error', 'scan-incomplete', 'event-incomplete', 'recurring-incomplete', 'exception-incomplete', 'exception-duplicate', 'task-reject', 'task-check-error', 'task-scan-incomplete', 'ledger-incomplete', 'ledger-row-incomplete'] as const) {
     const taskMode = mode.startsWith('task-');
     const calls: { path: string; body: unknown }[] = [];
     const originalFetch = globalThis.fetch;
@@ -56,7 +56,14 @@ test('entrypoint wires candidate/claim/check RPCs and failed finalize without pr
       else if (path.endsWith('/check_important_date_reminder_delivery')) {
         if (mode === 'check-error') return new Response(JSON.stringify({ code: 'XX000', message: 'synthetic error' }), { status: 500 });
         data = false;
-      } else if (path.endsWith('/reminder_deliveries')) data = [{ id: deliveryId }];
+      } else if (path.endsWith('/reminder_deliveries')) {
+        if (!init?.method || init.method==='GET') {
+          assert.ok(url.searchParams.get('or')?.includes((taskMode?'task_id':'important_date_id')+'.eq.'+sourceId));
+          assert.equal(url.searchParams.get('limit'),'2');
+          return new Response(JSON.stringify(mode==='ledger-row-incomplete'?[{id:deliveryId}]:[]), {status:200,headers:{'Content-Type':'application/json','Content-Range':mode==='ledger-incomplete'?'0-0/1':mode==='ledger-row-incomplete'?'0-0/1':'*/0'}});
+        }
+        data = [{ id: deliveryId }];
+      }
       else assert.fail(`Unexpected route ${path}`);
       return new Response(JSON.stringify(data), { status: 200, headers: { 'Content-Type': 'application/json' } });
     };
@@ -76,7 +83,7 @@ test('entrypoint wires candidate/claim/check RPCs and failed finalize without pr
         p_expected_reminder_schedule_changed_at: marker });
       assert.deepEqual(call(taskMode ? 'check_task_reminder_delivery' : 'check_important_date_reminder_delivery')?.body, { p_delivery_id: deliveryId,
         p_expected_reminder_kind: 'all_day_same_day_08', p_expected_reminder_schedule_changed_at: marker });
-      assert.deepEqual(call('reminder_deliveries')?.body, { status: 'failed', result_code: 'unexpected_task_error', provider_status: null });
+      assert.deepEqual(calls.find(entry=>entry.path.endsWith('/reminder_deliveries')&&entry.body)?.body, { status: 'failed', result_code: 'unexpected_task_error', provider_status: null });
       assert.deepEqual(call('list_task_reminder_candidates')?.body, { p_after_id: null, p_limit: 100 });
       assert.ok(!calls.some(entry => entry.path.endsWith('/important_dates') || entry.path.endsWith('/tasks')));
     } finally { globalThis.fetch = originalFetch; globalThis.Date = OriginalDate; }

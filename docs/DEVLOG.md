@@ -1,5 +1,39 @@
 # Development Log
 
+## 2026-11-02 — Slice 5 Gate 2补齐 / Capacity正式发布授权
+
+接受用户本人已完成的Production SQL、Dashboard及真实REST脱敏证据，Gate 2 PASS；空读200/0、非空与20精确身份200/count2/rows2、分页206/count2/rows1被原guard拒绝。只2条真实样本，不声明20条负载或长期验收。Codex复用现有CLI登录读取ACTIVE v5/verify_jwt=false，执行通道已恢复；不重复SQL、REST、钥匙串或登录，不读取输出密钥。
+
+10份业务/测试指纹匹配，沿用Node1066/1066、85/85、Edge类型/TypeScript/Build/语法证据，仅更新发布治理，保留全部既有最小实现与回归。用户本轮授权Commit、正常Push及Edge Production部署；实际实绩见`/private/tmp/calendar-slice5-release-20261102/RELEASE_RECEIPT.md`，不预写成功。回退准备为保留部署前v5已回读且匹配基线的六份源码，并从该基线提取完整本地import图；CLI下载未完整结束，不冒称整包已回读。如新版本出现阻塞异常，停止并报告，仅在明确决定后重部署旧源码，不自动修改数据库/调度。
+
+用户确认历史通知由用户自行管理，Notification Cleanup无需开发，本版本不实施且非收口缺陷；未来真实需求再评估。Slice 1暂缓，Slices 2–4关闭、Slice 5最终验收仍待完成，整体版本IN PROGRESS。OTP独立待办保留，本轮不改认证或其他Slice。
+
+2026-11-02 — **CLI RECOVERED / REST INCOMPLETE / RELEASE HOLD**。按用户本轮明确授权，仅执行一次Homebrew受控reinstall：Supabase 2.107.0→2.120.0（当前公式无依赖）。启用NO_AUTO_UPDATE/NO_INSTALL_CLEANUP/NO_INSTALLED_DEPENDENTS_CHECK，未upgrade/cleanup其他软件。新路径/opt/homebrew/bin/supabase指向Cellar/supabase/2.120.0/bin/supabase；arm64，codesign --verify --strict报告valid on disk并满足Designated Requirement，--version正常。Cellar快照仅supabase版本变化，重装前后全部15份既有未提交文件哈希一致。用户已确认的Production Ledger SQL/权限/唯一索引/EXPLAIN/单一每分钟调度和旧Edge运行证据予以保留，不重测、不当作新版验收。剩余：恢复CLI后的Production函数列表读取挂起；沿用现有本机代理的一次30秒有界读取、关闭agent交互的一次20秒读取均未取得响应，无服务端认证错误可据以判定失效。CLI可执行性已修复，不将网络/授权访问等待混同签名问题。无凭据连通性只返回401，不能作为service_role REST证据。未登录、未提取或输出Token/Service Role Key，REST真实非空读取/count/range仍INCOMPLETE。用户仅授权恢复和只读检查，本轮不Commit/Push/Deploy，不更改Production；Notification Cleanup DEFERRED，Slices 2–4保持关闭。
+
+安装来源核对为homebrew/core官方bottle，无运行时依赖；仅Supabase发生Cellar变化，Node/其他包未动，未关闭Gatekeeper/SIP，未手动重签名/移除xattr或更改项目依赖/lockfile。CLI提示2.122.0更新，本轮未继续安装。functions list第一条挂起命令核对精确进程后终止；Python timeout结束的子进程不代表新的签名故障。对api.supabase.com和目标rest/v1/仅做无凭据可达性检查均401；没有输出任何真实业务身份或API错误正文，也未调用claim/sender/Cron。
+
+安装和诊断未修改项目15份既有变更；随后依AGENTS必要记录仅向PROJECT_STATE/DEVLOG/TESTING追加恢复及未完成门禁状态，原修改保留。业务/测试10份指纹继续一致，不重跑1066项。无Commit/Push/Deploy，无其他项目修改；外部仅/private/tmp/calendar-cli-recovery-20261102存安装前哈希/版本清单及无凭据元数据。当前项目仍12 modified+3 untracked，全未暂存。
+
+2026-11-01 — **Slice 5 MANUAL GATE 2 CHECKPOINT / RELEASE HOLD**。有限只读诊断确认PATH仅一套Homebrew Supabase CLI 2.107.0，darwin-arm64与macOS arm64匹配；codesign --verify --strict和spctl --assess均明确报告invalid signature (code or signature have been modified)，二进制为adhoc/linker签名。无效签名与SIGKILL相符，但未判定损坏/修改来源，不等于数据库不兼容。未重签名、重装、移除xattr或更改系统安全设置。工具无Supabase/SQL连接；已检查浏览器入口，未建立受控Dashboard SQL会话，不提取登录态。已准备[手动只读门禁](./SLICE5_MANUAL_GATE2.md)两组可复制SQL和预期结果：catalog/grant/claim线索/唯一调度，既有service_role限量汇总读取与20个虚构身份EXPLAIN（无ANALYZE）。SQL尚未执行；不能预写PASS，且SQL不替代PostgREST count/limit响应及已部署Edge身份/version/config的实际证据。业务/测试10份指纹保持；无Commit/Push/Deploy。首次注册8位OTP统一已独立登记BACKLOG待核查/待实施，不改Auth、认证代码或模板。Notification Cleanup仍DEFERRED，Slices 2–4保持关闭，Slice 5/整体未关闭。
+
+本轮仅治理/手动核验文档，未改业务/测试/已安装工具；type -a、Homebrew安装收据、file/uname、codesign、spctl只读。未发现PATH多版本；未扫描凭据或Vault，未输出秘密。受控浏览器无已连接Dashboard会话，原生Chrome观察较慢且当前窗口无Dashboard入口，因此不扩大自动化或访问不相关项目/会话。准备SQL保留事务只读、8秒局部超时与ROLLBACK；只回传元数据/汇总，绝不输出真实投递身份、Cron命令/凭据，不调用claim/发送接口。没有可连接的本地SQL parser/数据库，SQL仅人工审阅与读写边界检查，不能冒称已在Production执行。业务/测试指纹完全匹配，diff-check通过，不重跑已通过1066/85。未Commit/Push/Deploy，其他项目未改；手动文档为新增治理文件，当前12 modified+3 untracked，全部未暂存。
+
+2026-11-01 — **Slice 5 Capacity RELEASE HOLD（Gate 2 Production只读核验未通过）**。用户仅授权所有门禁通过后Commit/Push/Edge部署。当前14文件范围符合预期，10份业务/测试指纹与已测试版本一致；沿用Node1066/1066、相关85/85、Build/TypeScript证据，本轮cached-only --no-lock Edge类型、语法及diff复核PASS。关键Production门禁未获证据：已安装Supabase CLI连--version也SIGKILL，functions list --project-ref ximazjhxvmktpcdbypka同样失败；无可用Supabase/SQL连接工具，也未发现已配置PGSERVICE/PGHOST/PGDATABASE/SUPABASE_DB_URL或.pg_service.conf/.pgpass。psql程序可运行，但这不建立受控Production连接。未读取凭据值、未绕过登录或修复全局CLI。尚未直接确认真实表/状态/唯一键、service-role权限、新批量读取/count截断/查询计划、已部署Edge版本/verify_jwt及单一调度合同，不以仓库schema或离线测试替代。遵照用户硬门禁HOLD，不Commit/Push/Deploy。代码仍LOCAL VERIFIED，待受控只读能力恢复后继续Gate 2；Notification Cleanup DEFERRED，Slices 2–4保持关闭、Slice 1暂缓，Slice 5/整体未关闭。下方READY FOR RELEASE仅表示本地验证，不代表Production门禁通过。
+
+本轮仅更新原范围内四份治理记录，不改变业务/测试。未暂存，HEAD/origin/main仍d84775245038289614eee1fc3c34920469c6563e；Post-Push Freshness不适用（没有push），工作区保留12 modified+2 untracked。未真实登录、读写Production业务数据、发送通知或主动触发sender/Cron；其他项目无修改。CLI失败是进程SIGKILL而不是自动审批拒绝，原因未判定。外部仅/private/tmp/calendar-capacity-local保存本地检查日志及空的失败CLI输出；不宣称数据库不兼容，仅访问证据不足。
+
+2026-10-30 — **Slice 5 Capacity LOCAL VERIFIED / READY FOR RELEASE（未发布、未收口）**。采用20身份一批的精确ledger预过滤，按原排序收集最多50个未处理候选，再执行原子claim/权限/发送；不使用逐claim补位。55条三轮发送/claim均[50,5,0]、ledger查询[3,3,3]；100条均[50,50,0]、查询[3,5,5]，无重复。1000已处理身份为50次只读查询、0 claim。现有claimed/sent/failed均因唯一键+DO NOTHING不可重新claim，按此合同过滤，不把failed/claimed冒称送达；未知/畸形状态失败关闭。源分页/排序/50预算/5并发/95秒claim截止/宽限/权限保持。全量Node1066/1066、相关85/85、Deno Edge类型检查、Build含TypeScript、语法/diff PASS。仅本地，未Commit/Push/Deploy或改数据库配置；Notification Cleanup DEFERRED，Slice 1 DEFERRED、Slices 2–4 CLOSED / PASS，v0.1.21仍IN PROGRESS。下方HOLD为上一轮逐claim原型的历史结论。
+
+业务仅send-reminders/logic.ts、index.ts和新ledger.ts；7份直接测试/夹具配套（既有55/100回归保留），四份必要治理更新。service_role既有SELECT grant/RLS bypass、6列NULLS NOT DISTINCT唯一索引和四种claim ON CONFLICT DO NOTHING支持精确点查；不改SQL。每批最多20，编码filter<=6500字符，count exact对比data长度并用batch+1 limit检测截断；每个候选本轮最多读取一次（最后批次可含最多19个预算外身份），数组单调推进、95秒前后检查，失败不回退claim扫全量。正常最多50原子claim，竞争仍由SQL拒绝，拒绝不触发本轮新补位；后续轮次ledger过滤使其不持续占位。
+
+全量首次发现两个旧fixture缺少新lookup边界，补齐空ledger替身后最终1066/1066；未放宽权限/时间断言。Edge cached-only类型检查PASS；工具首次自动生成的deno.lock已移至/private/tmp/calendar-capacity-local/deno-generated.lock保留，不纳入仓库，最终检查--no-lock，无依赖或配置变更。Build与语法/diff通过，chunk提示既有非阻塞。代码/安全审查确认用户侧不可读ledger、exact身份无业务字段猜重，Series root与状态/失败不重试合同不变。
+
+仅本地验证，无Production catalog/真实SQL计划或耗时实测、无真实通知/会话/数据操作，未手工读取或输出秘密（构建按既有配置加载但不输出环境）。其他项目未改，外部仅临时诊断。停止等待发布授权，不实施Notification Cleanup，不关闭Slice 5。负载明细见TESTING首节。
+
+2026-10-29 — **Slice 5 Reminder Capacity：HOLD / NOT IMPLEMENTED**。用户授权仅本地容量修复，Notification Cleanup明确DEFERRED。新增5项跨轮回归，55/100身份在当前代码下失败（只发送前50）。逐claim补位试验可分别达到[50,5,0]/[50,50,0]且不重复，但100身份全部已处理后每轮仍100次claim，较现状50次翻倍；已触发用户“明显增加数据库负载时停止”约束，停止扩大，撤回本轮试验性业务改动，logic.ts与HEAD一致。仅保留失败回归/治理及临时试验证据。当前相关38项：36 PASS、2预期缺陷FAIL；原有33项全通过，不声称修复完成。需评估既有ledger精确身份批量过滤后再原子claim的低负载方案；尚未实施或证明必须改数据库。Slices 2–4保持CLOSED / PASS、Slice 1 DEFERRED，整体v0.1.21 IN PROGRESS；无Commit/Push/Deploy或Production操作。下方只读/尚未启动为历史。
+
+本轮只新增tests/send-reminders.test.ts的5个跨轮回归（0/7/50/55/100身份），以及PROJECT_STATE/TESTING/BACKLOG/DEVLOG治理。试验源备份、RED/GREEN负载计数及恢复后日志位于/private/tmp/calendar-capacity-local；不是可发布实现。现存业务源码全部保持HEAD，不改DB/schema/RLS/RPC/Edge配置/Cron，也没有向用户发送通知。未触碰Slices 2–4和通知清理；无真实账号/数据或密钥读取输出，其他项目未改。后续需在既有ledger读取能力/索引/精确多来源身份、并发claim冲突与请求上限之间完成最小方案评估，不先引入框架或数据库改动。
+
 2026-10-29 — **Slice 4 CLOSED / PASS**，用户正式iPhone PWA最终验收PASS；交付、分阶段证据与人工边界见[TESTING](./TESTING.md)首节。跨刷新/关闭重开恢复不在范围，故障注入仅自动化覆盖，保存耗时未测量/未优化。整体v0.1.21 IN PROGRESS；Slice 1暂缓、Slices 2–3/回顾Follow-up保持关闭，Slice 5只读调查获授权、未实施。下方旧状态为历史。
 
 本轮仅六治理文件收口，diff/非治理树检查；按授权Governance Commit/正常Push后只读Freshness及Git核验。Phase A成功后只读调查Slice 5，不再修改文件或新增Commit，不重跑业务测试或数据库。

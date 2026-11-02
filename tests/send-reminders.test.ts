@@ -398,6 +398,7 @@ function orchestrationDependencies(
       space_id: '20000000-0000-4000-8000-000000000001',
       user_id: 'user-1',
     }],
+    lookupLedger: async () => [],
     fetchSubscriptions: async () => [subscription('subscription-1', 'user-1')],
     claim: async () => '30000000-0000-4000-8000-000000000001',
     claimRecurring: async () => '30000000-0000-4000-8000-000000000002',
@@ -811,4 +812,67 @@ test('returns only aggregate diagnostics after an authorized orchestration run',
     serialized,
     /Private Event Title|private-event-id|private-user-id|private-subscription-id|private-endpoint|private-p256dh|private-auth|synthetic-private-token|private-claim-id/,
   );
+});
+
+for (const count of [0, 1, 7, 50, 55, 100]) test(`capacity fills across runs for ${count} identities without duplicate delivery`, async () => {
+  const subscriptions=Array.from({length:count},(_,n)=>subscription(`sub-${String(n).padStart(3,'0')}`,'user-1'));
+  const ledger=new Set<string>();const sends=new Set<string>();const perRun:number[]=[];const requests:number[]=[];const reads:number[]=[];const totals:number[]=[];let queries=0,rowsRead=0,dbRequests=0;
+  const dependencies=orchestrationDependencies({fetchSubscriptions:async()=>subscriptions,
+    lookupLedger:async identities=>{queries++;assert.ok(identities.length<=20);const rows=identities.filter(i=>ledger.has(i.subscription_id)).map(i=>({...i,status:'sent'}));rowsRead+=rows.length;return rows;},
+    claim:async input=>{if(ledger.has(input.subscriptionId))return null;ledger.add(input.subscriptionId);return input.subscriptionId},
+    send:async sub=>{assert.equal(sends.has(sub.id),false);sends.add(sub.id);return {classification:'delivered',provider:'synthetic',status:201}}});
+  for (const method of Object.keys(dependencies) as Array<keyof RunSendRemindersDependencies>) {
+    if (method === 'send') continue;
+    const original = dependencies[method];
+    (dependencies as any)[method] = (...args:any[]) => { dbRequests++; return (original as any)(...args); };
+  }
+  for(let minute=0;minute<3;minute++){
+    queries=0;rowsRead=0;dbRequests=0;
+    const result=await runSendReminders({runNow:new Date(runNow.getTime()+minute*60000),startedAt:0,monotonicNow:()=>1},dependencies);
+    perRun.push(result.sent);requests.push(result.claimed+result.claim_rejected);reads.push(queries);totals.push(dbRequests);
+    assert.equal(dbRequests,6+queries+result.claimed+result.claim_rejected+result.claimed*2);
+    console.log(JSON.stringify({count,minute,sent:result.sent,claims:result.claimed+result.claim_rejected,ledgerQueries:queries,ledgerRows:rowsRead,totalDB:totals.at(-1)}));
+    assert.ok(result.claimed<=50);assert.ok(result.claimed+result.claim_rejected<=count);
+  }
+  assert.equal(sends.size,count);assert.deepEqual(perRun,count<=50?[count,0,0]:[50,count-50,0]);
+  console.log(JSON.stringify({identities:count,perRun,claimRequests:requests,ledgerQueries:reads,totalDB:totals}));
+});
+
+test('1000 completed identities use 50 bounded read queries and zero claims',async()=>{
+ const subs=Array.from({length:1000},(_,n)=>subscription(String(n).padStart(4,'0'),'user-1'));let queries=0,rows=0,claims=0;
+ const result=await runSendReminders({runNow,startedAt:0,monotonicNow:()=>1},orchestrationDependencies({fetchSubscriptions:async()=>subs,
+  lookupLedger:async ids=>{queries++;rows+=ids.length;return ids.map(i=>({...i,status:'sent'}))},claim:async()=>{claims++;return null}}));
+ assert.equal(queries,50);assert.equal(rows,1000);assert.equal(claims,0);assert.equal(result.sent,0);
+ console.log(JSON.stringify({completedBacklog:1000,ledgerQueries:queries,ledgerRows:rows,claims,totalDB:6+queries}));
+});
+test('lookup errors and a slow lookup stop safely before claims',async()=>{
+ let claims=0;const deps=orchestrationDependencies({claim:async()=>{claims++;return null},lookupLedger:async()=>{throw Error('offline')}});
+ await assert.rejects(runSendReminders({runNow,startedAt:0,monotonicNow:()=>0},deps));assert.equal(claims,0);
+ let elapsed=0;deps.lookupLedger=async()=>{elapsed=95000;return []};
+ const result=await runSendReminders({runNow,startedAt:0,monotonicNow:()=>elapsed},deps);
+ assert.equal(claims,0);assert.equal(result.runtime_stop_reason,'claim_acquisition_cutoff');assert.equal(result.runtime_deferred,1);
+});
+test('concurrent prefilter misses still rely on atomic claim; later rounds finish overflow without duplicates',async()=>{
+ const ledger=new Set<string>(),sent=new Set<string>();const subs=Array.from({length:100},(_,n)=>subscription(String(n).padStart(3,'0'),'user-1'));let active=0,maxActive=0;
+ const deps=orchestrationDependencies({fetchSubscriptions:async()=>subs,lookupLedger:async()=>[],
+ claim:async i=>{await new Promise(setImmediate);if(ledger.has(i.subscriptionId))return null;ledger.add(i.subscriptionId);return i.subscriptionId},
+ send:async sub=>{active++;maxActive=Math.max(active,maxActive);await new Promise(setImmediate);assert.ok(!sent.has(sub.id));sent.add(sub.id);active--;return {classification:'delivered',provider:'synthetic',status:201}}});
+ const ctx={runNow,startedAt:0,monotonicNow:()=>1};const initial=await Promise.all([runSendReminders(ctx,deps),runSendReminders(ctx,deps)]);
+ assert.ok(initial.every(r=>r.claimed<=50));assert.ok(maxActive<=10); // Five workers per independent invocation, not a new global lock.
+ deps.lookupLedger=async ids=>ids.filter(i=>ledger.has(i.subscription_id)).map(i=>({...i,status:'claimed'}));
+ await runSendReminders(ctx,deps);assert.equal(sent.size,100);assert.equal(ledger.size,100);
+});
+test('failed/claimed identities remain blocked but a pre-claim transport failure can retry later',async()=>{
+ let sent=0,claims=0;const deps=orchestrationDependencies({claim:async()=>{claims++;throw Error('request failed before insert')},send:async()=>{sent++;return {classification:'delivered',provider:'synthetic',status:201}}});
+ const ctx={runNow,startedAt:0,monotonicNow:()=>0};await runSendReminders(ctx,deps);assert.equal(sent,0);
+ deps.claim=async()=>{claims++;return 'id'};await runSendReminders(ctx,deps);assert.equal(sent,1);
+ for(const status of ['failed','claimed']){deps.lookupLedger=async ids=>ids.map(i=>({...i,status}));await runSendReminders(ctx,deps)}
+ assert.equal(sent,1);assert.equal(claims,2);
+});
+
+test('49 fresh identities before a completed backlog do not shrink ledger requests to single-row probes',async()=>{
+ let queries=0;const subs=Array.from({length:1049},(_,n)=>subscription(String(n).padStart(4,'0'),'user-1'));
+ const result=await runSendReminders({runNow,startedAt:0,monotonicNow:()=>0},orchestrationDependencies({fetchSubscriptions:async()=>subs,
+ lookupLedger:async ids=>{queries++;return ids.filter(i=>Number(i.subscription_id)>=49).map(i=>({...i,status:'sent'}))}}));
+ assert.equal(result.sent,49);assert.equal(queries,Math.ceil(1049/20));
 });

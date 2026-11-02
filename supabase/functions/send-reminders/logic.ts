@@ -1,3 +1,4 @@
+import { deliveryIdentity, identityKey, processedKeys, LEDGER_BATCH_SIZE, type DeliveryIdentity, type LedgerIdentity } from './ledger.ts';
 import {
   calculateReminderDue,
   type ReminderKind,
@@ -157,6 +158,7 @@ export type RunSendRemindersDependencies = {
     userIds: string[],
     runNow: Date,
   ) => Promise<ReminderSubscription[]>;
+  lookupLedger: (identities: DeliveryIdentity[]) => Promise<LedgerIdentity[]>;
   claim: (input: ClaimReminderInput) => Promise<string | null>;
   claimRecurring: (input: ClaimRecurringReminderInput) => Promise<string | null>;
   claimImportantDate: (input: ImportantDateClaimInput) => Promise<string | null>;
@@ -852,12 +854,31 @@ export async function runSendReminders(
   diagnostics.active_subscriptions = delivery.activeSubscriptions;
   diagnostics.delivery_tasks = delivery.tasks.length;
 
-  const selection = selectDeliveryTasks(delivery.tasks);
+  const ordered = [...delivery.tasks].sort(compareDeliveryTasks);
+  const selected: DeliveryTask[] = [];
+  let examined = 0;
+  let lookupStopped = false;
+  while (examined < ordered.length && selected.length < MAX_DELIVERY_TASKS) {
+    if (context.monotonicNow() - context.startedAt >= CLAIM_ACQUISITION_CUTOFF_MS) { lookupStopped = true; break; }
+    const batch = ordered.slice(examined, examined + LEDGER_BATCH_SIZE);
+    const identities = batch.map(deliveryIdentity);
+    const rows = await dependencies.lookupLedger(identities);
+    const processed = processedKeys(rows, identities);
+    // A slow lookup must not extend the acquisition deadline or authorize any send.
+    if (context.monotonicNow() - context.startedAt >= CLAIM_ACQUISITION_CUTOFF_MS) { lookupStopped = true; break; }
+    let consumed = 0;
+    for (let index = 0; index < batch.length && selected.length < MAX_DELIVERY_TASKS; index++) {
+      if (!processed.has(identityKey(identities[index]))) selected.push(batch[index]);
+      consumed += 1;
+    }
+    examined += consumed;
+  }
+  const selection = { selected, overflow: ordered.length - examined };
   diagnostics.selected_delivery_tasks = selection.selected.length;
   diagnostics.overflow_delivery_tasks = selection.overflow;
 
   let cursor = 0;
-  let runtimeStopped = false;
+  let runtimeStopped = lookupStopped;
   let reservedDeferred = 0;
   const worker = async () => {
     while (cursor < selection.selected.length && !runtimeStopped) {
@@ -902,7 +923,7 @@ export async function runSendReminders(
   await Promise.all(Array.from({ length: workerCount }, () => worker()));
 
   if (runtimeStopped) {
-    diagnostics.runtime_deferred = reservedDeferred + selection.selected.length - cursor;
+    diagnostics.runtime_deferred = reservedDeferred + selection.selected.length - cursor + (lookupStopped ? ordered.length - examined : 0);
     diagnostics.runtime_stop_reason = 'claim_acquisition_cutoff';
   }
 

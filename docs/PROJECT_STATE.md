@@ -12,6 +12,18 @@ v0.1.21
 
 ## Current status
 
+2026-11-02 — **Slice 5 Capacity RELEASE AUTHORIZED / FINAL ACCEPTANCE PENDING**。Gate 1相同源码验证证据有效，10份业务/测试SHA256均匹配；Gate 2由用户实际执行的Production SQL、Dashboard及REST脱敏结果确认PASS，见TESTING最新节。Codex现已复用既有CLI登录，只读确认目标ximazjhxvmktpcdbypka的send-reminders ACTIVE v5、verify_jwt=false；旧REST HOLD及管理读取超时不再是当前阻塞。仅发布既有容量修复，不新增数据库或产品行为，不提前关闭Slice 5/整体版本。用户确认Notification Cleanup不需要，本版本不实施，不作为收口缺陷；未来有真实需求再评估。下方HOLD/DEFERRED条目保留为历史。
+
+2026-11-02 — **CLI RECOVERED / REST INCOMPLETE / RELEASE HOLD**。按用户本轮明确授权，仅执行一次Homebrew受控reinstall：Supabase 2.107.0→2.120.0（当前公式无依赖）。启用NO_AUTO_UPDATE/NO_INSTALL_CLEANUP/NO_INSTALLED_DEPENDENTS_CHECK，未upgrade/cleanup其他软件。新路径/opt/homebrew/bin/supabase指向Cellar/supabase/2.120.0/bin/supabase；arm64，codesign --verify --strict报告valid on disk并满足Designated Requirement，--version正常。Cellar快照仅supabase版本变化，重装前后全部15份既有未提交文件哈希一致。用户已确认的Production Ledger SQL/权限/唯一索引/EXPLAIN/单一每分钟调度和旧Edge运行证据予以保留，不重测、不当作新版验收。剩余：恢复CLI后的Production函数列表读取挂起；沿用现有本机代理的一次30秒有界读取、关闭agent交互的一次20秒读取均未取得响应，无服务端认证错误可据以判定失效。CLI可执行性已修复，不将网络/授权访问等待混同签名问题。无凭据连通性只返回401，不能作为service_role REST证据。未登录、未提取或输出Token/Service Role Key，REST真实非空读取/count/range仍INCOMPLETE。用户仅授权恢复和只读检查，本轮不Commit/Push/Deploy，不更改Production；Notification Cleanup DEFERRED，Slices 2–4保持关闭。
+
+2026-11-01 — **Slice 5 MANUAL GATE 2 CHECKPOINT / RELEASE HOLD**。有限只读诊断确认PATH仅一套Homebrew Supabase CLI 2.107.0，darwin-arm64与macOS arm64匹配；codesign --verify --strict和spctl --assess均明确报告invalid signature (code or signature have been modified)，二进制为adhoc/linker签名。无效签名与SIGKILL相符，但未判定损坏/修改来源，不等于数据库不兼容。未重签名、重装、移除xattr或更改系统安全设置。工具无Supabase/SQL连接；已检查浏览器入口，未建立受控Dashboard SQL会话，不提取登录态。已准备[手动只读门禁](./SLICE5_MANUAL_GATE2.md)两组可复制SQL和预期结果：catalog/grant/claim线索/唯一调度，既有service_role限量汇总读取与20个虚构身份EXPLAIN（无ANALYZE）。SQL尚未执行；不能预写PASS，且SQL不替代PostgREST count/limit响应及已部署Edge身份/version/config的实际证据。业务/测试10份指纹保持；无Commit/Push/Deploy。首次注册8位OTP统一已独立登记BACKLOG待核查/待实施，不改Auth、认证代码或模板。Notification Cleanup仍DEFERRED，Slices 2–4保持关闭，Slice 5/整体未关闭。
+
+2026-11-01 — **Slice 5 Capacity RELEASE HOLD（Gate 2 Production只读核验未通过）**。用户仅授权所有门禁通过后Commit/Push/Edge部署。当前14文件范围符合预期，10份业务/测试指纹与已测试版本一致；沿用Node1066/1066、相关85/85、Build/TypeScript证据，本轮cached-only --no-lock Edge类型、语法及diff复核PASS。关键Production门禁未获证据：已安装Supabase CLI连--version也SIGKILL，functions list --project-ref ximazjhxvmktpcdbypka同样失败；无可用Supabase/SQL连接工具，也未发现已配置PGSERVICE/PGHOST/PGDATABASE/SUPABASE_DB_URL或.pg_service.conf/.pgpass。psql程序可运行，但这不建立受控Production连接。未读取凭据值、未绕过登录或修复全局CLI。尚未直接确认真实表/状态/唯一键、service-role权限、新批量读取/count截断/查询计划、已部署Edge版本/verify_jwt及单一调度合同，不以仓库schema或离线测试替代。遵照用户硬门禁HOLD，不Commit/Push/Deploy。代码仍LOCAL VERIFIED，待受控只读能力恢复后继续Gate 2；Notification Cleanup DEFERRED，Slices 2–4保持关闭、Slice 1暂缓，Slice 5/整体未关闭。下方READY FOR RELEASE仅表示本地验证，不代表Production门禁通过。
+
+2026-10-30 — **Slice 5 Capacity LOCAL VERIFIED / READY FOR RELEASE（未发布、未收口）**。采用20身份一批的精确ledger预过滤，按原排序收集最多50个未处理候选，再执行原子claim/权限/发送；不使用逐claim补位。55条三轮发送/claim均[50,5,0]、ledger查询[3,3,3]；100条均[50,50,0]、查询[3,5,5]，无重复。1000已处理身份为50次只读查询、0 claim。现有claimed/sent/failed均因唯一键+DO NOTHING不可重新claim，按此合同过滤，不把failed/claimed冒称送达；未知/畸形状态失败关闭。源分页/排序/50预算/5并发/95秒claim截止/宽限/权限保持。全量Node1066/1066、相关85/85、Deno Edge类型检查、Build含TypeScript、语法/diff PASS。仅本地，未Commit/Push/Deploy或改数据库配置；Notification Cleanup DEFERRED，Slice 1 DEFERRED、Slices 2–4 CLOSED / PASS，v0.1.21仍IN PROGRESS。下方HOLD为上一轮逐claim原型的历史结论。
+
+2026-10-29 — **Slice 5 Reminder Capacity：HOLD / NOT IMPLEMENTED**。用户授权仅本地容量修复，Notification Cleanup明确DEFERRED。新增5项跨轮回归，55/100身份在当前代码下失败（只发送前50）。逐claim补位试验可分别达到[50,5,0]/[50,50,0]且不重复，但100身份全部已处理后每轮仍100次claim，较现状50次翻倍；已触发用户“明显增加数据库负载时停止”约束，停止扩大，撤回本轮试验性业务改动，logic.ts与HEAD一致。仅保留失败回归/治理及临时试验证据。当前相关38项：36 PASS、2预期缺陷FAIL；原有33项全通过，不声称修复完成。需评估既有ledger精确身份批量过滤后再原子claim的低负载方案；尚未实施或证明必须改数据库。Slices 2–4保持CLOSED / PASS、Slice 1 DEFERRED，整体v0.1.21 IN PROGRESS；无Commit/Push/Deploy或Production操作。下方只读/尚未启动为历史。
+
 2026-10-29 — **v0.1.21 Slice 4 CLOSED / PASS**。用户明确报告最终正式iPhone PWA人工验收通过：普通日程创建/刷新/编辑、重复日程创建PASS，未观察到重复；最新等待提示修复后保存正常、显示保存中，未报告提前出现重试按钮。交付同一表单意图稳定UUID/原始提交、权限下异常或冲突读回核对、提交锁/迟到响应保护及等待UI修正。已验收业务Source e5a3cf152cb68cf822c34c090bc831906f339f53，Production部署7407802024 success且Source匹配，七项资源与已测试Build一致，目标ximazjhxvmktpcdbypka。相关Node151/151、Browser62/62、TypeScript/Build/语法/diff/生产audit通过；历史全量1048属于核心修复阶段，不冒称本次Follow-up后全量重跑。跨刷新/关闭重开不恢复意图；Production故障注入MANUAL NOT RUN、由自动化覆盖；保存耗时未定量测量也未优化。这些边界不阻碍已验收范围收口。整体v0.1.21仍IN PROGRESS，Slice 1 DEFERRED、Slices 2–3 CLOSED / PASS、回顾Follow-up CLOSED / ACCEPTED保持；Slice 5仅只读调查授权，未实施。下方Pending/未发布为历史。
 
 2026-10-29 — **Slice 4 Follow-up RELEASE AUTHORIZED / FINAL ACCEPTANCE PENDING**。用户明确授权本次7文件Commit、正常Push origin/main及既有Vercel Production；只发布App.tsx等待状态文案与重试按钮渲染条件，三份测试/夹具和三份治理。源码/测试指纹保持，沿用Node151/151、WebKit/Chrome62/62及14项先失败后通过证据，不重复全量。UUID/原始内容绑定、权限复核、提交锁、迟到响应及普通/重复保存规则不变；不声称改善保存耗时。发布Source、七项资源、Supabase目标和Git结果由`/private/tmp/calendar-create-wait-release/RELEASE_RECEIPT.md`记录，不预写成功。用户此前核心功能PWA验收PASS，本提示补丁仍待最终人工确认；Slice 4不提前关闭，Slice 2/3保持CLOSED / PASS，Slice 1暂缓、Slice 5未启动。下方未授权/本地未发布为历史。
@@ -77,6 +89,18 @@ UI v2 Slice6 = LOCAL PASS / VISUAL PASS：用户已认可四张居中概览卡�
 v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3为LOCAL PASS / VISUAL PASS；Slice4为LOCAL PASS / VISUAL PROVISIONALLY ACCEPTED。Slice5月视图本地验证与离线视觉验收通过：两条短标题/准确+N、六色圆点与日期浮层，261/261相关测试、build/diff-check、28组四宽度离线检查PASS；用户确认普通月、密集月、空月及浮层满意。已授权本地commit；不代表真实账号、真机、installed PWA或Production验收。Space Color System继续Deferred；真实账号/真机/installed PWA/Production未验收。正式版本仍v0.1.20。
 
 ## Latest completed
+
+Production Gate 2真实SQL/权限/索引/调度及REST完整性证据已由用户确认PASS；本轮10份业务/测试指纹复核匹配，CLI受控管理读取恢复。用户明确授权本次治理Commit、正常Push与send-reminders Production部署；实际发布实绩单独核验，不以授权或旧v5运行代替新部署证据。
+
+一次受控CLI重装完成，签名/版本/架构通过且Node等其他Cellar软件不变，既有未提交文件安装前后哈希一致；Production管理列表及REST门禁仍未取得直接响应，未发布。
+
+CLI路径/架构/签名只读诊断及手动Gate 2 SQL准备完成；OTP独立产品待办已登记。未恢复CLI或发布；所有生产门禁仍等待脱敏人工证据。
+
+2026-11-01：发布前源码/测试指纹与本地静态门禁复核通过；Production关键只读门禁因CLI SIGKILL和无受控SQL连接被阻塞，未发布。
+
+低负载ledger预过滤实现与请求计数/并发/完整回归通过；既有55/100缺陷测试由红转绿，通知清理暂缓。未发布，未完成真实数据库计划/耗时测量。
+
+Slice 5跨轮失败回归和补位试验负载测量完成，因明显增加空转claim查询而按用户约束停止；未保留业务修复，详见TESTING。
 
 Slice 4核心创建保护与等待提示修复获用户Production PWA最终PASS，正式CLOSED / PASS，仅治理收口；保留故障自动化/跨刷新边界，不关闭整体版本。
 
@@ -423,6 +447,12 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
+2026-11-02：本次仅按既有CLI流程发布send-reminders，保留verify_jwt=false、Secrets变量合同及既有唯一每分钟调度；不部署数据库或配置。发布前独立CLI读取为ACTIVE v5。实际新版本、三份源码回读、调度/运行摘要及Vercel Source以`/private/tmp/calendar-slice5-release-20261102/RELEASE_RECEIPT.md`记录；不预写成功，Vercel不能替代Edge部署证据。用户REST非空仅2条，不声明20条真实负载或长期性能已验证。下方未发布为历史检查点。
+
+2026-11-01：本次发布止于Gate 2，未Commit/Push，未触发新Vercel部署，未部署send-reminders；不修改schema/RLS/RPC/索引/环境/verify_jwt/调度。实际当前Edge版本、ACTIVE与调度健康未独立核验，不能预写部署后观察PASS。
+
+2026-10-30：容量预过滤只改本地send-reminders Edge源码/直接测试；无SQL、RLS、RPC、Cron、部署配置或客户端变化，尚未部署。后续需要用户另行授权Edge发布，不以Vercel前端部署代替后端发布。
+
 已验收业务Source e5a3cf152cb68cf822c34c090bc831906f339f53 / Production7407802024 success、七项资源与Build一致、Supabase ximazjhxvmktpcdbypka。用户最终Production PWA验收PASS。本次仅治理收口，不改资源/后端；Git集成如自动部署，其实绩由执行报告核验，不预写成功。下方Pending为历史。
 
 本次Follow-up按授权origin/main→既有Vercel Production发布；实际Source SHA/部署成功、七项资源和目标以`/private/tmp/calendar-create-wait-release/RELEASE_RECEIPT.md`核验，不以Push替代发布证据。无后端能力/配置变更，沿用用户已验收核心创建基线，最终提示体验待用户确认。下方旧部署为历史。
@@ -510,7 +540,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Version Index
 
-- v0.1.21 — Engineering Stability & Data Safety；整体IN PROGRESS，Slices 2–4 CLOSED / PASS，Slice 1 DEFERRED，Slice 5仅只读调查授权/未实施。
+- v0.1.21 — Engineering Stability & Data Safety；整体IN PROGRESS，Slices 2–4 CLOSED / PASS，Slice 1 DEFERRED，Slice 5容量RELEASE AUTHORIZED / FINAL ACCEPTANCE PENDING（Gate 2 PASS；发布实绩另行核验），Notification Cleanup用户确认不需要、本版本不实施。
 - v0.1 — 共享日历 MVP
 - v0.1-smoke-test — Supabase 验收
 - v0.1.1 — 个人事件权限
@@ -566,7 +596,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-依据Slice 5冻结范围的只读调查证据，等待用户决定NO ACTION / DEFERRED或另行授权最小实施；不主动实施、不开启新版本，不重开Slices 2–4。
+完成本次已授权容量修复的Production部署后核验与自然调度观察，再由用户最终验收；观察不足如实保留，不提前关闭Slice 5或v0.1.21，不增加Notification Cleanup。实际发布结果见Deployment所列独立回执。
 
 ## Blockers
 
@@ -574,7 +604,9 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Important Context
 
-- v0.1.21 Slices 2–3已CLOSED / PASS，Slice 4仅本地验证完成，整体未完成。回顾边缘返回/完成入口独立 Follow-up 已按实际验收范围关闭，创建默认空间待产品讨论，对方状态短延迟暂观察；不在收口中扩大手势或Realtime范围。
+Slice 5 Gate 2已按用户真实Production证据PASS，不要求重复SQL/REST/钥匙串操作。Notification Cleanup由用户确认无需开发，历史通知自行管理；不是本版本待修缺陷。OTP独立待办仍待核查，不改认证。Slices 2–4 CLOSED / PASS、Slice 1 DEFERRED保持。
+
+- v0.1.21 Slices 2–4已CLOSED / PASS，整体未完成。回顾边缘返回/完成入口独立 Follow-up 已按实际验收范围关闭，创建默认空间待产品讨论，对方状态短延迟暂观察；不在收口中扩大手势或Realtime范围。
 
 - 本次仅复用 Space 筛选菜单的展示/交互能力，表单禁止“全部空间”；父级保留资格、ownership、默认值、编辑不可迁移限制、草稿及提交验证。此前“不重做筛选器”仍有效：只增加默认关闭的弹窗模式，原页面筛选器无重新设计。
 
@@ -673,7 +705,9 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Handoff Prompt
 
-2026-10-29 — **v0.1.21 Slice 4 CLOSED / PASS**。用户明确报告最终正式iPhone PWA人工验收通过：普通日程创建/刷新/编辑、重复日程创建PASS，未观察到重复；最新等待提示修复后保存正常、显示保存中，未报告提前出现重试按钮。交付同一表单意图稳定UUID/原始提交、权限下异常或冲突读回核对、提交锁/迟到响应保护及等待UI修正。已验收业务Source e5a3cf152cb68cf822c34c090bc831906f339f53，Production部署7407802024 success且Source匹配，七项资源与已测试Build一致，目标ximazjhxvmktpcdbypka。相关Node151/151、Browser62/62、TypeScript/Build/语法/diff/生产audit通过；历史全量1048属于核心修复阶段，不冒称本次Follow-up后全量重跑。跨刷新/关闭重开不恢复意图；Production故障注入MANUAL NOT RUN、由自动化覆盖；保存耗时未定量测量也未优化。这些边界不阻碍已验收范围收口。整体v0.1.21仍IN PROGRESS，Slice 1 DEFERRED、Slices 2–3 CLOSED / PASS、回顾Follow-up CLOSED / ACCEPTED保持；Slice 5仅只读调查授权，未实施。下方Pending/未发布为历史。 本次后续仅Slice 5只读调查，结束等待新授权。
+继续v0.1.21 Slice 5已授权Capacity发布的实际核验与最终验收。Gate 1代码指纹匹配、Gate 2用户SQL/REST PASS，CLI管理读取已恢复；先读独立发布回执区分Git、Edge新版本与Vercel实绩，不重复已通过检查，不提前收口。Notification Cleanup用户确认不需要，不实施。下方旧HOLD交接仅历史。
+
+2026-11-02 — **CLI RECOVERED / REST INCOMPLETE / RELEASE HOLD**。按用户本轮明确授权，仅执行一次Homebrew受控reinstall：Supabase 2.107.0→2.120.0（当前公式无依赖）。启用NO_AUTO_UPDATE/NO_INSTALL_CLEANUP/NO_INSTALLED_DEPENDENTS_CHECK，未upgrade/cleanup其他软件。新路径/opt/homebrew/bin/supabase指向Cellar/supabase/2.120.0/bin/supabase；arm64，codesign --verify --strict报告valid on disk并满足Designated Requirement，--version正常。Cellar快照仅supabase版本变化，重装前后全部15份既有未提交文件哈希一致。用户已确认的Production Ledger SQL/权限/唯一索引/EXPLAIN/单一每分钟调度和旧Edge运行证据予以保留，不重测、不当作新版验收。剩余：恢复CLI后的Production函数列表读取挂起；沿用现有本机代理的一次30秒有界读取、关闭agent交互的一次20秒读取均未取得响应，无服务端认证错误可据以判定失效。CLI可执行性已修复，不将网络/授权访问等待混同签名问题。无凭据连通性只返回401，不能作为service_role REST证据。未登录、未提取或输出Token/Service Role Key，REST真实非空读取/count/range仍INCOMPLETE。用户仅授权恢复和只读检查，本轮不Commit/Push/Deploy，不更改Production；Notification Cleanup DEFERRED，Slices 2–4保持关闭。
 
 下方旧handoff仅作历史记录。
 

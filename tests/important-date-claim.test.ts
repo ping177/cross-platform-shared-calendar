@@ -62,6 +62,7 @@ test('check failure/exception blocks provider and retains existing failed/finali
       checkImportantDate: async () => { throw new Error('Unexpected Important Date check'); },
       fetchRecurringExceptions: async () => { throw new Error('Unexpected recurring lookup'); },
       fetchMemberships: async () => [{ space_id: id, user_id: id }],
+      lookupLedger: async () => [],
       fetchSubscriptions: async () => [{ id, user_id: id, installation_id: id,
         endpoint: 'https://fcm.googleapis.com/fixture', p256dh: 'fake', auth: 'fake', expiration_time: null, disabled_at: null }],
       claim: async () => id, claimRecurring: async () => { throw new Error('Unexpected recurring claim'); },

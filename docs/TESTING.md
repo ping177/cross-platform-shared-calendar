@@ -1,5 +1,86 @@
 # Testing
 
+## 2026-11-02 — Slice 5 Production Gate 2 PASS / 发布授权
+
+证据来源：用户本人在Production Dashboard执行只读SQL并确认配置，及本人执行`/private/tmp/calendar-slice5-rest-gate.py`后回传脱敏摘要（status=PASS、read_only=true）。不重新执行已通过检查，不把旧版运行健康当新版验收。下方REST HOLD/CLI超时为历史。
+
+- SQL/catalog：字段、claimed/sent/failed约束、NULLS NOT DISTINCT身份唯一索引valid/ready符合实现；service_role SELECT/BYPASSRLS及四个原子claim RPC合同正确；限量SQL读2条无异常身份/状态，20个虚构精确身份EXPLAIN通过，小表Seq Scan可接受。
+- 既有部署：目标ximazjhxvmktpcdbypka；send-reminders ACTIVE v5、verify_jwt=false；service_role adminClient、persistSession=false、autoRefreshToken=false正确；唯一active每分钟Cron，旧版观察窗口无HTTP 4xx/5xx。Codex本轮复用既有登录，CLI独立读取同样确认ACTIVE v5/verify_jwt=false；不重登或改钥匙串。
+- REST使用实际ledgerFilter/七字段、Prefer: count=exact、主查询limit=21。用户证据如下（不记录真实身份或密钥）：
+
+|只读检查|HTTP / SDK|count|rows|Content-Range|结果|
+|---|---|---|---|---|---|
+|无匹配精确身份|200 / 200|0|0|*/0|完整空读|
+|真实非空样本|200 / 200|2|2|0-1/2|完整非空读|
+|20个精确身份OR|200 / 200|2|2|0-1/2|exact_identity_match=true|
+|只读分页探针|206 / 206|2|1|0-0/2|rejected_by_production_guard=true|
+
+Gate 2 = PASS，原REST HOLD解除；实际非空只有2条，不是20条真实负载或长期Production性能验证。没有写表、执行claim、发送通知或更改权限/配置。
+
+Gate 1：10份业务/测试与`prefilter-fingerprints.json`逐文件SHA256匹配；沿用相同版本全量Node1066/1066、相关85/85、cached-only Edge类型、TypeScript/Build、语法通过证据；不重复全量测试或RCA。当前diff-check及发布范围/安全复核另行执行，三业务文件无新修改。50预算、5并发、95秒截止、权限/订阅/宽限、原子claim语义不变。
+
+用户明确授权本次Commit/正常Push及send-reminders Production部署。实际Commit/Edge新版本、源码回读、单一调度、自然运行和Vercel Source记录于`/private/tmp/calendar-slice5-release-20261102/RELEASE_RECEIPT.md`；不以Push或Vercel替代Edge成功，不预写Production验收。观察不足保留边界，Slice 5/整体不提前CLOSED。Notification Cleanup用户确认不需要，本版本不实施，不作为收口阻塞。
+
+## 2026-11-02 — CLI恢复通过 / Production REST门禁仍INCOMPLETE
+
+2026-11-02 — **CLI RECOVERED / REST INCOMPLETE / RELEASE HOLD**。按用户本轮明确授权，仅执行一次Homebrew受控reinstall：Supabase 2.107.0→2.120.0（当前公式无依赖）。启用NO_AUTO_UPDATE/NO_INSTALL_CLEANUP/NO_INSTALLED_DEPENDENTS_CHECK，未upgrade/cleanup其他软件。新路径/opt/homebrew/bin/supabase指向Cellar/supabase/2.120.0/bin/supabase；arm64，codesign --verify --strict报告valid on disk并满足Designated Requirement，--version正常。Cellar快照仅supabase版本变化，重装前后全部15份既有未提交文件哈希一致。用户已确认的Production Ledger SQL/权限/唯一索引/EXPLAIN/单一每分钟调度和旧Edge运行证据予以保留，不重测、不当作新版验收。剩余：恢复CLI后的Production函数列表读取挂起；沿用现有本机代理的一次30秒有界读取、关闭agent交互的一次20秒读取均未取得响应，无服务端认证错误可据以判定失效。CLI可执行性已修复，不将网络/授权访问等待混同签名问题。无凭据连通性只返回401，不能作为service_role REST证据。未登录、未提取或输出Token/Service Role Key，REST真实非空读取/count/range仍INCOMPLETE。用户仅授权恢复和只读检查，本轮不Commit/Push/Deploy，不更改Production；Notification Cleanup DEFERRED，Slices 2–4保持关闭。
+
+PASS：既有安装/公式/架构核对；一次brew reinstall --formula supabase成功；2.120.0签名有效、--version正常；Cellar仅supabase变化；工作区15文件恢复前后逐文件SHA256一致，业务/测试既有指纹匹配、diff-check通过。无新业务变化，不重复全量测试。原Node1066/1066、相关85/85与Edge TypeScript/Build证据沿用。
+
+INCOMPLETE：functions list指定目标项目普通读取挂起，系统已有回环代理仅对子进程设置（不更改系统代理），30秒和非交互20秒调用均无元数据；没有返回“需登录”证据，不擅自登录或断言授权失效。当前Edge旧版正常/verify_jwt OFF等由用户Dashboard确认，实际版本号未从CLI独立读取。真实service_role REST HTTP/count/Content-Range/nonempty rows未得到，不冒称PASS；无凭据401只说明网络端点可达。若现有管理读取恢复，后续使用现有可信服务端凭据在内存中验证，不回传key/真实身份/数据行；最少回传状态、count、Content-Range、行数、精确匹配及截断拒绝布尔值。SQL已通过项不重跑。
+
+## 2026-11-01 — CLI只读诊断 / MANUAL GATE 2 CHECKPOINT
+
+2026-11-01 — **Slice 5 MANUAL GATE 2 CHECKPOINT / RELEASE HOLD**。有限只读诊断确认PATH仅一套Homebrew Supabase CLI 2.107.0，darwin-arm64与macOS arm64匹配；codesign --verify --strict和spctl --assess均明确报告invalid signature (code or signature have been modified)，二进制为adhoc/linker签名。无效签名与SIGKILL相符，但未判定损坏/修改来源，不等于数据库不兼容。未重签名、重装、移除xattr或更改系统安全设置。工具无Supabase/SQL连接；已检查浏览器入口，未建立受控Dashboard SQL会话，不提取登录态。已准备[手动只读门禁](./SLICE5_MANUAL_GATE2.md)两组可复制SQL和预期结果：catalog/grant/claim线索/唯一调度，既有service_role限量汇总读取与20个虚构身份EXPLAIN（无ANALYZE）。SQL尚未执行；不能预写PASS，且SQL不替代PostgREST count/limit响应及已部署Edge身份/version/config的实际证据。业务/测试10份指纹保持；无Commit/Push/Deploy。首次注册8位OTP统一已独立登记BACKLOG待核查/待实施，不改Auth、认证代码或模板。Notification Cleanup仍DEFERRED，Slices 2–4保持关闭，Slice 5/整体未关闭。
+
+诊断并非自动审批拒绝：原生二进制签名校验实际失败，架构匹配、PATH没有第二个有效版本；只观察不修复系统安装。手动SQL文档中两个代码块静态确认BEGIN READ ONLY与ROLLBACK、无EXPLAIN ANALYZE/业务写入/claim调用。未连接PostgreSQL，未执行SQL或确认实际EXPLAIN；必须由用户回传结果，未知/错误/超时均HOLD，不据缺证断言不兼容。SQL不能证明REST Content-Range、网关URL限制或Edge实际service-role来源，因此这些仍单独列为待核验，不降级原门禁。
+
+新用户首次确认邮件链接/错误只属用户反馈，不作为本Slice认证根因；BACKLOG仅记录后续Confirm signup模板、认证调用及Redirect核查。未修改supabase/templates/magic_link.html、Auth配置或认证源码。
+
+## 2026-11-01 — Production发布门禁 HOLD
+
+2026-11-01 — **Slice 5 Capacity RELEASE HOLD（Gate 2 Production只读核验未通过）**。用户仅授权所有门禁通过后Commit/Push/Edge部署。当前14文件范围符合预期，10份业务/测试指纹与已测试版本一致；沿用Node1066/1066、相关85/85、Build/TypeScript证据，本轮cached-only --no-lock Edge类型、语法及diff复核PASS。关键Production门禁未获证据：已安装Supabase CLI连--version也SIGKILL，functions list --project-ref ximazjhxvmktpcdbypka同样失败；无可用Supabase/SQL连接工具，也未发现已配置PGSERVICE/PGHOST/PGDATABASE/SUPABASE_DB_URL或.pg_service.conf/.pgpass。psql程序可运行，但这不建立受控Production连接。未读取凭据值、未绕过登录或修复全局CLI。尚未直接确认真实表/状态/唯一键、service-role权限、新批量读取/count截断/查询计划、已部署Edge版本/verify_jwt及单一调度合同，不以仓库schema或离线测试替代。遵照用户硬门禁HOLD，不Commit/Push/Deploy。代码仍LOCAL VERIFIED，待受控只读能力恢复后继续Gate 2；Notification Cleanup DEFERRED，Slices 2–4保持关闭、Slice 1暂缓，Slice 5/整体未关闭。下方READY FOR RELEASE仅表示本地验证，不代表Production门禁通过。
+
+Gate 1：prefilter-fingerprints.json对应10份业务/测试全部匹配；cached-only/no-lock Deno类型检查、node --check ledger.ts/logic.ts与git diff --check PASS；不重复全量Node或架构RCA。原全量1066/1066、相关85/85及Build/TS为相同源码证据。Gate 2：supabase --version/functions list进程返回signal SIGKILL、status null，无真实服务端返回；不能据此认定认证失败、schema不兼容或服务异常。仅确认psql 18.4可启动，未配置生产连接；无可用SQL/MCP工具。未读取.env或数据库密码/管理token，不请求不受控连接。
+
+所有Production核验和部署后正常调度观察均NOT VERIFIED / NOT RUN，而非PASS：未能确认实际唯一键/状态/grants/service identity、真实GET过滤/count/limit、查询计划/负载、Edge ACTIVE/version/verify_jwt及Cron恰好一项。未部署，没有本轮新函数版本或部署后窗口可观察；没有证据可声称无新增错误/重复投递。等待访问能力恢复，不通过业务写入、真实通知或配置调整补证。
+
+## 2026-10-30 — Capacity ledger prefilter LOCAL VERIFIED
+
+2026-10-30 — **Slice 5 Capacity LOCAL VERIFIED / READY FOR RELEASE（未发布、未收口）**。采用20身份一批的精确ledger预过滤，按原排序收集最多50个未处理候选，再执行原子claim/权限/发送；不使用逐claim补位。55条三轮发送/claim均[50,5,0]、ledger查询[3,3,3]；100条均[50,50,0]、查询[3,5,5]，无重复。1000已处理身份为50次只读查询、0 claim。现有claimed/sent/failed均因唯一键+DO NOTHING不可重新claim，按此合同过滤，不把failed/claimed冒称送达；未知/畸形状态失败关闭。源分页/排序/50预算/5并发/95秒claim截止/宽限/权限保持。全量Node1066/1066、相关85/85、Deno Edge类型检查、Build含TypeScript、语法/diff PASS。仅本地，未Commit/Push/Deploy或改数据库配置；Notification Cleanup DEFERRED，Slice 1 DEFERRED、Slices 2–4 CLOSED / PASS，v0.1.21仍IN PROGRESS。下方HOLD为上一轮逐claim原型的历史结论。
+
+测试命令：
+- `node --test tests/send-reminders.test.ts tests/mixed-source-reminders.test.ts tests/reminder-ledger.test.ts tests/send-reminders-entrypoint.test.ts tests/task-reminder-delivery.test.ts tests/recurring-reminders.test.ts tests/important-date-claim.test.ts`：85/85 PASS。
+- `node --test tests/*.test.ts tests/*.test.js`：1066/1066 PASS，无fail/skip。保持Slices 2–4全部既有Node回归。
+- `deno check --cached-only --no-lock --config supabase/functions/send-reminders/deno.json supabase/functions/send-reminders/index.ts` PASS（包括新适配器和Supabase客户端类型）。`npm run build`含前端TypeScript PASS；node --check新增/修改TS及git diff --check PASS；既有chunk提示保留。无浏览器UI改变，不重跑无关浏览器套件。
+
+原5条回归测试保留，先执行带lookup替身但旧业务控制流的RED，仍3 PASS/2 FAIL（55/100）；新方案GREEN。新增精确身份/3状态、未知/不完整/重复/异身份拒绝、logical series root映射、20条过滤器长度和注入拒绝；实际Edge入口用离线fetch验证GET精确过滤/count/limit、计数不全和畸形行在claim前失败。还有混合四来源100身份[50,50,0]、并发两轮即使lookup stale仍靠原子claim不重复、claim前传输失败下轮可再试、failed/claimed身份不擅自恢复、95秒前/异步tag后截止、慢lookup跨截止停止、查询抛错无claim、49新+1000旧保持53批而非逐条探测。所有I/O内存/拦截，无真实推送或数据库。
+
+负载表（每项为三轮；总数为单页/单Space/订阅批场景的实际fake边界调用计数，包含4次候选读取+成员+订阅=6次共同读取、lookup、claim、pre-send check、finalize；真实多页和订阅分批需另加共同成本，故不是Production实测）：
+
+|身份数|发送|claim|ledger查询|ledger返回行|本方案总DB请求|原版总DB请求|旧逐claim原型总DB请求|
+|---|---|---|---|---|---|---|---|
+|1|1,0,0|1,0,0|1,1,1|0,1,1|10,7,7|9,7,7|9,7,7|
+|50|50,0,0|50,0,0|3,3,3|0,50,50|159,9,9|156,56,56|156,56,56|
+|55|50,5,0|50,5,0|3,3,3|0,50,55|159,24,9|156,56,56（仅发送50）|156,71,61|
+|100|50,50,0|50,50,0|3,5,5|0,50,100|159,161,11|156,56,56（仅发送50）|156,206,106|
+
+1000全部已处理：50次ledger查询/1000返回行/0 claim，总DB边界56；原版56（其中50个无效claim）、旧原型1006（1000个无效claim）。新鲜首轮增加3次有界只读请求，完成后55/100空转分别9/11总请求，较两种旧方案明显减少。lookup上限由有限已生成候选数组及20批次决定（最坏ceil(N/20)），每批时间前后守95秒，无持久游标/重试循环/新扫描；不能承诺任意规模都在宽限期内送达，50吞吐预算不提高。
+
+已核对仓库schema：唯一键(event_id,important_date_id,task_id,occurrence_date,subscription_id,due_at)，Recurring存logical root；recipient不在唯一键内，不额外加入。三状态都受该唯一键阻挡，现有claim没有恢复/重置/租约分支，文档原本即无retry。预过滤只识别这些不可重新claim的身份，未知/畸形结果拒绝；缺失继续原子claim。数据库漂移（如新增可重试状态/租约）必须发布前重审，不可沿用此判断。
+
+注意这仅证明请求/行数及有界性，不是实际数据库CPU/锁耗时/EXPLAIN或Production验收。20精确身份OR预期使用既有唯一索引；发布前核对实际schema/grant及查询兼容，未对Production执行读写或压力测试。日志/private/tmp/calendar-capacity-local/prefilter-*.log；本地已通过，等待正式发布授权。
+
+## 2026-10-29 — Slice 5 Capacity HOLD：失败回归与负载证据
+
+2026-10-29 — **Slice 5 Reminder Capacity：HOLD / NOT IMPLEMENTED**。用户授权仅本地容量修复，Notification Cleanup明确DEFERRED。新增5项跨轮回归，55/100身份在当前代码下失败（只发送前50）。逐claim补位试验可分别达到[50,5,0]/[50,50,0]且不重复，但100身份全部已处理后每轮仍100次claim，较现状50次翻倍；已触发用户“明显增加数据库负载时停止”约束，停止扩大，撤回本轮试验性业务改动，logic.ts与HEAD一致。仅保留失败回归/治理及临时试验证据。当前相关38项：36 PASS、2预期缺陷FAIL；原有33项全通过，不声称修复完成。需评估既有ledger精确身份批量过滤后再原子claim的低负载方案；尚未实施或证明必须改数据库。Slices 2–4保持CLOSED / PASS、Slice 1 DEFERRED，整体v0.1.21 IN PROGRESS；无Commit/Push/Deploy或Production操作。下方只读/尚未启动为历史。
+
+命令`node --test tests/send-reminders.test.ts tests/service-worker.test.ts tests/push-notifications.test.ts`：38项中36 PASS、2 FAIL；55与100跨轮用例各仅送达50，保留红色断言不跳过。单独5新增用例RED为3 PASS/2 FAIL；临时逐claim原型5/5通过后恢复原业务源码，当前不是GREEN。
+
+原型计数：0身份发送[0,0,0]/claim[0,0,0]；7身份发送[7,0,0]/claim[7,7,7]；50身份发送[50,0,0]/claim[50,50,50]；55身份发送[50,5,0]/claim[50,55,55]；100身份发送[50,50,0]/claim[50,100,100]。无重复投递，单轮获claim不超过50且每个身份单轮最多尝试一次；不过第三轮无新工作仍双倍查询，故不接受为最终方案。更大集合会继续放大，未尝试在Production测量或制造负载。
+
+原有33项覆盖候选分页/超限拒绝、排序、去重、5并发、95秒前不再claim/已获claim完成、宽限窗口和退出/通知基础行为，均通过；由于提前HOLD，没有继续实现混合来源补位/并发新算法或宣称完整验收。`node --check tests/send-reminders.test.ts`与diff-check通过；`npm run build`（含TypeScript）PASS，既有chunk提示非阻塞。无新增依赖；原prototype仅本地内存fake，不连接数据库或真实推送服务。
+
 2026-10-29 — **v0.1.21 Slice 4 CLOSED / PASS**。用户明确报告最终正式iPhone PWA人工验收通过：普通日程创建/刷新/编辑、重复日程创建PASS，未观察到重复；最新等待提示修复后保存正常、显示保存中，未报告提前出现重试按钮。交付同一表单意图稳定UUID/原始提交、权限下异常或冲突读回核对、提交锁/迟到响应保护及等待UI修正。已验收业务Source e5a3cf152cb68cf822c34c090bc831906f339f53，Production部署7407802024 success且Source匹配，七项资源与已测试Build一致，目标ximazjhxvmktpcdbypka。相关Node151/151、Browser62/62、TypeScript/Build/语法/diff/生产audit通过；历史全量1048属于核心修复阶段，不冒称本次Follow-up后全量重跑。跨刷新/关闭重开不恢复意图；Production故障注入MANUAL NOT RUN、由自动化覆盖；保存耗时未定量测量也未优化。这些边界不阻碍已验收范围收口。整体v0.1.21仍IN PROGRESS，Slice 1 DEFERRED、Slices 2–3 CLOSED / PASS、回顾Follow-up CLOSED / ACCEPTED保持；Slice 5仅只读调查授权，未实施。下方Pending/未发布为历史。
 
 2026-10-29 — **Slice 4 Follow-up RELEASE AUTHORIZED / FINAL ACCEPTANCE PENDING**。用户明确授权本次7文件Commit、正常Push origin/main及既有Vercel Production；只发布App.tsx等待状态文案与重试按钮渲染条件，三份测试/夹具和三份治理。源码/测试指纹保持，沿用Node151/151、WebKit/Chrome62/62及14项先失败后通过证据，不重复全量。UUID/原始内容绑定、权限复核、提交锁、迟到响应及普通/重复保存规则不变；不声称改善保存耗时。发布Source、七项资源、Supabase目标和Git结果由`/private/tmp/calendar-create-wait-release/RELEASE_RECEIPT.md`记录，不预写成功。用户此前核心功能PWA验收PASS，本提示补丁仍待最终人工确认；Slice 4不提前关闭，Slice 2/3保持CLOSED / PASS，Slice 1暂缓、Slice 5未启动。下方未授权/本地未发布为历史。

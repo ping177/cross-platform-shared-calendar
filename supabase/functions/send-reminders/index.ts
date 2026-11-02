@@ -1,3 +1,4 @@
+import { ledgerFilter, type LedgerIdentity } from './ledger.ts';
 import { createClient } from '@supabase/supabase-js';
 import { loadVapidConfig, sendWebPush } from '../_shared/web-push.ts';
 import {
@@ -179,6 +180,15 @@ Deno.serve(async (request) => {
             subscriptions.push(...((data ?? []) as ReminderSubscription[]));
           }
           return subscriptions;
+        },
+        lookupLedger: async (identities) => {
+          const { data, error, count } = await adminClient.from('reminder_deliveries')
+            .select('event_id,important_date_id,task_id,occurrence_date,subscription_id,due_at,status', { count: 'exact' })
+            .or(ledgerFilter(identities)).limit(identities.length + 1);
+          if (error || !Array.isArray(data) || count !== data.length || data.length > identities.length) {
+            throw new Error('Incomplete ledger lookup.');
+          }
+          return data as LedgerIdentity[];
         },
         claim: async (input) => {
           const { data, error } = await adminClient.rpc('claim_reminder_delivery', {

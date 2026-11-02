@@ -14,6 +14,7 @@ function fixture() {
     fetchCandidatePage: async () => [], fetchRecurringCandidatePage: async () => [], fetchImportantDateCandidatePage: async () => [],
     fetchTaskCandidatePage: async () => [source], fetchRecurringExceptions: async () => ({ exceptions: [], exceptionsScanned: 0, exceptionTruncated: false }),
     fetchMemberships: async () => [{ space_id: 's', user_id: 'a' }, { space_id: 's', user_id: 'b' }, { space_id: 's', user_id: 'a' }],
+    lookupLedger: async () => [],
     fetchSubscriptions: async () => [...subscriptions, subscriptions[0]],
     claim: async i => `event:${i.subscriptionId}`, claimRecurring: async i => `recurring:${i.subscriptionId}`, claimImportantDate: async i => `date:${i.subscriptionId}`,
     checkImportantDate: async () => {},

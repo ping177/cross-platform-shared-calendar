@@ -1,5 +1,25 @@
 # Backlog
 
+## 2026-11-02 — Slice 5 Capacity发布 / Notification Cleanup范围确认
+
+容量修复Gate 1保持相同源码验证，Gate 2由用户Production SQL/REST实证PASS，旧工具/REST HOLD解除；现已授权仅发布容量修复，实际部署与观察见TESTING及发布回执，不提前关闭Slice 5。Slices 2–4 CLOSED / PASS、Slice 1 DEFERRED保持。
+
+**Notification Cleanup：USER CONFIRMED NOT REQUIRED / 本版本不实施。** 用户自行管理通知中心历史通知，不开发自动清理、清空按钮、删除或保留期限；不作为Slice 5收口的未完成缺陷。仅未来出现真实需求再重新评估。下方DEFERRED/HOLD状态为历史，不覆盖本决定。首次注册Email OTP独立待核查事项继续保留。
+
+## 2026-11-01 — 独立产品待办：首次注册与登录 Email OTP 统一
+
+状态：待核查／待实施，不纳入 Slice 5 Capacity 发布。
+
+用户反馈：新用户首次注册可能收到点击式邮箱确认链接，而非预期8位Email OTP；首次点击确认链接曾出现错误。首次确认完成后，后续PWA登录可正常收到验证码。这是用户报告，根因尚未确认。
+
+目标：统一新用户首次注册与后续登录的Email OTP体验，均使用8位验证码，不依赖邮件验证链接。后续核查Confirm signup模板、认证调用及Redirect配置。本轮不修改认证代码、Supabase Auth配置或邮件模板，不将该反馈判定为某一模板/Redirect已确认故障。
+
+2026-11-01：Slice 5 Capacity发布HOLD（仅Production Gate 2工具/连接阻塞，本地已验证）。Supabase CLI SIGKILL且无受控只读SQL路径，不能完成关键直接核验；未Commit/Push/Deploy。恢复受控只读能力后继续原门禁，不新增功能或改数据库；Notification Cleanup DEFERRED，Slices 2–4保持关闭。详细证据见TESTING首节。
+
+2026-10-30：Slice 5容量预过滤LOCAL VERIFIED / READY FOR RELEASE，未部署/未关闭；旧55/100红色回归已通过，无效claim被20身份精确ledger分批读取替代，详见TESTING首节。Notification Cleanup DEFERRED，Slices 2–4保持关闭。下方逐claim HOLD为历史。
+
+Slice 5容量修复HOLD：逐claim补位已测空转负载翻倍，按用户约束停止并撤回试验业务改动；保留55/100跨轮红色回归，待低负载ledger过滤方案评估。Notification Cleanup明确DEFERRED，不自动实现产品清理行为。详细证据见TESTING首节。
+
 2026-10-29 — **Slice 4 CLOSED / PASS**，用户正式iPhone PWA最终验收PASS；交付、分阶段证据与人工边界见[TESTING](./TESTING.md)首节。跨刷新/关闭重开恢复不在范围，故障注入仅自动化覆盖，保存耗时未测量/未优化。整体v0.1.21 IN PROGRESS；Slice 1暂缓、Slices 2–3/回顾Follow-up保持关闭，Slice 5只读调查获授权、未实施。下方旧状态为历史。
 
 2026-10-29 — **Slice 4 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户明确授权本次13文件Commit、正常Push origin/main及既有Vercel Production。七份业务/测试指纹匹配，沿用全量Node1048/1048、相关46/46、WebKit/Chrome20+52项通过证据；业务无扩改。Production catalog未直接核验：无可用SQL连接工具，已安装Supabase CLI调用被系统SIGKILL，未读取数据库凭据或绕过登录。仓库UUID/schema/RLS/grant合同支持本实现；线上真实创建行为仍由用户验收，不宣称Production写入已验证。发布Source/资源/目标/Git结果见`/private/tmp/calendar-slice4-release/RELEASE_RECEIPT.md`，不预写部署成功。刷新/关闭重开不恢复意图，跨意图重复风险保留。Slice 4不提前关闭；Slices 2–3/Follow-up保持关闭、Slice 1暂缓、Slice 5未启动。下方LOCAL/未授权为历史。
@@ -41,7 +61,7 @@
 2. Slice 2 回顾旧稿覆盖保护：CLOSED / PASS（2026-10-28）；数据库/缓存、自动化、正式部署资源及用户Production真实验收全部PASS，Review维护解除。仅关闭本Slice，整体v0.1.21未完成。
 3. Slice 3 日历 Realtime 故障容错及重要日验收修正：CLOSED / PASS（2026-10-29），用户报告Production PWA最终通过；证据边界见TESTING首节。
 4. Slice 4 创建请求重复提交与等待提示修正：CLOSED / PASS（2026-10-29）；用户最终Production PWA确认，范围/限制见TESTING首节。
-5. Slice 5 提醒容量及通知清理：NOT STARTED。
+5. Slice 5 提醒容量：RELEASE AUTHORIZED / FINAL ACCEPTANCE PENDING（Gate 2 PASS，发布实绩单独核验）；Notification Cleanup：USER CONFIRMED NOT REQUIRED，本版本不实施。
 
 逐项证据优先；允许 NO ACTION / DEFERRED，不强制全部修复。Slice 2最终验收与范围见TESTING首节。
 

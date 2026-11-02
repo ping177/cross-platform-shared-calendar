@@ -285,7 +285,8 @@ test('orchestrates recurring projection through the recurring claim snapshot and
         exceptionTruncated: false,
       }),
       fetchMemberships: async () => [{ space_id: source().space_id, user_id: 'user-1' }],
-      fetchSubscriptions: async () => [{
+      lookupLedger: async () => [],
+    fetchSubscriptions: async () => [{
         id: 'subscription-1',
         user_id: 'user-1',
         installation_id: 'installation-1',
@@ -348,7 +349,8 @@ test('aborts a truncated recurring exception scan before membership, claim, or s
         exceptionTruncated: true,
       }),
       fetchMemberships: async () => { downstreamCalls += 1; return []; },
-      fetchSubscriptions: async () => { downstreamCalls += 1; return []; },
+      lookupLedger: async () => [],
+    fetchSubscriptions: async () => { downstreamCalls += 1; return []; },
       claim: async () => { downstreamCalls += 1; return null; },
       claimRecurring: async () => { downstreamCalls += 1; return null; },
       send: async () => {
