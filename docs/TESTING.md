@@ -1,5 +1,23 @@
 # Testing
 
+## 2026-11-03 — 账户管理正式发布授权 / AWAITING USER ACCEPTANCE
+
+用户授权本次已审查10文件正常Commit/Push及Git/Vercel Production。简短diff review未发现额外业务修改；ProfileCard源文件/编辑逻辑、原MyPage signOut处理、App/Auth/OTP配置/后台均保持。仅账户页与局部返回hook、邮箱左右布局、直接测试/夹具及治理。上一轮未单独保存源码哈希清单，本轮锁定6份源码/测试指纹并复跑Node49、离线双浏览器10、TypeScript/Build/语法/diff；实际结果与构建复现/Source/七项资源/目标核验记`/private/tmp/calendar-account-release/RELEASE_RECEIPT.md`，不冒称历史独立指纹证据。既有chunk警告保留。
+
+本次仅Git/Vercel，不执行Supabase Auth/数据库/模板/权限或账号操作，不实施注销。真实手机UI与Android返回=AWAITING USER ACCEPTANCE，不把浏览器History测试冒称真机PASS。发布完成后停止于用户验收，v0.1.21关闭、Slice 1暂缓和注销待办保持；下方未发布为历史。
+
+
+## 2026-11-03 — 账户管理二级页 / LOCAL VERIFIED / READY FOR REVIEW
+
+用户查看已发布登录邮箱UI后提出新布局，旧邮箱UI未最终人工验收，不记PASS。本轮仅本地最小布局：我的保留原ProfileCard头像/昵称/铅笔及编辑行为，添加账户管理入口；原邮箱与退出入口移入子页，仅显示左右排登录邮箱（右侧完整原字符、Copy SVG，长邮箱在右栏换行）与退出登录。复用原session.user.email与复制隔离逻辑、原cleanupPushAndSignOut处理函数，不改Auth/OTP/推送业务。进入子页时资料卡保持挂载但隐藏，往返不清掉编辑状态。无注销入口、无邮箱修改或合并。
+
+返回：复用useMobileSwipe右滑识别与点击抑制、pan-y滚动/交互目标排除；AccountManagementPage仅本页绑定。现有项目未发现统一popstate处理，因此增加局部useAccountNavigation，以本MyPage实例标记pushState/popstate支持Back/Forward，顶部/手势共用history.back，防连点重复后退。卸载移除监听并清理当前本实例标记，不在history写邮箱，不改其他模块导航或增加路由框架。账号鉴权仍由现有App会话负责。Android系统返回使用相同History机制，自动化只验证浏览器Back，真实Android/PWA仍待用户，不冒称真机PASS。
+
+验证：相关Node49/49（配置/资料/手势/推送退出）、WebKit/Chrome账户导航及既有Auth/通知6/6、邮箱复制/切换4/4 PASS；TypeScript/Build、脚本语法/diff-check PASS，既有chunk警告保留。覆盖375/390左右对齐、长邮箱/原字符/复制失败、顶部双击返回/系统Back-Forward/右滑返回、不误退出、垂直/左滑/复制按钮手势不返回、资料DOM往返保持、退出失败提示。首次浏览器因顶部“我的”与主导航同名严格定位失败，限定header后通过，无权限断言放宽。截图/private/tmp/calendar-account-screens/已检查375/390，日志/private/tmp/calendar-account-{node,browser,email-browser,build}.log。浏览器全离线，未操作真实登录或Production。
+
+本轮未Commit/Push/Deploy。业务改动仅MyPage、LoginEmail、新账户页与局部导航hook；App/Auth调用、OTP配置、数据库/Space/日历/任务/回顾及原资料编辑代码未改。无新依赖、账号删除或密钥读取输出，外部仅临时日志截图；已关闭版本/切片结论保持。等待用户本地验收和另行发布授权。
+
+
 ## 2026-11-03 — Email OTP仓库同步/登录邮箱正式发布授权
 
 用户明确授权本次13文件正常Commit/Push与Git/Vercel前端Release。短diff review确认仅已测试源码/直接测试、仓库Auth配置及模板、必要治理；未扩展邮箱修改/合并/注销。当前7份源码/测试/配置先锁定指纹并复跑Node8项、双浏览器8项、TypeScript/Build、语法/TOML/diff，历史未另存独立源码指纹不冒称已有；实绩见`/private/tmp/calendar-login-email-release/RELEASE_RECEIPT.md`。原有chunk警告非阻塞。

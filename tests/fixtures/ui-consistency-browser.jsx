@@ -45,7 +45,7 @@ function Fixture(){
  else if(mode==='review')content=<ReviewHistoryPage userId="me" entry={entry} currentSpaceId={reviewId} onSpaceChange={setReviewId} onOpenDetail={noop} onHubBack={noop}/>;
  else if(mode==='review-detail')content=<ReviewDetailPage userId="me" target={{spaceId:'s',reviewId:'r0',justCreated:false}} onBack={noop} onDirtyChange={noop} onUnavailable={noop}/>;
  else if(mode==='important')content=<ImportantDatesPage userId="me" entry={entry} onHubBack={noop} onNoEligible={noop}/>;
- else if(mode==='me')content=<MyPage userId="me" onManageSpaces={noop}/>;
+ else if(mode==='me')content=<MyPage userId="me" loginEmail="first.last.with.dots@gmail.com" onManageSpaces={noop}/>;
  return <div className="min-h-screen text-ink pb-nav bg-ui-page">{content}<BottomNavigation tab="modules" onChange={noop}/></div>;
 }
 createRoot(document.getElementById('root')).render(<Fixture/>);

@@ -12,6 +12,8 @@ v0.1.21
 
 ## Current status
 
+账户管理二级页：RELEASE AUTHORIZED / AWAITING USER ACCEPTANCE。用户授权本次10文件正常Commit/Push与Git/Vercel前端发布；仅移动邮箱及退出入口，保留资料卡编辑行为，复用右滑及局部History返回。Node49/49、浏览器10/10、TypeScript/Build证据与实际发布实绩见独立回执；真实iPhone PWA/Android验收待用户完成。v0.1.21及已关闭Slices保持，注销仅待办；下方本地未授权为历史。
+
 独立Email OTP配置同步/登录邮箱展示：RELEASE AUTHORIZED / AWAITING USER ACCEPTANCE。用户明确授权13文件Commit、正常Push和Git/Vercel前端发布；仅仓库本地Auth配置/模板同步，不执行Supabase配置、数据库或模板推送。Production首次注册OTP人工PASS保留，新增邮箱UI仍待用户验收，注销与两个闲置账号仅待办。v0.1.21已接受范围CLOSED / PASS及Slice 1 DEFERRED保持；实际验证和部署见发布回执。
 
 2026-11-03 — **Review编辑入口UI Follow-up CLOSED / ACCEPTED（视觉范围）**。用户在正式iPhone PWA确认最终同行透明铅笔编辑入口布局及视觉满意，USER_REPORTED_PRODUCTION_PWA_VISUAL_ACCEPTANCE=PASS。未明确执行的本人编辑/对方权限等检查不记人工PASS，继续保留自动化证据。Node53/53、WebKit/Chrome41/41、TypeScript/Build/语法/diff通过；已发布c9efd3248f34bc41310cff845369a49cccd4f7ea，Vercel7491150031成功且Source匹配、七项资源一致，Supabase目标不变。仅本次视觉范围收口，不重开Slices；v0.1.21已接受范围CLOSED / PASS、Slice 1 DEFERRED保持。
@@ -467,6 +469,8 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
+账户管理仅经本次Git→Vercel前端发布；不执行Supabase管理/API、Auth/数据库/模板/权限或账号操作。实际Production Source、状态、七项资源与已测试Build一致及Supabase目标见`/private/tmp/calendar-account-release/RELEASE_RECEIPT.md`，不预写部署/人工成功。下方为历史发布。
+
 本次仅正常Git→Vercel前端发布。仓库Auth配置/confirmation模板提交不代表推送Production；禁止Supabase db/config push或Auth模板覆盖，未新增自动化部署后台的脚本。实际Vercel Source/状态、七项公开资源与Build一致、Supabase目标见`/private/tmp/calendar-login-email-release/RELEASE_RECEIPT.md`，不预写成功。
 
 本次Review最终布局按授权经origin/main→Vercel Production发布；实际Source SHA、状态、七项公开资源与已测试Build一致及Supabase目标记录于`/private/tmp/calendar-review-pencil-release/RELEASE_RECEIPT.md`，不预写成功，不改数据库/Edge/Auth/提醒。下方为历史部署。
@@ -626,7 +630,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-USER ACCEPTANCE CHECKPOINT：用户在正式iPhone PWA“我的”检查当前完整登录邮箱（含点号）、复制内容及窄屏；正常切换/退出账号时不得保留旧身份。无需重复新用户OTP已PASS测试，不实施注销/删除账号或其他功能。
+USER ACCEPTANCE CHECKPOINT：用户在正式手机/PWA检查我的资料卡不变、账户管理布局和完整邮箱复制、顶部/右滑/系统返回回到我的且不误登出，以及退出登录正常。真机Android返回尚待验证，不提前人工PASS；不实施注销或其他功能。
 
 ## Blockers
 
@@ -734,6 +738,8 @@ Slice 5 Gate 2已按用户真实Production证据PASS，不要求重复SQL/REST/�
 - `v0.1.9 Shared Tasks` Slice 1/2/3 are CLOSED / PASS: backend applied/postflight verified, frontend deployed through Vercel, Desktop A/B Production acceptance and iPhone smoke passed. At the v0.1.13 closeout, Structured Review / Check-in and Shared Lists were future candidates; v0.1.14/14.1 subsequently closed, and Shared Lists was selected for v0.1.15. Its design is frozen and Slice 1 DB foundation is `CLOSED / PASS` after Production postflight.
 
 ## Handoff Prompt
+
+账户管理本轮已获Release授权；实际发布实绩见独立回执，下一步仅用户正式手机验收资料卡、账户页邮箱复制和返回/退出。验收待完成，不开始注销或其他功能、不改变已关闭版本结论。下方旧本地状态为历史。
 
 本次Email OTP仓库同步及邮箱展示获Release授权，仅Git/Vercel前端发布。Production首次注册OTP用户PASS保留，邮箱UI待用户验收；实际发布回执见Deployment，不操作Supabase配置/账号，不实施注销。下方旧交接为历史。
 

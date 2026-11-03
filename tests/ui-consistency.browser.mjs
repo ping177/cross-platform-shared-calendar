@@ -7,7 +7,7 @@ const {webkit,chromium}=await import(process.env.PLAYWRIGHT_MODULE_PATH||'playwr
 const root=fileURLToPath(new URL('../',import.meta.url));
 const out=process.env.UI_CONSISTENCY_ARTIFACTS;
 const browsers=new Map();let files;const measurements=[];
-const api=`export const isSupabaseConfigured=true;export const supabase={auth:{async getSession(){return {data:{session:null}}},async getUser(){return {data:{user:{id:'me'}},error:null}},async signInWithOtp(input){window.audit.authCalls.push({kind:'send',input});return {error:null}},async verifyOtp(input){window.audit.authCalls.push({kind:'verify',input});return {error:{message:'模拟验证码错误'}}},onAuthStateChange(){return {data:{subscription:{unsubscribe(){}}}}}},channel(){return {on(){return this},subscribe(cb){if(cb)queueMicrotask(()=>cb('SUBSCRIBED'));return this}}},removeChannel(){},from(table){return window.audit.query(table)},rpc(name,args){return window.audit.rpc(name,args)},storage:{from(){return {createSignedUrl:async()=>({data:null,error:null})}}}};`;
+const api=`export const isSupabaseConfigured=true;export const supabase={auth:{async signOut(){window.audit.authCalls.push({kind:'signout'});return {error:window.audit.signOutFail?{message:'模拟登出失败'}:null}},async getSession(){return {data:{session:null}}},async getUser(){return {data:{user:{id:'me'}},error:null}},async signInWithOtp(input){window.audit.authCalls.push({kind:'send',input});return {error:null}},async verifyOtp(input){window.audit.authCalls.push({kind:'verify',input});return {error:{message:'模拟验证码错误'}}},onAuthStateChange(){return {data:{subscription:{unsubscribe(){}}}}}},channel(){return {on(){return this},subscribe(cb){if(cb)queueMicrotask(()=>cb('SUBSCRIBED'));return this}}},removeChannel(){},from(table){return window.audit.query(table)},rpc(name,args){return window.audit.rpc(name,args)},storage:{from(){return {createSignedUrl:async()=>({data:null,error:null})}}}};`;
 const io={
  'current-spaces':'export async function listCurrentSpaces(){return window.audit.read(window.audit.spaces)}',
  'space-members':'export async function readSpaceMembers(id){return window.audit.read(window.audit.members(id))}',
@@ -209,8 +209,8 @@ for(const engine of ['WebKit','Chrome'])test(`${engine}: actual Auth form keeps 
 });
 for(const engine of ['WebKit','Chrome'])test(`${engine}: notification visual tokens and sign-out decoration keep existing actions`,async()=>{
  const page=await pageFor(engine,'me');try{
-  const logout=page.getByRole('button',{name:'退出登录',exact:true});await logout.waitFor();assert.equal(await logout.locator('svg').count(),1,'keep logout icon and remove navigation chevron only');
-  await page.getByRole('button',{name:'此设备通知设置',exact:true}).click();const dialog=page.getByRole('dialog');await dialog.waitFor();
+  await page.getByRole('button',{name:'账户管理',exact:true}).click();const logout=page.getByRole('button',{name:'退出登录',exact:true});await logout.waitFor();assert.equal(await logout.locator('svg').count(),1,'keep logout icon and remove navigation chevron only');
+  await page.locator('main header').getByRole('button',{name:'我的',exact:true}).click();await page.getByRole('button',{name:'此设备通知设置',exact:true}).click();const dialog=page.getByRole('dialog');await dialog.waitFor();
   const visual=await dialog.evaluate(el=>{const panel=el.querySelector('section'),s=getComputedStyle(panel),root=getComputedStyle(document.documentElement);return {bg:s.backgroundColor,font:s.fontFamily,radius:s.borderRadius,shadow:s.boxShadow,page:root.getPropertyValue('--ui-color-page').trim(),surface:root.getPropertyValue('--ui-color-surface').trim(),title:getComputedStyle(el.querySelector('h2')).fontSize}});
   assert.equal(visual.title,'18px');assert.equal(visual.bg,`rgb(${visual.page.split(/\s+/).join(', ')})`);if(out)measurements.push({engine,notification:visual});assert.deepEqual(page.errors,[]);
  }finally{await page.close()}
@@ -224,4 +224,48 @@ test('WebKit 430px and Chrome desktop: complete populated/empty pages and short 
    if(out)await page.screenshot({path:`${out}/${engine}-${mode}-${state}-${width}.png`,fullPage:true});assert.deepEqual(page.errors,[]);
   }finally{await page.close()}
  }
+});
+
+for (const engine of ['WebKit','Chrome']) test(`${engine}: account management keeps profile intact and supports header, system and scoped swipe back`, async()=>{
+ const page=await pageFor(engine,'me');
+ const heading=()=>page.getByRole('heading',{name:'账户管理',exact:true});
+ async function swipe(dx,dy=0,target=page.getByRole('main')) {
+  await target.evaluate((el,{dx,dy})=>{
+   const p={bubbles:true,pointerId:51,pointerType:'touch',isPrimary:true,buttons:1};
+   el.dispatchEvent(new PointerEvent('pointerdown',{...p,clientX:4,clientY:450}));
+   el.dispatchEvent(new PointerEvent('pointermove',{...p,clientX:4+dx/2,clientY:450+dy/2}));
+   el.dispatchEvent(new PointerEvent('pointerup',{...p,buttons:0,clientX:4+dx,clientY:450+dy}));
+  },{dx,dy});
+ }
+ try {
+  assert.equal(await page.getByRole('button',{name:'退出登录',exact:true}).count(),0);
+  assert.equal(await page.getByText('登录邮箱',{exact:true}).count(),0);
+  const profileBefore=await page.locator('.ui-profile-card').innerHTML();
+  await page.getByRole('button',{name:'账户管理',exact:true}).click();await heading().waitFor();
+  assert.equal(await page.getByRole('button',{name:/删除|注销/}).count(),0);
+  for (const width of [375,390]) {
+   await page.setViewportSize({width,height:812});
+   const label=await page.getByText('登录邮箱',{exact:true}).boundingBox();
+   const value=await page.getByText('first.last.with.dots@gmail.com',{exact:true}).boundingBox();
+   assert.ok(label.x+label.width<=value.x);assert.ok(Math.abs(label.y+label.height/2-value.y-value.height/2)<2);
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+   if(process.env.ACCOUNT_MANAGEMENT_ARTIFACTS){await mkdir(process.env.ACCOUNT_MANAGEMENT_ARTIFACTS,{recursive:true});await page.screenshot({path:`${process.env.ACCOUNT_MANAGEMENT_ARTIFACTS}/${engine}-${width}.png`,fullPage:true});}
+  }
+  await swipe(4,100);assert.equal(await heading().count(),1);
+  await swipe(-100);assert.equal(await heading().count(),1);
+  await swipe(110,0,page.getByRole('button',{name:'复制登录邮箱'}));assert.equal(await heading().count(),1);
+  await page.goBack();await page.getByRole('heading',{name:'我的',exact:true}).waitFor();
+  assert.equal(await page.locator('.ui-profile-card').innerHTML(),profileBefore);
+  await page.goForward();await heading().waitFor();
+  await page.locator('main header').getByRole('button',{name:'我的',exact:true}).evaluate(el=>{el.click();el.click();});await page.getByRole('heading',{name:'我的',exact:true}).waitFor();
+  await page.getByRole('button',{name:'账户管理',exact:true}).click();await heading().waitFor();
+  await swipe(120);await page.getByRole('heading',{name:'我的',exact:true}).waitFor();
+  assert.equal(await page.evaluate(()=>window.audit.authCalls.filter(x=>x.kind==='signout').length),0);
+  await page.getByRole('button',{name:'账户管理',exact:true}).click();await heading().waitFor();
+  await page.evaluate(()=>window.audit.signOutFail=true);
+  await page.getByRole('button',{name:'退出登录',exact:true}).click();
+  await page.getByRole('alert').waitFor();assert.equal(await heading().count(),1);
+  assert.equal(await page.evaluate(()=>window.audit.authCalls.filter(x=>x.kind==='signout').length),1);
+  assert.deepEqual(page.errors,[]);
+ } finally {await page.close();}
 });

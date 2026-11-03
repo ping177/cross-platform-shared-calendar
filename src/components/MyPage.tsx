@@ -1,6 +1,7 @@
-import { LoginEmail } from './LoginEmail';
+import { AccountManagementPage } from './AccountManagementPage';
+import { useAccountNavigation } from './useAccountNavigation';
 import { useEffect, useRef, useState } from 'react';
-import { Bell, ChevronRight, LogOut, Layers } from 'lucide-react';
+import { Bell, ChevronRight, UserRound, Layers } from 'lucide-react';
 import { readProfile, type Profile } from '../lib/profile';
 import { createRequestGuard } from '../lib/request-guard';
 import { cleanupPushAndSignOut, disableCurrentPushInstallation, unsubscribeCurrentPushSubscription } from '../lib/push-notifications';
@@ -13,6 +14,7 @@ function errorMessage(error: unknown) {
 }
 
 export function MyPage({ userId, loginEmail, onManageSpaces }: { userId: string; loginEmail?: string; onManageSpaces: () => void }) {
+  const account = useAccountNavigation(userId);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -55,18 +57,20 @@ export function MyPage({ userId, loginEmail, onManageSpaces }: { userId: string;
   }
 
   return <>
+    {account.open && <AccountManagementPage userId={userId} email={loginEmail} error={error} onBack={account.back} onSignOut={() => void signOut()} />}
+    <div hidden={account.open}>
     <main className="ui-my-page mx-auto min-h-[100dvh] w-full max-w-3xl px-ui-4 py-ui-4 bg-ui-page font-ui text-ui-text">
       <h1 className="ui-me-title flex min-h-11 items-center text-ui-page-title">我的</h1>
       <ProfileCard key={userId} userId={userId} profile={profile} loading={loading} onProfileChange={setProfile} />
       {!loading && !profile && <button className="ui-focus min-h-11 px-ui-3 text-ui-meta text-ui-accent" type="button" onClick={() => setRetry((value) => value + 1)}>重试读取资料</button>}
-      <LoginEmail userId={userId} email={loginEmail} />
       <div className="ui-my-links">
         <button className="ui-space-entry ui-focus" type="button" onClick={onManageSpaces}><Layers size={20} aria-hidden="true" /><span>空间管理</span><ChevronRight size={18} aria-hidden="true" /></button>
         <button ref={notificationsButton} className="ui-space-entry ui-focus" type="button" onClick={() => setShowNotifications(true)}><Bell size={20} aria-hidden="true" /><span>此设备通知设置</span><ChevronRight size={18} aria-hidden="true" /></button>
-        <button className="ui-space-entry ui-focus" type="button" onClick={() => void signOut()}><LogOut size={20} aria-hidden="true" /><span>退出登录</span></button>
+        <button className="ui-space-entry ui-focus" type="button" onClick={account.enter}><UserRound size={20} aria-hidden="true" /><span>账户管理</span><ChevronRight size={18} aria-hidden="true" /></button>
       </div>
       {error && <p className="mt-ui-4 text-ui-meta text-ui-danger" role="alert">{error}</p>}
     </main>
     {showNotifications && <NotificationSettings returnFocusRef={notificationsButton} onClose={() => setShowNotifications(false)} />}
+    </div>
   </>;
 }
