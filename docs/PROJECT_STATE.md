@@ -12,6 +12,10 @@ v0.1.21
 
 ## Current status
 
+2026-11-03 — **Review编辑入口UI Follow-up CLOSED / ACCEPTED（视觉范围）**。用户在正式iPhone PWA确认最终同行透明铅笔编辑入口布局及视觉满意，USER_REPORTED_PRODUCTION_PWA_VISUAL_ACCEPTANCE=PASS。未明确执行的本人编辑/对方权限等检查不记人工PASS，继续保留自动化证据。Node53/53、WebKit/Chrome41/41、TypeScript/Build/语法/diff通过；已发布c9efd3248f34bc41310cff845369a49cccd4f7ea，Vercel7491150031成功且Source匹配、七项资源一致，Supabase目标不变。仅本次视觉范围收口，不重开Slices；v0.1.21已接受范围CLOSED / PASS、Slice 1 DEFERRED保持。
+
+下方Pending为历史。
+
 独立Review最终布局修正：RELEASE AUTHORIZED / USER ACCEPTANCE PENDING。用户明确授权本次7文件Commit、正常Push和Vercel Production。标题“我”与透明墨绿色铅笔＋编辑同行居中，44px点击高度，填写状态紧接下方；只发布已验证UI与直接测试，不改权限/保存/后台。实际发布Source/资源和验证见独立回执，手机人工验收仍待完成。v0.1.21已接受范围CLOSED / PASS、Slice 1 DEFERRED保持。
 
 独立Review编辑入口UI follow-up：RELEASE AUTHORIZED / USER ACCEPTANCE PENDING。用户明确授权本次6文件Commit、正常Push及Vercel Production；仅唯一编辑入口位置/样式/中文文案，不改变权限或后台合同。自动化验证与实际发布结果见TESTING及独立回执，不预写人工PASS。v0.1.21已接受范围CLOSED / PASS、Slice 1 DEFERRED保持。
@@ -97,6 +101,8 @@ UI v2 Slice6 = LOCAL PASS / VISUAL PASS：用户已认可四张居中概览卡�
 v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3为LOCAL PASS / VISUAL PASS；Slice4为LOCAL PASS / VISUAL PROVISIONALLY ACCEPTED。Slice5月视图本地验证与离线视觉验收通过：两条短标题/准确+N、六色圆点与日期浮层，261/261相关测试、build/diff-check、28组四宽度离线检查PASS；用户确认普通月、密集月、空月及浮层满意。已授权本地commit；不代表真实账号、真机、installed PWA或Production验收。Space Color System继续Deferred；真实账号/真机/installed PWA/Production未验收。正式版本仍v0.1.20。
 
 ## Latest completed
+
+2026-11-03 — **Review编辑入口UI Follow-up CLOSED / ACCEPTED（视觉范围）**。用户在正式iPhone PWA确认最终同行透明铅笔编辑入口布局及视觉满意，USER_REPORTED_PRODUCTION_PWA_VISUAL_ACCEPTANCE=PASS。未明确执行的本人编辑/对方权限等检查不记人工PASS，继续保留自动化证据。Node53/53、WebKit/Chrome41/41、TypeScript/Build/语法/diff通过；已发布c9efd3248f34bc41310cff845369a49cccd4f7ea，Vercel7491150031成功且Source匹配、七项资源一致，Supabase目标不变。仅本次视觉范围收口，不重开Slices；v0.1.21已接受范围CLOSED / PASS、Slice 1 DEFERRED保持。
 
 业务发布48b032907929576bbb34a465b087f2d2afb463e0；send-reminders ACTIVE v6、verify_jwt=false，三份改动源码独立回读一致；用户REST Gate 2 PASS（非空仅2条），全量Node1066/1066、针对85/85、类型/Build/语法/diff通过，Vercel Source匹配。用户提供Dashboard截图并确认可接受：部署约12分钟，新版以来11次调用无报告错误；最近一小时57次调用、4xx/5xx均0%，页面平均1554ms/最大8998ms。小时汇总跨越旧/新版本，不全部归属v6；无Production高负载或重复发送E2E实测。部署后唯一Cron复核曾超时，发布前确认唯一active每分钟任务，本次未修改调度。上述观察与边界不阻碍用户已接受范围收口；不补造人工故障/负载PASS。
 
@@ -616,7 +622,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-USER ACCEPTANCE CHECKPOINT：用户在正式iPhone PWA确认“我”与铅笔＋编辑同行对齐、透明墨绿色/留白自然、375/390窄屏无错位且仍只编辑本人内容。不得操作用户登录态，不提前人工PASS或启动其他功能。
+首次注册与后续登录统一8位Email OTP：仅只读调查调用路径、模板及跳转配置，列出最少Dashboard检查项；完成后等待实施授权，不改认证或Production。
 
 ## Blockers
 
@@ -724,6 +730,8 @@ Slice 5 Gate 2已按用户真实Production证据PASS，不要求重复SQL/REST/�
 - `v0.1.9 Shared Tasks` Slice 1/2/3 are CLOSED / PASS: backend applied/postflight verified, frontend deployed through Vercel, Desktop A/B Production acceptance and iPhone smoke passed. At the v0.1.13 closeout, Structured Review / Check-in and Shared Lists were future candidates; v0.1.14/14.1 subsequently closed, and Shared Lists was selected for v0.1.15. Its design is frozen and Slice 1 DB foundation is `CLOSED / PASS` after Production postflight.
 
 ## Handoff Prompt
+
+Review编辑入口视觉范围已CLOSED / ACCEPTED，未执行权限检查不冒称人工通过。下一步仅新用户Email OTP只读调查并报告，等待后续实施授权。下方旧交接为历史。
 
 本次7文件Review最终布局获正式发布授权；发布实绩见独立回执，下一步仅正式iPhone PWA用户验收同行透明铅笔入口/本人编辑/窄屏，不提前收口UI。v0.1.21关闭与Slice 1暂缓保持。下方旧授权/本地限制为历史。
 

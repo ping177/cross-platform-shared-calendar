@@ -1,5 +1,11 @@
 # Testing
 
+## 2026-11-03 — Review编辑入口视觉验收收口
+
+2026-11-03 — **Review编辑入口UI Follow-up CLOSED / ACCEPTED（视觉范围）**。用户在正式iPhone PWA确认最终同行透明铅笔编辑入口布局及视觉满意，USER_REPORTED_PRODUCTION_PWA_VISUAL_ACCEPTANCE=PASS。未明确执行的本人编辑/对方权限等检查不记人工PASS，继续保留自动化证据。Node53/53、WebKit/Chrome41/41、TypeScript/Build/语法/diff通过；已发布c9efd3248f34bc41310cff845369a49cccd4f7ea，Vercel7491150031成功且Source匹配、七项资源一致，Supabase目标不变。仅本次视觉范围收口，不重开Slices；v0.1.21已接受范围CLOSED / PASS、Slice 1 DEFERRED保持。
+
+后续仅首次登录Email OTP只读调查，不修改认证/模板/配置，不操作真实登录或请求验证码；下方Pending为历史。
+
 ## Review最终同行透明入口发布授权 / USER ACCEPTANCE PENDING
 
 用户明确授权仅本次7文件Commit、正常Push及Vercel Production。组件与测试范围不变，保持“我”左侧与透明Pencil SVG＋编辑右侧同行居中、墨绿色、44px点击高度及8px状态行间距，禁止恢复旧独立行背景按钮；不改权限、保存RPC、状态、冲突或其他业务。上一轮未单独保存源码哈希清单，本轮锁定4份组件/测试指纹并复跑直接Node、双浏览器及Build，比较旧/新本地产物；实际结果、Source/七项资源/目标见`/private/tmp/calendar-review-pencil-release/RELEASE_RECEIPT.md`，不虚构历史指纹证据或人工PASS。真实iPhone验收由用户执行，停止于USER ACCEPTANCE CHECKPOINT。v0.1.21关闭、Slice 1暂缓保持；下方未授权为历史，不再作为本轮限制。
