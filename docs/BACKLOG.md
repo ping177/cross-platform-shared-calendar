@@ -1,5 +1,13 @@
 # Backlog
 
+## 2026-11-03 — 用户自主账号注销（独立待实施）
+
+用户明确要求可在设置中自主发起注销，无需联系管理员。需可靠身份确认、不可恢复提示、安全服务端删除个人Space/个人数据及关联记录，保护共享Space其他成员和数据，覆盖Review、Reminder、Storage及非外键残留。不允许客户端直删受保护记录，不留公开绕过personal Space删除保护的接口或永久维护例外。本轮只记录，不实施、不展开复杂架构。
+
+后续两个闲置账号待确认身份与清理范围：本次OTP测试账号、家人因Gmail地址有无点号产生的重复账号；均未授权本轮删除。不自动合并点号变体对应的Supabase用户，不按邮箱外观猜测同一身份。
+
+首次注册OTP原不一致已由用户手动修正Production模板并以新邮箱真实PASS；本地配置已同步，登录邮箱展示UI仅本地待发布。下方旧待核查状态保留为历史。
+
 ## 2026-11-02 — 版本收口与暂缓项保留
 
 2026-11-02 — **Slice 5 Reminder Capacity CLOSED / PASS；v0.1.21 CLOSED / PASS（已接受范围）**。用户明确接受Production观察并授权收口。Slices 2–5 CLOSED / PASS；Slice 1仍DEFERRED，未实施、未完成，风险POTENTIAL/数据库实测NOT VERIFIED保留。仓库BACKLOG允许NO ACTION / DEFERRED、不强制全部修复，据此关闭已接受版本范围，不抹去暂缓项。Notification Cleanup用户确认不需要，不是未解决缺陷。后续回顾编辑入口为独立本地UI follow-up，不重新打开已关闭Slice。下方Pending/HOLD均为历史。

@@ -1,5 +1,9 @@
 # Decisions
 
+## 2026-11-03 — 邮箱身份原样展示与OTP一致性
+
+Confirm email保持开启，新用户用邮件Token验证邮箱所有权并登录，已有用户OTP不变；用户Production新邮箱验收PASS。本地confirmation模板/确认开关对齐，不重新设计Auth。设置展示当前Auth会话实际邮箱，含Gmail点号原样保留，不做邮箱规范化或自动账号合并。自主账号注销为独立后续范围，要求见BACKLOG，本轮不执行。
+
 ## 2026-11-02 — 允许明确暂缓项的已接受版本范围收口
 
 2026-11-02 — **Slice 5 Reminder Capacity CLOSED / PASS；v0.1.21 CLOSED / PASS（已接受范围）**。用户明确接受Production观察并授权收口。Slices 2–5 CLOSED / PASS；Slice 1仍DEFERRED，未实施、未完成，风险POTENTIAL/数据库实测NOT VERIFIED保留。仓库BACKLOG允许NO ACTION / DEFERRED、不强制全部修复，据此关闭已接受版本范围，不抹去暂缓项。Notification Cleanup用户确认不需要，不是未解决缺陷。后续回顾编辑入口为独立本地UI follow-up，不重新打开已关闭Slice。下方Pending/HOLD均为历史。

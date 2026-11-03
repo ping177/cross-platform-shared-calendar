@@ -1,5 +1,25 @@
 # Development Log
 
+## 2026-11-03 — Email OTP仓库同步/登录邮箱正式发布授权
+
+用户明确授权本次13文件正常Commit/Push与Git/Vercel前端Release。短diff review确认仅已测试源码/直接测试、仓库Auth配置及模板、必要治理；未扩展邮箱修改/合并/注销。当前7份源码/测试/配置先锁定指纹并复跑Node8项、双浏览器8项、TypeScript/Build、语法/TOML/diff，历史未另存独立源码指纹不冒称已有；实绩见`/private/tmp/calendar-login-email-release/RELEASE_RECEIPT.md`。原有chunk警告非阻塞。
+
+严禁Supabase db push/config push/Auth覆盖；本次仅Git/Vercel不执行任何Supabase管理命令，不修改Production邮件模板、用户/空间或后台。仓库未新增自动后端部署路径。保留用户已完成的Production首次注册一次OTP确认登录PASS；新增登录邮箱UI=AWAITING USER ACCEPTANCE。账号注销与两个待确认闲置账号仍仅BACKLOG，v0.1.21关闭和Slice 1暂缓保持；下方未授权为历史。发布后只让用户核对邮箱完整显示、复制、账号切换/退出及窄屏，不操作其登录态。
+
+
+## 2026-11-03 — Email OTP配置收尾与登录邮箱 / LOCAL VERIFIED
+
+用户已在Production手动保持Confirm email开启、将Confirm signup改为Token验证码，Magic Link模板不变；新邮箱真实验收PASS：输入邮箱→收到8位码→一次输入完成邮箱确认与登录并进入主页。USER_REPORTED_PRODUCTION_NEW_USER_EMAIL_OTP=PASS，不重复发信或注册。此证据仅属于用户已修改的Production认证配置，不代表本轮邮箱展示UI人工验收。
+
+本地同步auth.email.enable_confirmations=true、保留otp_length=8，新增confirmation.html及confirmation模板绑定；Magic Link模板/统一signInWithOtp和verifyOtp(type=email)未改。仅修改本地配置，不推送Dashboard。保留原3600秒有效期，不宣称已核对Production所有其他Auth设置。
+
+“我的”资料卡下、空间管理上方增加登录邮箱/复制，值直接来自App现有认证session.user.email，保持字符原样，不折叠Gmail点号、不合并用户；长邮箱换行可选中，Clipboard失败提示长按复制。账号或邮箱变化时重建复制反馈，卸载后忽略迟到回调；退出由现有Auth会话更新卸载页面，不保存邮箱副本。无新增依赖，不实现邮箱修改、合并或注销。
+
+配置与资料相关Node8/8、新邮箱组件WebKit/Chrome4/4 PASS（点号原样复制、长邮箱320/375/390无横向溢出、复制失败、账号/邮箱切换、迟到回调及退出）；TypeScript/Build、TOML解析/模板路径、语法/diff通过，既有chunk警告保留。初次新夹具CSS路径错误已更正后通过，不放宽断言。既有Auth/通知操作针对性WebKit/Chrome4/4 PASS（原OTP输入/错误/冷却及通知/退出操作）。均全离线，不操作真实用户/生产数据或密钥，外部仅临时测试日志。
+
+仅本地实施，未Commit/Push/Deploy。v0.1.21及已关闭Slice结论不变，邮箱UI待用户验收/发布授权；自主注销独立待办见BACKLOG，本轮不删除两个待确认闲置账号。
+
+
 ## 2026-11-03 — Review编辑入口视觉验收收口
 
 2026-11-03 — **Review编辑入口UI Follow-up CLOSED / ACCEPTED（视觉范围）**。用户在正式iPhone PWA确认最终同行透明铅笔编辑入口布局及视觉满意，USER_REPORTED_PRODUCTION_PWA_VISUAL_ACCEPTANCE=PASS。未明确执行的本人编辑/对方权限等检查不记人工PASS，继续保留自动化证据。Node53/53、WebKit/Chrome41/41、TypeScript/Build/语法/diff通过；已发布c9efd3248f34bc41310cff845369a49cccd4f7ea，Vercel7491150031成功且Source匹配、七项资源一致，Supabase目标不变。仅本次视觉范围收口，不重开Slices；v0.1.21已接受范围CLOSED / PASS、Slice 1 DEFERRED保持。

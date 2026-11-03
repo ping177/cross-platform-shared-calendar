@@ -812,7 +812,7 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
           onViewModeChange={setViewMode}
         />
       )}
-      {navigation.tab === 'me' && myScreen === 'profile' && <MyPage userId={userId} onManageSpaces={() => { setMyScreen('management'); void refreshSpaces(false); }} />}
+      {navigation.tab === 'me' && myScreen === 'profile' && <MyPage userId={userId} loginEmail={session.user.email} onManageSpaces={() => { setMyScreen('management'); void refreshSpaces(false); }} />}
       {navigation.tab === 'me' && myScreen !== 'profile' && (
         spaceListStatus === 'ready'
           ? <SpaceManagementPage

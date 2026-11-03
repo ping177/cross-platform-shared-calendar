@@ -12,6 +12,8 @@ v0.1.21
 
 ## Current status
 
+独立Email OTP配置同步/登录邮箱展示：RELEASE AUTHORIZED / AWAITING USER ACCEPTANCE。用户明确授权13文件Commit、正常Push和Git/Vercel前端发布；仅仓库本地Auth配置/模板同步，不执行Supabase配置、数据库或模板推送。Production首次注册OTP人工PASS保留，新增邮箱UI仍待用户验收，注销与两个闲置账号仅待办。v0.1.21已接受范围CLOSED / PASS及Slice 1 DEFERRED保持；实际验证和部署见发布回执。
+
 2026-11-03 — **Review编辑入口UI Follow-up CLOSED / ACCEPTED（视觉范围）**。用户在正式iPhone PWA确认最终同行透明铅笔编辑入口布局及视觉满意，USER_REPORTED_PRODUCTION_PWA_VISUAL_ACCEPTANCE=PASS。未明确执行的本人编辑/对方权限等检查不记人工PASS，继续保留自动化证据。Node53/53、WebKit/Chrome41/41、TypeScript/Build/语法/diff通过；已发布c9efd3248f34bc41310cff845369a49cccd4f7ea，Vercel7491150031成功且Source匹配、七项资源一致，Supabase目标不变。仅本次视觉范围收口，不重开Slices；v0.1.21已接受范围CLOSED / PASS、Slice 1 DEFERRED保持。
 
 下方Pending为历史。
@@ -465,6 +467,8 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
+本次仅正常Git→Vercel前端发布。仓库Auth配置/confirmation模板提交不代表推送Production；禁止Supabase db/config push或Auth模板覆盖，未新增自动化部署后台的脚本。实际Vercel Source/状态、七项公开资源与Build一致、Supabase目标见`/private/tmp/calendar-login-email-release/RELEASE_RECEIPT.md`，不预写成功。
+
 本次Review最终布局按授权经origin/main→Vercel Production发布；实际Source SHA、状态、七项公开资源与已测试Build一致及Supabase目标记录于`/private/tmp/calendar-review-pencil-release/RELEASE_RECEIPT.md`，不预写成功，不改数据库/Edge/Auth/提醒。下方为历史部署。
 
 本次独立Review UI经既有origin/main→Vercel Production发布，实际Source SHA、状态、七项资源与已测试Build比对及Supabase目标由`/private/tmp/calendar-review-edit-release/RELEASE_RECEIPT.md`记录，不预写成功；不修改数据库/Edge/Auth或提醒配置。下方为历史部署证据。
@@ -622,7 +626,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-首次注册与后续登录统一8位Email OTP：仅只读调查调用路径、模板及跳转配置，列出最少Dashboard检查项；完成后等待实施授权，不改认证或Production。
+USER ACCEPTANCE CHECKPOINT：用户在正式iPhone PWA“我的”检查当前完整登录邮箱（含点号）、复制内容及窄屏；正常切换/退出账号时不得保留旧身份。无需重复新用户OTP已PASS测试，不实施注销/删除账号或其他功能。
 
 ## Blockers
 
@@ -730,6 +734,8 @@ Slice 5 Gate 2已按用户真实Production证据PASS，不要求重复SQL/REST/�
 - `v0.1.9 Shared Tasks` Slice 1/2/3 are CLOSED / PASS: backend applied/postflight verified, frontend deployed through Vercel, Desktop A/B Production acceptance and iPhone smoke passed. At the v0.1.13 closeout, Structured Review / Check-in and Shared Lists were future candidates; v0.1.14/14.1 subsequently closed, and Shared Lists was selected for v0.1.15. Its design is frozen and Slice 1 DB foundation is `CLOSED / PASS` after Production postflight.
 
 ## Handoff Prompt
+
+本次Email OTP仓库同步及邮箱展示获Release授权，仅Git/Vercel前端发布。Production首次注册OTP用户PASS保留，邮箱UI待用户验收；实际发布回执见Deployment，不操作Supabase配置/账号，不实施注销。下方旧交接为历史。
 
 Review编辑入口视觉范围已CLOSED / ACCEPTED，未执行权限检查不冒称人工通过。下一步仅新用户Email OTP只读调查并报告，等待后续实施授权。下方旧交接为历史。
 

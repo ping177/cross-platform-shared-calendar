@@ -1,3 +1,4 @@
+import { LoginEmail } from './LoginEmail';
 import { useEffect, useRef, useState } from 'react';
 import { Bell, ChevronRight, LogOut, Layers } from 'lucide-react';
 import { readProfile, type Profile } from '../lib/profile';
@@ -11,7 +12,7 @@ function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : '操作失败，请稍后再试。';
 }
 
-export function MyPage({ userId, onManageSpaces }: { userId: string; onManageSpaces: () => void }) {
+export function MyPage({ userId, loginEmail, onManageSpaces }: { userId: string; loginEmail?: string; onManageSpaces: () => void }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -58,6 +59,7 @@ export function MyPage({ userId, onManageSpaces }: { userId: string; onManageSpa
       <h1 className="ui-me-title flex min-h-11 items-center text-ui-page-title">我的</h1>
       <ProfileCard key={userId} userId={userId} profile={profile} loading={loading} onProfileChange={setProfile} />
       {!loading && !profile && <button className="ui-focus min-h-11 px-ui-3 text-ui-meta text-ui-accent" type="button" onClick={() => setRetry((value) => value + 1)}>重试读取资料</button>}
+      <LoginEmail userId={userId} email={loginEmail} />
       <div className="ui-my-links">
         <button className="ui-space-entry ui-focus" type="button" onClick={onManageSpaces}><Layers size={20} aria-hidden="true" /><span>空间管理</span><ChevronRight size={18} aria-hidden="true" /></button>
         <button ref={notificationsButton} className="ui-space-entry ui-focus" type="button" onClick={() => setShowNotifications(true)}><Bell size={20} aria-hidden="true" /><span>此设备通知设置</span><ChevronRight size={18} aria-hidden="true" /></button>
