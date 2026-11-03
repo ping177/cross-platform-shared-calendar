@@ -1,5 +1,15 @@
 # Testing
 
+## 2026-11-03 — 账户管理最终视觉验收收口
+
+2026-11-03 — **账户管理UI Follow-up CLOSED / ACCEPTED（视觉范围），USER_REPORTED_IPHONE_PWA_VISUAL_ACCEPTANCE=PASS**。用户在正式iPhone PWA查看最新Production后明确确认“我认为可以通过了”。已验收业务Commit为65c08749911ada567ca762c4a534a1e8188ff52e，Production部署7517726063成功、Source匹配及七项资源核验记录保留。v0.1.21已接受范围CLOSED / PASS、Slice 1 DEFERRED及注销独立待办保持。
+
+最终设计：账户管理与空间管理标题统一（20px/600/28px）；登录邮箱和退出登录名称统一（16px/600/24px，同字体栈和颜色）；卡片基础样式统一、普通邮箱等高70px，长邮箱完整换行按需增高；复制与退出图标均20px，同色且右侧对齐，两个名称左侧无额外图标。我的资料区与账户/空间/通知入口顺序保持，原复制/退出/返回机制不变。
+
+保留Node49/49、WebKit/Chrome14/14、TypeScript/Build/语法/diff、375/390实际computed与截图验证证据。本次用户明确确认的是正式iPhone PWA最终视觉；邮箱复制内容、账号切换、退出登录、Android系统返回、失败恢复及长邮箱等未单独明确执行的场景不标人工PASS，继续标为自动化覆盖/人工未单独报告。Production首次注册OTP用户PASS属于此前独立证据，不扩大本次验收。
+
+本轮仅治理文档收口，不改业务/UI/配置，不重跑无关测试；下方Awaiting/本地状态保留为历史。
+
 ## 2026-11-03 — 账户视觉一致性正式发布授权 / AWAITING USER ACCEPTANCE
 
 用户授权仅本次8文件正常Commit/Push与Git/Vercel Production。简短diff审查确认两份组件/账户专用CSS、直接测试夹具及三份治理记录符合已验收本地范围，无业务/导航/邮箱复制/退出handler/Supabase变更。与`/private/tmp/calendar-account-parity-validated-fingerprints.json`已验证5份源码/测试和19项Build哈希匹配，沿用Node49/49、WebKit/Chrome14/14及375/390实际computed/截图证据，不重复大规模审计；本轮语法/diff及TypeScript/Build复核，实绩记`/private/tmp/calendar-account-parity-release/RELEASE_RECEIPT.md`。既有chunk提示保留。

@@ -12,6 +12,8 @@ v0.1.21
 
 ## Current status
 
+2026-11-03 — **账户管理UI Follow-up CLOSED / ACCEPTED（视觉范围），USER_REPORTED_IPHONE_PWA_VISUAL_ACCEPTANCE=PASS**。用户在正式iPhone PWA查看最新Production后明确确认“我认为可以通过了”。已验收业务Commit为65c08749911ada567ca762c4a534a1e8188ff52e，Production部署7517726063成功、Source匹配及七项资源核验记录保留。v0.1.21已接受范围CLOSED / PASS、Slice 1 DEFERRED及注销独立待办保持。 本次只关闭视觉验收范围，功能/权限/Android等未单独人工验证项不冒称PASS，详见TESTING最新节。下方Awaiting为历史。
+
 账户视觉一致性修正：RELEASE AUTHORIZED / AWAITING USER ACCEPTANCE。用户授权仅本次8文件正常Commit/Push与Git/Vercel前端发布；同层级标题/名称、相同卡片几何与右图标，保留全部原操作。已验证源码/测试/Build哈希匹配，沿用Node49/49、浏览器14/14和375/390实际computed/截图证据，发布实绩见独立回执。真实iPhone PWA视觉验收待用户，不提前PASS；既有版本关闭与注销待办保持，下方本地未授权为历史。
 
 独立账户UI两项反馈修正：RELEASE AUTHORIZED / AWAITING USER ACCEPTANCE。用户授权仅6文件正常Commit/Push与Git/Vercel发布；账户入口重排、退出文字左/原图标右且与复制中心对齐，无其他业务/导航改动。沿用Node49/49、浏览器10/10及375/390截图证据；实际发布与构建核验见独立回执。手机人工验收仍待用户，不提前PASS；v0.1.21关闭、Slice 1暂缓及注销待办保持。下方本地未授权为历史。
@@ -109,6 +111,8 @@ UI v2 Slice6 = LOCAL PASS / VISUAL PASS：用户已认可四张居中概览卡�
 v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3为LOCAL PASS / VISUAL PASS；Slice4为LOCAL PASS / VISUAL PROVISIONALLY ACCEPTED。Slice5月视图本地验证与离线视觉验收通过：两条短标题/准确+N、六色圆点与日期浮层，261/261相关测试、build/diff-check、28组四宽度离线检查PASS；用户确认普通月、密集月、空月及浮层满意。已授权本地commit；不代表真实账号、真机、installed PWA或Production验收。Space Color System继续Deferred；真实账号/真机/installed PWA/Production未验收。正式版本仍v0.1.20。
 
 ## Latest completed
+
+账户管理最终Production iPhone PWA视觉获用户明确PASS并正式CLOSED / ACCEPTED；最终标题/字体/卡片/图标设计及人工边界见TESTING最新节。原Node49/49、浏览器14/14与部署/资源证据保持有效。
 
 2026-11-03 — **Review编辑入口UI Follow-up CLOSED / ACCEPTED（视觉范围）**。用户在正式iPhone PWA确认最终同行透明铅笔编辑入口布局及视觉满意，USER_REPORTED_PRODUCTION_PWA_VISUAL_ACCEPTANCE=PASS。未明确执行的本人编辑/对方权限等检查不记人工PASS，继续保留自动化证据。Node53/53、WebKit/Chrome41/41、TypeScript/Build/语法/diff通过；已发布c9efd3248f34bc41310cff845369a49cccd4f7ea，Vercel7491150031成功且Source匹配、七项资源一致，Supabase目标不变。仅本次视觉范围收口，不重开Slices；v0.1.21已接受范围CLOSED / PASS、Slice 1 DEFERRED保持。
 
@@ -473,6 +477,8 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
+账户管理已接受业务基线65c08749911ada567ca762c4a534a1e8188ff52e，Production7517726063成功且Source/七项资源已核验，用户正式iPhone PWA最终视觉PASS。本次仅治理文档Commit/正常Push，不改业务资源、Supabase或部署配置；若既有Git集成触发文档部署，不作为新业务/人工验证。下方为历史发布证据。
+
 账户视觉一致性本次仅Git→Vercel前端发布；不操作Supabase/Auth/数据库/用户数据。实际Production状态、Source SHA、七项资源与已测试Build一致及目标核验见`/private/tmp/calendar-account-parity-release/RELEASE_RECEIPT.md`，不预写部署或人工成功。下方为历史发布。
 
 两处账户布局仅经正常Git→Vercel前端发布，不操作Supabase/Auth/数据库/账号；实际Source SHA、Production状态、七项公开资源与已测试Build一致及Supabase目标见`/private/tmp/calendar-account-layout-release/RELEASE_RECEIPT.md`，不预写部署或人工成功。下方为历史发布。
@@ -638,7 +644,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-USER ACCEPTANCE CHECKPOINT：用户在正式iPhone PWA核对空间/账户标题一致、两个名称同层级、普通邮箱卡片等高、右图标对齐及长邮箱完整换行，原复制/退出/返回行为不变；不提前人工PASS，不启动其他功能。
+本次账户管理视觉收口完成，等待用户下一步指示。不自动启动新功能；账号注销与两个待确认闲置账号仍为独立待办，未授权实施或删除。
 
 ## Blockers
 
@@ -746,6 +752,8 @@ Slice 5 Gate 2已按用户真实Production证据PASS，不要求重复SQL/REST/�
 - `v0.1.9 Shared Tasks` Slice 1/2/3 are CLOSED / PASS: backend applied/postflight verified, frontend deployed through Vercel, Desktop A/B Production acceptance and iPhone smoke passed. At the v0.1.13 closeout, Structured Review / Check-in and Shared Lists were future candidates; v0.1.14/14.1 subsequently closed, and Shared Lists was selected for v0.1.15. Its design is frozen and Slice 1 DB foundation is `CLOSED / PASS` after Production postflight.
 
 ## Handoff Prompt
+
+账户管理UI Follow-up已按用户正式iPhone PWA视觉确认CLOSED / ACCEPTED。本轮仅治理收口，不扩大人工覆盖范围；版本/Slices状态保持。完成后停止，等待用户下一步，不自动实施注销或删除账号。下方旧发布/待验收为历史。
 
 账户视觉一致性本轮获Release授权，实际发布结果见独立回执。下一步正式iPhone PWA视觉用户验收，保持AWAITING USER ACCEPTANCE；不改原业务/导航，不实施注销或其他功能。下方旧本地状态为历史。
 

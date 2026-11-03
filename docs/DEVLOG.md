@@ -1,5 +1,11 @@
 # Development Log
 
+## 2026-11-03 — 账户管理UI视觉范围正式关闭
+
+2026-11-03 — **账户管理UI Follow-up CLOSED / ACCEPTED（视觉范围），USER_REPORTED_IPHONE_PWA_VISUAL_ACCEPTANCE=PASS**。用户在正式iPhone PWA查看最新Production后明确确认“我认为可以通过了”。已验收业务Commit为65c08749911ada567ca762c4a534a1e8188ff52e，Production部署7517726063成功、Source匹配及七项资源核验记录保留。v0.1.21已接受范围CLOSED / PASS、Slice 1 DEFERRED及注销独立待办保持。
+
+最终设计、分层测试证据与人工边界见TESTING最新节。本轮仅PROJECT_STATE/DEVLOG/TESTING文档治理，用户授权正常Commit/Push；不改业务、UI、Supabase或Production配置，不读取/输出密钥，未执行新业务验收。完成后停止，不自动启动注销或新功能。
+
 ## 2026-11-03 — 账户视觉一致性正式发布授权 / AWAITING USER ACCEPTANCE
 
 用户授权仅本次8文件正常Commit/Push与Git/Vercel Production。简短diff审查确认两份组件/账户专用CSS、直接测试夹具及三份治理记录符合已验收本地范围，无业务/导航/邮箱复制/退出handler/Supabase变更。与`/private/tmp/calendar-account-parity-validated-fingerprints.json`已验证5份源码/测试和19项Build哈希匹配，沿用Node49/49、WebKit/Chrome14/14及375/390实际computed/截图证据，不重复大规模审计；本轮语法/diff及TypeScript/Build复核，实绩记`/private/tmp/calendar-account-parity-release/RELEASE_RECEIPT.md`。既有chunk提示保留。
