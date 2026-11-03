@@ -770,6 +770,11 @@ body:has(.ui-calendar-shell) {
 .ui-space-entry > span { flex: 1; min-width: 0; overflow-wrap: anywhere; font-size: var(--ui-text-list); line-height: var(--ui-leading-list); }
 .ui-space-entry strong { display: block; font-weight: var(--ui-weight-medium); }
 .ui-space-entry small { display: block; margin-top: var(--ui-space-1); color: rgb(var(--ui-color-muted)); font-size: var(--ui-text-meta); line-height: var(--ui-leading-meta); }
+/* Account rows reuse Space card geometry and one text/icon specification. */
+.ui-account-card { min-height: calc(var(--ui-touch-target) + var(--ui-space-3) * 2 + var(--ui-border-width) * 2); }
+.ui-account-label { font-family: inherit; font-size: var(--ui-text-list); font-weight: var(--ui-weight-semibold); line-height: var(--ui-leading-list); color: rgb(var(--ui-color-text)); }
+.ui-account-icon-slot, .ui-space-entry > .ui-account-icon-slot { display: inline-flex; flex: none; align-items: center; justify-content: center; width: var(--ui-touch-target); min-height: var(--ui-touch-target); color: rgb(var(--ui-color-muted)); }
+
 .ui-space-create-entries { display: grid; gap: var(--ui-space-3); margin-top: var(--ui-space-6); }
 .ui-space-field-label { display: block; margin-top: var(--ui-space-5); font-size: var(--ui-text-meta); line-height: var(--ui-leading-meta); color: rgb(var(--ui-color-muted)); }
 .ui-space-input { display: block; width: 100%; min-width: 0; min-height: var(--ui-touch-target); margin-top: var(--ui-space-2); padding: var(--ui-space-3); border: var(--ui-border-width) solid rgb(var(--ui-color-control)); border-radius: var(--ui-radius-control); background: rgb(var(--ui-color-surface)); font-size: var(--ui-text-body); line-height: var(--ui-leading-body); color: rgb(var(--ui-color-text)); }

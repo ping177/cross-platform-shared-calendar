@@ -1,5 +1,23 @@
 # Testing
 
+## 2026-11-03 — 账户视觉一致性正式发布授权 / AWAITING USER ACCEPTANCE
+
+用户授权仅本次8文件正常Commit/Push与Git/Vercel Production。简短diff审查确认两份组件/账户专用CSS、直接测试夹具及三份治理记录符合已验收本地范围，无业务/导航/邮箱复制/退出handler/Supabase变更。与`/private/tmp/calendar-account-parity-validated-fingerprints.json`已验证5份源码/测试和19项Build哈希匹配，沿用Node49/49、WebKit/Chrome14/14及375/390实际computed/截图证据，不重复大规模审计；本轮语法/diff及TypeScript/Build复核，实绩记`/private/tmp/calendar-account-parity-release/RELEASE_RECEIPT.md`。既有chunk提示保留。
+
+标题20px/600/28px、名称16px/600/24px同色字体、普通卡片70px/padding12px16px/圆角16px、右图标20px同色/位置的本地测量不是用户真机PASS；正式iPhone PWA视觉仍AWAITING USER ACCEPTANCE。本次不执行Supabase管理或用户操作、不实施注销，不新增UI或改导航。既有版本关闭结论保持；下方本地未授权为历史。
+
+
+## 2026-11-03 — 账户页面实际视觉一致性 / LOCAL VERIFIED
+
+用户不接受已发布dacc0e4账户UI，本轮按确定设计仅本地修正：LoginEmail与AccountManagementPage复用ui-space-entry基础和新增ui-account-label/ui-account-card/ui-account-icon-slot，名称同字号/字重/行高/字体/颜色，两个右图标同20px/颜色/44px槽位。账户标题复用空间管理h1的text-ui-section及布局类，SpaceManagementPage自身未改。普通邮箱同行，只有长邮箱完整换行可增高，复制提示在卡片外不改变卡片几何。无左侧图标、无新箭头/删除入口；我的入口顺序、ProfileCard、邮箱来源/复制处理、退出handler、手势/History、Auth/后台不变。
+
+真实离线渲染核验（WebKit/Chrome各375/390）：空间与账户标题均20px/600/28px，同x约78/y24；空间主要卡片标题与账户两个名称均16px/600/24px、rgb(40,52,47)、同system-ui字体栈。两账户卡片普通邮箱均高70px、padding12px 16px、圆角16px、边框1px solid rgb(221,220,213)、白底rgb(255,255,255)、flex/align-items:center。两个SVG均20×20px、rgb(99,111,103)，x在375为310、390为325，右边距均45px；普通邮箱无换行，长邮箱完整保留点号，卡片375增至106px、390增至86px，无横向溢出。
+
+截图与computed JSON位于/private/tmp/calendar-account-parity-screens/：已实际打开检查WebKit375空间/账户、Chrome390空间/账户及长邮箱，自动化比较所有四个引擎×宽度组合，不以测试通过替代截图核对；仍不代表真实设备人工验收PASS。测试修复前4项视觉比较因14px≠16px失败；修复后相关Node49/49、双浏览器账户/标题/卡片/图标实测及原Auth通知10/10、邮箱复制切换4/4 PASS。TypeScript/Build、语法/diff-check PASS，原chunk提示保留。日志/private/tmp/calendar-account-parity-{red,node,browser,email,build}.log。现有测试只调整已变更的标记结构定位，未放宽原操作断言。
+
+未Commit/Push/Deploy，未操作真实登录态/Production、未改Supabase/数据库或其他业务页面，无新增依赖/密钥读取输出，其他项目未改，外部仅临时验证文件。版本与既有关闭结论保持，账户UI人工验收仍待用户；完成后等待发布授权。
+
+
 ## 2026-11-03 — 两处账户布局正式发布授权 / AWAITING USER ACCEPTANCE
 
 用户授权本次仅6文件正常Commit/Push与Git/Vercel Production。短diff review确认两份组件只调整入口顺序和退出行图文/间距，测试仅补顺序与图标几何断言；原handler、LoginEmail、资料编辑、History/手势、Auth/后台及账号不改。沿用同版本有效Node49/49、WebKit/Chrome6+4=10/10、375/390截图及TypeScript/Build证据，本轮只复核语法/diff、源码指纹与重新Build产物，不重复大范围测试。上一轮未单独保存历史源码指纹，本轮锁定3份当前源码/测试指纹，不虚构旧哈希证据。实际Source/资源、远端与门禁结果记`/private/tmp/calendar-account-layout-release/RELEASE_RECEIPT.md`。

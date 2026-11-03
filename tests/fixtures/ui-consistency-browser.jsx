@@ -1,3 +1,5 @@
+import {AccountManagementPage} from '../../src/components/AccountManagementPage';
+import {SpaceManagementPage} from '../../src/components/SpaceManagementPage';
 import React,{useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import RootApp,{BottomNavigation} from '../../src/App';
@@ -45,6 +47,8 @@ function Fixture(){
  else if(mode==='review')content=<ReviewHistoryPage userId="me" entry={entry} currentSpaceId={reviewId} onSpaceChange={setReviewId} onOpenDetail={noop} onHubBack={noop}/>;
  else if(mode==='review-detail')content=<ReviewDetailPage userId="me" target={{spaceId:'s',reviewId:'r0',justCreated:false}} onBack={noop} onDirtyChange={noop} onUnavailable={noop}/>;
  else if(mode==='important')content=<ImportantDatesPage userId="me" entry={entry} onHubBack={noop} onNoEligible={noop}/>;
+ else if(mode==='account-visual'||mode==='account-long')content=<AccountManagementPage userId="me" email={mode==='account-long'?'very.long.email.address.with.many.dots.and.additional.characters.for.wrapping@gmail.com':'first.last@gmail.com'} error="" onBack={noop} onSignOut={noop}/>;
+ else if(mode==='spaces-visual')content=<SpaceManagementPage spaces={spaces} selectedSpaceId={null} userId="me" detailRevision={0} onSelect={noop} onBack={noop} onReady={noop} onSpaceChange={noop} onLifecycleSettled={noop} onModuleChanged={noop} busy={false} onBusyChange={noop}/>;
  else if(mode==='me')content=<MyPage userId="me" loginEmail="first.last.with.dots@gmail.com" onManageSpaces={noop}/>;
  return <div className="min-h-screen text-ink pb-nav bg-ui-page">{content}<BottomNavigation tab="modules" onChange={noop}/></div>;
 }

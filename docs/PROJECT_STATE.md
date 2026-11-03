@@ -12,6 +12,8 @@ v0.1.21
 
 ## Current status
 
+账户视觉一致性修正：RELEASE AUTHORIZED / AWAITING USER ACCEPTANCE。用户授权仅本次8文件正常Commit/Push与Git/Vercel前端发布；同层级标题/名称、相同卡片几何与右图标，保留全部原操作。已验证源码/测试/Build哈希匹配，沿用Node49/49、浏览器14/14和375/390实际computed/截图证据，发布实绩见独立回执。真实iPhone PWA视觉验收待用户，不提前PASS；既有版本关闭与注销待办保持，下方本地未授权为历史。
+
 独立账户UI两项反馈修正：RELEASE AUTHORIZED / AWAITING USER ACCEPTANCE。用户授权仅6文件正常Commit/Push与Git/Vercel发布；账户入口重排、退出文字左/原图标右且与复制中心对齐，无其他业务/导航改动。沿用Node49/49、浏览器10/10及375/390截图证据；实际发布与构建核验见独立回执。手机人工验收仍待用户，不提前PASS；v0.1.21关闭、Slice 1暂缓及注销待办保持。下方本地未授权为历史。
 
 账户管理二级页：RELEASE AUTHORIZED / AWAITING USER ACCEPTANCE。用户授权本次10文件正常Commit/Push与Git/Vercel前端发布；仅移动邮箱及退出入口，保留资料卡编辑行为，复用右滑及局部History返回。Node49/49、浏览器10/10、TypeScript/Build证据与实际发布实绩见独立回执；真实iPhone PWA/Android验收待用户完成。v0.1.21及已关闭Slices保持，注销仅待办；下方本地未授权为历史。
@@ -471,6 +473,8 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
+账户视觉一致性本次仅Git→Vercel前端发布；不操作Supabase/Auth/数据库/用户数据。实际Production状态、Source SHA、七项资源与已测试Build一致及目标核验见`/private/tmp/calendar-account-parity-release/RELEASE_RECEIPT.md`，不预写部署或人工成功。下方为历史发布。
+
 两处账户布局仅经正常Git→Vercel前端发布，不操作Supabase/Auth/数据库/账号；实际Source SHA、Production状态、七项公开资源与已测试Build一致及Supabase目标见`/private/tmp/calendar-account-layout-release/RELEASE_RECEIPT.md`，不预写部署或人工成功。下方为历史发布。
 
 账户管理仅经本次Git→Vercel前端发布；不执行Supabase管理/API、Auth/数据库/模板/权限或账号操作。实际Production Source、状态、七项资源与已测试Build一致及Supabase目标见`/private/tmp/calendar-account-release/RELEASE_RECEIPT.md`，不预写部署/人工成功。下方为历史发布。
@@ -634,7 +638,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-USER ACCEPTANCE CHECKPOINT：用户在正式iPhone PWA确认入口顺序、退出文字/右侧原图标与复制图标对齐，以及邮箱复制、返回和退出行为保持正常。不提前人工PASS，不开始其他功能。
+USER ACCEPTANCE CHECKPOINT：用户在正式iPhone PWA核对空间/账户标题一致、两个名称同层级、普通邮箱卡片等高、右图标对齐及长邮箱完整换行，原复制/退出/返回行为不变；不提前人工PASS，不启动其他功能。
 
 ## Blockers
 
@@ -742,6 +746,8 @@ Slice 5 Gate 2已按用户真实Production证据PASS，不要求重复SQL/REST/�
 - `v0.1.9 Shared Tasks` Slice 1/2/3 are CLOSED / PASS: backend applied/postflight verified, frontend deployed through Vercel, Desktop A/B Production acceptance and iPhone smoke passed. At the v0.1.13 closeout, Structured Review / Check-in and Shared Lists were future candidates; v0.1.14/14.1 subsequently closed, and Shared Lists was selected for v0.1.15. Its design is frozen and Slice 1 DB foundation is `CLOSED / PASS` after Production postflight.
 
 ## Handoff Prompt
+
+账户视觉一致性本轮获Release授权，实际发布结果见独立回执。下一步正式iPhone PWA视觉用户验收，保持AWAITING USER ACCEPTANCE；不改原业务/导航，不实施注销或其他功能。下方旧本地状态为历史。
 
 两处账户布局修正本轮获Release授权，实际实绩见独立回执。下一步用户正式手机验收入口顺序/图标对齐及原操作，保持AWAITING USER ACCEPTANCE，不启动其他功能。下方旧本地限制为历史。
 

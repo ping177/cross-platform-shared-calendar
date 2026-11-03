@@ -249,7 +249,7 @@ for (const engine of ['WebKit','Chrome']) test(`${engine}: account management ke
    const logout=page.getByRole('button',{name:'退出登录',exact:true});
    const icon=logout.locator('svg'); const copy=page.getByRole('button',{name:'复制登录邮箱'}).locator('svg');
    assert.equal(await logout.locator('svg').count(),1);
-   const i=await icon.boundingBox(),c=await copy.boundingBox(),t=await logout.locator('span').boundingBox();
+   const i=await icon.boundingBox(),c=await copy.boundingBox(),t=await logout.locator('.ui-account-label').boundingBox();
    assert.ok(t.x+t.width<=i.x,'logout label is left of the original icon');
    assert.ok(Math.abs(i.x+i.width/2-c.x-c.width/2)<1,'logout and copy icon centers align');
    assert.equal(i.width,20);assert.equal(i.height,20);
@@ -277,4 +277,45 @@ for (const engine of ['WebKit','Chrome']) test(`${engine}: account management ke
   assert.equal(await page.evaluate(()=>window.audit.authCalls.filter(x=>x.kind==='signout').length),1);
   assert.deepEqual(page.errors,[]);
  } finally {await page.close();}
+});
+
+for(const engine of ['WebKit','Chrome'])for(const width of [375,390])test(`${engine} ${width}: account visual parity with actual space management`,async()=>{
+ const dir=process.env.ACCOUNT_VISUAL_ARTIFACTS;
+ const records={engine,width};
+ const style=el=>{const s=getComputedStyle(el),b=el.getBoundingClientRect();return {font:s.fontSize,weight:s.fontWeight,line:s.lineHeight,color:s.color,family:s.fontFamily,x:b.x,y:b.y}};
+ const box=el=>{const s=getComputedStyle(el),b=el.getBoundingClientRect();return {height:b.height,padding:s.padding,radius:s.borderRadius,border:s.border,background:s.backgroundColor,display:s.display,align:s.alignItems}};
+ const spaces=await pageFor(engine,'spaces-visual','populated',width);
+ try{
+  records.spaceTitle=await spaces.getByRole('heading',{name:'空间管理',exact:true}).evaluate(style);
+  records.spaceLabel=await spaces.locator('[data-space-id="p"] .font-ui-semibold').evaluate(style);
+  if(dir){await mkdir(dir,{recursive:true});await spaces.screenshot({path:`${dir}/${engine}-${width}-spaces.png`,fullPage:true});}
+ }finally{await spaces.close();}
+ const page=await pageFor(engine,'account-visual','populated',width);
+ try{
+  records.accountTitle=await page.getByRole('heading',{name:'账户管理',exact:true}).evaluate(style);
+  records.emailLabel=await page.getByRole('heading',{name:'登录邮箱',exact:true}).evaluate(style);
+  const logout=page.getByRole('button',{name:'退出登录',exact:true});
+  records.logoutLabel=await logout.locator('span').first().evaluate(style);
+  for(const key of ['font','weight','line','color','family']){assert.equal(records.emailLabel[key],records.logoutLabel[key],key);assert.equal(records.emailLabel[key],records.spaceLabel[key],`space label ${key}`);}
+  for(const key of ['font','weight','line','x','y'])assert.equal(records.accountTitle[key],records.spaceTitle[key],`title ${key}`);
+  const emailRow=page.getByRole('heading',{name:'登录邮箱',exact:true}).locator('..');
+  records.emailCard=await emailRow.evaluate(box);records.logoutCard=await logout.evaluate(box);
+  assert.deepEqual(records.emailCard,records.logoutCard);
+  const copy=page.getByRole('button',{name:'复制登录邮箱'}).locator('svg'),exit=logout.locator('svg');
+  records.copyIcon=await copy.evaluate(el=>{const b=el.getBoundingClientRect(),s=getComputedStyle(el);return{x:b.x,width:b.width,height:b.height,color:s.color}});
+  records.exitIcon=await exit.evaluate(el=>{const b=el.getBoundingClientRect(),s=getComputedStyle(el);return{x:b.x,width:b.width,height:b.height,color:s.color}});
+  assert.deepEqual(records.copyIcon,records.exitIcon);
+  const email=await page.getByText('first.last@gmail.com',{exact:true}).boundingBox();
+  assert.ok(email.height<=parseFloat(records.emailLabel.line));
+  if(dir)await page.screenshot({path:`${dir}/${engine}-${width}-account.png`,fullPage:true});
+ }finally{await page.close();}
+ const long=await pageFor(engine,'account-long','populated',width);
+ try{
+  const email=long.getByText('very.long.email.address.with.many.dots.and.additional.characters.for.wrapping@gmail.com',{exact:true});
+  assert.ok((await email.boundingBox()).height>parseFloat(records.emailLabel.line));
+  records.longCard=await long.getByRole('heading',{name:'登录邮箱',exact:true}).locator('..').evaluate(box);
+  assert.ok(records.longCard.height>records.emailCard.height,'only wrapping email grows the card');
+  assert.equal(await long.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+  if(dir){await long.screenshot({path:`${dir}/${engine}-${width}-long.png`,fullPage:true});await writeFile(`${dir}/${engine}-${width}-metrics.json`,JSON.stringify(records,null,2));}
+ }finally{await long.close();}
 });
