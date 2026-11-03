@@ -1,5 +1,21 @@
 # Testing
 
+## 2026-11-03 — 两处账户布局正式发布授权 / AWAITING USER ACCEPTANCE
+
+用户授权本次仅6文件正常Commit/Push与Git/Vercel Production。短diff review确认两份组件只调整入口顺序和退出行图文/间距，测试仅补顺序与图标几何断言；原handler、LoginEmail、资料编辑、History/手势、Auth/后台及账号不改。沿用同版本有效Node49/49、WebKit/Chrome6+4=10/10、375/390截图及TypeScript/Build证据，本轮只复核语法/diff、源码指纹与重新Build产物，不重复大范围测试。上一轮未单独保存历史源码指纹，本轮锁定3份当前源码/测试指纹，不虚构旧哈希证据。实际Source/资源、远端与门禁结果记`/private/tmp/calendar-account-layout-release/RELEASE_RECEIPT.md`。
+
+本次无Supabase管理或真实登录/业务数据操作，不实施注销；手机/PWA最终UI验收仍AWAITING USER ACCEPTANCE，不提前PASS。v0.1.21关闭及Slice 1暂缓保持；下方本地未授权记录为历史。
+
+
+## 2026-11-03 — 我的入口顺序与退出图标对齐 / LOCAL VERIFIED
+
+根据用户正式iPhone PWA反馈，仅两处本地UI调整：MyPage将账户管理移动到空间管理之前，顺序为资料卡→账户管理→空间管理→此设备通知设置，原类名/尺寸/间距/handler不变；AccountManagementPage退出行改为文字在左、原20px LogOut在右，以mx-ui-3设计间距形成44px图标占位，与上方复制图标中心对齐，无新增箭头，保留原颜色/垂直居中/整行点击及onSignOut。LoginEmail源文件、复制功能/排版、ProfileCard、返回手势/History、Auth/OTP/数据库/账号均未修改。
+
+验证：新增浏览器顺序断言修复前双引擎失败，修复后Node49/49、WebKit/Chrome账户/原Auth通知6/6、邮箱复制切换4/4 PASS，TypeScript/Build、脚本语法/diff-check PASS。375/390几何断言验证左右位置、图标水平中心偏差<1px、20px原尺寸及垂直居中；实际WebKit375/Chrome390截图已检查。首次使用定位容器后简化为等效原SVG外间距，最终复验通过。既有chunk警告保留。日志/private/tmp/calendar-account-layout-{red,node,browser,email,build}.log，截图/private/tmp/calendar-account-layout-screens/；全部离线，不操作真实登录态或Production。
+
+仅本地修改，未Commit/Push/Deploy。当前线上基线ff4eda2a89ebab538d617a911f1c2e1d2896863a，账户管理手机验收尚未最终PASS，本修正待发布授权，不重开已关闭版本/Slices，不实施后续注销。未读/输出密钥、未改其他项目，外部仅临时验证文件。
+
+
 ## 2026-11-03 — 账户管理正式发布授权 / AWAITING USER ACCEPTANCE
 
 用户授权本次已审查10文件正常Commit/Push及Git/Vercel Production。简短diff review未发现额外业务修改；ProfileCard源文件/编辑逻辑、原MyPage signOut处理、App/Auth/OTP配置/后台均保持。仅账户页与局部返回hook、邮箱左右布局、直接测试/夹具及治理。上一轮未单独保存源码哈希清单，本轮锁定6份源码/测试指纹并复跑Node49、离线双浏览器10、TypeScript/Build/语法/diff；实际结果与构建复现/Source/七项资源/目标核验记`/private/tmp/calendar-account-release/RELEASE_RECEIPT.md`，不冒称历史独立指纹证据。既有chunk警告保留。

@@ -240,11 +240,20 @@ for (const engine of ['WebKit','Chrome']) test(`${engine}: account management ke
  try {
   assert.equal(await page.getByRole('button',{name:'退出登录',exact:true}).count(),0);
   assert.equal(await page.getByText('登录邮箱',{exact:true}).count(),0);
+  assert.deepEqual(await page.locator('main .ui-my-links > button').allTextContents(),['账户管理','空间管理','此设备通知设置']);
   const profileBefore=await page.locator('.ui-profile-card').innerHTML();
   await page.getByRole('button',{name:'账户管理',exact:true}).click();await heading().waitFor();
   assert.equal(await page.getByRole('button',{name:/删除|注销/}).count(),0);
   for (const width of [375,390]) {
    await page.setViewportSize({width,height:812});
+   const logout=page.getByRole('button',{name:'退出登录',exact:true});
+   const icon=logout.locator('svg'); const copy=page.getByRole('button',{name:'复制登录邮箱'}).locator('svg');
+   assert.equal(await logout.locator('svg').count(),1);
+   const i=await icon.boundingBox(),c=await copy.boundingBox(),t=await logout.locator('span').boundingBox();
+   assert.ok(t.x+t.width<=i.x,'logout label is left of the original icon');
+   assert.ok(Math.abs(i.x+i.width/2-c.x-c.width/2)<1,'logout and copy icon centers align');
+   assert.equal(i.width,20);assert.equal(i.height,20);
+   assert.ok(Math.abs(i.y+i.height/2-t.y-t.height/2)<1);
    const label=await page.getByText('登录邮箱',{exact:true}).boundingBox();
    const value=await page.getByText('first.last.with.dots@gmail.com',{exact:true}).boundingBox();
    assert.ok(label.x+label.width<=value.x);assert.ok(Math.abs(label.y+label.height/2-value.y-value.height/2)<2);

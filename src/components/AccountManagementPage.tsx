@@ -13,7 +13,7 @@ export function AccountManagementPage({ userId, email, error, onBack, onSignOut 
     </header>
     <LoginEmail userId={userId} email={email} />
     <div className="ui-my-links">
-      <button className="ui-space-entry ui-focus" type="button" onClick={onSignOut}><LogOut size={20} aria-hidden="true" /><span>退出登录</span></button>
+      <button className="ui-space-entry ui-focus" type="button" onClick={onSignOut}><span>退出登录</span><LogOut className="mx-ui-3" size={20} aria-hidden="true" /></button>
     </div>
     {error && <p className="mt-ui-4 text-ui-meta text-ui-danger" role="alert">{error}</p>}
   </main>;

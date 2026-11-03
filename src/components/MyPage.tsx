@@ -64,9 +64,9 @@ export function MyPage({ userId, loginEmail, onManageSpaces }: { userId: string;
       <ProfileCard key={userId} userId={userId} profile={profile} loading={loading} onProfileChange={setProfile} />
       {!loading && !profile && <button className="ui-focus min-h-11 px-ui-3 text-ui-meta text-ui-accent" type="button" onClick={() => setRetry((value) => value + 1)}>重试读取资料</button>}
       <div className="ui-my-links">
+        <button className="ui-space-entry ui-focus" type="button" onClick={account.enter}><UserRound size={20} aria-hidden="true" /><span>账户管理</span><ChevronRight size={18} aria-hidden="true" /></button>
         <button className="ui-space-entry ui-focus" type="button" onClick={onManageSpaces}><Layers size={20} aria-hidden="true" /><span>空间管理</span><ChevronRight size={18} aria-hidden="true" /></button>
         <button ref={notificationsButton} className="ui-space-entry ui-focus" type="button" onClick={() => setShowNotifications(true)}><Bell size={20} aria-hidden="true" /><span>此设备通知设置</span><ChevronRight size={18} aria-hidden="true" /></button>
-        <button className="ui-space-entry ui-focus" type="button" onClick={account.enter}><UserRound size={20} aria-hidden="true" /><span>账户管理</span><ChevronRight size={18} aria-hidden="true" /></button>
       </div>
       {error && <p className="mt-ui-4 text-ui-meta text-ui-danger" role="alert">{error}</p>}
     </main>
