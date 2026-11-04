@@ -1,6 +1,6 @@
 # 用户数据导出：格式合同与分阶段实现
 
-格式说明作者：Ping Weng。状态：LOCAL VERIFIED / READY FOR REVIEW；不是 Production 或真实 iPhone PWA 验收。项目正式版本仍为 v0.1.21，本合同的 `format_version=1` 只是文件协议修订。
+格式说明作者：Ping Weng。状态：LOCAL CHECKPOINT / READY_FOR_RELEASE_AUTHORIZATION；不是 Production 或真实 iPhone PWA 验收。项目正式版本仍为 v0.1.21，本合同的 `format_version=1` 只是文件协议修订。
 
 ## 已确认规则与范围
 
@@ -8,7 +8,7 @@
 - 支持个人／共享、一个／多个／全部 Space；默认只勾选个人 Space，共享主动选择，提供全选。
 - 模块关闭但仍存在且获准读取的数据仍纳入导出。
 - 接受非事务快照，记录数据准备时间范围；检测缺页、计数变化、身份或关联异常时失败，不交付部分 ZIP。
-- Slice 1原范围为文件合同/合成ZIP/保存验证；Slice 2–3逐步接入读取器与账户入口，实际阶段覆盖见下节。没有RLS／Schema／Auth变更或Production操作。
+- Slice 1原范围为文件合同/合成ZIP/保存验证；Slice 2–4逐步接入读取器与账户入口，实际阶段覆盖见下节。没有RLS／Schema／Auth变更或Production操作。
 - 不支持重新导入、数据恢复、在线备份、后台任务、服务端导出、Storage 上传或账号注销。
 
 ## 文件结构
@@ -33,11 +33,27 @@ spaces/space_<安全名称>__<完整Space-ID>/
   review_entries.csv
 ```
 
-全模块合同下每个Space的12个CSV必须齐全，包括仅表头的空表。阶段性personal-calendar/core-spaces范围见下节，未纳入的表不生成CSV。相同名称由完整 UUID 区分。名称 NFC 规范化，路径分隔符、Windows 非法字符、控制与双向控制字符替换，点串替换，去除末尾空格，最多 40 个 Unicode 码点。固定 `space_` 前缀避免 Windows 设备名；ID 必须是小写标准 UUID。不会使用原名称拼接任意路径。
+当前authorized-spaces范围每个Space的12个CSV必须齐全，包括仅表头的空表。阶段性personal-calendar/core-spaces范围见下节，未纳入的表不生成CSV。相同名称由完整 UUID 区分。名称 NFC 规范化，路径分隔符、Windows 非法字符、控制与双向控制字符替换，点串替换，去除末尾空格，最多 40 个 Unicode 码点。固定 `space_` 前缀避免 Windows 设备名；ID 必须是小写标准 UUID。不会使用原名称拼接任意路径。
 
 ## CSV 字段白名单与顺序
 
-### Slice 3：多空间主要业务范围
+### Slice 4：完整授权范围（当前实现）
+
+收口Review及必要复验通过；等待后续Push/Deploy授权，本轮仅本地检查点。UI失败提示与ZIP README已明确容量保护与超限失败。Production公开目标匹配当前Build；匿名零行API已接受5表GET/HEAD、2处JSON ::text和例外空in；另外7表受ACL拒绝。bigint/JSON实值、受限表、非空分页、真实RLS及iPhone仍须登录态/真机验证，详见TESTING最新节；不是完整Production合同PASS。以下为实施时历史记录。
+
+2026-11-04 LOCAL VERIFIED / READY FOR REVIEW，未提交/发布；Slice 3本地检查点为6f458ec208fe7ea3fd8559169cd37881c199ca77。format_version仍为1，字段白名单与编码完全不变。正常入口使用export_scope=authorized-spaces，12类table_coverage均为exported，每Space12个CSV（空表也有表头），N个Space共12N+2文件。complete_backup=false表示非事务数据库/恢复备份，不表示有模块尚未接入；旧阶段profile仅保留内部回归兼容。
+
+回顾直接从当前Session/RLS可见的review_rounds按Space稳定分页读取；不使用上一份计划或特权RPC。仅将这些轮次ID每100个一批读取review_entries，每批继续按review_id,user_id完整分页和精确计数，bigint显式::text。统一postflight仅复核相同可见父集合，禁止查询整个Space的entries总量、隐藏轮次统计或占位符。不可见旧轮合法缺省；授权轮次缺少本人、参与人数不符、重复身份、错误关联或revision异常时失败。历史对方无需是当前成员，当前导出者仍必须有成员资格。
+
+manifest增加通用authorization_scope说明，files只列实际RLS范围行数，无隐藏历史ID/数量；README解释原参与者、新Owner及已离开对方的范围。UI不再称阶段性导出，说明当前授权、多次读取非单一时点、不能导入恢复；默认个人/全选/改选清理等行为保持。取消/卸载/账号失效会废弃结果，并通过AbortSignal终止在途fflate压缩worker。
+
+容量复核：8 MiB限制累计CSV UTF-8字节（每Space每表表头一次、每行一次，页重复表头已减去）；16 MiB是最终全部文件组装的第二道保护，包含README/manifest，与前者不是相加预算。两者均不等于JS堆、worker或总进程内存上限，也不以ZIP压缩后大小计费。恰好8 MiB接受、再多1字节失败的测试排除了重复/过度计费。保留阈值，未凭桌面结果提高手机内存风险。
+
+多年正常数据确实可能超限：3650条300字日程CSV4,778,228 B，520次双人四字段350字周回顾所在Space CSV4,621,231 B，合选超限、分Space成功；每字段1000字时单Space也会失败。600字多样中文长回顾样本CSV7,755,359 B、ZIP约3.15 MB，桌面Chrome主线程JS堆采样约61.7 MB，独立Node峰值RSS约180 MiB（含运行时/夹具，非手机）。阈值是保守工程边界，不能声称支持所有多年用户；超限明确失败并建议分Space，单Space仍超限暂不支持。没有证明可安全提高限额的iPhone证据，不引入后台导出；未来若必须支持此类大单Space，应单独评估减少复制/增量组装，不能静默截断。
+
+Production RLS、bigint/JSON ::text（含NULL及大数）、空父集合in过滤/精确count及Realtime投递仍NOT VERIFIED；Mock不是这些门禁的证据。iPhone standalone PWA保存/取消/落盘解压与真实内存待正式发布后用户真机验收，前置环境兼容Gate不得省略。
+
+### Slice 3：多空间主要业务范围（历史检查点）
 
 2026-11-04 LOCAL VERIFIED / READY FOR REVIEW，未提交/发布。沿用format_version=1、原12类字段和编码；export_scope=core-spaces、complete_backup=false。每个所选Space实际读取并生成space/members/modules/events/event_occurrence_exceptions/tasks/lists/list_sections/list_items/important_dates共10类CSV，确实空时保留表头。review_rounds/review_entries固定not_included且不生成文件，留Slice 4；README/UI明确这不是包含回顾的完整备份。两Space为22文件，不把disabled、缺模块行或读取失败当成业务空表。
 
@@ -112,26 +128,26 @@ bigint 只接受字符串或 JS bigint，拒绝所有 JS number（即使暂时�
 
 ## 关联与权限合同
 
-- 组装器要求每个 Space 一条元信息，所有直接 space_id 必须匹配；当前导出者必须出现在成员列表。它不发起查询，不能证明真正授权，RLS 仍由未来读取器执行。
+- 组装器要求每个 Space 一条元信息，所有直接 space_id 必须匹配；当前导出者必须出现在成员列表。它不发起查询，不能证明真正授权，真实权限由space-export现有Session查询及后端RLS执行，后端实测仍待核验。
 - 日程保留源段与 series_id/parent_event_id；验证引用存在、同 Space／audience、父段无环。例外必须引用重复源，保留 occurrence_date 与 deleted/override。重复规则不展开；recurrence_until 是排他截止。
 - 任务保留指派成员 ID 或 NULL。创建者可能已离开，不要求 created_by 都是当前成员。
 - 清单、分组、条目验证父子 ID，section_id=NULL 表示未分组；保留排序号和完成状态，不增加派生统计列。
 - 回顾同时要求当前成员及原轮参与者；组装器要求该轮含导出者 entry，个人一条／共享两条，允许对方为已离开历史参与者。保留 content_revision/filled_revision，不将未参加的旧轮补入；不推断或导出隐藏的“上一份”回顾关系。
-- 每表主键／复合身份去重，并核对例外日期、回顾日期和编号、清单排序唯一性。所有 CSV 的预期行数由未来读取器独立给出，输入不符即失败。
-- 未来读取器必须在分页与下载交付前复验账号／成员／回顾访问资格；不能把此模块的客户端关联检查当成安全边界。本轮只验证合成输入。
+- 每表主键／复合身份去重，并核对例外日期、回顾日期和编号、清单排序唯一性。所有 CSV 的预期行数由读取器独立给出，输入不符即失败。
+- 读取器分页前后及统一postflight核验账号和可见范围，交付/保存前重验成员资格；通知与页面离开废弃结果。客户端关联检查不能替代RLS，当前本地输入全部是合成Mock，未验证真实会话。
 
 ## manifest
 
 - format_version=1，与产品版本分开。
 - synthetic 标识样本来源，exported_by_user_id 是本次导出者（不改业务 created_by）；started_at/finished_at 是数据准备区间，必须先后有效；不含随后 ZIP 压缩及用户点击保存耗时。
 - transactional_snapshot=false、includes_disabled_modules=true，以及中文 limitations。
-- spaces：所选Space ID、原名称、kind和目录名；files：实际已纳入CSV路径和数据行数，不计表头；table_coverage明确exported/not_included。Slice 3每Space10类CSV，回顾两类不生成。
+- spaces：所选Space ID、原名称、kind和目录名；files：实际已纳入CSV路径和数据行数，不计表头；table_coverage明确exported/not_included。当前authorized-spaces每Space12类CSV均exported，authorization_scope说明回顾参与者范围，不包含不可见历史的元数据。
 - fields：12 类 CSV 的有序字段定义；encoding：NULL、类型前缀、字符集、记录分隔等。
 - manifest 不包含凭据、真实邮箱、开发机器路径或内部临时文件名；README 的格式说明归属不覆盖业务记录 created_by。
 
 ## bigint／JSON 文本读取门禁（未执行）
 
-PostgREST 官方支持 SELECT 列 cast。未来读取器应对 bigint 及 JSON 列使用 `::text`，保留原字段名，例如：
+仓库读取器对 bigint 及 JSON 列使用 `::text`，保留原字段名，例如：
 
 ```text
 list_sections: sort_order::text
@@ -142,11 +158,11 @@ events: recurrence_rule::text
 event_occurrence_exceptions: override_data::text
 ```
 
-本轮没有可用的已核验隔离 PostgREST 服务，也未连接 Production／提取 Auth 凭据。实际目标后端对 cast、NULL、超安全整数与 JSON 数字的响应为 **NOT VERIFIED**；不得用合成响应冒充 PASS。这是后续业务读取器的集成门禁，不阻止本轮纯格式／保存 review。
+本地未启动隔离PostgREST。收口已用正式公开anon配置做不可能命中的零行API探针：events/例外两处JSON ::text语法可执行；bigint来源表受匿名ACL拒绝，bigint cast执行及所有NULL/超安全整数/JSON数字实值响应仍NOT VERIFIED。仅GET/HEAD，没有用户Session/私密Auth凭据、业务读取或Production写入；不能将API零行或Mock当认证合同通过。
 
 ## 保存验证与容量边界
 
-fflate 精确锁定 0.8.3（MIT、无运行时依赖）。generateExportZip 校验全部文件后才动态 import ZIP 能力，压缩成功前不返回文件。只用于本地验证的未压缩内容上限为 16 MiB，超限明确失败；不是已测量的手机容量承诺，未来实际导出容量需独立测试。
+fflate 精确锁定 0.8.3（MIT、无运行时依赖）。generateExportZip 校验全部文件后才动态 import ZIP 能力，压缩成功前不返回文件。读取器8 MiB/最终组装16 MiB的含义与复核见Slice 4节；取消时终止在途压缩。上限不是已测量的手机容量承诺。
 
 本地入口：运行 `npm run dev` 后访问 `http://127.0.0.1:5175/tests/fixtures/data-export.html`。入口有 DEV 限制、只使用固定合成数据、不注册 SW／不请求 Supabase；应用 main／账户页面没有引用它，Production Build 不包含此页。
 
@@ -164,6 +180,6 @@ npm run build
 git diff --check
 ```
 
-先 review 本 Slice，再授权后续真实读取器与正式 UI；数据导出优先，之后才讨论自主注销。读取器、Production cast 核验及真实 PWA 验收未完成前，不宣称正式数据导出已可发布。
+下一步review Slice 4本地完整范围及容量边界，再另行授权环境门禁、Git/发布流程；数据导出优先，之后才讨论自主注销。Production cast/RLS/空in核验与真实PWA验收完成前，不标记Production CLOSED/PASS。
 
 参考：[RFC 4180](https://www.rfc-editor.org/rfc/rfc4180.txt)、[PostgREST column casting](https://docs.postgrest.org/en/stable/references/api/tables_views.html#casting-columns)、[OWASP CSV Injection](https://community.owasp.org/attacks/CSV_Injection)、[Web Share](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/share)、[fflate](https://github.com/101arrowz/fflate)。

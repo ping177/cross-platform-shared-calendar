@@ -1,12 +1,12 @@
 import { assertExportUuid, exportColumns, exportCsv, exportTables, spaceDirectory, type ExportRow, type ExportTable } from './data-export-format.ts';
 
 export type ExportSpace = { tables: Record<ExportTable, ExportRow[]>; expectedRows: Record<ExportTable, number> };
-export type ExportInput = { actorId: string; startedAt: string; finishedAt: string; synthetic: boolean; spaces: ExportSpace[]; scope?: 'personal-calendar' | 'core-spaces' };
+export type ExportInput = { actorId: string; startedAt: string; finishedAt: string; synthetic: boolean; spaces: ExportSpace[]; scope?: 'personal-calendar' | 'core-spaces' | 'authorized-spaces' };
 export const personalCalendarTables: ExportTable[] = ['space', 'members', 'events', 'event_occurrence_exceptions'];
 export const coreSpaceTables = exportTables.filter(table => table !== 'review_rounds' && table !== 'review_entries');
 export const exportByteLimit = 16 * 1024 * 1024;
 export class ExportCapacityError extends Error {
-  constructor() { super('导出数据超过本地容量，请减少所选空间、尝试分空间导出；单个空间仍超限时，本阶段无法导出。'); this.name = 'ExportCapacityError'; }
+  constructor() { super('导出数据超过本地容量（CSV 读取预算 8 MiB／文件组装保护 16 MiB），请减少所选空间、尝试分空间导出；单个空间仍超限时，暂时无法导出。'); this.name = 'ExportCapacityError'; }
 }
 
 const readme = `共享日历数据导出（格式 1）
@@ -19,9 +19,10 @@ JSON 以 json: 开头，去掉一次前缀后仍是原始 JSON 文本，勿先�
 bigint 以 int: 开头，后接精确十进制整数；日期以 date: 开头；时间戳以 time: 开头。布尔值为 true/false，小整数和 UUID 原样。
 这些前缀是文件值的一部分，用来阻止公式解释和自动类型改写。请勿在表格中批量去除前缀后打开不可信内容。重新编码、编辑或使用忽略此合同的解析器后，不保证公式安全或精度。
 日期不作 UTC 转换，时间戳保留返回值，time_zone 字段单独保留。重复日程导出源段、规则和例外，不展开无限未来；recurrence_until 为排他截止。
-共享内容可能包含其他成员的记录。正式读取必须受当前成员资格、RLS 和回顾原参与者限制；关闭模块的有权读取历史数据仍应包含。未授权内容不能为补齐关系而额外读取。
+共享内容可能包含其他成员的记录。仅导出当前成员资格与 RLS 允许读取的数据；回顾仅包含本人作为原参与者且当前仍获授权的轮次，以及该轮所有原参与者的条目（包括已离开者）。新成员或新 Owner 不因此获得未参加的历史；不可见历史不在文件或计数范围内。关闭模块的可读历史仍包含，不能为补齐关系而越权读取。
 manifest 记录数据准备起止时间（不包含随后 ZIP 压缩及用户保存耗时）、Space、CSV 行数与有序字段定义；这是非事务快照，不能保证所有记录来自同一数据库时点。
 manifest 中 synthetic=true 表示合成样本数据。数据来源、授权与读取完整性由读取端核验，文件组装本身不证明数据库权限或线上兼容性。
+当前读取器累计 CSV 预算为 8 MiB，最终文件组装保护为 16 MiB；它们不是 ZIP 压缩后大小或手机内存上限。超限整体失败、不生成部分文件，请尝试分空间导出；单个空间仍超限时暂时无法导出。
 首版不能将此文件导入应用或恢复账号／已删除数据。本文件未加密，请自行妥善保存。
 `;
 
@@ -95,12 +96,13 @@ export function prepareExport(input: ExportInput) {
     || Date.parse(input.startedAt) > Date.parse(input.finishedAt) || !input.spaces.length || typeof input.synthetic !== 'boolean') invalid();
   const encoder = new TextEncoder(), files: Record<string, Uint8Array> = {};
   const included = input.scope === 'personal-calendar' ? personalCalendarTables : input.scope === 'core-spaces' ? coreSpaceTables : exportTables;
-  if (input.scope !== undefined && input.scope !== 'personal-calendar' && input.scope !== 'core-spaces') invalid();
+  if (input.scope !== undefined && input.scope !== 'personal-calendar' && input.scope !== 'core-spaces' && input.scope !== 'authorized-spaces') invalid();
   if (input.scope === 'personal-calendar' && (input.spaces.length !== 1 || input.spaces[0].tables.space[0]?.kind !== 'personal')) invalid();
   const manifest = {
     format_version: 1, synthetic: input.synthetic, exported_by_user_id: input.actorId, started_at: input.startedAt, finished_at: input.finishedAt,
     transactional_snapshot: false, includes_disabled_modules: true,
     export_scope: input.scope ?? 'all-modules', complete_backup: false,
+    authorization_scope: '仅当前成员资格及RLS允许读取的记录；回顾限本人为原参与者的可见轮次及其全部原参与者条目，不统计不可见历史',
     table_coverage: Object.fromEntries(exportTables.map((table) => [table, included.includes(table) ? 'exported' : 'not_included'])),
     encoding: { charset: 'UTF-8-BOM', record_separator: 'CRLF', null: '\\N', text: 'text:', json: 'json:', bigint: 'int:', date: 'date:', timestamp: 'time:', integer: 'decimal-int32', boolean: 'true/false', uuid: 'canonical-lowercase' },
     fields: exportColumns,
@@ -146,12 +148,22 @@ export function prepareExport(input: ExportInput) {
   return { files, manifest, filename };
 }
 
-export async function generateExportZip(input: ExportInput) {
+export async function generateExportZip(input: ExportInput, signal?: AbortSignal) {
   // No result escapes until ALL tables and relations validate and compression succeeds.
+  const assertActive = () => { if (signal?.aborted) throw new DOMException('导出已取消。', 'AbortError'); };
+  assertActive();
   const prepared = prepareExport(input);
   const { zip } = await import('fflate');
+  assertActive();
   const bytes = await new Promise<Uint8Array>((resolve, reject) => {
-    zip(prepared.files, { level: 6 }, (error, data) => error ? reject(error) : resolve(data));
+    let terminate = () => {};
+    const abort = () => { terminate(); reject(new DOMException('导出已取消。', 'AbortError')); };
+    const cleanup = () => signal?.removeEventListener('abort', abort);
+    signal?.addEventListener('abort', abort, { once: true });
+    try {
+      terminate = zip(prepared.files, { level: 6 }, (error, data) => { cleanup(); error ? reject(error) : resolve(data); });
+    } catch (error) { cleanup(); reject(error); }
   });
+  assertActive();
   return { bytes, manifest: prepared.manifest, filename: prepared.filename };
 }

@@ -81,11 +81,11 @@ export default function DataExportPage({ userId, onBack }: { userId: string; onB
     busy.current = true; setPhase('generating'); setMessage('正在读取所选空间并生成 ZIP…');
     try {
       const input = await readSpaceExport(supabase, userId, selection, signal);
-      const result = await generateExportZip(input);
+      const result = await generateExportZip(input, signal);
       await verifyExportAccess(supabase, userId, selection, signal);
       if (!alive.current || request !== revision.current) return;
       setArchive({ spaceIds: selection, file: new File([result.bytes as Uint8Array<ArrayBuffer>], result.filename, { type: 'application/zip' }) });
-      setMessage(`阶段性 ZIP 已生成（${input.spaces.length} 个空间，${(result.bytes.byteLength / 1024).toFixed(1)} KB），尚未保存。`);
+      setMessage(`ZIP 已生成（${input.spaces.length} 个空间，${(result.bytes.byteLength / 1024).toFixed(1)} KB），尚未保存。`);
     } catch (error) { if (alive.current && request === revision.current) { setError(error instanceof Error && error.name === 'ExportCapacityError' ? error.message : '导出失败，未提供 ZIP。请刷新空间列表后重试。'); setMessage(''); } }
     finally { if (alive.current && request === revision.current) { busy.current = false; setPhase('idle'); } }
   }
@@ -114,7 +114,7 @@ export default function DataExportPage({ userId, onBack }: { userId: string; onB
   const disabled = phase !== 'idle';
   return <main {...swipe} className="mx-auto min-h-[100dvh] w-full max-w-3xl bg-ui-page px-ui-4 py-ui-4 font-ui text-ui-text safe-bottom">
     <header className="ui-spaces-header flex min-h-11 items-center gap-ui-3"><button type="button" className="ui-focus inline-flex min-h-11 shrink-0 items-center gap-ui-1 rounded-ui-control text-ui-meta font-ui-semibold text-ui-accent" onClick={leave}><ChevronLeft size={18} aria-hidden="true" />账户管理</button><h1 className="min-w-0 flex-1 break-all text-ui-section">导出数据</h1></header>
-    <p className="mt-ui-4 text-ui-meta text-ui-muted">导出所选个人及共享空间的日程、任务、清单、重要日和空间设置，包含已关闭模块的可读历史。回顾尚未纳入，这不是包含回顾的完整备份。</p>
+    <p className="mt-ui-4 text-ui-meta text-ui-muted">导出所选个人及共享空间的日程、任务、清单、重要日、回顾和空间设置，包含已关闭模块的可读历史。仅包含当前有权访问的数据；回顾限本人参加的可见轮次。数据来自生成期间的多次读取，不保证同一时点一致，不能直接导入或恢复。</p>
     {loaded && <fieldset className="mt-ui-4"><legend className="text-ui-body font-ui-semibold">选择空间</legend>
       <button type="button" className="ui-focus min-h-11 text-ui-accent" disabled={disabled || !spaces.length} onClick={() => changeSelection(selected.length === spaces.length ? [] : spaces.map(space => String(space.id)))}>{selected.length === spaces.length && spaces.length ? '取消全选' : '全选'}</button>
       <div className="flex flex-col gap-ui-3">{spaces.map(space => <label key={String(space.id)} className="ui-space-entry ui-account-card ui-focus"><input type="checkbox" className="h-5 w-5 shrink-0 accent-ui-accent ui-focus" disabled={disabled} checked={selected.includes(String(space.id))} onChange={() => changeSelection(selected.includes(String(space.id)) ? selected.filter(id => id !== space.id) : [...selected, String(space.id)])} /><span className="ui-account-label min-w-0 break-all">{space.kind === 'personal' ? '个人空间' : '共享空间'}：{String(space.name || '未命名空间')}</span></label>)}</div>

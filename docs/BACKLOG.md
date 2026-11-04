@@ -1,5 +1,16 @@
 # Backlog
 
+## 2026-11-04 — 数据导出本地检查点收口
+
+Slice 4限定Review/Node66/浏览器定向8/类型Build完成，按本轮授权保存独立本地检查点；等待明确Push/Deploy授权，不自动发布或新建版本。部分Production匿名零行合同已核验，真实登录态受限表/实值类型/非空分页/RLS及iPhone保存容量仍待验收，证据见TESTING最新节。保留单Space超限限制，不启动后台、导入、注销或闲置账号清理。
+
+## 2026-11-04 — Slice 4本地完成待review
+
+Slice 3已独立本地Commit 6f458ec；Slice 4完成12类授权范围CSV、回顾参与者读取、整体UI与本地验证，未提交/发布。先review代码与容量边界：多年长文可能超过8MiB，分Space有帮助，单Space仍超限暂不支持。无需Slice 5或新版本；不自行扩展后台/导入/注销。
+
+后续独立门禁仍为Production RLS/参与者/Realtime、PostgREST bigint/JSON cast/空in/精确count，和正式发布后用户iPhone standalone PWA保存、落盘解压及容量。当前没有Production CLOSED/PASS结论；等待下一步授权，不自动Commit Slice 4/Push/Deploy或操纵真实账号。
+
+
 ## 2026-11-04 — Slice 3本地完成待review
 
 Slice 2已独立本地Commit ee15fec；Slice 3多Space选择/10类主要业务CSV LOCAL VERIFIED / READY FOR REVIEW，未提交。默认personal、共享主动选择、全选/零选、权限与改选失效、关闭模块历史、分页/关联/统一count postflight和容量失败已覆盖。字段合同不改，回顾两类明确not_included，留Slice 4，未启动。

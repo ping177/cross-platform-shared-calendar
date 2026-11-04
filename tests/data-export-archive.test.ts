@@ -51,6 +51,8 @@ print(json.dumps(out,ensure_ascii=False))`], { input: Buffer.from(archive.bytes)
     }
   }
   assert.match(files['README.txt'], /不能.*恢复/);
+  assert.match(files['README.txt'], /8 MiB.*16 MiB/);
+  assert.match(files['README.txt'], /超限.*不生成.*分空间/);
   assert.match(archive.filename, /^shared-calendar-export_[0-9TZ-]+\.zip$/);
 });
 
@@ -92,7 +94,7 @@ test('cross-Space/orphan relationships and missing own review participant fail; 
 test('local capacity limit fails explicitly without returning a partial archive', async () => {
   const input = syntheticExport();
   input.spaces[1].tables.events[0].description = 'x'.repeat(exportByteLimit);
-  await assert.rejects(generateExportZip(input), /容量/);
+  await assert.rejects(generateExportZip(input), /容量.*8 MiB.*16 MiB.*分空间/);
 });
 
 test('JS bigint inputs retain precision through association validation as well as CSV encoding', async () => {
@@ -100,4 +102,15 @@ test('JS bigint inputs retain precision through association validation as well a
   input.spaces[1].tables.list_sections[0].sort_order = 9007199254740993n;
   input.spaces[1].tables.list_items[0].sort_order = 9223372036854775807n;
   assert.ok((await generateExportZip(input)).bytes.length > 0);
+});
+
+test('aborting before or during asynchronous ZIP compression never returns a file', async () => {
+  const canceled = new AbortController(); canceled.abort();
+  await assert.rejects(generateExportZip(syntheticExport(), canceled.signal), { name: 'AbortError' });
+  await import('fflate'); // Warm the import so the timer cancels an active async compression.
+  const input = syntheticExport(), active = new AbortController();
+  input.spaces[1].tables.events[0].description = '长正文🐈'.repeat(200000);
+  const pending = generateExportZip(input, active.signal);
+  setTimeout(() => active.abort(), 0);
+  await assert.rejects(pending, { name: 'AbortError' });
 });

@@ -12,7 +12,8 @@ v0.1.21
 
 ## Current status
 
-2026-11-04 — **导出Slice 2已独立本地Commit ee15fec；Slice 3 LOCAL VERIFIED，已授权独立本地检查点；下一步Slice 4**。个人/共享多选、默认个人/全选/零选、改选失效与10类CSV读取完成，回顾两类not_included，不是完整备份。Node57/57、直接浏览器37/37＋原账户8/8、TypeScript/Build通过；独立Python回读与容量样本完成。8MiB读取预算/16MiB组装保护，超限失败分Space；不以桌面内存样本声明iPhone容量。Production bigint/JSON/空in、真实RLS/Realtime和PWA未验证。无Push/Deploy/后台/依赖变更，正式版本仍v0.1.21；旧关闭结论保持。下方为历史。
+2026-11-04 — **数据导出Slice 4限定Review PASS／本地工程收口完成，READY_FOR_RELEASE_AUTHORIZATION**。12类CSV与参与者范围/容量失败关闭通过；本轮Node66/66、浏览器定向8/8、TypeScript/Build/独立ZIP回读通过，既有39/39＋原账户8/8和布局证据保持。公开Production目标匹配；28次零行anon GET/HEAD仅11次通过、17次预期ACL拒绝，无业务内容/私密凭据/用户Session读取或写入。真实认证表/实值cast/非空分页/RLS/Realtime及iPhone保存容量仍待验收。仅授权独立本地Commit，Git实绩以live Git为准，不Push/Deploy；正式v0.1.21、已关闭范围保持。下方为历史。
+
 
 2026-11-04 — **用户数据导出 Slice 1 已独立本地Commit 9c3c237；Slice 2 LOCAL VERIFIED / READY FOR REVIEW，未提交**。账户→导出→本人personal成员关系→完整日程/重复例外→阶段ZIP→保存链路实现。Node49/49、直接浏览器30/30＋原账户8/8、TypeScript/Build通过；独立Python回读Mock读取器输出。阶段范围明确not_included，未包装完整备份。Production JSON cast、真实RLS登录态及iPhone standalone PWA未验证；不请求真实账号验收。无Push/Deploy/后台变更，无新版本；v0.1.21已接受关闭范围及旧稳定性Slice 1暂缓保持。下方Slice 1待review等为历史。
 
@@ -117,6 +118,10 @@ UI v2 Slice6 = LOCAL PASS / VISUAL PASS：用户已认可四张居中概览卡�
 v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3为LOCAL PASS / VISUAL PASS；Slice4为LOCAL PASS / VISUAL PROVISIONALLY ACCEPTED。Slice5月视图本地验证与离线视觉验收通过：两条短标题/准确+N、六色圆点与日期浮层，261/261相关测试、build/diff-check、28组四宽度离线检查PASS；用户确认普通月、密集月、空月及浮层满意。已授权本地commit；不代表真实账号、真机、installed PWA或Production验收。Space Color System继续Deferred；真实账号/真机/installed PWA/Production未验收。正式版本仍v0.1.20。
 
 ## Latest completed
+
+Slice 4本地收口限定Review无阻塞，仅补UI失败提示及README容量边界；必要回归通过、17文件敏感/临时产物检查通过。部分Production匿名零行API探针完成，精确覆盖与拒绝/未验证范围见TESTING最新节。按授权保存独立本地检查点，不标记Production CLOSED/PASS。
+
+Slice 3限定review及本地检查点6f458ec完成；Slice 4完成Review授权父集合读取与12类CSV集成、取消压缩保护、最终UI及容量/独立ZIP/本地自动验证。详细证据及未验证范围见TESTING最新节、DATA_EXPORT_FORMAT Slice 4。Slice 4仅工作区。
 
 Slice 2针对性review与16/16复验后保存本地ee15fec（无敏感/导出临时产物）。Slice 3仅工作区：多Space授权名单与选择、主要业务完整读取/统一postflight计数/关联/容量保护，字段与编码未改。详情见DATA_EXPORT_FORMAT的Slice 3和TESTING最新节。
 
@@ -489,6 +494,8 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
+本轮数据导出仅本地检查点，未Push/Deploy，未改Supabase/配置/业务记录。公开Production GET/HEAD只验证部分零行API，不构成功能发布或人工验收。原已接受部署保持，下面为历史。
+
 账户管理已接受业务基线65c08749911ada567ca762c4a534a1e8188ff52e，Production7517726063成功且Source/七项资源已核验，用户正式iPhone PWA最终视觉PASS。本次仅治理文档Commit/正常Push，不改业务资源、Supabase或部署配置；若既有Git集成触发文档部署，不作为新业务/人工验证。下方为历史发布证据。
 
 账户视觉一致性本次仅Git→Vercel前端发布；不操作Supabase/Auth/数据库/用户数据。实际Production状态、Source SHA、七项资源与已测试Build一致及目标核验见`/private/tmp/calendar-account-parity-release/RELEASE_RECEIPT.md`，不预写部署或人工成功。下方为历史发布。
@@ -656,13 +663,17 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-按本轮授权完成Slice 3本地检查点，实施Slice 4回顾参与者范围导出、12类集成及容量/本地验收；Slice 4不提交，不Push/Deploy。真实环境门禁保留。
+等待明确Push/Deploy授权；授权后重新执行Project State Push Gate，按既有前端发布流程核验Source/资源/目标，再由用户完成受限表/真实RLS与iPhone standalone PWA最小验收。容量边界保持，未验收不关闭Production。
 
 ## Blockers
 
 暂无明确阻塞。
 
 ## Important Context
+
+数据导出当前READY_FOR_RELEASE_AUTHORIZATION仅表示本地Review/最小预检无确定阻塞；真实受限表/类型/非空分页/RLS及真机验证未完成，不是Production PASS。公开anon探针不读取业务行，不使用特权或真实用户凭据；容量8MiB/16MiB仍可能拒绝单个大Space。Slice 4提交结果以live Git为准，以下未提交/阶段范围为历史。
+
+当前正常入口scope=authorized-spaces，每所选授权Space完整12类CSV（含授权为空表头），回顾仅本人为原参与者的可见轮次及所有原参与者条目，不泄露隐藏历史元数据。Slice 3已本地6f458ec，Slice 4未提交；不持久化文件，不操作真实账号或后端。容量/线上/真机限制见最新合同，以下阶段性覆盖与旧授权为历史。
 
 当前已实现导出范围为core-spaces（所选个人/共享Space的10类CSV），回顾两类不生成且not_included；关闭模块仍读有权历史。Slice 2唯一新本地检查点ee15fec，Slice 3未提交。选择/文件不持久化，读取预算8MiB是桌面证据下的保守失败阈值，不是iPhone内存保证。未进行Production或真实账号操作。
 
@@ -771,7 +782,9 @@ Slice 5 Gate 2已按用户真实Production证据PASS，不要求重复SQL/REST/�
 
 ## Handoff Prompt
 
-先读DATA_EXPORT_FORMAT/TESTING最新节：Slice 2已独立本地Commit ee15fec，Slice 3多Space与主要业务导出仅工作区、READY FOR REVIEW。10类CSV已接入、回顾两类not_included；不提交Slice 3、不Push/Deploy，不自动开始Slice 4/注销。Production cast/空in/RLS/Realtime及真实PWA仍未验证，下一步先review与环境门禁授权。正式版本与既有关闭结论保持，下方旧交接为历史。
+先读TESTING最新“Slice 4收口”及DATA_EXPORT_FORMAT：本地限定Review/必要验证已完成，独立Commit实绩以live Git为准；READY_FOR_RELEASE_AUTHORIZATION，等待明确Push/Deploy授权。不自行发布、升版本、关闭Production或启动注销。部分Production匿名零行API通过、7表受ACL拒绝；bigint/JSON实值/非空分页/真实RLS和iPhone保存容量均待用户验收。先过目标兼容Gate，正式发布后用户验收；不操纵真实Session。以下旧交接为历史。
+
+先读DATA_EXPORT_FORMAT/TESTING最新节：Slice 3独立本地Commit 6f458ec，Slice 4完成12类授权CSV/回顾参与者范围/整体UI与本地验证，LOCAL VERIFIED / READY FOR REVIEW，未提交。先review容量边界（多年数据可能超8MiB，单Space仍超限不支持）和代码，再等待后续环境/Git/发布授权。Production cast/空in/精确count/RLS/Realtime及真实iPhone PWA/容量均未验证，不标记Production CLOSED/PASS；不自动Commit Slice 4/Push/Deploy/注销。正式v0.1.21与既有关闭结论保持，下方旧交接为历史。
 
 账户视觉一致性本轮获Release授权，实际发布结果见独立回执。下一步正式iPhone PWA视觉用户验收，保持AWAITING USER ACCEPTANCE；不改原业务/导航，不实施注销或其他功能。下方旧本地状态为历史。
 

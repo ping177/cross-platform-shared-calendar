@@ -61,29 +61,32 @@ export async function readSpaceExport(client: SupabaseClient, userId: string, se
       const source = table === 'members' ? 'space_members' : table === 'modules' ? 'space_modules' : table;
       let q = client.from(source).select(head ? exportColumns[table][0].name : exportSelectColumns(table), { count: 'exact', head });
       if (table === 'event_occurrence_exceptions') q = q.in('event_id', parents ?? []);
+      else if (table === 'review_entries') q = q.in('review_id', parents ?? []);
       else if (table === 'list_sections') q = q.in('list_id', parents ?? []);
       else { q = q.eq('space_id', spaceId); if (parents) q = q.in('list_id', parents); }
       if (table === 'members') q = q.order('user_id');
       else if (table === 'modules') q = q.order('module_key');
+      else if (table === 'review_entries') q = q.order('review_id').order('user_id');
       else q = q.order('id');
       return q.abortSignal(signal);
     };
     const read = async (table: ExportTable, parents?: string[]) => {
-      const identity = (row: ExportRow) => table === 'members' ? String(row.user_id) : table === 'modules' ? String(row.module_key) : String(row.id);
+      const identity = (row: ExportRow) => table === 'review_entries' ? JSON.stringify([row.review_id, row.user_id]) : table === 'members' ? String(row.user_id) : table === 'modules' ? String(row.module_key) : String(row.id);
       return readExportRows(client, userId, signal, (start, end) => query(table, parents).range(start, end), identity,
-        row => table === 'list_sections' ? !!parents?.includes(String(row.list_id)) : table === 'event_occurrence_exceptions' ? !!parents?.includes(String(row.event_id)) : row.space_id === spaceId && (!parents || parents.includes(String(row.list_id))),
+        row => table === 'review_entries' ? !!parents?.includes(String(row.review_id)) : table === 'list_sections' ? !!parents?.includes(String(row.list_id)) : table === 'event_occurrence_exceptions' ? !!parents?.includes(String(row.event_id)) : row.space_id === spaceId && (!parents || parents.includes(String(row.list_id))),
         page => addBudget(table, page));
     };
-    for (const table of ['members', 'modules', 'events', 'tasks', 'lists', 'important_dates'] as ExportTable[]) {
+    for (const table of ['members', 'modules', 'events', 'tasks', 'lists', 'important_dates', 'review_rounds'] as ExportTable[]) {
       addBudget(table, [], true); tables[table] = await read(table); checks.push({ table, count: tables[table].length });
     }
-    for (const table of ['event_occurrence_exceptions', 'list_sections', 'list_items'] as ExportTable[]) {
+    for (const table of ['event_occurrence_exceptions', 'list_sections', 'list_items', 'review_entries'] as ExportTable[]) {
       addBudget(table, [], true);
-      const parentIds = tables[table === 'event_occurrence_exceptions' ? 'events' : 'lists'].map(row => String(row.id));
+      const parentIds = tables[table === 'event_occurrence_exceptions' ? 'events' : table === 'review_entries' ? 'review_rounds' : 'lists'].map(row => String(row.id));
       for (const parents of batches(parentIds)) {
         const page = await read(table, parents); tables[table].push(...page); checks.push({ table, parents, count: page.length });
       }
     }
+    // Review children are counted ONLY within RLS-visible parent IDs, never all Space entries.
     // Independent total catches new/orphan List Items not covered by parent-ID batches.
     checks.push({ table: 'list_items', count: tables.list_items.length });
     for (const check of checks) {
@@ -102,5 +105,5 @@ export async function readSpaceExport(client: SupabaseClient, userId: string, se
   for (const check of postflight) await check();
   const final = await verifyExportAccess(client, userId, ids, signal);
   if (final.map(row => row.id).join() !== available.map(row => row.id).join()) throw new Error('空间列表已变化，请重新选择。');
-  return { actorId: userId, startedAt, finishedAt: new Date().toISOString(), synthetic: false, scope: 'core-spaces', spaces };
+  return { actorId: userId, startedAt, finishedAt: new Date().toISOString(), synthetic: false, scope: 'authorized-spaces', spaces };
 }

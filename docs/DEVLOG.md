@@ -1,5 +1,23 @@
 # Development Log
 
+## 2026-11-04 — 数据导出 Slice 4独立本地收口授权
+
+用户授权限定Review、必要本地修复与Slice 4独立本地Commit，不授权Push/Deploy/Production写入。17/17前轮指纹匹配；实际权限/分页/关系/失效/保存/格式Review无阻塞，仅补齐UI失败提示数字预算及ZIP README容量边界与分Space建议，回归先红再绿。复验Node66/66、WebKit/Chrome定向8/8、独立Python12类CSV、TypeScript/Build/语法/diff通过；既有完整浏览器39/39＋原账户8/8/布局证据保持。
+
+Production公开配置与本地Build相符；28次不可能命中的anon零行GET/HEAD中11次成功、17次预期权限拒绝，无业务行/真实Session/私密凭据读取及任何写入。只确认部分API字段/JSON cast/空父过滤/零行count响应；受限7表、bigint/JSON实值、非空分页、真实RLS/Realtime及iPhone保存容量仍待用户登录态/真机验收。没有在线catalog或SQL检查，不把匿名拒绝当缺陷或认证PASS。
+
+SLICE4_REVIEW=PASS，READY_FOR_RELEASE_AUTHORIZATION（仅申请后续授权）；保留8MiB读取/16MiB组装与单Space超限限制。治理正式v0.1.21不变，不新建版本或关闭Production。按授权保存本地检查点，SHA/工作区以live Git为准；不Push/Deploy。无其他项目修改，外部仅/tmp合成/脱敏验证产物，未主动读取/打印.env/密钥。下一步等待Push/Deploy授权。
+
+
+## 2026-11-04 — Slice 3检查点／Slice 4完整授权范围本地完成
+
+Slice 3限定review15/15指纹一致、核心24/24复验，无新增阻塞或敏感/临时产物，独立本地Commit 6f458ec208fe7ea3fd8559169cd37881c199ca77。Slice 4工作区实现Review可见父轮次→分批完整entries读取/复合身份/统一count postflight及原参与者关联；不读隐藏历史统计/不调用派生计划或特权RPC，不以Owner/模块开关越权。12类CSV全部接入，scope authorized-spaces、README/manifest/UI准确说明权限和非事务限制。格式字段/编码不改，旧阶段profile保留回归兼容；AbortSignal取消压缩worker，清除/重试保持。
+
+Node66/66、直接浏览器39/39＋原账户8/8、布局复验2/2、独立Python26文件逐格回读、TypeScript/Build/语法/diff通过，375/390/1024真实CSS已核验。新增长历史/难压缩正文样本证实8MiB会限制部分多年用户，分Space可减轻但单Space超限仍不支持；计费无重复，现有内存放大与无iPhone证据不支持随意提高限额。保留8MiB读取/16MiB组装，详细数值与限制集中TESTING/DATA_EXPORT_FORMAT，不引入后台。
+
+无新增依赖/正式版本/数据库/RLS/Auth/Edge/Cron/Production变更，无真实账号操作或数据接触，未主动读取/打印.env或密钥，外部仅/tmp合成验证产物。更新治理，Slice 4 LOCAL VERIFIED / READY FOR REVIEW，未Commit/Push/Deploy；Production cast/空in/RLS/Realtime及真实PWA/容量仍NOT VERIFIED。完成后停止，等待后续授权。
+
+
 ## 2026-11-04 — Slice 3 本地检查点 Review
 
 按用户本轮授权限定复审15份文件，指纹15/15与前轮验证一致，核心Node24/24及diff-check通过。成员关系授权、完整分页、统一postflight、关闭模块历史、容量和账号清理无新增阻塞；未纳入真实数据、凭据或临时ZIP。保存为独立本地检查点，随后开始Slice 4；不Push/Deploy，真实RLS/cast/PWA仍未验证。

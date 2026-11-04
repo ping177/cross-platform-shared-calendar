@@ -1,5 +1,43 @@
 # Testing
 
+## 2026-11-04 — 数据导出 Slice 4收口／发布前最小检查
+
+SLICE4_REVIEW=PASS；RELEASE_READINESS=READY_FOR_RELEASE_AUTHORIZATION，仅表示可申请后续Push/Deploy授权，不是Production CLOSED/PASS。复核17/17前轮指纹及实际diff；回顾仅可见父集合、12表覆盖、完整分页/失败关闭、账号/选择/权限失效、保存前重验及格式无新增阻塞。收口补充：UI失败提示明确8MiB/16MiB数字预算，ZIP README明确8MiB累计CSV/16MiB最终组装保护、超限不生成部分文件、分Space建议与单Space过大不支持；先红再绿验证。没有新依赖、Schema/RLS/RPC/Auth/Edge/Cron变更或真实数据接触。
+
+本轮复验：Node66/66（包含Python独立26文件/12类CSV逐格回读）；定向Chrome/WebKit8/8（回顾失败/撤权、全部空间、容量失败分Space、保存取消/失败重试）。原Browser39/39＋原账户8/8及375/390/1024渲染证据沿用，相关UI/原账户文件指纹未改。TypeScript（tsc -b）、Build、Node语法、diff-check通过；新导出叶页23.00kB/gzip10.71kB，fflate仍按需11.06kB/gzip5.49kB，主包大小不变，原大chunk提示保留。
+
+Production只读合同（实际HTTP，不是Mock）：从正式公开HTML/JS在内存提取公开anon配置，与当前本地Build目标URL/公开键逐项相等；不读取.env、私密凭据、登录用户Session或业务内容。28次REST探针全部为GET/HEAD，叠加NOT NULL主键/FK is.null和limit=0、Range0–499、Prefer count=exact；不会请求真实记录或其总数，不调用特权RPC/service_role。业务行读取0、写入0。
+
+- spaces / space_members / events / event_occurrence_exceptions / tasks：真实字段白名单GET及第一字段HEAD共10次HTTP200，GET严格为空数组，精确Content-Range=*/0。events.recurrence_rule::text及例外override_data::text在真实API零行查询被接受，仅证明表达式/字段可执行，不证明非空/NULL值返回类型。
+- 例外event_id=in.()：HTTP200、空数组及*/0，空父集合语法可用。
+- space_modules / lists / list_sections / list_items / important_dates / review_rounds / review_entries：7个GET＋7个HEAD匿名401，GET代码42501（权限拒绝）；分组/条目/回顾条目的空父in另3次同样被拒。与仓库authenticated-only ACL相符；不能据此称Schema缺失、正常登录导出故障或认证API/RLS已PASS。受限表完整字段cast/返回值执行仍须真实登录态核验。
+- 仅静态：仓库Schema/ACL/RLS、12类字段/nullability、can_read_review_round当前成员＋本人entry条件、复合PK、bigint/JSON显式::text与稳定order、SDK empty in生成及分页算法。没有在线数据库catalog查询或SQL验证。
+- 仍待真实登录态：7张受限表SELECT/HEAD/空父集合，bigint超安全整数及NULL、JSON文本/NULL实际响应，非空精确数量/多页与服务端cap、参与者历史RLS（含Owner、离开/重加）、成员撤销/Realtime。零行探针不证明非空权限、类型、数量或分页。
+
+公开页/探针使用现有网络代理成功，最初直连失败及公开键识别未匹配后修正只影响临时探针，没有改变应用/后台。日志和脱敏结果：/private/tmp/calendar-export-slice4-closeout/{production-probe.log,production-contract.json,node.log,browser.log,build.log}，合成ZIP/截图在其browser/；临时脚本不进仓库，公开客户端键未输出或写入回执。
+
+正式发布后用户最小iPhone standalone PWA验收（本轮不执行、不请求Token）：正常登录先个人默认选择，生成→主动保存→“文件”中确认落盘/解压/12类CSV；再选共享/全选确认范围及既有历史参与权限；取消分享后重试、下载后备路径；改选/离开/退出后旧保存入口消失，重新进入能生成。已有较大Space可观察成功/明确容量失败，无部分ZIP、无页面崩溃；不为验收新增或删除真实数据。先复核目标与前后端兼容Gate，遇受限表/类型错误停止验收并报告，不放宽RLS。真实设备内存与文件落盘均保持NOT VERIFIED。
+
+
+## 2026-11-04 — 用户导出 Slice 4／LOCAL VERIFIED／READY FOR REVIEW
+
+Slice 3限定review无阻塞，15/15指纹匹配、核心24/24复验，无真实数据/凭据/临时ZIP入库；独立本地Commit `6f458ec208fe7ea3fd8559169cd37881c199ca77`。Slice 4未提交/Push/Deploy；正式v0.1.21与既有关闭结论保持。
+
+- Node：在Slice 3的57项命令上加入`tests/review-export.test.ts`及压缩取消回归，66/66 PASS。新增参与者权限模型、0/500/501/1000/1001轮次与低7条cap、复合身份/父集合、revision/查询/后期撤权失败、隐藏历史合法为空、长正文容量和精确8MiB边界。读取器测试先红再绿，压缩Abort先红再绿。原个人日程等回归通过。
+- 权限证据分层：只读核对schema.sql的can_read_review_round、两表SELECT策略及v0.1.14 SQL测试源；未运行SQL或改后端。内存Mock按当前成员＋本人原entry模拟RLS：A可读离开B条目，C加入/Owner不获旧轮，B离开失权/重加只恢复本人参与轮，关闭模块历史可读。Mock仅验证读取器查询范围与失败行为，不是Production RLS PASS。禁止全Space entries统计、上一份计划派生RPC、service_role或越权补读。
+- ZIP：独立Python zipfile/csv核对双Space26文件、CRC、BOM/CRLF、12类所有行/列与读取器Mock逐格一致（含长中文/Emoji/引号/换行、NULL/空串、int64 revision、JSON/时区/父子关系）。授权为空保留表头；全12类exported，无阶段性not_included或隐藏轮次元数据。README格式作者Ping Weng，业务原作者ID保留，ZIP无注释/机器路径/临时标识。
+- 浏览器：同既有`personal-export.browser.mjs data-export.browser.mjs login-email.browser.mjs`命令，39/39 PASS；原账户/通知定向8/8 PASS。独立布局复验2/2；取消保护终稿Node6/6及回顾WebKit/Chrome2/2复验通过（复用既有aborted属性）。WebKit/Chrome真实DOM，375/390/1024px截图/无横向溢出，375 Chrome及390 WebKit截图已查看（桌面也查看）。默认个人、多选/全选/零选、旧结果失效、回顾读取失败/在途撤权、长数据超限后分Space成功、取消/失败/保存重试、账号/退出/导航/右滑和URL释放覆盖。分享API仅Mock，真实Blob下载已独立解压；无真实认证会话。
+- TypeScript（tsc -b由build执行）、Build、`node --check tests/personal-export.browser.mjs`及diff-check PASS。无新增依赖；fflate0.8.3仍按需11.06kB（gzip5.49），导出惰性叶页22.87kB（gzip10.58），main855.39kB（gzip249.99），原大chunk提示保持。没有全项目重审/无关重构。
+
+容量专项：详细对象/计费与多年失败边界见DATA_EXPORT_FORMAT Slice 4，维持8MiB读取/16MiB组装，不声称手机容量已满足。3650条日程4,778,228 B＋520次双人回顾4,621,231 B合选超限，分Space均成功；每字段1000字单Space超限。多样中文600字×4字段×1040条目（难压缩样本）CSV7,755,359 B，ZIP约3.15 MB；终稿定向复验Chrome生成约307ms、主线程堆before27,804,309/after61,835,386/采样峰61,827,650 B，38采样点。WebKit约312ms、无JS堆计数器，绝不补造数据。桌面Mock耗时无网络等待，不代表线上性能或设备RAM。
+
+独立Node难压缩样本elapsed约299ms、ZIP3,151,284 B，heap before24,977,520/afterRead30,249,792/afterZIP41,563,592 B、peakRSS184,160 KiB（含运行时/夹具，不含随后重复格式回读）。压缩后小文件不代表小内存；取消通过AbortSignal终止fflate worker，不返回迟到ZIP。计费边界测试证明恰好8MiB可读，多1字节整体失败，无截断/部分成功。超过限额的单Space暂不支持，属于必须明确review的产品边界，不据桌面数据提高限额或新增后台系统。
+
+日志：/private/tmp/calendar-export-slice4-{reader-red,reader-green,abort-red,abort-green,node-final,browser-final,account-browser,layout,build-final}.log；证据目录/private/tmp/calendar-export-slice4/（合成ZIP/截图/容量JSON/临时脚本）。仓库不存临时导出或真实数据。Vite测试envFile=false/write=false，仅127.0.0.1:5175和同源Blob；生产业务代码未引入测试入口。
+
+待核验：Production成员/参与者RLS与撤权通知、PostgREST bigint/JSON ::text的NULL/大数、空父ID in与精确count、真实iPhone standalone PWA内存/保存分享取消/文件落盘解压。正式发布后的真机验收由用户完成，先过环境兼容Gate，本轮不操纵或反复登录真实账号，不标记Production CLOSED/PASS。
+
+
 ## 2026-11-04 — 用户导出 Slice 3／LOCAL VERIFIED／READY FOR REVIEW
 
 Slice 2经限定review及16/16核心复验后独立本地Commit `ee15fec017d1d561f86f77e29f489acd7437006f`，仅清理测试源末尾空行；未Push/Deploy。Slice 3未提交，无新正式版本；无真实业务数据/凭据/临时导出纳入仓库。

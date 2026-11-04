@@ -8,13 +8,13 @@ import { spaceExportClient } from './fixtures/space-export-client.ts';
 const signal = () => new AbortController().signal;
 const ids = ['10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000002'];
 
-test('one/multiple/all accessible Spaces include disabled module history with strict column casts and no Review', async () => {
+test('one/multiple/all accessible Spaces include disabled module history with strict column casts and participant Reviews', async () => {
   const f = spaceExportClient(1);
   const spaces = await listExportSpaces(f.client, syntheticActor, signal());
   assert.deepEqual(spaces.map(s => s.id), ids);
   for (const selected of [[ids[0]], [ids[1]], ids]) {
     const result = await readSpaceExport(f.client, syntheticActor, selected, signal());
-    assert.equal(result.scope, 'core-spaces'); assert.equal(result.spaces.length, selected.length);
+    assert.equal(result.scope, 'authorized-spaces'); assert.equal(result.spaces.length, selected.length);
     const shared = result.spaces.find(s => s.tables.space[0].kind === 'shared');
     if (shared) {
       assert.equal(shared.tables.tasks[0].assigned_to_user_id, null);
@@ -24,7 +24,7 @@ test('one/multiple/all accessible Spaces include disabled module history with st
       assert.ok(shared.tables.modules.every(row => row.enabled === false));
     }
   }
-  assert.ok(!f.state.calls.some(c => /review|profiles|push|reminder_deliveries/.test(c.table)));
+  assert.ok(!f.state.calls.some(c => /profiles|push|reminder_deliveries/.test(c.table)));
   assert.ok(f.state.calls.some(c => c.columns.includes('sort_order::text')));
   assert.ok(f.state.calls.some(c => c.columns.includes('year::text')));
   assert.ok(!f.state.calls.some(c => c.columns.includes('*') || c.columns.includes('invite_code')));
@@ -69,14 +69,14 @@ test('query/NULL/relationship/precision anomalies reject the whole export; no fa
   ]) { const f = spaceExportClient(); mutate(f); await assert.rejects(readSpaceExport(f.client, syntheticActor, ids, signal())); }
 });
 
-test('ZIP independently reopens all ten types per Space and explicitly excludes both Review tables', async () => {
+test('ZIP independently reopens all twelve types per Space including authorized Reviews', async () => {
   const f = spaceExportClient(2), input = await readSpaceExport(f.client, syntheticActor, ids, signal());
   const zip = await generateExportZip(input);
   const r = spawnSync('python3', ['-c', `import zipfile,io,csv,json,sys
-z=zipfile.ZipFile(io.BytesIO(sys.stdin.buffer.read())); assert z.testzip() is None and len(z.namelist())==22
-m=json.loads(z.read('manifest.json')); assert m['export_scope']=='core-spaces' and m['complete_backup'] is False
-assert all(m['table_coverage'][t]=='not_included' for t in ('review_rounds','review_entries'))
-assert not any('/review_' in p for p in z.namelist())
+z=zipfile.ZipFile(io.BytesIO(sys.stdin.buffer.read())); assert z.testzip() is None and len(z.namelist())==26
+m=json.loads(z.read('manifest.json')); assert m['export_scope']=='authorized-spaces' and m['complete_backup'] is False
+assert all(m['table_coverage'][t]=='exported' for t in ('review_rounds','review_entries'))
+assert sum('/review_' in p for p in z.namelist())==4
 for f in m['files']:
  rows=list(csv.reader(io.StringIO(z.read(f['path']).decode('utf-8-sig'),newline=''))); assert len(rows)-1==f['rows']
 p=next(p for p in z.namelist() if p.endswith('/list_items.csv') and len(z.read(p))>250)

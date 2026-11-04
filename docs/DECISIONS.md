@@ -1,5 +1,16 @@
 # Decisions
 
+## 2026-11-04 — 数据导出本地收口与发布门禁分层
+
+用户授权Slice 4独立本地Commit及最小预检，不授权Push/Deploy/Production写入。保留容量架构，仅补UI失败提示与README明确8MiB/16MiB、超限失败及分Space；真实认证/真机待验收不冒充已通过。匿名零行API可确认部分语法/字段与零行count，受限表42501不等于正常登录导出缺陷；没有确定兼容性阻塞，可申请发布授权，实际Git/部署与人工结果分别记录。正式v0.1.21不变。
+
+## 2026-11-04 — Slice 4完整授权导出与容量边界
+
+用户授权Slice 3独立本地Commit（6f458ec），Slice 4仅工作区；无新正式版本/Push/Deploy。沿用format_version=1和12类原字段，以authorized-spaces接通全部表；complete_backup=false明确非事务/不可恢复，不再代表模块未纳入。回顾仅按现有RLS可见父轮次读取条目，允许已离开历史对方，不统计隐藏历史、不使用上一份计划或特权RPC。
+
+专项复核保留8MiB累计CSV/16MiB最终文件保护：计费无重复，难压缩长回顾样本显示明显内存放大，无真实手机证据支持提高限额。明确多年正常数据可能超限，分Space仍不能解决单Space过大的限制；整体失败不截断。此限制需review，不能宣称所有多年用户/真机容量已通过。详见DATA_EXPORT_FORMAT/TESTING；Production和iPhone验收仍独立待授权。
+
+
 ## 2026-11-04 — Slice 3多Space核心数据，回顾留后续
 
 用户授权将Slice 2独立本地保存ee15fec017d1d561f86f77e29f489acd7437006f后实现Slice 3；不提交Slice 3、不Push/Deploy。现有CSV字段/编码不改，阶段scope扩展为core-spaces，10类实际读取表exported，review_rounds/review_entries固定not_included、不生成CSV，complete_backup=false。
