@@ -1,5 +1,21 @@
 # Development Log
 
+## 2026-11-04 — 导出 Slice 1 本地检查点授权
+
+用户授权将 Slice 1 单独本地 Commit，然后本地实现 Slice 2；不 Push/Deploy，Slice 2 不提交。针对性 review 核对18份文件与前轮指纹全部一致，核心12项复验通过、diff检查通过；没有新增格式阻塞，没有真实业务数据、凭据、ZIP或临时日志纳入仓库，保留既有54/14、Build与回读证据。合成夹具是有意保留的测试源文件，不是临时下载文件。Production cast与真机PWA仍未验证。后续仅个人Space日程/例外，阶段覆盖必须显式标记，不包装完整备份。
+
+## 2026-11-04 — 用户数据导出 Slice 1／LOCAL VERIFIED／READY FOR REVIEW
+
+用户明确授权仅本地格式合同、合成ZIP与保存验证；基线main a48b938、工作区干净，正式版本保持v0.1.21。阅读治理与真实Schema/查询/RLS；沿用三个已确认补充决策，不重启全项目审查。新增格式/组装/保存三份小模块、合成/DEV夹具与直接测试；既有App、账户页、权限/业务读取链路保持。详细可执行合同见DATA_EXPORT_FORMAT，不复制全字段到治理。
+
+12类CSV字段与SQL对照，拒绝缺列/额外列；UTF-8 BOM/CRLF/CSV引号，NULL与空串及所有原文前缀可逆。文本text:/JSON json:/bigint int:/date:/time:保护原文、公式与类型；JSON保留原始文本，bigint拒绝JS number。安全Space目录、计数/身份/关联、回顾原参与者和历史对方、16MiB本地保护失败关闭。没有实际查询器，输入校验不冒称权限/分页已验证。fflate0.8.3精确新增，安装禁用scripts，lock仅新增该包、无无关升级；动态ZIP块不进当前主应用。
+
+核心入口先缺实现失败后通过；最终新增12项＋相关既有42项，Node54/54；WebKit/Chrome14/14，真实Blob下载到临时目录后Python解压/CRC通过，原生分享只模拟API成功/取消/失败/重试。初次沙箱WebKit启动失败，受控本地执行恢复；初版夹具缺React默认导入导致启动失败已修正，macOS WebKit默认Tab跳过按钮改为显式聚焦＋键盘激活测试，没有修改应用业务或放宽业务断言。两引擎实际canShare ZIP能力为true，但未打开原生分享面板，不记系统保存PASS。
+
+TypeScript含独立TSX夹具、Build、运行时npm audit（0漏洞）、diff检查通过。主应用19个Build文件与任务前SHA256逐一相同；只有DEV夹具构建按需产生fflate块11062B/gzip5486B。375/390布局与320无溢出、两引擎390截图已查看。日志/private/tmp/calendar-export-slice1-{node,browser,build}.log，产物与回读在/private/tmp/calendar-export-slice1/。不改其他项目；外部仅临时验证文件/已授权npm缓存，未主动查看或打印.env/密钥。
+
+另外实际启动无env文件的固定5175 Vite DEV，两引擎真实访问夹具并下载ZIP成功，外部/业务请求0、pageerror0，结束关闭服务；回执在/private/tmp/calendar-export-slice1/dev-route.json。收尾review发现普通日程错误系列根的关联输入遗漏，补测试失败后修正；父链和回顾条目分组检查使用已有结果避免重复扫描。真实PostgREST bigint/JSON cast及iPhone standalone PWA（HTTPS、原生分享、存储到文件、取消/后台恢复）NOT VERIFIED，留后续独立授权。治理记录更新，没有新正式Version Index条目；不Commit/Push/Deploy、不改Production，完成后停于review。
+
 ## 2026-11-03 — 账户管理UI视觉范围正式关闭
 
 2026-11-03 — **账户管理UI Follow-up CLOSED / ACCEPTED（视觉范围），USER_REPORTED_IPHONE_PWA_VISUAL_ACCEPTANCE=PASS**。用户在正式iPhone PWA查看最新Production后明确确认“我认为可以通过了”。已验收业务Commit为65c08749911ada567ca762c4a534a1e8188ff52e，Production部署7517726063成功、Source匹配及七项资源核验记录保留。v0.1.21已接受范围CLOSED / PASS、Slice 1 DEFERRED及注销独立待办保持。

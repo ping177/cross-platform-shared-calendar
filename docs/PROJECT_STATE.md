@@ -12,6 +12,8 @@ v0.1.21
 
 ## Current status
 
+2026-11-04 — **用户数据导出 Slice 1 LOCAL VERIFIED / READY FOR REVIEW（仅本地）**。格式合同、合成 ZIP 与独立 DEV 保存夹具完成；相关 Node54/54、WebKit/Chrome14/14、TypeScript/Build 通过，独立 Python 解压回读通过。主应用19个构建文件与任务前基线逐一哈希相同，未接入账户或 Production UI。真实 iPhone standalone PWA、原生分享面板及目标后端 bigint/JSON cast 均未验收；不宣称正式导出可发布。无真实业务读取、数据库/配置修改或 Commit/Push/Deploy。正式版本仍 v0.1.21，既有账户管理/空间筛选器关闭结论保持；旧稳定性 Slice 1 DEFERRED 与本任务不同，不重启审查。下方为历史。
+
 2026-11-03 — **账户管理UI Follow-up CLOSED / ACCEPTED（视觉范围），USER_REPORTED_IPHONE_PWA_VISUAL_ACCEPTANCE=PASS**。用户在正式iPhone PWA查看最新Production后明确确认“我认为可以通过了”。已验收业务Commit为65c08749911ada567ca762c4a534a1e8188ff52e，Production部署7517726063成功、Source匹配及七项资源核验记录保留。v0.1.21已接受范围CLOSED / PASS、Slice 1 DEFERRED及注销独立待办保持。 本次只关闭视觉验收范围，功能/权限/Android等未单独人工验证项不冒称PASS，详见TESTING最新节。下方Awaiting为历史。
 
 账户视觉一致性修正：RELEASE AUTHORIZED / AWAITING USER ACCEPTANCE。用户授权仅本次8文件正常Commit/Push与Git/Vercel前端发布；同层级标题/名称、相同卡片几何与右图标，保留全部原操作。已验证源码/测试/Build哈希匹配，沿用Node49/49、浏览器14/14和375/390实际computed/截图证据，发布实绩见独立回执。真实iPhone PWA视觉验收待用户，不提前PASS；既有版本关闭与注销待办保持，下方本地未授权为历史。
@@ -111,6 +113,8 @@ UI v2 Slice6 = LOCAL PASS / VISUAL PASS：用户已认可四张居中概览卡�
 v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3为LOCAL PASS / VISUAL PASS；Slice4为LOCAL PASS / VISUAL PROVISIONALLY ACCEPTED。Slice5月视图本地验证与离线视觉验收通过：两条短标题/准确+N、六色圆点与日期浮层，261/261相关测试、build/diff-check、28组四宽度离线检查PASS；用户确认普通月、密集月、空月及浮层满意。已授权本地commit；不代表真实账号、真机、installed PWA或Production验收。Space Color System继续Deferred；真实账号/真机/installed PWA/Production未验收。正式版本仍v0.1.20。
 
 ## Latest completed
+
+用户数据导出 Slice 1：12类字段白名单、UTF-8 BOM/CRLF、可逆类型前缀、NULL/空串及 bigint 精度、目录与关联校验、惰性 fflate ZIP、合成数据保存验证。合同与后续门禁见 [DATA_EXPORT_FORMAT](./DATA_EXPORT_FORMAT.md)，证据见 TESTING 最新节。仅本地待 review，没有正式业务数据导出入口。
 
 账户管理最终Production iPhone PWA视觉获用户明确PASS并正式CLOSED / ACCEPTED；最终标题/字体/卡片/图标设计及人工边界见TESTING最新节。原Node49/49、浏览器14/14与部署/资源证据保持有效。
 
@@ -644,13 +648,15 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-本次账户管理视觉收口完成，等待用户下一步指示。不自动启动新功能；账号注销与两个待确认闲置账号仍为独立待办，未授权实施或删除。
+用户已授权 Slice 1 独立本地检查点及 Slice 2 本地实现；下一步为个人Space真实日程/重复例外到ZIP保存链路的本地验证，严格标记阶段覆盖。目标PostgREST JSON文本cast与真实PWA仍需后续门禁；不Push/Deploy，Slice 2不Commit，不扩展多Space、其他模块或注销。
 
 ## Blockers
 
 暂无明确阻塞。
 
 ## Important Context
+
+用户已确认导出包含关闭模块的可读历史、接受带准备时间范围的非事务快照、默认个人 Space/共享主动勾选并提供全选。只授权本任务 Slice 1 本地实现，数据导出优先于注销；下方“导出未批准”等旧方向为历史，不覆盖当前窄授权。读取器尚未实现，合成关联/计数校验不等于 RLS、分页或 Production 兼容性实测。
 
 Slice 5 Gate 2已按用户真实Production证据PASS，不要求重复SQL/REST/钥匙串操作。Notification Cleanup由用户确认无需开发，历史通知自行管理；不是本版本待修缺陷。OTP独立待办仍待核查，不改认证。Slices 2–4 CLOSED / PASS、Slice 1 DEFERRED保持。
 
@@ -753,7 +759,7 @@ Slice 5 Gate 2已按用户真实Production证据PASS，不要求重复SQL/REST/�
 
 ## Handoff Prompt
 
-账户管理UI Follow-up已按用户正式iPhone PWA视觉确认CLOSED / ACCEPTED。本轮仅治理收口，不扩大人工覆盖范围；版本/Slices状态保持。完成后停止，等待用户下一步，不自动实施注销或删除账号。下方旧发布/待验收为历史。
+用户数据导出 Slice 1 仅本地完成并 READY FOR REVIEW；阅读 DATA_EXPORT_FORMAT 与 TESTING 最新节。主应用入口不变，不新增正式版本，既有账户管理/空间筛选器 CLOSED 与旧稳定性 Slice 1 DEFERRED 保持。真实读取器、Production cast、iPhone standalone PWA/系统分享未验证；不得把合成和桌面自动化当真机或线上 PASS。完成后停止，等新授权，不 Commit/Push/Deploy、不实施注销或删除账号。下方旧发布/待验收为历史。
 
 账户视觉一致性本轮获Release授权，实际发布结果见独立回执。下一步正式iPhone PWA视觉用户验收，保持AWAITING USER ACCEPTANCE；不改原业务/导航，不实施注销或其他功能。下方旧本地状态为历史。
 

@@ -1,5 +1,13 @@
 # Decisions
 
+## 2026-11-04 — 用户数据导出 Slice 1 合同（仅本地）
+
+用户确认：关闭模块的有权读取历史应包含；首版接受非事务快照，记录准备时间范围，检测缺页/计数变化/关联异常即失败；默认只勾个人 Space，共享主动选择并提供全选。继续浏览器本地 ZIP、现有用户 RLS，不增加导出服务/队列/Storage、不做导入恢复；数据导出先于注销。
+
+本轮只冻结并实现格式/合成 ZIP/本地保存验证，详见 [DATA_EXPORT_FORMAT](./DATA_EXPORT_FORMAT.md)。文本/JSON/bigint/日期/时间使用可逆可见类型前缀，NULL 用独立标记，不依赖表格软件对引号或 Tab 的特殊处理。12个 CSV 字段由真实 Schema 白名单固定，不导出邀请码/密钥/Auth/推送账本，不重定义 created_by ownership 或回顾历史权限。
+
+fflate 精确锁定0.8.3并动态加载，无运行时依赖；DEV夹具不接入 main/账户页面，不进入Production产物。本地未压缩16 MiB保护阈值不是已验证手机容量。目标PostgREST bigint/JSON ::text、真实iPhone standalone PWA及系统分享均留后续独立门禁。本轮不授权Commit/Push/Deploy或Production操作，不创建新正式版本、不重启稳定性专项。
+
 ## 2026-11-03 — 邮箱身份原样展示与OTP一致性
 
 Confirm email保持开启，新用户用邮件Token验证邮箱所有权并登录，已有用户OTP不变；用户Production新邮箱验收PASS。本地confirmation模板/确认开关对齐，不重新设计Auth。设置展示当前Auth会话实际邮箱，含Gmail点号原样保留，不做邮箱规范化或自动账号合并。自主账号注销为独立后续范围，要求见BACKLOG，本轮不执行。

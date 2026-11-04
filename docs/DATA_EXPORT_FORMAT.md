@@ -1,0 +1,141 @@
+# 用户数据导出：格式合同与 Slice 1
+
+格式说明作者：Ping Weng。状态：LOCAL VERIFIED / READY FOR REVIEW；不是 Production 或真实 iPhone PWA 验收。项目正式版本仍为 v0.1.21，本合同的 `format_version=1` 只是文件协议修订。
+
+## 已确认规则与范围
+
+- 当前登录用户通过 Supabase RLS 读取有权访问的 Space；Space 是归属边界，created_by 是审计字段。
+- 支持个人／共享、一个／多个／全部 Space；默认只勾选个人 Space，共享主动选择，提供全选。
+- 模块关闭但仍存在且获准读取的数据仍纳入导出。
+- 接受非事务快照，记录数据准备时间范围；检测缺页、计数变化、身份或关联异常时失败，不交付部分 ZIP。
+- 本 Slice 只实现文件合同、合成数据和本地保存验证；没有业务读取器、正式账户入口、RLS／Schema／Auth 变更或 Production 操作。
+- 不支持重新导入、数据恢复、在线备份、后台任务、服务端导出、Storage 上传或账号注销。
+
+## 文件结构
+
+`shared-calendar-export_<UTC时间>.zip`，文件名时间中的冒号与小数点替换为 `-`。
+
+```text
+README.txt
+manifest.json
+spaces/space_<安全名称>__<完整Space-ID>/
+  space.csv
+  members.csv
+  modules.csv
+  events.csv
+  event_occurrence_exceptions.csv
+  tasks.csv
+  lists.csv
+  list_sections.csv
+  list_items.csv
+  important_dates.csv
+  review_rounds.csv
+  review_entries.csv
+```
+
+每个 Space 的 12 个 CSV 必须齐全，包括仅表头的空表。相同名称由完整 UUID 区分。名称 NFC 规范化，路径分隔符、Windows 非法字符、控制与双向控制字符替换，点串替换，去除末尾空格，最多 40 个 Unicode 码点。固定 `space_` 前缀避免 Windows 设备名；ID 必须是小写标准 UUID。不会使用原名称拼接任意路径。
+
+## CSV 字段白名单与顺序
+
+可执行权威定义为 `src/lib/data-export-format.ts` 的 `exportColumns`；manifest 逐文件类型带相同有序定义（name/type/nullable）。下列字段均来自真实 Schema，没有增加业务列。`space`、`members`、`modules` 分别对应 spaces、space_members、space_modules；其他文件同名表。
+
+| CSV | 严格列顺序 |
+| --- | --- |
+| space | id, name, kind, created_by, created_at |
+| members | space_id, user_id, role, joined_at |
+| modules | space_id, module_key, enabled |
+| events | id, space_id, created_by, scope, owner_user_id, title, description, starts_at, ends_at, all_day, reminder_kind, time_zone, reminder_schedule_changed_at, recurrence_rule, series_id, parent_event_id, recurrence_until, created_at, updated_at |
+| event_occurrence_exceptions | id, event_id, occurrence_date, exception_type, override_data, created_at, updated_at |
+| tasks | id, space_id, created_by, assigned_to_user_id, title, status, due_on, created_at, updated_at, reminder_kind, time_zone, reminder_schedule_changed_at |
+| lists | id, space_id, name, created_by, created_at, updated_at |
+| list_sections | id, list_id, name, sort_order, created_by, created_at, updated_at |
+| list_items | id, list_id, space_id, section_id, content, completed, sort_order, created_by, created_at, updated_at |
+| important_dates | id, space_id, name, emoji, repeat_kind, month, day, year, reminder_kind, time_zone, reminder_schedule_changed_at, created_by, created_at, updated_at |
+| review_rounds | id, space_id, round_no, review_date, created_by, created_at |
+| review_entries | review_id, user_id, focus, progress, problems, next_plan, content_revision, filled_revision, updated_at |
+
+输入必须精确匹配白名单：缺字段、undefined、额外字段均拒绝。不得直接传入 SELECT * 结果，特别是 spaces.invite_code。这里没有导出 profiles 昵称、头像、用户邮箱、Auth 信息、邀请码、推送订阅密钥或发送账本；历史用户 ID 保留，不越权解析用户资料。memo 只有模块枚举，尚无实际内容表，不虚构文件。
+
+## 单元格编码与可逆边界
+
+每份 CSV：UTF-8，开头一个 BOM；逗号分隔；所有字段与表头使用双引号，内部双引号加倍；每条记录 CRLF 结束，包括最后一条。正文内部 CR/LF 原样保留，必须使用 CSV 解析器，不能用逐行 split 统计。
+
+先 CSV 解码，再按 manifest 中列类型处理：
+
+| 数据 | 文件中的逻辑单元格值 | 还原规则 |
+| --- | --- | --- |
+| SQL NULL | `\N` | 仅 nullable 列允许，转为 NULL |
+| 文本 | `text:`＋原文 | 精确去掉一次 `text:`，不 trim、不递归解码 |
+| 空字符串 | `text:` | 得到空串，区别于 NULL |
+| 原文为 `\N` 或 `text:x` | `text:\N` 或 `text:text:x` | 去掉一次前缀得到原文 |
+| JSON/JSONB | `json:`＋原始 JSON 文本 | 去掉一次前缀得到 JSON 文本；不要求先 JSON.parse/stringify |
+| bigint | `int:`＋精确十进制字符串 | 去掉一次前缀，用字符串或任意精度整数处理 |
+| date | `date:`＋服务端日期文本 | 去掉一次前缀；不经 JS Date，不转 UTC |
+| timestamptz | `time:`＋服务端时间文本 | 去掉一次前缀；保留返回值与独立 time_zone |
+| integer | 十进制 int32 | 无浮点数、科学计数法；保持整数 |
+| boolean | `true` / `false` | 转为布尔 |
+| UUID | 小写 UUID 原值 | 原样关联 |
+
+bigint 只接受字符串或 JS bigint，拒绝所有 JS number（即使暂时安全），并检查 PostgreSQL 有符号 64 位范围。JSON 输入只接受有效的原始 JSON 文本，不接受已解析对象，以保留 JSON 大数字和文本内容。拒绝无法无损写成 UTF-8 的孤立代理码及 PostgreSQL text 不支持的 NUL。
+
+文本、JSON、日期、时间和 bigint 的固定可见前缀会保留在表格单元格里。这是为了防止公式执行与自动类型改写，不是显示错误；正文仍可读。用户若自行去除前缀、重编码或交给不遵守合同的下游，安全与精度保证终止。前缀含义写入 ZIP README，不依赖 Excel 对引号、单引号或 Tab 的特殊处理。未声称已在 Excel/Numbers 所有版本做运行验收。
+
+可逆性针对未经编辑的 CSV 逻辑值，不代表数据库物理备份、不保留原 JSONB 存储前已经丢失的排版或顺序，不保留应用中的未保存草稿；本轮没有导入／恢复 UI 或解码写入数据库的接口。
+
+## 关联与权限合同
+
+- 组装器要求每个 Space 一条元信息，所有直接 space_id 必须匹配；当前导出者必须出现在成员列表。它不发起查询，不能证明真正授权，RLS 仍由未来读取器执行。
+- 日程保留源段与 series_id/parent_event_id；验证引用存在、同 Space／audience、父段无环。例外必须引用重复源，保留 occurrence_date 与 deleted/override。重复规则不展开；recurrence_until 是排他截止。
+- 任务保留指派成员 ID 或 NULL。创建者可能已离开，不要求 created_by 都是当前成员。
+- 清单、分组、条目验证父子 ID，section_id=NULL 表示未分组；保留排序号和完成状态，不增加派生统计列。
+- 回顾同时要求当前成员及原轮参与者；组装器要求该轮含导出者 entry，个人一条／共享两条，允许对方为已离开历史参与者。保留 content_revision/filled_revision，不将未参加的旧轮补入；不推断或导出隐藏的“上一份”回顾关系。
+- 每表主键／复合身份去重，并核对例外日期、回顾日期和编号、清单排序唯一性。所有 CSV 的预期行数由未来读取器独立给出，输入不符即失败。
+- 未来读取器必须在分页与下载交付前复验账号／成员／回顾访问资格；不能把此模块的客户端关联检查当成安全边界。本轮只验证合成输入。
+
+## manifest
+
+- format_version=1，与产品版本分开。
+- synthetic 标识样本来源，exported_by_user_id 是本次导出者（不改业务 created_by）；started_at/finished_at 是数据准备区间，必须先后有效；不含随后 ZIP 压缩及用户点击保存耗时。
+- transactional_snapshot=false、includes_disabled_modules=true，以及中文 limitations。
+- spaces：Space ID、原名称、kind 和目录名；files：24 个 CSV 路径及各自数据行数，不计表头。
+- fields：12 类 CSV 的有序字段定义；encoding：NULL、类型前缀、字符集、记录分隔等。
+- manifest 不包含凭据、真实邮箱、开发机器路径或内部临时文件名；README 的格式说明归属不覆盖业务记录 created_by。
+
+## bigint／JSON 文本读取门禁（未执行）
+
+PostgREST 官方支持 SELECT 列 cast。未来读取器应对 bigint 及 JSON 列使用 `::text`，保留原字段名，例如：
+
+```text
+list_sections: sort_order::text
+list_items: sort_order::text
+important_dates: year::text
+review_entries: content_revision::text,filled_revision::text
+events: recurrence_rule::text
+event_occurrence_exceptions: override_data::text
+```
+
+本轮没有可用的已核验隔离 PostgREST 服务，也未连接 Production／提取 Auth 凭据。实际目标后端对 cast、NULL、超安全整数与 JSON 数字的响应为 **NOT VERIFIED**；不得用合成响应冒充 PASS。这是后续业务读取器的集成门禁，不阻止本轮纯格式／保存 review。
+
+## 保存验证与容量边界
+
+fflate 精确锁定 0.8.3（MIT、无运行时依赖）。generateExportZip 校验全部文件后才动态 import ZIP 能力，压缩成功前不返回文件。只用于本地验证的未压缩内容上限为 16 MiB，超限明确失败；不是已测量的手机容量承诺，未来实际导出容量需独立测试。
+
+本地入口：运行 `npm run dev` 后访问 `http://127.0.0.1:5175/tests/fixtures/data-export.html`。入口有 DEV 限制、只使用固定合成数据、不注册 SW／不请求 Supabase；应用 main／账户页面没有引用它，Production Build 不包含此页。
+
+先点击“生成合成 ZIP”，完成后再次主动点击“保存 ZIP”。检测当前 ZIP File 的 canShare；支持时在同一点击内调用 share，否则触发 Blob 下载；也提供独立“下载 ZIP”。取消／失败保留重试，反馈只说“请求已交给系统／浏览器”，不声称已落盘。重新生成或卸载释放旧 Object URL；忙态同步锁与 generation 防止重复和迟到结果。
+
+WebKit/Chrome 的真实 Blob 下载和下载文件解压可自动验证；原生分享在自动化中只模拟 API 边界，不能据此称为系统分享面板 PASS。iPhone standalone PWA 的 HTTPS、实际 ZIP MIME 支持、“存储到文件”、取消／重试和后台恢复仍待后续独立授权的人工验收；不在本轮部署验证页。
+
+## 验证命令与后续顺序
+
+```sh
+node --test tests/data-export-format.test.ts tests/data-export-archive.test.ts tests/data-export-save.test.ts
+PLAYWRIGHT_MODULE_PATH=<既有playwright路径> node --test tests/data-export.browser.mjs
+node_modules/.bin/tsc -b
+npm run build
+git diff --check
+```
+
+先 review 本 Slice，再授权后续真实读取器与正式 UI；数据导出优先，之后才讨论自主注销。读取器、Production cast 核验及真实 PWA 验收未完成前，不宣称正式数据导出已可发布。
+
+参考：[RFC 4180](https://www.rfc-editor.org/rfc/rfc4180.txt)、[PostgREST column casting](https://docs.postgrest.org/en/stable/references/api/tables_views.html#casting-columns)、[OWASP CSV Injection](https://community.owasp.org/attacks/CSV_Injection)、[Web Share](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/share)、[fflate](https://github.com/101arrowz/fflate)。

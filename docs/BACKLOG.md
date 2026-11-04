@@ -1,5 +1,11 @@
 # Backlog
 
+## 2026-11-04 — 用户数据导出优先／Slice 1 本地待 review
+
+Slice 1 的格式合同、合成ZIP及本地保存验证已实现并LOCAL VERIFIED / READY FOR REVIEW；见 [DATA_EXPORT_FORMAT](./DATA_EXPORT_FORMAT.md) 与TESTING最新节。已确认包含关闭模块的可读历史、非事务快照失败关闭、默认个人Space/共享主动选择/全选，不再重问。
+
+后续待单独授权：实际目标后端 bigint/JSON 文本cast核验，受RLS保护的完整分页读取器，一个/多个/全部Space正式UI与账户入口，导出专项权限/容量/真机验收。真实iPhone standalone PWA/系统分享与Production cast保持NOT VERIFIED，不以桌面合成测试替代。数据导出优先于自主注销；本轮不实施注销、导入恢复、后台服务或账号清理，不创建新版本。
+
 ## 2026-11-03 — 用户自主账号注销（独立待实施）
 
 产品位置确认：未来注销位于“我的→账户管理”；本轮账户管理仅邮箱和退出，不展示不可用删除入口、不实现注销。两个待确认账号保持未删除。

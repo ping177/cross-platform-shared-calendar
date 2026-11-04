@@ -1,5 +1,26 @@
 # Testing
 
+## 2026-11-04 — 用户数据导出 Slice 1／仅本地 READY FOR REVIEW
+
+范围：真实Schema字段合同、合成ZIP与独立DEV保存验证；当前主应用没有正式导出入口，无业务数据查询/Production/Auth/RLS/Schema/Edge/Cron变更。正式版本仍v0.1.21；旧稳定性Slice 1暂缓和既有关闭结论不变。
+
+本轮文件清单（18个）：新增src/lib/data-export-format.ts、data-export-archive.ts、data-export-save.ts；tests/data-export-format.test.ts、data-export-archive.test.ts、data-export-save.test.ts、data-export.browser.mjs；tests/fixtures/data-export-synthetic.ts、data-export-browser.tsx、data-export.html；docs/DATA_EXPORT_FORMAT.md。修改package.json/package-lock.json及docs/PROJECT_STATE.md、DECISIONS.md、BACKLOG.md、DEVLOG.md、TESTING.md。没有修改既有App/账户/SQL/配置文件。
+
+验证结果：
+
+- `node --test tests/data-export-format.test.ts tests/data-export-archive.test.ts tests/data-export-save.test.ts tests/aggregate-calendar.test.ts tests/recurrence.test.ts tests/review-detail.test.ts tests/lists-detail.test.ts`：54/54 PASS（新增12，相关既有42）。覆盖类型前缀逆向核对、NULL/空串、危险公式/中文/Emoji/多行引号、SQL字段/空表、路径安全、int64/JSON数字无损、缺表/计数/身份/关联/权限输入失败、16MiB边界、保存结果与重试。没有运行不相关全量套件。
+- ZIP独立验证：Node生成，Python标准库zipfile.testzip/csv回读两个同名Space的26个文件（24CSV＋README＋manifest），逐单元格、表头、行列数和关系ID核对；不用同一ZIP库自证。大整数9007199254740993、9223372036854775807以及JSON大数字原文保留。
+- `PLAYWRIGHT_MODULE_PATH=/Users/wp/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs node --test tests/data-export.browser.mjs`：WebKit/Chrome14/14 PASS。envFile=false，所有HTTP请求限127.0.0.1:5175；新建空白浏览器，无真实账号。生成不自动下载，真实Blob下载回读、ZIP不支持/检测抛错fallback、模拟share成功/取消/失败/重试、失败生成清除旧文件、URL释放、重复操作/迟到结果、键盘激活与320/375/390宽度通过，pageerror为空。
+- 实际桌面两引擎navigator.share/canShare存在，合成ZIP canShare=true；只检测能力，未打开系统面板。分享相关分支的自动化是API模拟，不能声明真实系统“存储到文件”通过。WebKit默认Tab受macOS Full Keyboard Access设置影响，测试显式聚焦原生button后Enter，不声称已验收全部系统Tab偏好。
+- 另以envFile=false实际启动127.0.0.1:5175 Vite DEV，两个全新浏览器访问真实`/tests/fixtures/data-export.html`并下载ZIP成功，无外部/业务请求或pageerror，随后关闭服务。回执/private/tmp/calendar-export-slice1/dev-route.json，下载文件为browser/*-dev-route.zip；不只是构建后路由拦截夹具。
+- `node_modules/.bin/tsc -b`（由Build再次覆盖）、独立夹具 `tsc --noEmit --jsx react-jsx --target ES2020 --module ESNext --moduleResolution Bundler --allowImportingTsExtensions --skipLibCheck --types vite/client tests/fixtures/data-export-browser.tsx`、`npm run build`、`git diff --check` PASS。既有大chunk警告保持；主应用19份产物与任务前哈希完全相同。夹具中的fflate异步块11062B/gzip5486B，不进入主应用首屏。`npm audit --omit=dev` 0漏洞。
+
+本地复验：`npm run dev`，打开 `http://127.0.0.1:5175/tests/fixtures/data-export.html`，生成后再主动保存。该HTML不在Vite正式入口/Production产物中，DEV=false会拒绝；不注册SW，不用真实邮箱/Token或业务数据。格式见DATA_EXPORT_FORMAT。
+
+证据：/private/tmp/calendar-export-slice1-{format-red,archive-red,save-red,review-red,node,browser,build}.log；/private/tmp/calendar-export-slice1/browser/含下载ZIP、两引擎390截图、实际能力JSON及夹具Bundle表；两份截图已实际查看。已重新打开所有保存样例检查CRC、26文件、ZIP注释为空、安全路径、synthetic标记和README格式说明作者归属，无工具作者或机器路径混入导出。Review发现普通日程被错误标为系列根的输入遗漏，先补测试失败再修正，最终相关集合通过。初次浏览器夹具启动与WebKit键盘偏好问题的修正见DEVLOG，不把夹具错误算作业务缺陷或真机结果。
+
+**未验证／后续门禁：**实际目标PostgREST bigint/JSON ::text响应、真实RLS/全量分页读取器、正式账户UI、多Space选择、实际容量、iPhone standalone PWA HTTPS/ZIP MIME/系统分享/存储到文件/取消重试/后台恢复。现阶段没有部署授权，不发布验证页；用户后续在真实设备人工验收，Codex不操纵登录态。不将LOCAL VERIFIED写成Production或iPhone PASS。
+
 ## 2026-11-03 — 账户管理最终视觉验收收口
 
 2026-11-03 — **账户管理UI Follow-up CLOSED / ACCEPTED（视觉范围），USER_REPORTED_IPHONE_PWA_VISUAL_ACCEPTANCE=PASS**。用户在正式iPhone PWA查看最新Production后明确确认“我认为可以通过了”。已验收业务Commit为65c08749911ada567ca762c4a534a1e8188ff52e，Production部署7517726063成功、Source匹配及七项资源核验记录保留。v0.1.21已接受范围CLOSED / PASS、Slice 1 DEFERRED及注销独立待办保持。
