@@ -1,5 +1,12 @@
 # Testing
 
+## 2026-11-04 — 数据导出正式发布前验证与授权
+
+应用源码5a46412234df34c01a69ac68e9067c25e07bc5a5及21份构建资源指纹固定；四Slices32路径范围检查通过。重新运行原Node命令66/66，完整三文件浏览器39/39，TypeScript/Build/Node语法/diff通过；官方registry生产依赖audit0，未安装/更新依赖，原大chunk提示保持。所有导出与保存测试仍是隔离合成Mock，没有真实业务数据。
+
+用户已授权正常Push/现有Vercel Production，实际Source SHA/URL/资源和未登录验证见/private/tmp/calendar-export-release/RELEASE_RECEIPT.md，不以授权写成部署或人工PASS。发布后仅公开HTML/JS/CSS/manifest/SW/按需导出资源、全新无Session浏览器登录页/基础入口可自动验证；不调用OTP/真实用户会话/业务读取或写入。真实iPhone保存、文件App落盘解压、CSV实值/关联/参与者RLS、取消重试/失效及容量由用户验收；前轮Production匿名合同不是认证通过。首版非事务/8MiB读取/16MiB组装/不能导入恢复等边界不变。
+
+
 ## 2026-11-04 — 数据导出 Slice 4收口／发布前最小检查
 
 SLICE4_REVIEW=PASS；RELEASE_READINESS=READY_FOR_RELEASE_AUTHORIZATION，仅表示可申请后续Push/Deploy授权，不是Production CLOSED/PASS。复核17/17前轮指纹及实际diff；回顾仅可见父集合、12表覆盖、完整分页/失败关闭、账号/选择/权限失效、保存前重验及格式无新增阻塞。收口补充：UI失败提示明确8MiB/16MiB数字预算，ZIP README明确8MiB累计CSV/16MiB最终组装保护、超限不生成部分文件、分Space建议与单Space过大不支持；先红再绿验证。没有新依赖、Schema/RLS/RPC/Auth/Edge/Cron变更或真实数据接触。

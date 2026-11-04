@@ -1,5 +1,12 @@
 # Development Log
 
+## 2026-11-04 — 数据导出正式发布授权
+
+用户明确授权四Slices及必要治理记录正常Push origin/main并经现有Git/Vercel Production发布，不授权后端/真实数据/账号操作。起始HEAD5a46412、main ahead4/behind0/clean；Fetch及独立远端核对a48b938未变。32路径限定检查无敏感/临时导出或无关文件；应用源码与21份已测试Build指纹固定，Node66/66、浏览器39/39、TypeScript/Build/ZIP/语法/diff通过，生产依赖官方审计0。原镜像审计接口不支持，单次改用官方registry只读审计，不改配置/依赖。
+
+仅补必要治理授权与稳定人工Next Action，不扩改业务/版本。实际Push、自动Vercel部署Source/URL、公开资源/未登录验证与Post-Push Freshness记录在/private/tmp/calendar-export-release/RELEASE_RECEIPT.md；不预写成功。用户真实登录/RLS/文件落盘/PWA容量仍待验收，不关闭导出、不启动注销。后端capability来源与匿名零行边界保持，后续遇认证类型/权限错误停止人工验收并反馈。
+
+
 ## 2026-11-04 — 数据导出 Slice 4独立本地收口授权
 
 用户授权限定Review、必要本地修复与Slice 4独立本地Commit，不授权Push/Deploy/Production写入。17/17前轮指纹匹配；实际权限/分页/关系/失效/保存/格式Review无阻塞，仅补齐UI失败提示数字预算及ZIP README容量边界与分Space建议，回归先红再绿。复验Node66/66、WebKit/Chrome定向8/8、独立Python12类CSV、TypeScript/Build/语法/diff通过；既有完整浏览器39/39＋原账户8/8/布局证据保持。

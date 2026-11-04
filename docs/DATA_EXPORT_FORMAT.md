@@ -1,6 +1,6 @@
 # 用户数据导出：格式合同与分阶段实现
 
-格式说明作者：Ping Weng。状态：LOCAL CHECKPOINT / READY_FOR_RELEASE_AUTHORIZATION；不是 Production 或真实 iPhone PWA 验收。项目正式版本仍为 v0.1.21，本合同的 `format_version=1` 只是文件协议修订。
+格式说明作者：Ping Weng。状态：RELEASE AUTHORIZED / USER ACCEPTANCE PENDING；实际部署见独立发布回执，不代表真实 iPhone PWA 验收。项目正式版本仍为 v0.1.21，本合同的 `format_version=1` 只是文件协议修订。
 
 ## 已确认规则与范围
 
