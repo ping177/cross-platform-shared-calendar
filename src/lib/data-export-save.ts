@@ -1,10 +1,13 @@
 export type ExportSaveResult = 'share-dispatched' | 'download-requested' | 'cancelled' | 'failed';
 type ShareTarget = { canShare?: (data: ShareData) => boolean; share?: (data: ShareData) => Promise<void> };
 
+export function supportsExportFileShare(file: File, target: ShareTarget = navigator): boolean {
+  try { return typeof target.share === 'function' && target.canShare?.({ files: [file] }) === true; }
+  catch { return false; }
+}
+
 export async function requestExportSave(file: File, download: () => void, target: ShareTarget = navigator): Promise<ExportSaveResult> {
-  let supported = false;
-  try { supported = typeof target.share === 'function' && target.canShare?.({ files: [file] }) === true; } catch { /* Use download when detection fails. */ }
-  if (supported) {
+  if (supportsExportFileShare(file, target)) {
     try {
       // Called directly from the click, BEFORE an await or any ZIP generation.
       await target.share!({ files: [file], title: '共享日历数据导出' });

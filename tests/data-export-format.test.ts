@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
-import { exportColumns, encodeExportCell, exportCsv, spaceDirectory } from '../src/lib/data-export-format.ts';
+import { exportColumns, exportCsvColumns, encodeExportCell, exportCsv, spaceDirectory } from '../src/lib/data-export-format.ts';
 
 // Independent RFC-style CSV reader used only to inspect generated artifacts.
 export function readCsv(source: string): string[][] {
@@ -33,7 +33,7 @@ test('text and NULL encoding is reversible, including original prefixes and dang
     assert.ok(encoded.startsWith('text:'));
     assert.ok(!/^[=+@\-\s＝＋－＠]/u.test(encoded));
     const csv = exportCsv('space', [{ id: '10000000-0000-4000-8000-000000000001', name: raw, kind: 'personal', created_by: '20000000-0000-4000-8000-000000000001', created_at: '2026-11-04T01:00:00Z' }]);
-    assert.equal(readCsv(csv)[1][1], encoded);
+    assert.equal(readCsv(csv)[1][exportCsvColumns.space.findIndex(c=>c.name==='name')], encoded);
   }
 });
 
@@ -62,7 +62,7 @@ test('all 12 tables use only actual schema columns and retain empty-table header
     for (const column of columns) assert.match(body, new RegExp(`^  ${column.name} `, 'm'));
     const csv = exportCsv(table as keyof typeof exportColumns, []);
     assert.ok(csv.endsWith('\r\n'));
-    assert.deepEqual(readCsv(csv), [columns.map((column) => column.name)]);
+    assert.deepEqual(readCsv(csv), [exportCsvColumns[table as keyof typeof exportColumns].map((column) => column.label)]);
   }
   assert.ok(!exportColumns.space.some((column) => column.name === 'invite_code'));
   assert.deepEqual(exportColumns.list_sections.map((column) => column.name), ['id', 'list_id', 'name', 'sort_order', 'created_by', 'created_at', 'updated_at']);

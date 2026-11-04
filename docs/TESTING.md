@@ -1,5 +1,41 @@
 # Testing
 
+## 2026-11-04 — 中文导出UX发布授权
+
+用户授权当前17文件限定Review、Commit/正常Push与现有Vercel自动Production，未授权后端/真实数据操作。Fetch确认40e57c5无分叉，17/17前轮指纹一致；中文12CSV/102字段及manifest格式2完整，保存/取消/技术失败/按需备用和更新重读逻辑无阻塞。必要Node15/15、Chrome/WebKit14/14、独立ZIP回读、TypeScript/Build/语法/diff复验通过，既有大chunk提示保持。版本v0.1.21不变，无依赖/读取器/Schema变更。
+
+实际Push/部署Source/公开21资源、未登录页面及Post-Push Freshness见/private/tmp/calendar-export-ux-release/RELEASE_RECEIPT.md，不预写成功。新UX/中文ZIP/Numbers或Excel由用户正式iPhone验收，不记CLOSED/ACCEPTED。旧个人格式1真机成功仅保持原范围，不启动账号注销。下方本地未授权记录为历史。
+
+
+## 2026-11-04 — 数据导出最后两项操作调整／LOCAL VERIFIED
+
+延续40e57c5上的16 modified＋1 untracked，17/17前轮指纹匹配；本轮仅修改DataExportPage和personal-export浏览器测试及必要治理。CSV格式2的12文件/102字段、序列化/保存工具、读取器/Schema/依赖全部与前轮指纹一致，无覆盖中文化成果。
+
+“重新生成”改为“更新导出文件”，仍清除旧结果并重新读取最新授权业务记录。去掉常驻折叠菜单；主操作统一“保存或分享文件”，仅检测不支持/必要条件不足或系统分享技术失败时显示“直接下载 ZIP”。主动取消不新增失败标记，失败保留File，成功分享清除失败标记，失效清理同步清除。无分享能力时主操作/备用操作均可下载；保存前仍复核权限，不重读业务表。
+
+- Node仅格式/映射/归档/保存四文件：15/15 PASS，包含独立Python26文件12类CSV/102列原值回读及安全编码。没有重复全项目测试。
+- Chrome/WebKit定向14/14 PASS，模式`fallback appears|saving reuses|personal default|share cancellation|query failure/cancel|back/navigation|save recheck`。新DOM测试先红后绿；正常无备用/无summary、取消不显示、技术失败出现/主重试、成功后隐藏、不支持时备用及主操作都能下载。使用同一个File多次分享，业务表调用次数不变（允许成员/Space授权复核）；修改Mock日程后点击更新，业务读取次数增加、旧URL释放，下载ZIP独立Python验证最新多行危险文本标题、中文文件/表头和26文件行数。原选择/账号/退出/导航/右滑/失效继续通过。
+- 375/390px正常及技术失败实际截图已查看：/private/tmp/calendar-export-ux-finish/browser/{WebKit,Chrome}-ready-{375,390}.png、*-technical-failure-390.png，无横向溢出，沿用既有页面视觉。系统分享只模拟API结果，Blob下载实际发生；不是iPhone Production PASS。
+- TypeScript（tsc -b由Build执行）、Build、Node语法及diff-check PASS。既有大chunk提示保留，未增加依赖或发布。证据/private/tmp/calendar-export-ux-finish/{red,green,node,browser,build}.log；仅合成数据，本地5175/同源Blob，未读取真实用户数据、秘密或修改Production。
+
+本轮未Commit/Push/Deploy，正式v0.1.21及format_version=2不变；前轮完整格式/读取器等证据保持，当前只收口已获认可UI的两项交互。
+
+
+## 2026-11-04 — 数据导出中文格式／保存易用性 LOCAL VERIFIED
+
+基线main/HEAD/origin/main为40e57c5d68335ac70d0e36dab66b6ff76b80b04d，起始clean；既有Production部署Source一致，详细回执见/private/tmp/calendar-export-release/。用户本轮报告真实iPhone standalone PWA个人Space导出、保存文件App及解压README/manifest/Space目录/12类CSV成功。该证据只覆盖已发布格式1的个人链路与文件存在，不补造真实字段/共享RLS/容量等全面验收。格式2与新UI仅本地，未Commit/Push/Deploy。
+
+- 格式2：12个中文文件名、102列name↔label完整一一映射，无重列；业务字段优先，原始白名单/类型/可空性/值不变。manifest.fields按实际CSV顺序含name/label/type/nullable，file_names含全部类别对应文件名，files含table/path/rows；不多生成重复CSV。完整映射见DATA_EXPORT_FORMAT当前节。
+- Node：`node --test tests/data-export-format.test.ts tests/data-export-presentation.test.ts tests/data-export-archive.test.ts tests/data-export-save.test.ts tests/personal-export.test.ts tests/space-export.test.ts tests/review-export.test.ts tests/aggregate-calendar.test.ts tests/profile-card-ui.test.ts tests/me-spaces-ui-v2.test.ts tests/navigation-persistence.test.ts`，68/68 PASS。映射测试先红再绿。独立Python zipfile/csv回读26文件，逐格按原字段/类型对应源值，CRC/BOM/CRLF/中文/Emoji/引号换行/危险公式/NULL与空串/原始JSON/精确int64/关系及容量边界仍通过。旧部分profile也跟随格式2，但保持not_included的诚实范围。
+- 浏览器完整相关套件（personal-export/data-export/login-email）41/41 PASS；新增保存入口2项先红再绿，终稿直接personal-export23/23，README终稿格式/归档8/8，原账户8/8及最终布局2/2复验PASS。WebKit/Chrome真实DOM与Blob下载、独立Python回读；系统分享仅Mock API，不作为原生系统面板/真机证据。默认个人、多选/全选/零选、权限/账号/导航/旧文件失效、容量超限整体失败、无分享支持直下、折叠备用路径、取消/失败/重试、邮箱/退出/返回/右滑覆盖。
+- 375/390/1024px截图真实CSS无溢出：/private/tmp/calendar-export-ux/browser/{WebKit,Chrome}-ready-{375,390,1024}.png。已查看WebKit390、Chrome375及1024，显示准备好/数量/大小和单一主保存按钮；重新生成为次级，其他方式折叠，不显示长技术文件名或无法确认的保存状态。确认权限后保留第二次主动点击及10秒证书有效期，维持iOS用户手势。
+- TypeScript（tsc -b）、Build、Node语法、diff-check PASS。无新增依赖；fflate仍惰性11.06kB/gzip5.49，导出叶页27.14kB/gzip12.21，main855.40kB/gzip250.00，原大chunk提示保持。读取器、Supabase配置、Schema/RLS/Auth/Edge/Cron、全站样式及相邻页面源码未改。
+
+证据：/private/tmp/calendar-export-ux/{format-red,format-green,ui-red,ui-green,node,browser,browser-final,account-browser,layout-final,build-final}.log；合成ZIP/截图/browser，未入仓库。Vite测试envFile=false/write=false，HTTP仅本地5175和同源Blob；无真实业务数据、Token/邮箱或密钥读取/输出。
+
+兼容性：文件协议1→2是有意变化，英文文件/表头/旧列顺序的外部解析器需检查format_version并按manifest适配；已下载旧ZIP不改，未提供导入或迁移。安全编码边界与8MiB CSV/16MiB组装限制保持，中文版表头按实际UTF-8字节计费；不改变枚举、bool或关联ID。新UI/格式2仍待后续授权发布后真实iPhone与Excel/Numbers验收，不将本轮Mock/桌面记为Production PASS。
+
+
 ## 2026-11-04 — 数据导出正式发布前验证与授权
 
 应用源码5a46412234df34c01a69ac68e9067c25e07bc5a5及21份构建资源指纹固定；四Slices32路径范围检查通过。重新运行原Node命令66/66，完整三文件浏览器39/39，TypeScript/Build/Node语法/diff通过；官方registry生产依赖audit0，未安装/更新依赖，原大chunk提示保持。所有导出与保存测试仍是隔离合成Mock，没有真实业务数据。

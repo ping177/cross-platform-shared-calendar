@@ -31,15 +31,15 @@ z=zipfile.ZipFile(io.BytesIO(sys.stdin.buffer.read())); assert z.testzip() is No
 m=json.loads(z.read('manifest.json')); assert m['complete_backup'] is False
 assert m['table_coverage']['tasks']=='not_included'
 assert m['table_coverage']['events']=='exported'
-assert not any(p.endswith('/tasks.csv') for p in z.namelist())
-p=next(p for p in z.namelist() if p.endswith('/event_occurrence_exceptions.csv'))
+assert not any(p.endswith('/任务.csv') for p in z.namelist())
+p=next(p for p in z.namelist() if p.endswith('/重复日程调整.csv'))
 rows=list(csv.DictReader(io.StringIO(z.read(p).decode('utf-8-sig'),newline='')))
 assert len(rows)==501
-assert rows[0]['override_data']=='json:{"title":"=1+2🐈","n":9007199254740993}'
-p=next(p for p in z.namelist() if p.endswith('/events.csv'))
+assert rows[0]['调整内容']=='json:{"title":"=1+2🐈","n":9007199254740993}'
+p=next(p for p in z.namelist() if p.endswith('/日程.csv'))
 events=list(csv.DictReader(io.StringIO(z.read(p).decode('utf-8-sig'),newline='')))
-assert events[0]['description']=='text:'+('中文🐈,"引号"\\n'*1024)
-assert events[0]['ends_at']=='\\\\N'
+assert events[0]['日程说明']=='text:'+('中文🐈,"引号"\\n'*1024)
+assert events[0]['结束时间']=='\\\\N'
 assert '阶段性' in z.read('README.txt').decode('utf8')
 print('PASS')`], { input: Buffer.from(zip.bytes) });
   assert.equal(output.status, 0, output.stderr.toString());

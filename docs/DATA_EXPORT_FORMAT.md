@@ -1,6 +1,6 @@
 # 用户数据导出：格式合同与分阶段实现
 
-格式说明作者：Ping Weng。状态：RELEASE AUTHORIZED / USER ACCEPTANCE PENDING；实际部署见独立发布回执，不代表真实 iPhone PWA 验收。项目正式版本仍为 v0.1.21，本合同的 `format_version=1` 只是文件协议修订。
+格式说明作者：Ping Weng。状态：格式 2 与保存UI优化 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING；实际部署见独立ux-release回执，不预写成功；已发布格式1的个人Space保存解压由用户报告成功。项目正式版本仍为 v0.1.21，本合同的 `format_version=2` 是文件协议修订，不是项目版本号。
 
 ## 已确认规则与范围
 
@@ -19,23 +19,204 @@
 README.txt
 manifest.json
 spaces/space_<安全名称>__<完整Space-ID>/
-  space.csv
-  members.csv
-  modules.csv
-  events.csv
-  event_occurrence_exceptions.csv
-  tasks.csv
-  lists.csv
-  list_sections.csv
-  list_items.csv
-  important_dates.csv
-  review_rounds.csv
-  review_entries.csv
+  空间信息.csv
+  空间成员.csv
+  功能设置.csv
+  日程.csv
+  重复日程调整.csv
+  任务.csv
+  清单.csv
+  清单分组.csv
+  清单事项.csv
+  重要日.csv
+  回顾记录.csv
+  回顾内容.csv
 ```
 
 当前authorized-spaces范围每个Space的12个CSV必须齐全，包括仅表头的空表。阶段性personal-calendar/core-spaces范围见下节，未纳入的表不生成CSV。相同名称由完整 UUID 区分。名称 NFC 规范化，路径分隔符、Windows 非法字符、控制与双向控制字符替换，点串替换，去除末尾空格，最多 40 个 Unicode 码点。固定 `space_` 前缀避免 Windows 设备名；ID 必须是小写标准 UUID。不会使用原名称拼接任意路径。
 
-## CSV 字段白名单与顺序
+## 格式 2：中文文件和列映射（当前本地方案）
+
+文件协议修订为`format_version=2`，与正式项目版本v0.1.21无关。CSV文件名、表头及列顺序发生有意变更；原12类字段/类型/可空性与全部原始值不变。旧格式1的解析器需要按manifest的新映射读取；已下载的旧ZIP不改变，不生成第二套重复CSV。
+
+`file_names`用原始类别键映射中文文件名；`fields[类别]`按实际CSV列顺序给出`name`（原始字段）、`label`（中文表头）、`type`、`nullable`；`files`逐Space记录`table/path/rows`。原始字段白名单及查询排序保持，序列化单独使用下表顺序。
+
+### 空间信息.csv（space）
+
+| 原始字段 | 中文列名 |
+| --- | --- |
+| name | 空间名称 |
+| kind | 空间类型 |
+| created_at | 创建时间 |
+| id | 空间ID |
+| created_by | 创建者ID |
+
+### 空间成员.csv（members）
+
+| 原始字段 | 中文列名 |
+| --- | --- |
+| role | 成员角色 |
+| joined_at | 加入时间 |
+| user_id | 成员ID |
+| space_id | 空间ID |
+
+### 功能设置.csv（modules）
+
+| 原始字段 | 中文列名 |
+| --- | --- |
+| module_key | 功能标识 |
+| enabled | 是否启用 |
+| space_id | 空间ID |
+
+### 日程.csv（events）
+
+| 原始字段 | 中文列名 |
+| --- | --- |
+| title | 日程标题 |
+| description | 日程说明 |
+| starts_at | 开始时间 |
+| ends_at | 结束时间 |
+| all_day | 是否全天 |
+| time_zone | 时区 |
+| scope | 可见范围 |
+| reminder_kind | 提醒方式 |
+| recurrence_rule | 重复规则 |
+| recurrence_until | 重复截止时间（不含） |
+| created_at | 创建时间 |
+| updated_at | 修改时间 |
+| id | 日程ID |
+| space_id | 空间ID |
+| created_by | 创建者ID |
+| owner_user_id | 个人日程所属成员ID |
+| series_id | 重复系列ID |
+| parent_event_id | 上一日程段ID |
+| reminder_schedule_changed_at | 提醒计划变更时间 |
+
+### 重复日程调整.csv（event_occurrence_exceptions）
+
+| 原始字段 | 中文列名 |
+| --- | --- |
+| occurrence_date | 原定发生日期 |
+| exception_type | 调整类型 |
+| override_data | 调整内容 |
+| created_at | 创建时间 |
+| updated_at | 修改时间 |
+| id | 调整记录ID |
+| event_id | 日程ID |
+
+### 任务.csv（tasks）
+
+| 原始字段 | 中文列名 |
+| --- | --- |
+| title | 任务标题 |
+| status | 任务状态 |
+| due_on | 截止日期 |
+| reminder_kind | 提醒方式 |
+| time_zone | 时区 |
+| created_at | 创建时间 |
+| updated_at | 修改时间 |
+| id | 任务ID |
+| space_id | 空间ID |
+| assigned_to_user_id | 指派成员ID |
+| created_by | 创建者ID |
+| reminder_schedule_changed_at | 提醒计划变更时间 |
+
+### 清单.csv（lists）
+
+| 原始字段 | 中文列名 |
+| --- | --- |
+| name | 清单名称 |
+| created_at | 创建时间 |
+| updated_at | 修改时间 |
+| id | 清单ID |
+| space_id | 空间ID |
+| created_by | 创建者ID |
+
+### 清单分组.csv（list_sections）
+
+| 原始字段 | 中文列名 |
+| --- | --- |
+| name | 分组名称 |
+| sort_order | 排列顺序 |
+| created_at | 创建时间 |
+| updated_at | 修改时间 |
+| id | 分组ID |
+| list_id | 清单ID |
+| created_by | 创建者ID |
+
+### 清单事项.csv（list_items）
+
+| 原始字段 | 中文列名 |
+| --- | --- |
+| content | 事项内容 |
+| completed | 是否完成 |
+| sort_order | 排列顺序 |
+| created_at | 创建时间 |
+| updated_at | 修改时间 |
+| id | 事项ID |
+| list_id | 清单ID |
+| section_id | 分组ID |
+| space_id | 空间ID |
+| created_by | 创建者ID |
+
+### 重要日.csv（important_dates）
+
+| 原始字段 | 中文列名 |
+| --- | --- |
+| name | 重要日名称 |
+| emoji | 表情符号 |
+| repeat_kind | 重复方式 |
+| month | 月份 |
+| day | 日期（日） |
+| year | 年份 |
+| reminder_kind | 提醒方式 |
+| time_zone | 时区 |
+| created_at | 创建时间 |
+| updated_at | 修改时间 |
+| id | 重要日ID |
+| space_id | 空间ID |
+| created_by | 创建者ID |
+| reminder_schedule_changed_at | 提醒计划变更时间 |
+
+### 回顾记录.csv（review_rounds）
+
+| 原始字段 | 中文列名 |
+| --- | --- |
+| review_date | 回顾日期 |
+| round_no | 回顾轮次 |
+| created_at | 创建时间 |
+| id | 回顾记录ID |
+| space_id | 空间ID |
+| created_by | 创建者ID |
+
+### 回顾内容.csv（review_entries）
+
+| 原始字段 | 中文列名 |
+| --- | --- |
+| focus | 近期专注事项 |
+| progress | 近期进展 |
+| problems | 面临问题 |
+| next_plan | 下一步计划 |
+| updated_at | 修改时间 |
+| review_id | 回顾记录ID |
+| user_id | 参与者ID |
+| content_revision | 内容版本号 |
+| filled_revision | 已确认填写版本号 |
+
+共12类、102个字段映射；每表原字段集合/数量一致，中文表头无重复。UTF-8 BOM、CRLF、引号、NULL/空串与text:/json:/int:/date:/time:安全可逆编码保持；不改枚举/布尔/ID值，不改RLS或读取范围。容量仍按实际中文CSV字节累计，8MiB读取/16MiB组装保护不变。
+
+## 保存界面（本轮本地）
+
+生成后显示“数据已准备好”、空间数量与ZIP文件大小，主体不展示完整技术文件名。“更新导出文件”为次级按钮，重新读取当前所选Space最新授权业务数据并生成新ZIP，原结果先失效；再次保存/分享已有文件复用同一个File，只复核访问资格，不重新读取业务表。
+
+正常状态仅有主保存操作“保存或分享文件”，不显示可展开备用菜单。只有当前ZIP文件的系统分享能力不可用（缺API/canShare不支持或检测异常），或该文件的系统分享发生实际技术失败时，才显示次级“直接下载 ZIP”。不支持系统分享时，主操作也能进入浏览器下载路径。主动取消不新增技术失败标记；失败保留文件供主操作重试及备用下载，后续分享成功可收起备用。新生成、改选、账号/权限失效等清理时同时清除旧文件失败标记。
+
+每次保存先异步重验访问资格，再由用户点击“继续保存或分享”/“确认下载文件”提供新的用户手势（有效10秒），超时重新选择。取消分享/失败保留内存文件重试；改选、账号/权限失效、导航离开清除文件/确认凭证/下载URL。仅报告系统接收请求或浏览器下载请求，不显示“尚未保存”或“已保存成功”。不持久化文件，不改业务读取/权限/CSV格式。
+
+## 原始字段白名单（读取合同与格式1历史）
+
+当前CSV中文列顺序以格式2映射表为准。下方原始字段顺序保留查询白名单语义，旧阶段/格式1记录为历史，不再代表格式2文件名或表头。
+
 
 ### Slice 4：完整授权范围（当前实现）
 
@@ -81,7 +262,7 @@ src/lib/personal-export.ts不接受导出目标Space参数；先getUser核对当
 
 目标Production的JSON ::text仍NOT VERIFIED，失败不降级成解析对象或空数组；Slice 2不读取bigint业务表，其实际cast门禁留后续。真实账号验收前必须完成环境对齐，本轮只做Mock和自动化，不要求用户登录验收。
 
-可执行权威定义为 `src/lib/data-export-format.ts` 的 `exportColumns`；manifest 逐文件类型带相同有序定义（name/type/nullable）。下列字段均来自真实 Schema，没有增加业务列。`space`、`members`、`modules` 分别对应 spaces、space_members、space_modules；其他文件同名表。
+可执行读取白名单为 `src/lib/data-export-format.ts` 的 `exportColumns`；格式2序列化及manifest的有序字段为`exportCsvColumns`，中文文件/列映射为`exportPresentation`。下列字段均来自真实 Schema，没有增加业务列。`space`、`members`、`modules` 分别对应 spaces、space_members、space_modules；其他原始类别键与数据库表同名。
 
 | CSV | 严格列顺序 |
 | --- | --- |
@@ -138,11 +319,11 @@ bigint 只接受字符串或 JS bigint，拒绝所有 JS number（即使暂时�
 
 ## manifest
 
-- format_version=1，与产品版本分开。
+- format_version=2，与产品版本分开；1为已发布历史协议。
 - synthetic 标识样本来源，exported_by_user_id 是本次导出者（不改业务 created_by）；started_at/finished_at 是数据准备区间，必须先后有效；不含随后 ZIP 压缩及用户点击保存耗时。
 - transactional_snapshot=false、includes_disabled_modules=true，以及中文 limitations。
-- spaces：所选Space ID、原名称、kind和目录名；files：实际已纳入CSV路径和数据行数，不计表头；table_coverage明确exported/not_included。当前authorized-spaces每Space12类CSV均exported，authorization_scope说明回顾参与者范围，不包含不可见历史的元数据。
-- fields：12 类 CSV 的有序字段定义；encoding：NULL、类型前缀、字符集、记录分隔等。
+- spaces：所选Space ID、原名称、kind和目录名；files：实际已纳入CSV的原始类别table、路径path和数据行数rows，不计表头；table_coverage明确exported/not_included。当前authorized-spaces每Space12类CSV均exported，authorization_scope说明回顾参与者范围，不包含不可见历史的元数据。
+- file_names：原始类别到中文文件名；fields：12类CSV实际列顺序的name/label/type/nullable定义；encoding：NULL、类型前缀、字符集、记录分隔等。
 - manifest 不包含凭据、真实邮箱、开发机器路径或内部临时文件名；README 的格式说明归属不覆盖业务记录 created_by。
 
 ## bigint／JSON 文本读取门禁（未执行）

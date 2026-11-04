@@ -1,4 +1,4 @@
-import { assertExportUuid, exportColumns, exportCsv, exportTables, spaceDirectory, type ExportRow, type ExportTable } from './data-export-format.ts';
+import { assertExportUuid, exportCsvColumns, exportPresentation, exportCsv, exportTables, spaceDirectory, type ExportRow, type ExportTable } from './data-export-format.ts';
 
 export type ExportSpace = { tables: Record<ExportTable, ExportRow[]>; expectedRows: Record<ExportTable, number> };
 export type ExportInput = { actorId: string; startedAt: string; finishedAt: string; synthetic: boolean; spaces: ExportSpace[]; scope?: 'personal-calendar' | 'core-spaces' | 'authorized-spaces' };
@@ -9,16 +9,19 @@ export class ExportCapacityError extends Error {
   constructor() { super('导出数据超过本地容量（CSV 读取预算 8 MiB／文件组装保护 16 MiB），请减少所选空间、尝试分空间导出；单个空间仍超限时，暂时无法导出。'); this.name = 'ExportCapacityError'; }
 }
 
-const readme = `共享日历数据导出（格式 1）
+const readme = `共享日历数据导出（格式 2）
 格式说明作者：Ping Weng
 
-spaces 内按 Space 与数据类型组织 CSV，空表保留表头。ID 保持原值，通过 ID 关联，不按创建者判断归属。
+spaces 文件夹内，每个所选空间有独立目录，按数据类型保存中文命名的 CSV，空表保留表头。
+完整范围的文件名称：${exportTables.map(table => exportPresentation[table].filename).join("、")}。
+CSV 用中文列名，业务内容在前。ID 是记录和成员的原始标识，用来关联空间、日程、清单及回顾；版本号记录回顾内容与填写确认的版本，排序值用于保留原有顺序。
+manifest.json 的 file_names 对应原始类别与中文文件名；fields 按 CSV 列顺序列出原字段 name、中文 label、类型和可空性；files 记录每个空间文件的类别、路径及实际行数。枚举标识、true/false、ID 仍保留原值，不按创建者判断数据归属。
 CSV 为 UTF-8 BOM、逗号分隔、CRLF 记录结束、双引号引用；正文内部换行保持原样。
 NULL 编码为反斜杠加 N（\\N）；空字符串编码为 text:。非空文本统一以 text: 开头，去掉一次前缀即可得到原文，包括原本就含前缀的内容。
 JSON 以 json: 开头，去掉一次前缀后仍是原始 JSON 文本，勿先转为 JavaScript 浮点数。
 bigint 以 int: 开头，后接精确十进制整数；日期以 date: 开头；时间戳以 time: 开头。布尔值为 true/false，小整数和 UUID 原样。
 这些前缀是文件值的一部分，用来阻止公式解释和自动类型改写。请勿在表格中批量去除前缀后打开不可信内容。重新编码、编辑或使用忽略此合同的解析器后，不保证公式安全或精度。
-日期不作 UTC 转换，时间戳保留返回值，time_zone 字段单独保留。重复日程导出源段、规则和例外，不展开无限未来；recurrence_until 为排他截止。
+日期不作 UTC 转换，时间戳保留返回值，“时区”列（原字段 time_zone）单独保留。重复日程导出源段、规则和例外，不展开无限未来；“重复截止时间（不含）”列（原字段 recurrence_until）为排他截止。
 共享内容可能包含其他成员的记录。仅导出当前成员资格与 RLS 允许读取的数据；回顾仅包含本人作为原参与者且当前仍获授权的轮次，以及该轮所有原参与者的条目（包括已离开者）。新成员或新 Owner 不因此获得未参加的历史；不可见历史不在文件或计数范围内。关闭模块的可读历史仍包含，不能为补齐关系而越权读取。
 manifest 记录数据准备起止时间（不包含随后 ZIP 压缩及用户保存耗时）、Space、CSV 行数与有序字段定义；这是非事务快照，不能保证所有记录来自同一数据库时点。
 manifest 中 synthetic=true 表示合成样本数据。数据来源、授权与读取完整性由读取端核验，文件组装本身不证明数据库权限或线上兼容性。
@@ -99,15 +102,16 @@ export function prepareExport(input: ExportInput) {
   if (input.scope !== undefined && input.scope !== 'personal-calendar' && input.scope !== 'core-spaces' && input.scope !== 'authorized-spaces') invalid();
   if (input.scope === 'personal-calendar' && (input.spaces.length !== 1 || input.spaces[0].tables.space[0]?.kind !== 'personal')) invalid();
   const manifest = {
-    format_version: 1, synthetic: input.synthetic, exported_by_user_id: input.actorId, started_at: input.startedAt, finished_at: input.finishedAt,
+    format_version: 2, synthetic: input.synthetic, exported_by_user_id: input.actorId, started_at: input.startedAt, finished_at: input.finishedAt,
     transactional_snapshot: false, includes_disabled_modules: true,
     export_scope: input.scope ?? 'all-modules', complete_backup: false,
     authorization_scope: '仅当前成员资格及RLS允许读取的记录；回顾限本人为原参与者的可见轮次及其全部原参与者条目，不统计不可见历史',
     table_coverage: Object.fromEntries(exportTables.map((table) => [table, included.includes(table) ? 'exported' : 'not_included'])),
     encoding: { charset: 'UTF-8-BOM', record_separator: 'CRLF', null: '\\N', text: 'text:', json: 'json:', bigint: 'int:', date: 'date:', timestamp: 'time:', integer: 'decimal-int32', boolean: 'true/false', uuid: 'canonical-lowercase' },
-    fields: exportColumns,
+    fields: exportCsvColumns,
+    file_names: Object.fromEntries(exportTables.map(table => [table, exportPresentation[table].filename])),
     spaces: [] as { id: string; name: string; kind: string; directory: string }[],
-    files: [] as { path: string; rows: number }[],
+    files: [] as { table: ExportTable; path: string; rows: number }[],
     limitations: ['非数据库单一时点快照', '起止时间为数据准备区间，不含 ZIP 压缩和保存', '计数与授权由调用读取器独立核验', '不支持导入或恢复'],
   };
   const seen = new Map<ExportTable, Set<string>>(exportTables.map((table) => [table, new Set()]));
@@ -135,13 +139,13 @@ export function prepareExport(input: ExportInput) {
         if (seen.get(table)!.has(identity)) invalid();
         seen.get(table)!.add(identity);
       }
-      const path = `spaces/${directory}/${table}.csv`;
-      addFile(path, csv); manifest.files.push({ path, rows: count });
+      const path = `spaces/${directory}/${exportPresentation[table].filename}`;
+      addFile(path, csv); manifest.files.push({ table, path, rows: count });
     }
     validateExportRelations(space, input.actorId);
     manifest.spaces.push({ id: String(meta.id), name: meta.name, kind: String(meta.kind), directory });
   }
-  const scopeNote = input.scope === 'personal-calendar' ? '阶段性导出：仅个人空间日程及重复例外，不是完整备份。\n包含space、members、events、event_occurrence_exceptions。\nmodules、任务、清单、重要日、回顾尚未纳入，标记not_included且不生成对应CSV；不能解释为已查询为空。\n\n' : input.scope === 'core-spaces' ? '阶段性导出：所选个人及共享空间的日程、任务、清单、重要日和空间设置。\n回顾review_rounds、review_entries尚未纳入，标记not_included且不生成CSV；这不是包含回顾的完整备份。\n关闭模块的可读历史仍包含；成员仅导出当前授权成员ID/角色/加入时间，不越权解析历史昵称。\n\n' : '';
+  const scopeNote = input.scope === 'personal-calendar' ? '阶段性导出：仅个人空间日程及重复例外，不是完整备份。\n包含空间信息、空间成员、日程、重复日程调整。\n功能设置、任务、清单、重要日、回顾尚未纳入，标记not_included且不生成对应CSV；不能解释为已查询为空。\n\n' : input.scope === 'core-spaces' ? '阶段性导出：所选个人及共享空间的日程、任务、清单、重要日和空间设置。\n回顾记录、回顾内容尚未纳入，标记not_included且不生成CSV；这不是包含回顾的完整备份。\n关闭模块的可读历史仍包含；成员仅导出当前授权成员ID/角色/加入时间，不越权解析历史昵称。\n\n' : '';
   addFile('README.txt', (scopeNote + readme).replace(/\n/g, '\r\n'));
   addFile('manifest.json', JSON.stringify(manifest, null, 2) + '\n');
   const filename = `shared-calendar-export_${new Date(input.finishedAt).toISOString().replace(/[:.]/g, '-')}.zip`;

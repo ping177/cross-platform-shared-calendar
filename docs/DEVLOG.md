@@ -1,5 +1,28 @@
 # Development Log
 
+## 2026-11-04 — 中文导出UX发布授权
+
+用户授权当前17文件限定Review、Commit/正常Push与现有Vercel自动Production，未授权后端/真实数据操作。Fetch确认40e57c5无分叉，17/17前轮指纹一致；中文12CSV/102字段及manifest格式2完整，保存/取消/技术失败/按需备用和更新重读逻辑无阻塞。必要Node15/15、Chrome/WebKit14/14、独立ZIP回读、TypeScript/Build/语法/diff复验通过，既有大chunk提示保持。版本v0.1.21不变，无依赖/读取器/Schema变更。
+
+实际Push/部署Source/公开21资源、未登录页面及Post-Push Freshness见/private/tmp/calendar-export-ux-release/RELEASE_RECEIPT.md，不预写成功。新UX/中文ZIP/Numbers或Excel由用户正式iPhone验收，不记CLOSED/ACCEPTED。旧个人格式1真机成功仅保持原范围，不启动账号注销。下方本地未授权记录为历史。
+
+
+## 2026-11-04 — 数据导出两项操作最后收口（仅本地）
+
+用户认可整体UI，只要求“更新导出文件”和备用下载按需出现。核对40e57c5及前轮17/17工作区指纹，无回退/覆盖；仅改导出页和对应浏览器测试，保留中文12文件/102列格式2及读取器。更新重新读最新授权业务数据，既有File保存/分享只复核权限；备用“直接下载 ZIP”仅无系统分享能力或技术失败时出现，主动取消不触发。失败保留重试，分享成功和旧结果失效清理对应标记，URL/账号/选择/导航保护保持。
+
+目标Node15/15、Chrome/WebKit14/14、独立Python最新ZIP/中文字段回读、375/390渲染、TypeScript/Build/语法/diff通过；新DOM测试先红后绿。实际比较多次分享同一File且不重读业务表，更新读取到新标题并撤销旧URL。详情见TESTING最新节。无新功能/依赖/后端/Production或真实数据操作；格式/项目版本不变，未Commit/Push/Deploy，LOCAL VERIFIED / READY FOR REVIEW，完成后停止。
+
+
+## 2026-11-04 — 数据导出中文格式／保存UI本地优化
+
+用户报告已发布个人Space ZIP在真实iPhone PWA成功保存并解压，12类CSV存在；本轮授权中文文件名/表头及保存易用性本地优化，不授权Commit/Push/Deploy。基线40e57c5、clean。格式修订2独立于正式v0.1.21，新增12文件/102字段展示映射，CSV按业务优先列顺序、manifest保持原始name＋中文label和文件对应。读取白名单/查询顺序及全部原值/安全编码/权限/关联不变。
+
+生成后突出“数据已准备好”和Space数/大小，隐藏完整技术文件名；主保存/分享、折叠备用下载、无分享直接下载、次级重新生成；复用同一能力检测，保存前权限核验/第二次用户手势、取消失败重试及失效清理保持。未另起风格或改相邻功能。README简洁解释中文文件/技术列、类型前缀、权限/时间/容量与不可恢复限制。
+
+Node68/68、相关浏览器41/41、终稿直接23/23＋原账户8/8＋布局2/2、独立Python26文件逐格回读、TypeScript/Build/语法/diff通过。375/390/1024截图已实看；完整映射与证据见DATA_EXPORT_FORMAT/TESTING。无依赖/后端/全站样式变更，无真实业务读取/秘密输出，外部仅/tmp合成证据。格式2对旧外部解析器需要适配，已有ZIP不改；新UI/格式不宣称Production/真机PASS。治理已更新，LOCAL VERIFIED / READY FOR REVIEW，未提交/发布；完成后停止。
+
+
 ## 2026-11-04 — 数据导出正式发布授权
 
 用户明确授权四Slices及必要治理记录正常Push origin/main并经现有Git/Vercel Production发布，不授权后端/真实数据/账号操作。起始HEAD5a46412、main ahead4/behind0/clean；Fetch及独立远端核对a48b938未变。32路径限定检查无敏感/临时导出或无关文件；应用源码与21份已测试Build指纹固定，Node66/66、浏览器39/39、TypeScript/Build/ZIP/语法/diff通过，生产依赖官方审计0。原镜像审计接口不支持，单次改用官方registry只读审计，不改配置/依赖。

@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import { listExportSpaces, readSpaceExport, verifyExportAccess } from '../lib/space-export';
 import { generateExportZip } from '../lib/data-export-archive';
 import type { ExportRow } from '../lib/data-export-format';
-import { createExportDownload, requestExportSave } from '../lib/data-export-save';
+import { createExportDownload, requestExportSave, supportsExportFileShare } from '../lib/data-export-save';
 import { useMobileSwipe } from './useMobileSwipe';
 
 type Archive = { file: File; spaceIds: string[] };
@@ -18,6 +18,7 @@ export default function DataExportPage({ userId, onBack }: { userId: string; onB
   const [phase, setPhase] = useState('loading');
   const [message, setMessage] = useState('正在核验可访问空间…');
   const [error, setError] = useState('');
+  const [shareFailed, setShareFailed] = useState(false);
   const [prepared, setPrepared] = useState<{ mode: 'system' | 'download'; revision: number; expires: number } | null>(null);
   const revision = useRef(0), controller = useRef(new AbortController()), alive = useRef(false), busy = useRef(false);
   const currentArchive = useRef(archive); currentArchive.current = archive;
@@ -25,7 +26,7 @@ export default function DataExportPage({ userId, onBack }: { userId: string; onB
   function invalidate(message = '') {
     controller.current.abort(); controller.current = new AbortController(); revision.current++;
     currentArchive.current = null; busy.current = false;
-    setArchive(null); setPrepared(null); setMessage(''); setError(message); setPhase('idle');
+    setArchive(null); setPrepared(null); setShareFailed(false); setMessage(''); setError(message); setPhase('idle');
   }
   async function load(preserve = false) {
     invalidate(); const request = revision.current; busy.current = true; setPhase('loading'); setMessage('正在核验可访问空间…');
@@ -78,14 +79,14 @@ export default function DataExportPage({ userId, onBack }: { userId: string; onB
     if (busy.current || !selectedRef.current.length) return;
     const selection = [...selectedRef.current];
     invalidate(); const request = revision.current, signal = controller.current.signal;
-    busy.current = true; setPhase('generating'); setMessage('正在读取所选空间并生成 ZIP…');
+    busy.current = true; setPhase('generating'); setMessage('正在准备所选空间的数据…');
     try {
       const input = await readSpaceExport(supabase, userId, selection, signal);
       const result = await generateExportZip(input, signal);
       await verifyExportAccess(supabase, userId, selection, signal);
       if (!alive.current || request !== revision.current) return;
       setArchive({ spaceIds: selection, file: new File([result.bytes as Uint8Array<ArrayBuffer>], result.filename, { type: 'application/zip' }) });
-      setMessage(`ZIP 已生成（${input.spaces.length} 个空间，${(result.bytes.byteLength / 1024).toFixed(1)} KB），尚未保存。`);
+      setMessage('');
     } catch (error) { if (alive.current && request === revision.current) { setError(error instanceof Error && error.name === 'ExportCapacityError' ? error.message : '导出失败，未提供 ZIP。请刷新空间列表后重试。'); setMessage(''); } }
     finally { if (alive.current && request === revision.current) { busy.current = false; setPhase('idle'); } }
   }
@@ -95,23 +96,26 @@ export default function DataExportPage({ userId, onBack }: { userId: string; onB
     try {
       const available = await verifyExportAccess(supabase, userId, archive.spaceIds, controller.current.signal);
       if (alive.current && request === revision.current) setSpaces(available);
-      if (alive.current && request === revision.current) { setPrepared({ mode, revision: request, expires: Date.now() + 10000 }); setMessage('权限已核验，请点击确认保存。'); }
+      if (alive.current && request === revision.current) { setPrepared({ mode, revision: request, expires: Date.now() + 10000 }); setMessage(mode === 'system' ? '访问权限已核验，请继续保存或分享文件。' : '访问权限已核验，请确认下载文件。'); }
     } catch { if (alive.current && request === revision.current) { setSpaces([]); setLoaded(false); invalidate('访问权限无法确认，导出结果已清除。'); } }
     finally { if (alive.current && request === revision.current) { busy.current = false; setPhase('idle'); } }
   }
   async function confirmSave() {
     if (busy.current || !prepared || !archive || !download || prepared.revision !== revision.current) return;
-    if (Date.now() > prepared.expires) { setPrepared(null); setMessage('保存确认已过期，请重新核验保存。'); return; }
+    if (Date.now() > prepared.expires) { setPrepared(null); setMessage('保存确认已过期，请重新选择保存方式。'); return; }
     busy.current = true; setPhase('sharing'); const request = revision.current;
     const result = await requestExportSave(archive.file, download.click, prepared.mode === 'download' ? {} : navigator);
     if (!alive.current || request !== revision.current) return;
     setPrepared(null); busy.current = false; setPhase('idle');
-    setMessage({ 'share-dispatched': '系统已接收分享请求，请自行确认文件是否保存。', 'download-requested': '已请求浏览器下载，请确认文件是否保存。', cancelled: '已取消分享，可重试保存。', failed: '保存请求失败，可重试或使用下载 ZIP。' }[result]);
+    if (result === 'share-dispatched') setShareFailed(false);
+    else if (result === 'failed' && prepared.mode === 'system') setShareFailed(true);
+    setMessage({ 'share-dispatched': '系统已接收分享请求，请自行确认文件是否保存。', 'download-requested': '已请求浏览器下载，请确认文件是否保存。', cancelled: '已取消分享，可重试保存或分享。', failed: '保存请求失败，可重试。' }[result]);
   }
   function changeSelection(ids: string[]) { invalidate(); selectedRef.current = ids; setSelected(ids); setMessage(ids.length ? '选择已更新，请重新生成 ZIP。' : '请选择至少一个空间。'); }
   const leave = () => { invalidate(); onBack(); };
   const swipe = useMobileSwipe({ enabled: phase !== 'sharing', scope: `${userId}:export`, direction: 'right', onSwipe: leave });
   const disabled = phase !== 'idle';
+  const canShare = archive ? supportsExportFileShare(archive.file) : false;
   return <main {...swipe} className="mx-auto min-h-[100dvh] w-full max-w-3xl bg-ui-page px-ui-4 py-ui-4 font-ui text-ui-text safe-bottom">
     <header className="ui-spaces-header flex min-h-11 items-center gap-ui-3"><button type="button" className="ui-focus inline-flex min-h-11 shrink-0 items-center gap-ui-1 rounded-ui-control text-ui-meta font-ui-semibold text-ui-accent" onClick={leave}><ChevronLeft size={18} aria-hidden="true" />账户管理</button><h1 className="min-w-0 flex-1 break-all text-ui-section">导出数据</h1></header>
     <p className="mt-ui-4 text-ui-meta text-ui-muted">导出所选个人及共享空间的日程、任务、清单、重要日、回顾和空间设置，包含已关闭模块的可读历史。仅包含当前有权访问的数据；回顾限本人参加的可见轮次。数据来自生成期间的多次读取，不保证同一时点一致，不能直接导入或恢复。</p>
@@ -121,9 +125,20 @@ export default function DataExportPage({ userId, onBack }: { userId: string; onB
       {!spaces.length && <p className="text-ui-meta">暂无可导出的空间。</p>}
     </fieldset>}
     <div className="ui-my-links">
-      {loaded && <button type="button" className="ui-space-entry ui-account-card ui-focus" disabled={disabled || !selected.length} onClick={() => void generate()}><span className="ui-account-label">{phase === 'generating' ? '生成中…' : archive ? '重新生成 ZIP' : '生成 ZIP'}</span></button>}
-      {phase === 'idle' && <button type="button" className="ui-focus min-h-11 text-ui-accent" onClick={() => void load(loaded)}>{loaded ? '刷新空间列表' : '重试核验空间列表'}</button>}
-      {archive && <><p className="break-all text-ui-meta">{archive.file.name}</p>{prepared ? <button type="button" className="ui-space-entry ui-account-card ui-focus" disabled={disabled} onClick={() => void confirmSave()}>确认保存 ZIP</button> : <><button type="button" className="ui-space-entry ui-account-card ui-focus" disabled={disabled || !download} onClick={() => void prepareSave('system')}>保存 ZIP</button><button type="button" className="ui-focus min-h-11 text-ui-accent" disabled={disabled || !download} onClick={() => void prepareSave('download')}>下载 ZIP</button></>}</>}
+      {archive ? <>
+        <section aria-label="导出文件" aria-live="polite" className="rounded-ui-group border border-ui-border bg-ui-surface p-ui-4">
+          <h2 className="text-ui-body font-ui-semibold">数据已准备好</h2>
+          <p className="mt-ui-1 text-ui-meta text-ui-muted">{archive.spaceIds.length} 个空间 · {archive.file.size >= 1024 * 1024 ? `${(archive.file.size / (1024 * 1024)).toFixed(1)} MB` : `${(archive.file.size / 1024).toFixed(1)} KB`}</p>
+        </section>
+        <button type="button" className="ui-space-entry ui-account-card ui-focus text-ui-accent" disabled={disabled || !download} onClick={() => void (prepared ? confirmSave() : prepareSave(canShare ? 'system' : 'download'))}>
+          <span className="ui-account-label">{prepared ? prepared.mode === 'system' ? '继续保存或分享' : '确认下载文件' : '保存或分享文件'}</span>
+        </button>
+        {!prepared && <div className="flex flex-wrap items-start gap-x-ui-4">
+          <button type="button" className="ui-focus min-h-11 text-ui-meta text-ui-accent" disabled={disabled} onClick={() => void generate()}>更新导出文件</button>
+          {(!canShare || shareFailed) && <button type="button" className="ui-focus min-h-11 text-ui-meta text-ui-accent" disabled={disabled || !download} onClick={() => void prepareSave('download')}>直接下载 ZIP</button>}
+        </div>}
+      </> : loaded && <button type="button" className="ui-space-entry ui-account-card ui-focus" disabled={disabled || !selected.length} onClick={() => void generate()}><span className="ui-account-label">{phase === 'generating' ? '生成中…' : '生成文件'}</span></button>}
+      {!archive && phase === 'idle' && <button type="button" className="ui-focus min-h-11 text-ui-accent" onClick={() => void load(loaded)}>{loaded ? '刷新空间列表' : '重试核验空间列表'}</button>}
       {(phase === 'generating' || prepared) && <button type="button" className="ui-focus min-h-11 text-ui-accent" onClick={() => { invalidate(); setMessage('已取消，可重新生成。'); }}>取消</button>}
     </div>
     <p className="mt-ui-4 text-ui-meta" role="status" aria-live="polite">{phase === 'checking' ? '正在核验保存权限…' : message}</p>

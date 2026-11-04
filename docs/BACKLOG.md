@@ -1,5 +1,21 @@
 # Backlog
 
+## 2026-11-04 — 中文导出UX发布授权
+
+用户授权当前17文件限定Review、Commit/正常Push与现有Vercel自动Production，未授权后端/真实数据操作。Fetch确认40e57c5无分叉，17/17前轮指纹一致；中文12CSV/102字段及manifest格式2完整，保存/取消/技术失败/按需备用和更新重读逻辑无阻塞。必要Node15/15、Chrome/WebKit14/14、独立ZIP回读、TypeScript/Build/语法/diff复验通过，既有大chunk提示保持。版本v0.1.21不变，无依赖/读取器/Schema变更。
+
+实际Push/部署Source/公开21资源、未登录页面及Post-Push Freshness见/private/tmp/calendar-export-ux-release/RELEASE_RECEIPT.md，不预写成功。新UX/中文ZIP/Numbers或Excel由用户正式iPhone验收，不记CLOSED/ACCEPTED。旧个人格式1真机成功仅保持原范围，不启动账号注销。下方本地未授权记录为历史。
+
+
+## 2026-11-04 — 导出两项操作本地收口
+
+整体UI获用户认可；“更新导出文件”与仅不支持/技术失败才出现的“直接下载 ZIP”完成目标验证，主动取消不触发备用。中文12CSV/102列与格式2保留，未提交/发布。下一步只review当前本地收口结果并等待授权，不启动其他功能。下方折叠备用为旧稿。
+
+## 2026-11-04 — 导出中文格式与保存易用性待review
+
+已发布格式1的个人iPhone PWA保存/解压12CSV由用户报告成功。当前格式2（中文文件/102列与manifest映射）及主保存/折叠备用/准备好状态本地完成并验证，未Commit/Push/Deploy。下一步先review本地方案及旧解析器适配边界，再等新授权；不自行发布或新建产品版本。新UI/格式2真机、Excel/Numbers及共享真实权限等未验证，不自动关闭全部导出。注销/账号清理/导入恢复/后台系统不启动。
+
+
 ## 2026-11-04 — 数据导出发布授权／真实验收待完成
 
 四Slices已获正常Git/Vercel发布授权，源码5a46412保持。下一步仅用户Production iPhone PWA最小验收；实际部署与自动验证以独立发布回执为准，不提前CLOSED/ACCEPTED。不启动注销、账号清理、导入恢复、后台系统或新版本；容量及真实认证合同限制保持。以下待授权条目为历史。

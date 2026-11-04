@@ -83,7 +83,7 @@ test('hidden-only history is a legitimate authorized empty export, without hidde
   const input = await read(f, C), prepared = prepareExport(input);
   assert.equal(input.spaces[0].tables.review_rounds.length, 0);
   assert.equal(input.spaces[0].tables.review_entries.length, 0);
-  assert.equal(prepared.manifest.files.find(f => f.path.endsWith('/review_entries.csv')).rows, 0);
+  assert.equal(prepared.manifest.files.find(f => f.table === 'review_entries').rows, 0);
   assert.ok(!JSON.stringify(prepared.manifest).includes(f.rows.review_rounds[0].id));
 });
 
@@ -99,9 +99,9 @@ m=json.loads(z.read('manifest.json')); expected=json.loads(sys.argv[1]); assert 
 prefix={'text':'text:','json':'json:','bigint':'int:','date':'date:','timestamp':'time:'}
 for space,original in zip(m['spaces'],expected):
  for table,rows in original['tables'].items():
-  path='spaces/'+space['directory']+'/'+table+'.csv'; b=z.read(path); assert b.startswith(b'\\xef\\xbb\\xbf') and b.endswith(b'\\r\\n')
+  path='spaces/'+space['directory']+'/'+m['file_names'][table]; b=z.read(path); assert b.startswith(b'\\xef\\xbb\\xbf') and b.endswith(b'\\r\\n')
   actual=list(csv.reader(io.StringIO(b.decode('utf-8-sig'),newline=''))); fields=m['fields'][table]
-  assert actual[0]==[f['name'] for f in fields] and len(actual)-1==len(rows)
+  assert actual[0]==[f['label'] for f in fields] and len(actual)-1==len(rows)
   for values,row in zip(actual[1:],rows):
    want=[]
    for f in fields:

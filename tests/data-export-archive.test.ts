@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { spawnSync } from 'node:child_process';
 import { exportByteLimit, generateExportZip } from '../src/lib/data-export-archive.ts';
-import { exportColumns, exportTables } from '../src/lib/data-export-format.ts';
+import { exportCsvColumns, exportPresentation, exportTables } from '../src/lib/data-export-format.ts';
 import { syntheticExport } from './fixtures/data-export-synthetic.ts';
 
 test('independent Python zipfile/csv readback verifies all files, headers, row counts, exact values and relationship IDs', async () => {
@@ -25,7 +25,7 @@ print(json.dumps(out,ensure_ascii=False))`], { input: Buffer.from(archive.bytes)
   const files = JSON.parse(result.stdout.toString());
   const manifest = files['manifest.json'];
   assert.equal(Object.keys(files).length, 26);
-  assert.equal(manifest.format_version, 1);
+  assert.equal(manifest.format_version, 2);
   assert.equal(manifest.synthetic, true);
   assert.equal(manifest.exported_by_user_id, input.actorId);
   assert.equal(manifest.transactional_snapshot, false);
@@ -33,10 +33,10 @@ print(json.dumps(out,ensure_ascii=False))`], { input: Buffer.from(archive.bytes)
   assert.equal(manifest.finished_at, input.finishedAt);
   assert.notEqual(manifest.spaces[0].directory, manifest.spaces[1].directory);
   for (const [i, space] of input.spaces.entries()) for (const table of exportTables) {
-    const path = `spaces/${manifest.spaces[i].directory}/${table}.csv`;
+    const path = `spaces/${manifest.spaces[i].directory}/${exportPresentation[table].filename}`;
     const rows = files[path];
-    const columns = exportColumns[table];
-    assert.deepEqual(rows[0], columns.map((column) => column.name));
+    const columns = exportCsvColumns[table];
+    assert.deepEqual(rows[0], columns.map((column) => column.label));
     assert.equal(rows.length - 1, space.expectedRows[table]);
     assert.equal(manifest.files.find((file: { path: string }) => file.path === path).rows, rows.length - 1);
     for (const [j, source] of space.tables[table].entries()) {

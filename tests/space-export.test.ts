@@ -76,13 +76,13 @@ test('ZIP independently reopens all twelve types per Space including authorized 
 z=zipfile.ZipFile(io.BytesIO(sys.stdin.buffer.read())); assert z.testzip() is None and len(z.namelist())==26
 m=json.loads(z.read('manifest.json')); assert m['export_scope']=='authorized-spaces' and m['complete_backup'] is False
 assert all(m['table_coverage'][t]=='exported' for t in ('review_rounds','review_entries'))
-assert sum('/review_' in p for p in z.namelist())==4
+assert sum(f['table'].startswith('review_') for f in m['files'])==4
 for f in m['files']:
  rows=list(csv.reader(io.StringIO(z.read(f['path']).decode('utf-8-sig'),newline=''))); assert len(rows)-1==f['rows']
-p=next(p for p in z.namelist() if p.endswith('/list_items.csv') and len(z.read(p))>250)
+p=next(p for p in z.namelist() if p.endswith('/清单事项.csv') and len(z.read(p))>250)
 rows=list(csv.DictReader(io.StringIO(z.read(p).decode('utf-8-sig'),newline='')))
-assert any(r['sort_order']=='int:9223372036854775807' for r in rows)
-assert any(r['section_id']=='\\\\N' for r in rows)
+assert any(r['排列顺序']=='int:9223372036854775807' for r in rows)
+assert any(r['分组ID']=='\\\\N' for r in rows)
 assert '回顾' in z.read('README.txt').decode('utf8')
 print('PASS')`], { input: Buffer.from(zip.bytes) });
   assert.equal(r.status, 0, r.stderr.toString());

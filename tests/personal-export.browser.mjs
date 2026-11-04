@@ -5,7 +5,7 @@ import { execFileSync } from 'node:child_process';
 import { build } from 'vite';
 const { webkit, chromium } = await import(process.env.PLAYWRIGHT_MODULE_PATH || 'playwright');
 const browsers = new Map(); let files;
-const artifacts = process.env.EXPORT_ARTIFACTS || '/private/tmp/calendar-export-slice4/browser';
+const artifacts = process.env.EXPORT_ARTIFACTS || '/private/tmp/calendar-export-ux-finish/browser';
 before(async () => {
   files = (await build({ configFile: false, envFile: false, logLevel: 'error', plugins: [{ name: 'export-client', enforce: 'pre', resolveId(id) { if (/\/supabase(?:\.ts)?$/.test(id)) return '\0export-client'; }, load(id) { if (id === '\0export-client') return 'export const supabase=new Proxy({}, {get:(_,key)=>window.personalFixture.client[key]});'; } }], build: { write: false, rollupOptions: { input: 'tests/fixtures/personal-export-browser.jsx' } } })).output;
   await mkdir(artifacts, { recursive: true });
@@ -20,8 +20,8 @@ async function pageFor(engine, empty = false, multi = false) {
     const create = URL.createObjectURL.bind(URL), revoke = URL.revokeObjectURL.bind(URL);
     URL.createObjectURL = blob => { const url = create(blob); if (blob instanceof File) window.urls.push(url); return url; };
     URL.revokeObjectURL = url => { window.revoked.push(url); revoke(url); };
-    Object.defineProperty(navigator, 'canShare', { value: () => true, configurable: true });
-    Object.defineProperty(navigator, 'share', { value: async () => { if (window.shareMode !== 'success') throw new DOMException('fixture', window.shareMode === 'cancel' ? 'AbortError' : 'NotAllowedError'); }, configurable: true });
+    Object.defineProperty(navigator, 'canShare', { value: () => window.shareSupported !== false, configurable: true });
+    Object.defineProperty(navigator, 'share', { value: async ({ files }) => { window.sharedFiles ??= []; window.sharedFiles.push(files[0]); if (window.shareMode !== 'success') throw new DOMException('fixture', window.shareMode === 'cancel' ? 'AbortError' : 'NotAllowedError'); }, configurable: true });
   });
   await page.route('**/*', route => {
     const url = new URL(route.request().url()); assert.equal(url.origin, 'http://127.0.0.1:5175');
@@ -33,7 +33,7 @@ async function pageFor(engine, empty = false, multi = false) {
   });
   await page.goto('http://127.0.0.1:5175/__personal-export' + (multi ? '?multi=1' : empty ? '?empty=1' : ''));
   await page.getByRole('button', { name: '导出数据', exact: true }).click();
-  await page.getByRole('button', { name: '生成 ZIP', exact: true }).waitFor();
+  await page.getByRole('button', { name: '生成文件', exact: true }).waitFor();
   return page;
 }
 
@@ -49,45 +49,109 @@ test('Chrome: 10000-item capacity sample records ZIP and main-thread heap, witho
     await page.getByRole('button',{name:'全选',exact:true}).click();
     const start=Date.now();await generate(page);const elapsed=Date.now()-start;
     const heap=await page.evaluate(()=>{clearInterval(window.heapTimer);return {before:window.heapBefore,after:performance.memory?.usedJSHeapSize??null,sampledPeak:window.heapSamples.length?Math.max(...window.heapSamples):null,samples:window.heapSamples.length};});
-    await prepare(page,'下载 ZIP');const next=page.waitForEvent('download');await page.getByRole('button',{name:'确认保存 ZIP',exact:true}).click();const download=await next,path=`${artifacts}/Chrome-capacity.zip`;await download.saveAs(path);
+    await prepare(page,'直接下载 ZIP');const next=page.waitForEvent('download');await page.getByRole('button',{name:/^(继续保存或分享|确认下载文件)$/,exact:true}).click();const download=await next,path=`${artifacts}/Chrome-capacity.zip`;await download.saveAs(path);
     execFileSync('python3',['-c',`import zipfile,sys,csv,io
 z=zipfile.ZipFile(sys.argv[1]);assert z.testzip() is None
-assert any(len(list(csv.DictReader(io.StringIO(z.read(p).decode('utf-8-sig'),newline=''))))==10000 for p in z.namelist() if p.endswith('/list_items.csv'))`,path]);
+assert any(len(list(csv.DictReader(io.StringIO(z.read(p).decode('utf-8-sig'),newline=''))))==10000 for p in z.namelist() if p.endswith('/清单事项.csv'))`,path]);
     await writeFile(`${artifacts}/capacity.json`,JSON.stringify({items:10000,elapsedMs:elapsed,zipBytes:(await stat(path)).size,mainThreadJsHeapBytes:heap,limitations:'Desktop Chrome main-thread JS heap sample only; excludes full browser/worker RSS; no iPhone capacity claim.'},null,2));
     assert.deepEqual(page.errors,[]);
   }finally{await page.close();}
 });
-async function generate(page) { await page.getByRole('button', { name: '生成 ZIP', exact: true }).click(); await page.getByRole('status').filter({ hasText: '尚未保存' }).waitFor(); }
-async function prepare(page, name = '保存 ZIP') { await page.getByRole('button', { name, exact: true }).click(); await page.getByRole('button', { name: '确认保存 ZIP', exact: true }).waitFor(); }
+async function generate(page) { await page.getByRole('button', { name: '生成文件', exact: true }).click(); await page.getByRole('heading', { name: '数据已准备好', exact: true }).waitFor(); }
+async function prepare(page, name = '保存或分享文件') { if (name === '直接下载 ZIP' && !(await page.getByRole('button', {name, exact:true}).isVisible())) { await page.evaluate(()=>{window.shareSupported=false;window.dispatchEvent(new Event('focus'));}); await page.getByRole('button',{name,exact:true}).waitFor(); } await page.getByRole('button', { name, exact: true }).click(); await page.getByRole('button', { name: /^(继续保存或分享|确认下载文件)$/, exact: true }).waitFor(); }
 for (const engine of ['WebKit', 'Chrome']) {
+  test(`${engine}: fallback appears only for unsupported sharing or technical failure, never cancellation`, async () => {
+    const page = await pageFor(engine, false, true);
+    try {
+      await generate(page);
+      const fallback = page.getByRole('button', {name:'直接下载 ZIP',exact:true});
+      assert.equal(await page.getByRole('button',{name:'保存或分享文件',exact:true}).count(),1);
+      assert.equal(await fallback.count(),0); assert.equal(await page.locator('summary').count(),0);
+      assert.equal(await page.getByText(/shared-calendar-export_|尚未保存|已保存成功/).count(),0);
+      for (const width of [375,390]) { await page.setViewportSize({width,height:844}); assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true); await page.screenshot({path:`${artifacts}/${engine}-ready-${width}.png`,fullPage:true}); }
+      await prepare(page); await page.getByRole('button',{name:'继续保存或分享',exact:true}).click();
+      await page.getByRole('status').filter({hasText:'已取消分享'}).waitFor();
+      assert.equal(await fallback.count(),0);
+      await page.evaluate(()=>window.shareMode='fail');
+      await prepare(page); await page.getByRole('button',{name:'继续保存或分享',exact:true}).click();
+      await page.getByRole('status').filter({hasText:'保存请求失败'}).waitFor();
+      assert.equal(await fallback.isEnabled(),true);
+      assert.equal(await page.getByRole('button',{name:'保存或分享文件',exact:true}).isEnabled(),true);
+      await page.screenshot({path:`${artifacts}/${engine}-technical-failure-390.png`,fullPage:true});
+      await prepare(page,'直接下载 ZIP'); const next=page.waitForEvent('download');
+      await page.getByRole('button',{name:'确认下载文件',exact:true}).click(); assert.equal(await (await next).failure(),null);
+      await page.evaluate(()=>window.shareMode='success');
+      await prepare(page); await page.getByRole('button',{name:'继续保存或分享',exact:true}).click();
+      await page.getByRole('status').filter({hasText:'系统已接收分享请求'}).waitFor();
+      assert.equal(await fallback.count(),0);
+      await page.evaluate(()=>{window.shareSupported=false;window.dispatchEvent(new Event('focus'));});
+      await fallback.waitFor(); await page.waitForFunction(()=>Array.from(document.querySelectorAll('button')).some(b=>b.textContent==='保存或分享文件'&&!b.disabled)); assert.equal(await page.getByRole('button',{name:'保存或分享文件',exact:true}).isEnabled(),true);
+      await prepare(page,'直接下载 ZIP');const last=page.waitForEvent('download');await page.getByRole('button',{name:'确认下载文件',exact:true}).click();assert.equal(await (await last).failure(),null);
+      const shares=await page.evaluate(()=>window.sharedFiles.length); await prepare(page);
+      const primary=page.waitForEvent('download');await page.getByRole('button',{name:'确认下载文件',exact:true}).click();assert.equal(await (await primary).failure(),null);
+      assert.equal(await page.evaluate(()=>window.sharedFiles.length),shares);
+      assert.deepEqual(page.errors,[]);
+    }finally{await page.close();}
+  });
+  test(`${engine}: saving reuses the same ZIP; update rereads latest data and revokes the old URL`, async () => {
+    const page = await pageFor(engine, false, true);
+    try {
+      await page.getByRole('button',{name:'全选',exact:true}).click();await generate(page);
+      const before=await page.evaluate(()=>window.personalFixture.state.calls.filter(c=>!['spaces','space_members'].includes(c.table)).length);
+      for(const mode of ['cancel','success']) {
+        await page.evaluate(mode=>window.shareMode=mode,mode);await prepare(page);await page.getByRole('button',{name:'继续保存或分享',exact:true}).click();
+        await page.getByRole('status').filter({hasText:mode==='cancel'?'已取消分享':'系统已接收分享请求'}).waitFor();
+      }
+      assert.equal(await page.evaluate(()=>window.sharedFiles[0]===window.sharedFiles[1]),true);
+      assert.equal(await page.evaluate(()=>window.personalFixture.state.calls.filter(c=>!['spaces','space_members'].includes(c.table)).length),before);
+      const oldUrls=await page.evaluate(()=>[...window.urls]);
+      await page.evaluate(()=>window.personalFixture.rows.events[0].title='=更新后的日程🐈,"新"\n第二行');
+      await page.getByRole('button',{name:'更新导出文件',exact:true}).click();await page.getByRole('heading',{name:'数据已准备好',exact:true}).waitFor();
+      assert.ok(await page.evaluate(()=>window.personalFixture.state.calls.filter(c=>!['spaces','space_members'].includes(c.table)).length)>before);
+      assert.equal(await page.evaluate(urls=>urls.every(url=>window.revoked.includes(url)),oldUrls),true);
+      await prepare(page,'直接下载 ZIP');const next=page.waitForEvent('download');await page.getByRole('button',{name:'确认下载文件',exact:true}).click();
+      const download=await next,path=`${artifacts}/${engine}-updated.zip`;await download.saveAs(path);
+      execFileSync('python3',['-c',`import zipfile,json,csv,io,sys
+z=zipfile.ZipFile(sys.argv[1]);assert z.testzip() is None and len(z.namelist())==26
+m=json.loads(z.read('manifest.json'));assert m['format_version']==2 and len(m['file_names'])==12
+found=False
+for f in m['files']:
+ rows=list(csv.reader(io.StringIO(z.read(f['path']).decode('utf-8-sig'),newline='')))
+ assert rows[0]==[c['label'] for c in m['fields'][f['table']]] and len(rows)-1==f['rows']
+ if f['table']=='events':
+  col=rows[0].index('日程标题');found=found or any(r[col]==sys.argv[2] for r in rows[1:])
+assert found`,path,'text:=更新后的日程🐈,"新"\n第二行']);
+      assert.deepEqual(page.errors,[]);
+    }finally{await page.close();}
+  });
   test(`${engine}: visible Review read failure/permission loss fails closed, then full long-history ZIP can download`, async () => {
     const page = await pageFor(engine, false, true);
     try {
       await page.getByRole('button', { name: '全选', exact: true }).click();
       await page.evaluate(() => window.personalFixture.state.fail = 'review_entries');
-      await page.getByRole('button', { name: '生成 ZIP', exact: true }).click();
-      await page.getByRole('alert').waitFor(); assert.equal(await page.getByRole('button', { name: '保存 ZIP', exact: true }).count(), 0);
+      await page.getByRole('button', { name: '生成文件', exact: true }).click();
+      await page.getByRole('alert').waitFor(); assert.equal(await page.getByRole('button', { name: '保存或分享文件', exact: true }).count(), 0);
       await page.evaluate(() => { const f = window.personalFixture; f.state.fail = ''; f.state.blocked = true; f.state.blockTable = 'review_entries'; });
-      await page.getByRole('button', { name: '生成 ZIP', exact: true }).click(); await page.waitForFunction(() => !!window.personalFixture.state.release);
+      await page.getByRole('button', { name: '生成文件', exact: true }).click(); await page.waitForFunction(() => !!window.personalFixture.state.release);
       await page.evaluate(() => { const f = window.personalFixture; f.rows.space_members = f.rows.space_members.filter(m => !(m.space_id.endsWith('2') && m.user_id === f.state.user)); f.emitPermission(); f.state.release(); f.state.blocked = false; });
-      await page.getByRole('alert').waitFor(); assert.equal(await page.getByRole('button', { name: '保存 ZIP', exact: true }).count(), 0);
+      await page.getByRole('alert').waitFor(); assert.equal(await page.getByRole('button', { name: '保存或分享文件', exact: true }).count(), 0);
       await page.evaluate(() => { window.useLongHistory(true); window.personalFixture.emitPermission(); });
       await page.getByRole('checkbox', { name: /共享空间/ }).waitFor();
       await page.getByRole('button', { name: '全选', exact: true }).click();
-      await page.getByRole('button', { name: '生成 ZIP', exact: true }).click();
+      await page.getByRole('button', { name: '生成文件', exact: true }).click();
       await page.getByRole('alert').filter({ hasText: '分空间导出' }).waitFor();
       await page.getByRole('checkbox', { name: /个人空间/ }).uncheck();
       await page.evaluate(() => { window.heapBefore = performance.memory?.usedJSHeapSize ?? null; window.heapSamples = []; window.heapTimer = setInterval(() => { if (performance.memory) window.heapSamples.push(performance.memory.usedJSHeapSize); }, 5); });
       const start = Date.now(); await generate(page); const elapsedMs = Date.now() - start;
       const heap = await page.evaluate(() => { clearInterval(window.heapTimer); return { before: window.heapBefore, after: performance.memory?.usedJSHeapSize ?? null, sampledPeak: window.heapSamples.length ? Math.max(...window.heapSamples) : null, samples: window.heapSamples.length }; });
       assert.doesNotMatch(await page.getByRole('main').innerText(), /阶段性|尚未纳入/);
-      await prepare(page, '下载 ZIP'); const next = page.waitForEvent('download'); await page.getByRole('button', { name: '确认保存 ZIP', exact: true }).click();
+      await prepare(page, '直接下载 ZIP'); const next = page.waitForEvent('download'); await page.getByRole('button', { name: /^(继续保存或分享|确认下载文件)$/, exact: true }).click();
       const download = await next, path = `${artifacts}/${engine}-long-reviews.zip`; await download.saveAs(path);
       execFileSync('python3', ['-c', `import zipfile,sys,csv,io,json
 z=zipfile.ZipFile(sys.argv[1]); assert z.testzip() is None and len(z.namelist())==14
 m=json.loads(z.read('manifest.json')); assert set(m['table_coverage'].values())=={'exported'}
 for name,count in [('review_rounds',520),('review_entries',1040)]:
- p=next(p for p in z.namelist() if p.endswith('/'+name+'.csv'))
+ p=next(p for p in z.namelist() if p.endswith('/'+m['file_names'][name]))
  assert len(list(csv.DictReader(io.StringIO(z.read(p).decode('utf-8-sig'),newline=''))))==count`, path]);
       await writeFile(`${artifacts}/${engine}-long-capacity.json`, JSON.stringify({ rounds: 520, entries: 1040, charactersPerField: 600, variedText: true, elapsedMs, zipBytes: (await stat(path)).size, mainThreadJsHeapBytes: heap, limitations: 'Desktop only; excludes browser/worker RSS; no actual iPhone memory or save validation.' }, null, 2));
       await page.getByRole('button', { name: '账户管理', exact: true }).click();
@@ -101,11 +165,11 @@ for name,count in [('review_rounds',520),('review_entries',1040)]:
     try {
       const personal = page.getByRole('checkbox', { name: /个人空间/ }), shared = page.getByRole('checkbox', { name: /共享空间/ });
       assert.equal(await personal.isChecked(), true); assert.equal(await shared.isChecked(), false);
-      await generate(page); await shared.check(); assert.equal(await page.getByRole('button',{name:'保存 ZIP',exact:true}).count(),0);
-      await page.getByRole('button',{name:'取消全选',exact:true}).click();assert.equal(await page.getByRole('button',{name:'生成 ZIP',exact:true}).isDisabled(),true);
-      await shared.check();await generate(page);await personal.check();assert.equal(await page.getByRole('button',{name:'保存 ZIP',exact:true}).count(),0);
+      await generate(page); await shared.check(); assert.equal(await page.getByRole('button',{name:'保存或分享文件',exact:true}).count(),0);
+      await page.getByRole('button',{name:'取消全选',exact:true}).click();assert.equal(await page.getByRole('button',{name:'生成文件',exact:true}).isDisabled(),true);
+      await shared.check();await generate(page);await personal.check();assert.equal(await page.getByRole('button',{name:'保存或分享文件',exact:true}).count(),0);
       await page.getByRole('button',{name:'取消全选',exact:true}).click();await page.getByRole('button',{name:'全选',exact:true}).click();
-      await generate(page);await prepare(page,'下载 ZIP');const next=page.waitForEvent('download');await page.getByRole('button',{name:'确认保存 ZIP',exact:true}).click();const download=await next;
+      await generate(page);await prepare(page,'直接下载 ZIP');const next=page.waitForEvent('download');await page.getByRole('button',{name:/^(继续保存或分享|确认下载文件)$/,exact:true}).click();const download=await next;
       const path=`${artifacts}/${engine}-multi.zip`;await download.saveAs(path);assert.equal(await download.failure(),null);
       execFileSync('python3',['-c',`import zipfile,sys,json,csv,io
 z=zipfile.ZipFile(sys.argv[1]);assert z.testzip() is None and len(z.namelist())==26
@@ -114,7 +178,7 @@ assert m['table_coverage']['review_rounds']=='exported' and m['table_coverage'][
 assert len({s['directory'] for s in m['spaces']})==2
 for f in m['files']:
  rows=list(csv.reader(io.StringIO(z.read(f['path']).decode('utf-8-sig'),newline='')));assert len(rows)-1==f['rows']
-assert any(f['path'].endswith('/tasks.csv') and f['rows']==1 for f in m['files'])`,path]);
+assert any(f['path'].endswith('/任务.csv') and f['rows']==1 for f in m['files'])`,path]);
       for(const width of [375,390,1024]){await page.setViewportSize({width,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await page.screenshot({path:`${artifacts}/${engine}-multi-${width}.png`,fullPage:true});}
       await page.setViewportSize({width:390,height:844});
       await page.screenshot({path:`${artifacts}/${engine}-multi-390.png`,fullPage:true});assert.deepEqual(page.errors,[]);
@@ -124,31 +188,31 @@ assert any(f['path'].endswith('/tasks.csv') and f['rows']==1 for f in m['files']
     const page=await pageFor(engine,false,true);
     try {
       await page.getByRole('button',{name:'全选',exact:true}).click();await page.evaluate(()=>window.personalFixture.state.blocked=true);
-      await page.getByRole('button',{name:'生成 ZIP',exact:true}).click();await page.waitForFunction(()=>!!window.personalFixture.state.release);
+      await page.getByRole('button',{name:'生成文件',exact:true}).click();await page.waitForFunction(()=>!!window.personalFixture.state.release);
       await page.evaluate(()=>{const f=window.personalFixture;f.rows.space_members=f.rows.space_members.filter(m=>!(m.space_id.endsWith('2')&&m.user_id===f.state.user));f.emitPermission();f.state.release();f.state.blocked=false;});
-      await page.getByRole('alert').waitFor();assert.equal(await page.getByRole('checkbox',{name:/共享空间/}).count(),0);assert.equal(await page.getByRole('button',{name:'保存 ZIP',exact:true}).count(),0);assert.deepEqual(page.errors,[]);
+      await page.getByRole('alert').waitFor();assert.equal(await page.getByRole('checkbox',{name:/共享空间/}).count(),0);assert.equal(await page.getByRole('button',{name:'保存或分享文件',exact:true}).count(),0);assert.deepEqual(page.errors,[]);
     }finally{await page.close();}
   });
   test(`${engine}: capacity failure is explicit and fewer selected Spaces can succeed`, async () => {
     const page=await pageFor(engine,false,true);
     try {
       await page.getByRole('button',{name:'全选',exact:true}).click();await page.evaluate(()=>window.personalFixture.rows.events[0].description='x'.repeat(16*1024*1024));
-      await page.getByRole('button',{name:'生成 ZIP',exact:true}).click();await page.getByRole('alert').filter({hasText:'减少所选空间'}).waitFor();assert.match(await page.getByRole('alert').innerText(),/8 MiB.*16 MiB/);assert.equal(await page.getByRole('button',{name:'保存 ZIP',exact:true}).count(),0);
+      await page.getByRole('button',{name:'生成文件',exact:true}).click();await page.getByRole('alert').filter({hasText:'减少所选空间'}).waitFor();assert.match(await page.getByRole('alert').innerText(),/8 MiB.*16 MiB/);assert.equal(await page.getByRole('button',{name:'保存或分享文件',exact:true}).count(),0);
       await page.getByRole('checkbox',{name:/共享空间/}).uncheck();await generate(page);assert.deepEqual(page.errors,[]);
     }finally{await page.close();}
   });
   for (const empty of [false, true]) test(`${engine}: ${empty?'empty':'501-row'} account to ZIP download with complete authorized coverage`, async () => {
     const page = await pageFor(engine, empty);
     try {
-      await generate(page); await prepare(page, '下载 ZIP');
-      const next = page.waitForEvent('download'); await page.getByRole('button', { name: '确认保存 ZIP', exact: true }).click();
+      await generate(page); await prepare(page, '直接下载 ZIP');
+      const next = page.waitForEvent('download'); await page.getByRole('button', { name: /^(继续保存或分享|确认下载文件)$/, exact: true }).click();
       const download = await next, path = `${artifacts}/${engine}-${empty?'empty':'populated'}.zip`; await download.saveAs(path);
       assert.equal(await download.failure(), null);
       execFileSync('python3', ['-c', `import zipfile,json,sys,csv,io
 z=zipfile.ZipFile(sys.argv[1]); assert z.testzip() is None
 m=json.loads(z.read('manifest.json')); assert m['synthetic'] is False and m['export_scope']=='authorized-spaces'
 assert m['table_coverage']['tasks']=='exported' and m['table_coverage']['review_entries']=='exported'; assert len(z.namelist())==14
-p=next(p for p in z.namelist() if p.endswith('/events.csv')); rows=list(csv.DictReader(io.StringIO(z.read(p).decode('utf-8-sig'),newline='')))
+p=next(p for p in z.namelist() if p.endswith('/日程.csv')); rows=list(csv.DictReader(io.StringIO(z.read(p).decode('utf-8-sig'),newline='')))
 assert len(rows)==int(sys.argv[2])`, path, empty ? '0' : '501']);
       await page.getByRole('status').filter({ hasText: '已请求浏览器下载' }).waitFor();
       for (const width of [320, 375, 390]) { await page.setViewportSize({ width, height: 844 }); assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true); }
@@ -161,43 +225,43 @@ assert len(rows)==int(sys.argv[2])`, path, empty ? '0' : '501']);
     try {
       await generate(page);
       for (const [mode, text] of [['cancel','已取消分享'], ['fail','保存请求失败'], ['success','系统已接收分享请求']]) {
-        await page.evaluate(mode => { window.shareMode = mode; }, mode); await prepare(page); await page.getByRole('button',{name:'确认保存 ZIP',exact:true}).click(); await page.getByRole('status').filter({hasText:text}).waitFor();
+        await page.evaluate(mode => { window.shareMode = mode; }, mode); await prepare(page); await page.getByRole('button',{name:/^(继续保存或分享|确认下载文件)$/,exact:true}).click(); await page.getByRole('status').filter({hasText:text}).waitFor();
       }
       await page.evaluate(()=>{window.originalDownloadClick=HTMLAnchorElement.prototype.click;HTMLAnchorElement.prototype.click=()=>{throw Error('synthetic download failure');};});
-      await prepare(page,'下载 ZIP');await page.getByRole('button',{name:'确认保存 ZIP',exact:true}).click();await page.getByRole('status').filter({hasText:'保存请求失败'}).waitFor();
+      await prepare(page,'直接下载 ZIP');await page.getByRole('button',{name:/^(继续保存或分享|确认下载文件)$/,exact:true}).click();await page.getByRole('status').filter({hasText:'保存请求失败'}).waitFor();
       await page.evaluate(()=>{HTMLAnchorElement.prototype.click=window.originalDownloadClick;});
-      await prepare(page,'下载 ZIP');const pending=page.waitForEvent('download');await page.getByRole('button',{name:'确认保存 ZIP',exact:true}).click();assert.equal(await (await pending).failure(),null);
+      await prepare(page,'直接下载 ZIP');const pending=page.waitForEvent('download');await page.getByRole('button',{name:/^(继续保存或分享|确认下载文件)$/,exact:true}).click();assert.equal(await (await pending).failure(),null);
       await page.evaluate(()=>{window.personalFixture.rows.space_members=[];window.personalFixture.emitPermission();});
-      await page.getByRole('alert').waitFor(); assert.equal(await page.getByRole('button',{name:'保存 ZIP',exact:true}).count(),0);
+      await page.getByRole('alert').waitFor(); assert.equal(await page.getByRole('button',{name:'保存或分享文件',exact:true}).count(),0);
       assert.equal(await page.evaluate(()=>window.urls.every(url=>window.revoked.includes(url))),true); assert.deepEqual(page.errors,[]);
     } finally { await page.close(); }
   });
   test(`${engine}: query failure/cancel/retry and in-flight logout cannot publish ZIP`, async () => {
     const page = await pageFor(engine);
     try {
-      await page.evaluate(()=>window.personalFixture.state.fail='events');await page.getByRole('button',{name:'生成 ZIP',exact:true}).click();await page.getByRole('alert').waitFor();assert.equal(await page.getByRole('button',{name:'保存 ZIP',exact:true}).count(),0);
+      await page.evaluate(()=>window.personalFixture.state.fail='events');await page.getByRole('button',{name:'生成文件',exact:true}).click();await page.getByRole('alert').waitFor();assert.equal(await page.getByRole('button',{name:'保存或分享文件',exact:true}).count(),0);
       await page.evaluate(()=>{const f=window.personalFixture;f.state.fail='';f.state.blocked=true;});
-      await page.getByRole('button',{name:'生成 ZIP',exact:true}).click();await page.waitForFunction(()=>!!window.personalFixture.state.release);
+      await page.getByRole('button',{name:'生成文件',exact:true}).click();await page.waitForFunction(()=>!!window.personalFixture.state.release);
       await page.getByRole('button',{name:'取消',exact:true}).click();await page.evaluate(()=>{window.personalFixture.state.release();window.personalFixture.state.blocked=false;});
       await generate(page);
       await page.evaluate(()=>{window.personalFixture.state.blocked=true;window.personalFixture.state.release=null;});
-      await page.getByRole('button',{name:'重新生成 ZIP',exact:true}).click();await page.waitForFunction(()=>!!window.personalFixture.state.release);
-      await page.evaluate(()=>{window.personalFixture.state.user='';window.personalFixture.emitAuth();window.personalFixture.state.release();});await page.getByRole('alert').waitFor();assert.equal(await page.getByRole('button',{name:'保存 ZIP',exact:true}).count(),0);assert.deepEqual(page.errors,[]);
+      await page.getByRole('button',{name:'更新导出文件',exact:true}).click();await page.waitForFunction(()=>!!window.personalFixture.state.release);
+      await page.evaluate(()=>{window.personalFixture.state.user='';window.personalFixture.emitAuth();window.personalFixture.state.release();});await page.getByRole('alert').waitFor();assert.equal(await page.getByRole('button',{name:'保存或分享文件',exact:true}).count(),0);assert.deepEqual(page.errors,[]);
     } finally { await page.close(); }
   });
   test(`${engine}: back/navigation while pending and account replacement discard old content`, async () => {
     const page = await pageFor(engine);
     try {
-      await page.evaluate(()=>window.personalFixture.state.blocked=true);await page.getByRole('button',{name:'生成 ZIP',exact:true}).click();await page.waitForFunction(()=>!!window.personalFixture.state.release);
+      await page.evaluate(()=>window.personalFixture.state.blocked=true);await page.getByRole('button',{name:'生成文件',exact:true}).click();await page.waitForFunction(()=>!!window.personalFixture.state.release);
       await page.getByRole('button',{name:'账户管理',exact:true}).click();await page.getByRole('heading',{name:'账户管理',exact:true}).waitFor();await page.evaluate(()=>{window.personalFixture.state.release();window.personalFixture.state.blocked=false;});
-      await page.getByRole('button',{name:'导出数据',exact:true}).click();await page.getByRole('button',{name:'生成 ZIP',exact:true}).waitFor();await generate(page);
-      await page.evaluate(()=>window.personalFixture.setUser('20000000-0000-4000-8000-000000000099'));await page.getByRole('heading',{name:'账户管理',exact:true}).waitFor();assert.equal(await page.getByRole('button',{name:'保存 ZIP',exact:true}).count(),0);assert.deepEqual(page.errors,[]);
+      await page.getByRole('button',{name:'导出数据',exact:true}).click();await page.getByRole('button',{name:'生成文件',exact:true}).waitFor();await generate(page);
+      await page.evaluate(()=>window.personalFixture.setUser('20000000-0000-4000-8000-000000000099'));await page.getByRole('heading',{name:'账户管理',exact:true}).waitFor();assert.equal(await page.getByRole('button',{name:'保存或分享文件',exact:true}).count(),0);assert.deepEqual(page.errors,[]);
     } finally { await page.close(); }
   });
   test(`${engine}: save recheck failure rejects ZIP and swipe uses account return`, async () => {
     const page = await pageFor(engine);
     try {
-      await generate(page);await page.evaluate(()=>window.personalFixture.rows.space_members=[]);await page.getByRole('button',{name:'保存 ZIP',exact:true}).click();await page.getByRole('alert').waitFor();assert.equal(await page.getByRole('button',{name:'确认保存 ZIP',exact:true}).count(),0);
+      await generate(page);await page.evaluate(()=>window.personalFixture.rows.space_members=[]);await page.getByRole('button',{name:'保存或分享文件',exact:true}).click();await page.getByRole('alert').waitFor();assert.equal(await page.getByRole('button',{name:/^(继续保存或分享|确认下载文件)$/,exact:true}).count(),0);
       assert.doesNotMatch(await page.getByRole('status').innerText(), /已生成|尚未保存/);
       await page.getByRole('main').evaluate(el=>{const p={bubbles:true,pointerId:51,pointerType:'touch',isPrimary:true,buttons:1};el.dispatchEvent(new PointerEvent('pointerdown',{...p,clientX:4,clientY:650}));el.dispatchEvent(new PointerEvent('pointermove',{...p,clientX:60,clientY:650}));el.dispatchEvent(new PointerEvent('pointerup',{...p,buttons:0,clientX:130,clientY:650}));});
       await page.getByRole('heading',{name:'账户管理',exact:true}).waitFor();assert.deepEqual(page.errors,[]);
