@@ -1,5 +1,11 @@
 # Decisions
 
+## 2026-11-04 — Slice 2仅个人日程阶段包
+
+用户授权Slice 1独立本地Commit后实现Slice 2；只提交Slice 1（9c3c237），无Push/Deploy，Slice 2不提交。沿用现有字段与format_version=1，以export_scope/table_coverage/complete_backup=false显式扩展范围；未纳入的8类表不生成CSV，README与UI说明不是完整备份，不能用空文件表示已读取。仅4类查询，不实现其他模块。
+
+个人Space由getUser与实际成员关系定位，不传任意目标ID、不以created_by推断、不调用ensure/create或服务角色。保存前重新核验，随后用户在短有效期内再次确认以保留原生手势；账号/权限通知/导航使内存结果失效。非事务读取和通知延迟边界如合同所述，不声称能撤回已合法保存文件。真实backend cast、RLS会话和iPhone PWA仍待后续环境门禁与人工验收。
+
 ## 2026-11-04 — 用户数据导出 Slice 1 合同（仅本地）
 
 用户确认：关闭模块的有权读取历史应包含；首版接受非事务快照，记录准备时间范围，检测缺页/计数变化/关联异常即失败；默认只勾个人 Space，共享主动选择并提供全选。继续浏览器本地 ZIP、现有用户 RLS，不增加导出服务/队列/Storage、不做导入恢复；数据导出先于注销。

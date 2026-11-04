@@ -1,5 +1,23 @@
 # Testing
 
+## 2026-11-04 — 用户导出 Slice 2／LOCAL VERIFIED／READY FOR REVIEW
+
+Slice 1针对性review：18份指纹匹配、12/12核心复验，无新增阻塞；按授权独立本地Commit `9c3c237d96ad10e1e23d02bff0c3d0b5e7468816`。其下历史“未Commit”保留为当时事实。Slice 2仅工作区，未Commit/Push/Deploy，无新版本。
+
+范围：账户管理→导出数据→唯一成员资格personal Space→events/例外完整读取→阶段ZIP→主动保存。读取器不接受任意Space ID，无created_by归属推断，无写入/RPC/service_role；其他模块不查询、不实现。阶段包6文件，未接入表not_included且不生成CSV；这不是完整备份。
+
+- Node命令：`node --test tests/data-export-format.test.ts tests/data-export-archive.test.ts tests/data-export-save.test.ts tests/personal-export.test.ts tests/aggregate-calendar.test.ts tests/profile-card-ui.test.ts tests/me-spaces-ui-v2.test.ts tests/navigation-persistence.test.ts`，49/49 PASS。0/500/501/1000/1001和37条server cap；100事件一批且子表501条分页；重复/缺页/计数漂移/NULL响应/错误、无或多个personal空间、账号变化/登出/取消、精确字段JSON文本请求等覆盖。
+- Python标准库zipfile/csv独立回读真实读取器＋内存Mock产生的ZIP，核对CRC、6文件、阶段coverage、501条例外、长中文Emoji多行引号、NULL与JSON超安全整数文本。测试ZIP的synthetic=false用于覆盖读取器真实输出协议，输入全部为合成Mock，不是线上来源证明。
+- `PLAYWRIGHT_MODULE_PATH=<既有缓存playwright> node --test --test-concurrency=1 --test-timeout=30000 tests/personal-export.browser.mjs tests/data-export.browser.mjs tests/login-email.browser.mjs`：30/30 PASS（12新链路＋14保存＋4邮箱）。Mock只替换Supabase边界，真实组件/读取器/ZIP/Blob下载；envFile=false，HTTP只限127.0.0.1:5175，允许同源Blob worker。覆盖空/501数据、独立下载解压、取消分享/失败/下载抛错再重试、查询失败/取消、生成中登出/导航、账号替换、权限通知与保存复核失败清除、右滑、320/375/390渲染。pageerror为空，不操纵真实账号。
+- `node --test --test-timeout=30000 --test-name-pattern='account management keeps|account visual parity|notification visual tokens' tests/ui-consistency.browser.mjs`：原账户8/8 PASS，头部/系统/右滑返回、资料保持、原邮箱/退出行为及375/390视觉规范保持。手写Node React替身仅补齐API与profile effect位置，未放宽原业务断言。
+- `npm run build`含`tsc -b`、`node --check tests/personal-export.browser.mjs`、`git diff --check` PASS。无新增依赖；DataExportPage和archive按需块、fflate仍按需加载，既有大chunk提示保留。两引擎390截图已实际查看，无横向溢出。
+
+权限保护：每页前后核验用户、末尾重验成员和count、压缩后/保存准备重验；账号/成员通知立即中止或废弃内存结果，focus恢复重查；卸载释放Object URL。重新核验后再点击确认保存，确认有效10秒；分享返回只表示系统接收请求，不记落盘成功。已有合法读出/保存文件不能撤回，Realtime延迟及非事务同数量变化仍是明确边界。
+
+证据路径：/private/tmp/calendar-export-slice2-{reader-red,invalidation-red,node,browser,account-browser,build}.log；/private/tmp/calendar-export-slice2/browser/内两引擎ZIP与390截图。复现并修正过权限失效后的旧成功提示残留；WebKit初始大文件失败是测试路由阻断Blob worker，定位后修正夹具，不作为Production故障。
+
+未验证：当前本地前端实际目标与Production JSON ::text兼容性、真实登录RLS/权限撤销/Realtime投递、真实iPhone standalone PWA HTTPS/原生分享与“存储到文件”/后台恢复。无Production操作，本轮不要求真实用户验收；后续先做环境对齐门禁。实际JSON cast不兼容或返回对象时必须失败，不降级、不输出空ZIP。不开始多Space/其他模块/回顾/注销。
+
 ## 2026-11-04 — 用户数据导出 Slice 1／仅本地 READY FOR REVIEW
 
 范围：真实Schema字段合同、合成ZIP与独立DEV保存验证；当前主应用没有正式导出入口，无业务数据查询/Production/Auth/RLS/Schema/Edge/Cron变更。正式版本仍v0.1.21；旧稳定性Slice 1暂缓和既有关闭结论不变。

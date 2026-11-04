@@ -1,5 +1,23 @@
 # Development Log
 
+## 2026-11-04 — Slice 2 本地检查点授权
+
+用户授权Slice 2独立本地Commit及Slice 3本地实现，Slice 3不提交、不Push/Deploy。限定review核对16份文件与前轮指纹完全一致，导出核心16/16复验、diff-check通过；沿用既有49/38、Build及回读证据。成员来源、逐页核验、失效清理与not_included范围标记无新增阻塞。未纳入真实业务导出、凭据或临时ZIP/日志，测试源夹具按设计保留。Production/真机门禁保持未验证。
+
+## 2026-11-04 — Slice 1检查点／Slice 2 LOCAL VERIFIED，未提交
+
+Slice 1受限review核对18份指纹与前轮一致，核心12/12复验及staged diff-check通过，无真实业务/凭据/临时下载或错误新增Production声明纳入。按本轮明确授权创建唯一新本地Commit 9c3c237d96ad10e1e23d02bff0c3d0b5e7468816；不Push/Deploy。随后仅本地实现Slice 2，未提交。
+
+新增personal-export读取器，无目标Space输入；从当前用户与实际成员关系交集定位唯一personal Space。显式字段、JSON ::text、稳定分页、每100事件ID读取例外且各批继续分页，复用completeRows，末尾精确count核验。压缩后/保存前重新核验权限；AbortSignal、revision、Auth/成员通知、恢复焦点及卸载清理，真实File/URL不持久化。账户增加有效导出入口，复用局部History/右滑和视觉；叶页惰性加载、导入失败可返回，原邮箱/退出handler保持。异步核验后用户确认保存，10秒确认过期需重新核验。
+
+合同增加personal-calendar阶段覆盖，保留12类字段定义与编码，但只生成4类已读CSV＋README/manifest；其他表not_included，complete_backup=false，避免“空表即完整”误导。SQL/RLS/Auth/Edge/Cron/Production、依赖、其他模块无改动。
+
+Node49/49（含读取分页0/500/501/1000/1001/37条cap、501例外分页、异常/账号/取消与原功能回归）；浏览器个人链路12＋Slice 1保存14＋邮箱4=30/30，原账户返回/视觉/退出8/8。Python独立回读读取器Mock ZIP、空/501日程ZIP，验证CRC、6文件、覆盖、原文/JSON大数与关联。Mock为合成输入，synthetic=false只是读取器输出协议；无真实数据接触。TypeScript/Build/语法/diff通过，移动端320/375/390无溢出，两引擎390截图已查看。日志/private/tmp/calendar-export-slice2-{node,browser,account-browser,build}.log，产物/private/tmp/calendar-export-slice2/browser/。
+
+测试修正：WebKit大CSV触发ZIP worker，被原夹具拦截Blob请求；允许同源Blob后通过，未改生产ZIP worker逻辑。原手写React替身补齐已有useId与新增lazy/Suspense，并明确profile effect，不放宽操作断言。收尾review先复现权限失效后旧成功提示残留，再修复同步清除；迟到结果与下载失败重试已覆盖。
+
+仍未验证Production JSON ::text/真实RLS会话/Realtime投递、iPhone standalone PWA或原生分享落盘；不得按Mock结果宣称可发布。保持版本v0.1.21及旧关闭结论，不要求用户真实登录验收。治理状态已更新；无其他项目修改，外部仅临时验证产物，未主动查看或输出.env/密钥。完成后停止，等待review与后续授权，不提交Slice 2。
+
 ## 2026-11-04 — 导出 Slice 1 本地检查点授权
 
 用户授权将 Slice 1 单独本地 Commit，然后本地实现 Slice 2；不 Push/Deploy，Slice 2 不提交。针对性 review 核对18份文件与前轮指纹全部一致，核心12项复验通过、diff检查通过；没有新增格式阻塞，没有真实业务数据、凭据、ZIP或临时日志纳入仓库，保留既有54/14、Build与回读证据。合成夹具是有意保留的测试源文件，不是临时下载文件。Production cast与真机PWA仍未验证。后续仅个人Space日程/例外，阶段覆盖必须显式标记，不包装完整备份。

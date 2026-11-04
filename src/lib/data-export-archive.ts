@@ -1,7 +1,8 @@
 import { assertExportUuid, exportColumns, exportCsv, exportTables, spaceDirectory, type ExportRow, type ExportTable } from './data-export-format.ts';
 
 export type ExportSpace = { tables: Record<ExportTable, ExportRow[]>; expectedRows: Record<ExportTable, number> };
-export type ExportInput = { actorId: string; startedAt: string; finishedAt: string; synthetic: boolean; spaces: ExportSpace[] };
+export type ExportInput = { actorId: string; startedAt: string; finishedAt: string; synthetic: boolean; spaces: ExportSpace[]; scope?: 'personal-calendar' };
+export const personalCalendarTables: ExportTable[] = ['space', 'members', 'events', 'event_occurrence_exceptions'];
 export const exportByteLimit = 16 * 1024 * 1024;
 
 const readme = `共享日历数据导出（格式 1）
@@ -16,7 +17,7 @@ bigint 以 int: 开头，后接精确十进制整数；日期以 date: 开头；
 日期不作 UTC 转换，时间戳保留返回值，time_zone 字段单独保留。重复日程导出源段、规则和例外，不展开无限未来；recurrence_until 为排他截止。
 共享内容可能包含其他成员的记录。正式读取必须受当前成员资格、RLS 和回顾原参与者限制；关闭模块的有权读取历史数据仍应包含。未授权内容不能为补齐关系而额外读取。
 manifest 记录数据准备起止时间（不包含随后 ZIP 压缩及用户保存耗时）、Space、CSV 行数与有序字段定义；这是非事务快照，不能保证所有记录来自同一数据库时点。
-manifest 中 synthetic=true 表示完全合成数据，不证明真实数据库权限、分页或线上兼容性。计数由调用方提供，组装器只能核对输入，不替代未来读取器的完整性门禁。
+manifest 中 synthetic=true 表示合成样本数据。数据来源、授权与读取完整性由读取端核验，文件组装本身不证明数据库权限或线上兼容性。
 首版不能将此文件导入应用或恢复账号／已删除数据。本文件未加密，请自行妥善保存。
 `;
 
@@ -89,14 +90,18 @@ export function prepareExport(input: ExportInput) {
   if (!Number.isFinite(Date.parse(input.startedAt)) || !Number.isFinite(Date.parse(input.finishedAt))
     || Date.parse(input.startedAt) > Date.parse(input.finishedAt) || !input.spaces.length || typeof input.synthetic !== 'boolean') invalid();
   const encoder = new TextEncoder(), files: Record<string, Uint8Array> = {};
+  const included = input.scope === 'personal-calendar' ? personalCalendarTables : exportTables;
+  if (input.scope !== undefined && (input.scope !== 'personal-calendar' || input.spaces.length !== 1 || input.spaces[0].tables.space[0]?.kind !== 'personal')) invalid();
   const manifest = {
     format_version: 1, synthetic: input.synthetic, exported_by_user_id: input.actorId, started_at: input.startedAt, finished_at: input.finishedAt,
     transactional_snapshot: false, includes_disabled_modules: true,
+    export_scope: input.scope ?? 'all-modules', complete_backup: false,
+    table_coverage: Object.fromEntries(exportTables.map((table) => [table, included.includes(table) ? 'exported' : 'not_included'])),
     encoding: { charset: 'UTF-8-BOM', record_separator: 'CRLF', null: '\\N', text: 'text:', json: 'json:', bigint: 'int:', date: 'date:', timestamp: 'time:', integer: 'decimal-int32', boolean: 'true/false', uuid: 'canonical-lowercase' },
     fields: exportColumns,
     spaces: [] as { id: string; name: string; kind: string; directory: string }[],
     files: [] as { path: string; rows: number }[],
-    limitations: ['非数据库单一时点快照', '起止时间为数据准备区间，不含 ZIP 压缩和保存', '计数与授权须由未来读取器独立核验', '不支持导入或恢复'],
+    limitations: ['非数据库单一时点快照', '起止时间为数据准备区间，不含 ZIP 压缩和保存', '计数与授权由调用读取器独立核验', '不支持导入或恢复'],
   };
   const seen = new Map<ExportTable, Set<string>>(exportTables.map((table) => [table, new Set()]));
   let bytes = 0;
@@ -114,6 +119,7 @@ export function prepareExport(input: ExportInput) {
     for (const table of exportTables) {
       const rows = space.tables[table], count = space.expectedRows[table];
       if (!Array.isArray(rows) || !Number.isSafeInteger(count) || count !== rows.length) invalid();
+      if (!included.includes(table)) { if (rows.length) invalid(); continue; }
       const csv = exportCsv(table, rows);
       for (const row of rows) {
         const keys = table === 'members' ? ['space_id', 'user_id'] : table === 'modules' ? ['space_id', 'module_key'] : table === 'review_entries' ? ['review_id', 'user_id'] : ['id'];
@@ -127,7 +133,8 @@ export function prepareExport(input: ExportInput) {
     validateRelations(space, input.actorId);
     manifest.spaces.push({ id: String(meta.id), name: meta.name, kind: String(meta.kind), directory });
   }
-  addFile('README.txt', readme.replace(/\n/g, '\r\n'));
+  const scopeNote = input.scope === 'personal-calendar' ? '阶段性导出：仅个人空间日程及重复例外，不是完整备份。\n包含space、members、events、event_occurrence_exceptions。\nmodules、任务、清单、重要日、回顾尚未纳入，标记not_included且不生成对应CSV；不能解释为已查询为空。\n\n' : '';
+  addFile('README.txt', (scopeNote + readme).replace(/\n/g, '\r\n'));
   addFile('manifest.json', JSON.stringify(manifest, null, 2) + '\n');
   const filename = `shared-calendar-export_${new Date(input.finishedAt).toISOString().replace(/[:.]/g, '-')}.zip`;
   return { files, manifest, filename };

@@ -33,9 +33,23 @@ spaces/space_<安全名称>__<完整Space-ID>/
   review_entries.csv
 ```
 
-每个 Space 的 12 个 CSV 必须齐全，包括仅表头的空表。相同名称由完整 UUID 区分。名称 NFC 规范化，路径分隔符、Windows 非法字符、控制与双向控制字符替换，点串替换，去除末尾空格，最多 40 个 Unicode 码点。固定 `space_` 前缀避免 Windows 设备名；ID 必须是小写标准 UUID。不会使用原名称拼接任意路径。
+全模块合同下每个 Space 的 12 个 CSV 必须齐全，包括仅表头的空表。Slice 2 阶段性 personal-calendar 范围见下节，未纳入的表不生成 CSV。相同名称由完整 UUID 区分。名称 NFC 规范化，路径分隔符、Windows 非法字符、控制与双向控制字符替换，点串替换，去除末尾空格，最多 40 个 Unicode 码点。固定 `space_` 前缀避免 Windows 设备名；ID 必须是小写标准 UUID。不会使用原名称拼接任意路径。
 
 ## CSV 字段白名单与顺序
+
+### Slice 2：个人空间日程阶段性范围
+
+2026-11-04 本地实现；沿用 format_version=1 和全部既有字段/编码，增加明确的范围元数据：export_scope=`personal-calendar`、complete_backup=false、table_coverage逐表标记。仅space/members/events/event_occurrence_exceptions为exported，包含确实为空时的表头；modules/tasks/lists/list_sections/list_items/important_dates/review_rounds/review_entries为not_included，不生成其CSV，不能解释为已查询为空。每包当前为4个CSV＋README＋manifest共6文件。默认全模块合成验证仍输出原12类CSV；不允许阶段输入夹带未纳入模块的数据后静默丢弃。
+
+README首段和账户导出界面均明确“阶段性导出，不是完整备份”。仅日程与重复例外真实读取接口已实现，其他模块和多Space未实现。Mock测试会经过实际读取器产生synthetic=false协议分支，但测试来源仍是合成内存数据，不是Production数据或验收证明。
+
+src/lib/personal-export.ts不接受导出目标Space参数；先getUser核对当前用户，再分页读取其成员关系，与kind=personal空间相交，必须唯一；不以created_by识别归属。显式列查询，JSON使用::text，按ID稳定分页，子表每100来源事件ID一批且每批继续分页。复用completeRows并拒绝NULL响应，末尾再核对events及各例外批次精确数量；准备区间覆盖读取阶段。非事务读取仍不能发现所有同数量替换或修改。
+
+权限在分页前后、读取结束、压缩后和保存准备阶段核验；Auth变化、成员变更通知、导航离开使请求/内存结果失效。恢复焦点/可见时重新核验已生成文件，失败关闭。Realtime通知不能保证即时到达，因此保存前始终重新查询；核验与交付不是一个数据库原子事务，先前已合法读取或保存的文件无法远程撤回。
+
+保存先进行异步权限核验，再由用户点击“确认保存ZIP”获得新的用户手势，确认有效期10秒；超时重新核验。原生分享取消/失败可重试或下载，不声称已落盘。File/Object URL只在内存中，失效或卸载释放，不写localStorage/sessionStorage/IndexedDB；压缩无法瞬间中止时废弃其迟到结果。
+
+目标Production的JSON ::text仍NOT VERIFIED，失败不降级成解析对象或空数组；Slice 2不读取bigint业务表，其实际cast门禁留后续。真实账号验收前必须完成环境对齐，本轮只做Mock和自动化，不要求用户登录验收。
 
 可执行权威定义为 `src/lib/data-export-format.ts` 的 `exportColumns`；manifest 逐文件类型带相同有序定义（name/type/nullable）。下列字段均来自真实 Schema，没有增加业务列。`space`、`members`、`modules` 分别对应 spaces、space_members、space_modules；其他文件同名表。
 

@@ -1,5 +1,9 @@
 # Backlog
 
+## 2026-11-04 — 导出Slice 2本地待review
+
+Slice 1已独立本地Commit 9c3c237；Slice 2本人personal Space日程与重复例外链路LOCAL VERIFIED / READY FOR REVIEW，未提交。字段合同/部分覆盖见DATA_EXPORT_FORMAT，测试分层见TESTING。下一步先review与目标环境对齐，不跳过Production JSON cast/真实RLS和iPhone PWA门禁；本轮不要求真实登录或部署。多Space/任务/清单/重要日、回顾导出、账号注销均未启动，仍待新授权，不新建正式版本。
+
 ## 2026-11-04 — 用户数据导出优先／Slice 1 本地待 review
 
 Slice 1 的格式合同、合成ZIP及本地保存验证已实现并LOCAL VERIFIED / READY FOR REVIEW；见 [DATA_EXPORT_FORMAT](./DATA_EXPORT_FORMAT.md) 与TESTING最新节。已确认包含关闭模块的可读历史、非事务快照失败关闭、默认个人Space/共享主动选择/全选，不再重问。
