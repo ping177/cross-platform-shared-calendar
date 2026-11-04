@@ -1,5 +1,11 @@
 # Backlog
 
+## 2026-11-04 — Slice 3本地完成待review
+
+Slice 2已独立本地Commit ee15fec；Slice 3多Space选择/10类主要业务CSV LOCAL VERIFIED / READY FOR REVIEW，未提交。默认personal、共享主动选择、全选/零选、权限与改选失效、关闭模块历史、分页/关联/统一count postflight和容量失败已覆盖。字段合同不改，回顾两类明确not_included，留Slice 4，未启动。
+
+后续先review与受控环境门禁：Production bigint/JSON文本cast、空父ID in、真实RLS/Realtime、iPhone standalone PWA保存及容量。无后台系统/导入恢复/账号注销/清理；不创建新版本，不提交Slice 3或发布。容量超限目前仅失败并分Space，单Space仍超限不支持，不静默截断。
+
 ## 2026-11-04 — 导出Slice 2本地待review
 
 Slice 1已独立本地Commit 9c3c237；Slice 2本人personal Space日程与重复例外链路LOCAL VERIFIED / READY FOR REVIEW，未提交。字段合同/部分覆盖见DATA_EXPORT_FORMAT，测试分层见TESTING。下一步先review与目标环境对齐，不跳过Production JSON cast/真实RLS和iPhone PWA门禁；本轮不要求真实登录或部署。多Space/任务/清单/重要日、回顾导出、账号注销均未启动，仍待新授权，不新建正式版本。

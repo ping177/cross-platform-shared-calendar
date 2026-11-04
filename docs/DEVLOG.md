@@ -1,5 +1,23 @@
 # Development Log
 
+## 2026-11-04 — Slice 3 本地检查点 Review
+
+按用户本轮授权限定复审15份文件，指纹15/15与前轮验证一致，核心Node24/24及diff-check通过。成员关系授权、完整分页、统一postflight、关闭模块历史、容量和账号清理无新增阻塞；未纳入真实数据、凭据或临时ZIP。保存为独立本地检查点，随后开始Slice 4；不Push/Deploy，真实RLS/cast/PWA仍未验证。
+
+## 2026-11-04 — Slice 2检查点／Slice 3 LOCAL VERIFIED，未提交
+
+限定review核对Slice 2的16份指纹与前轮一致，核心16/16复验；cached检查仅发现夹具末尾多空行，清理后通过。按用户明确授权独立本地Commit ee15fec017d1d561f86f77e29f489acd7437006f；无真实数据/凭据/临时ZIP或错误新增Production声明入库。随后Slice 3只留工作区，不Commit/Push/Deploy。
+
+新增space-export读取器与直接Mock测试，复用原personal-export的分页/actor/列白名单原语；成员派生空间名单和所选ID核验，现有Session/RLS，无created_by归属过滤。10类表真实查询，不过滤enabled；清单/例外每100父ID分批、每批完整分页，空父集合也请求并核对0。bigint/JSON ::text无降级，合法NULL指派/未分组保留，按精确sort_order排序。所有Space读取后统一postflight再验资格；关系由复用组装校验验证。Review两表未查询/未实现。
+
+DataExportPage本地多选，默认personal、全选/取消全选/零选禁生成；改选同步清旧ZIP。成员/Space通知刷新并取消旧操作，focus重验名单；Auth/导航/保存前保护与二次主动确认保持。白卡/标题/返回/右滑不变，原生checkbox20px沿用accent色，不改全站筛选器。scope=core-spaces，10类CSV/Space，Review not_included且无文件，README/UI/manifest明确非完整备份。
+
+Node57/57；直接WebKit/Chrome37/37（19导出含容量＋14原保存＋4邮箱）、原账户8/8；TypeScript/Build/语法/diff通过。Python独立核验22文件双Space与空/分页/关联/格式/精度。移动端320/375/390无溢出，两引擎390截图已查看。主要新增测试包括低cap、501/1001各来源及子表、未授权ID/成员移除、关闭模块历史、NULL/大整数、缺数据/查询失败/容量失败；不跑全项目审查。
+
+容量：10000合成条目原文7312066B、Chrome ZIP128904B，主线程JS堆before3236567B/采样peak53312775B/after16198274B（非完整浏览器/worker内存，不代表iPhone）。独立Node进程ZIP约128905B，heap before8379552B/afterRead30971416B/afterZIP51741152B、过程peak RSS197040KiB；含runtime/夹具，未测真实网络耗时。首次stdin --input-type=module基准与依赖worker执行模式冲突，普通.mjs独立进程完成；未修改生产worker。读取时精确CSV字节8MiB预算＋超长原文下界检查，最终组装16MiB；超限整包失败提示分Space，单Space超限明确本阶段不支持。
+
+Review补强：前一Space在读取后一Space时新增记录的回归先失败，计数复核移到所有读取之后再通过，避免提前结束前一Space的检查。非事务同数量变化/通知延迟仍为边界。记录在/private/tmp/calendar-export-slice3-{node,browser,account-browser,build,postflight-red}.log，容量JSON和ZIP/截图仅/tmp，未入库；无其他项目修改、未主动查看或输出.env/密钥。无新依赖/数据库/RLS/Auth/Edge/Cron/Production变更，正式版本仍v0.1.21；完成后停于review。
+
 ## 2026-11-04 — Slice 2 本地检查点授权
 
 用户授权Slice 2独立本地Commit及Slice 3本地实现，Slice 3不提交、不Push/Deploy。限定review核对16份文件与前轮指纹完全一致，导出核心16/16复验、diff-check通过；沿用既有49/38、Build及回读证据。成员来源、逐页核验、失效清理与not_included范围标记无新增阻塞。未纳入真实业务导出、凭据或临时ZIP/日志，测试源夹具按设计保留。Production/真机门禁保持未验证。

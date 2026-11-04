@@ -1,5 +1,13 @@
 # Decisions
 
+## 2026-11-04 — Slice 3多Space核心数据，回顾留后续
+
+用户授权将Slice 2独立本地保存ee15fec017d1d561f86f77e29f489acd7437006f后实现Slice 3；不提交Slice 3、不Push/Deploy。现有CSV字段/编码不改，阶段scope扩展为core-spaces，10类实际读取表exported，review_rounds/review_entries固定not_included、不生成CSV，complete_backup=false。
+
+空间从实际成员关系派生；本页多选默认仅personal，可全选/取消，改选清除结果。关闭模块不作为读取过滤，合法NULL任务指派/未分组及原ID保留，成员不新增昵称或越权解析。读取器复用Slice 2分页/用户核验原语，所有Space读完统一count postflight；不做数据库快照或后台导出。
+
+1万条合成数据的桌面测量显示约7MiB原文会产生约51MiB主线程JS堆采样峰值，因此采取8MiB读取预算并保留16MiB最终组装保护；超限明确失败，建议分Space，单Space超限本阶段不支持。阈值不等于iPhone容量承诺，不更改数据合同/正式版本。真实backend和PWA门禁保持未验证。
+
 ## 2026-11-04 — Slice 2仅个人日程阶段包
 
 用户授权Slice 1独立本地Commit后实现Slice 2；只提交Slice 1（9c3c237），无Push/Deploy，Slice 2不提交。沿用现有字段与format_version=1，以export_scope/table_coverage/complete_backup=false显式扩展范围；未纳入的8类表不生成CSV，README与UI说明不是完整备份，不能用空文件表示已读取。仅4类查询，不实现其他模块。

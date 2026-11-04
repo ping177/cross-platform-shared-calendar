@@ -1,4 +1,4 @@
-# 用户数据导出：格式合同与 Slice 1
+# 用户数据导出：格式合同与分阶段实现
 
 格式说明作者：Ping Weng。状态：LOCAL VERIFIED / READY FOR REVIEW；不是 Production 或真实 iPhone PWA 验收。项目正式版本仍为 v0.1.21，本合同的 `format_version=1` 只是文件协议修订。
 
@@ -8,7 +8,7 @@
 - 支持个人／共享、一个／多个／全部 Space；默认只勾选个人 Space，共享主动选择，提供全选。
 - 模块关闭但仍存在且获准读取的数据仍纳入导出。
 - 接受非事务快照，记录数据准备时间范围；检测缺页、计数变化、身份或关联异常时失败，不交付部分 ZIP。
-- 本 Slice 只实现文件合同、合成数据和本地保存验证；没有业务读取器、正式账户入口、RLS／Schema／Auth 变更或 Production 操作。
+- Slice 1原范围为文件合同/合成ZIP/保存验证；Slice 2–3逐步接入读取器与账户入口，实际阶段覆盖见下节。没有RLS／Schema／Auth变更或Production操作。
 - 不支持重新导入、数据恢复、在线备份、后台任务、服务端导出、Storage 上传或账号注销。
 
 ## 文件结构
@@ -33,9 +33,23 @@ spaces/space_<安全名称>__<完整Space-ID>/
   review_entries.csv
 ```
 
-全模块合同下每个 Space 的 12 个 CSV 必须齐全，包括仅表头的空表。Slice 2 阶段性 personal-calendar 范围见下节，未纳入的表不生成 CSV。相同名称由完整 UUID 区分。名称 NFC 规范化，路径分隔符、Windows 非法字符、控制与双向控制字符替换，点串替换，去除末尾空格，最多 40 个 Unicode 码点。固定 `space_` 前缀避免 Windows 设备名；ID 必须是小写标准 UUID。不会使用原名称拼接任意路径。
+全模块合同下每个Space的12个CSV必须齐全，包括仅表头的空表。阶段性personal-calendar/core-spaces范围见下节，未纳入的表不生成CSV。相同名称由完整 UUID 区分。名称 NFC 规范化，路径分隔符、Windows 非法字符、控制与双向控制字符替换，点串替换，去除末尾空格，最多 40 个 Unicode 码点。固定 `space_` 前缀避免 Windows 设备名；ID 必须是小写标准 UUID。不会使用原名称拼接任意路径。
 
 ## CSV 字段白名单与顺序
+
+### Slice 3：多空间主要业务范围
+
+2026-11-04 LOCAL VERIFIED / READY FOR REVIEW，未提交/发布。沿用format_version=1、原12类字段和编码；export_scope=core-spaces、complete_backup=false。每个所选Space实际读取并生成space/members/modules/events/event_occurrence_exceptions/tasks/lists/list_sections/list_items/important_dates共10类CSV，确实空时保留表头。review_rounds/review_entries固定not_included且不生成文件，留Slice 4；README/UI明确这不是包含回顾的完整备份。两Space为22文件，不把disabled、缺模块行或读取失败当成业务空表。
+
+src/lib/space-export.ts从当前用户的完整成员关系派生可选Space，名单也完整分页；选择ID必须非空、不重复且全在新核验名单中。不以created_by判断归属。默认只选personal，共享主动勾选，可全选/取消全选；零选择禁生成，修改选择同步废弃旧ZIP/保存确认。选择只存在本页内存，不改全站筛选器；成员/空间通知及恢复焦点刷新或失败关闭，丢失权限的选中项移除并提示。
+
+依旧只用现有Session/RLS，白名单SELECT（JSON/bigint ::text），不查询enabled筛选、不读取profiles/邮箱/邀请码/订阅/账本。members.csv仍只有原四列，历史昵称不追查。任务合法NULL指派和审计created_by原样保留。清单分组/条目、事件例外按100个父ID分批且每批继续分页；空父集合也请求空in筛选、核验0结果（目标后端空in行为仍属环境门禁）。所有读取都有稳定顺序、精确count及身份/Space检查；读完所有Space后统一复核各表/批次数量，再核验授权。非事务同数量替换/修改仍不能保证检测。
+
+清单CSV按list_id、分组、精确bigint sort_order稳定排列，NULL代表未分组，不把字符串排序号转为Number。共享成员变更可能导致关联复核失败，必须整包重试，不越权补数据。
+
+容量保护：读取过程中按真实CSV UTF-8字节累计，8 MiB预算，超长原文先作下界检查再编码；最终组装保留16 MiB保护，均为失败而非截断。超限建议减少所选Space/分Space导出；单Space仍超限时本阶段不能导出，不开发后台服务。1万条合成清单样本未压缩7,312,066 B，ZIP约128,904 B；桌面Chrome主线程JS堆采样峰值53,312,775 B，不能从小ZIP推断低内存。测量范围与限制见TESTING，不代表真实iPhone容量通过。
+
+原确认保存/取消/失败重试、账号隔离、AbortSignal及迟到响应废弃保持。Production bigint/JSON cast、空in、真实RLS/Realtime投递和iPhone standalone PWA仍NOT VERIFIED，真实验收前先完成环境对齐门禁。
 
 ### Slice 2：个人空间日程阶段性范围
 
@@ -111,7 +125,7 @@ bigint 只接受字符串或 JS bigint，拒绝所有 JS number（即使暂时�
 - format_version=1，与产品版本分开。
 - synthetic 标识样本来源，exported_by_user_id 是本次导出者（不改业务 created_by）；started_at/finished_at 是数据准备区间，必须先后有效；不含随后 ZIP 压缩及用户点击保存耗时。
 - transactional_snapshot=false、includes_disabled_modules=true，以及中文 limitations。
-- spaces：Space ID、原名称、kind 和目录名；files：24 个 CSV 路径及各自数据行数，不计表头。
+- spaces：所选Space ID、原名称、kind和目录名；files：实际已纳入CSV路径和数据行数，不计表头；table_coverage明确exported/not_included。Slice 3每Space10类CSV，回顾两类不生成。
 - fields：12 类 CSV 的有序字段定义；encoding：NULL、类型前缀、字符集、记录分隔等。
 - manifest 不包含凭据、真实邮箱、开发机器路径或内部临时文件名；README 的格式说明归属不覆盖业务记录 created_by。
 

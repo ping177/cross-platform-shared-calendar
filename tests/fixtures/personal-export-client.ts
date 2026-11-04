@@ -4,7 +4,8 @@ export function personalExportClient(total = 1, cap = 500) {
   const source = syntheticExport().spaces[1].tables;
   const spaceId = '10000000-0000-4000-8000-000000000001';
   const rows = { spaces: [{ ...source.space[0], id: spaceId, kind: 'personal' }], space_members: [{ ...source.members[0], space_id: spaceId }],
-    events: Array.from({ length: total }, (_, i) => ({ ...source.events[1], id: `40000000-0000-4000-8000-${String(i + 1).padStart(12, '0')}`, space_id: spaceId, series_id: null, recurrence_until: null })), event_occurrence_exceptions: [] };
+    events: Array.from({ length: total }, (_, i) => ({ ...source.events[1], id: `40000000-0000-4000-8000-${String(i + 1).padStart(12, '0')}`, space_id: spaceId, series_id: null, recurrence_until: null })), event_occurrence_exceptions: [],
+    space_modules: [], tasks: [], lists: [], list_sections: [], list_items: [], important_dates: [] };
   const state = { user: syntheticActor, cap, calls: [], fail: '', drift: false, nullData: false, duplicate: false, blocked: false, release: null };
   const authListeners = new Set<any>(), permissionListeners = new Set<any>();
   const emitAuth = () => authListeners.forEach(callback => callback(state.user ? 'SIGNED_IN' : 'SIGNED_OUT', state.user ? { user: { id: state.user } } : null));

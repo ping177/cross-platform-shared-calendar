@@ -1,5 +1,25 @@
 # Testing
 
+## 2026-11-04 — 用户导出 Slice 3／LOCAL VERIFIED／READY FOR REVIEW
+
+Slice 2经限定review及16/16核心复验后独立本地Commit `ee15fec017d1d561f86f77e29f489acd7437006f`，仅清理测试源末尾空行；未Push/Deploy。Slice 3未提交，无新正式版本；无真实业务数据/凭据/临时导出纳入仓库。
+
+文件：修改DataExportPage、data-export-archive、personal-export共3份源文件，新增space-export读取器；原personal-export浏览器/客户端夹具与浏览器测试扩展，新space-export-client夹具和space-export.test.ts；另更新本合同及5份治理。包依赖/数据库/全站筛选组件未改。
+
+- Node：`node --test tests/data-export-format.test.ts tests/data-export-archive.test.ts tests/data-export-save.test.ts tests/personal-export.test.ts tests/space-export.test.ts tests/aggregate-calendar.test.ts tests/profile-card-ui.test.ts tests/me-spaces-ui-v2.test.ts tests/navigation-persistence.test.ts`，57/57 PASS。一个/多个/全部Space、无/重复/越权ID、关闭模块历史、空表、NULL指派/未分组、精确int64、各来源与子表501/1001及37条cap、类型/父子/查询异常、提前容量失败、跨Space后期数量变化均覆盖。补充late count回归先失败再通过，不把同数量变化当已解决。
+- 浏览器：`PLAYWRIGHT_MODULE_PATH=<既有缓存> node --test --test-concurrency=1 --test-timeout=30000 tests/personal-export.browser.mjs tests/data-export.browser.mjs tests/login-email.browser.mjs`，37/37 PASS（19个人/多空间/容量＋14保存＋4邮箱）；原`ui-consistency.browser.mjs`仅account/notification相关8/8 PASS。envFile=false，新空白浏览器，真实组件/读取器/ZIP，Supabase边界为内存Mock；仅127.0.0.1:5175和同源Blob，不接触真实登录或Production。
+- 多选测试：默认个人/共享未选、全选/取消全选/零选禁生成，改选废弃旧ZIP，只选共享与多选，两Space同名目录不冲突；成员移除刷新名单并废弃在途结果；账号/退出/导航、保存复核、下载失败与重试保持。超限显示减少所选Space，改为较少选择可成功；320/375/390无横向溢出，两引擎390截图已查看。
+- ZIP：Python zipfile/csv独立回读双Space22文件和各样例，CRC、每表行数/列、关系ID、NULL/类型前缀、排序字段/大整数保留；10类exported且确实空保留表头，Review两类not_included不生成文件。当前测试来源全是合成Mock，读取器synthetic=false只代表协议分支，不证明线上来源。
+- `npm run build`含TypeScript、`node --check tests/personal-export.browser.mjs`、`git diff --check` PASS。无新增依赖；导出页/读取器/组装在惰性叶页块，fflate仍单独按需加载，原大chunk提示保留。未重新运行无关全量套件。
+
+容量实测：`browser/capacity.json`为10000条合成清单，未压缩7312066B，Chrome ZIP128904B，生成约213ms（Mock无网络延迟）；主线程JS堆before3236567B/采样峰值53312775B/after16198274B，27个采样点。这个非标准桌面计数可能漏掉worker等内存，不能用作完整页面/真机容量保证，见[MDN限制](https://developer.mozilla.org/en-US/docs/Web/API/Performance/memory)。无生产内存监控代码。
+
+独立Node基准`node-capacity.json`：ZIP约128905B，elapsed约222ms，heap before8379552B/afterRead30971416B/afterZIP51741152B、peakRSS197040KiB；RSS包括Node/夹具，采集窗口截止ZIP生成，不包含随后额外格式回读。首次stdin模块模式与worker不兼容，改为普通临时.mjs进程完成；不据此修改浏览器生产worker。原文约7MiB却有明显内存放大，因此读取期采用8MiB CSV字节预算（包含页累计和超长原文预检查），最终组装16MiB保护；超限失败不截断，提示分Space，单Space仍超限本阶段不能导出。真实iPhone容量仍未测。
+
+证据：/private/tmp/calendar-export-slice3-{reader-red,node,browser,account-browser,build,postflight-red}.log；/private/tmp/calendar-export-slice3/browser/保存ZIP、截图、capacity.json，另有node-capacity.json。所有临时脚本/数据均在/tmp，不入库。
+
+未验证：Production bigint/JSON ::text、空父集合in过滤、真实RLS/成员撤销/Realtime投递、真实iPhone standalone PWA/原生分享落盘及容量。正式验收前先环境对齐；本轮不要求用户登录验收，不Push/Deploy。Slice 4仅保留回顾历史/参与者权限导出待办，未实施；注销/导入恢复/后台服务均未启动。
+
 ## 2026-11-04 — 用户导出 Slice 2／LOCAL VERIFIED／READY FOR REVIEW
 
 Slice 1针对性review：18份指纹匹配、12/12核心复验，无新增阻塞；按授权独立本地Commit `9c3c237d96ad10e1e23d02bff0c3d0b5e7468816`。其下历史“未Commit”保留为当时事实。Slice 2仅工作区，未Commit/Push/Deploy，无新版本。

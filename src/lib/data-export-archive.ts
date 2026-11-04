@@ -1,9 +1,13 @@
 import { assertExportUuid, exportColumns, exportCsv, exportTables, spaceDirectory, type ExportRow, type ExportTable } from './data-export-format.ts';
 
 export type ExportSpace = { tables: Record<ExportTable, ExportRow[]>; expectedRows: Record<ExportTable, number> };
-export type ExportInput = { actorId: string; startedAt: string; finishedAt: string; synthetic: boolean; spaces: ExportSpace[]; scope?: 'personal-calendar' };
+export type ExportInput = { actorId: string; startedAt: string; finishedAt: string; synthetic: boolean; spaces: ExportSpace[]; scope?: 'personal-calendar' | 'core-spaces' };
 export const personalCalendarTables: ExportTable[] = ['space', 'members', 'events', 'event_occurrence_exceptions'];
+export const coreSpaceTables = exportTables.filter(table => table !== 'review_rounds' && table !== 'review_entries');
 export const exportByteLimit = 16 * 1024 * 1024;
+export class ExportCapacityError extends Error {
+  constructor() { super('导出数据超过本地容量，请减少所选空间、尝试分空间导出；单个空间仍超限时，本阶段无法导出。'); this.name = 'ExportCapacityError'; }
+}
 
 const readme = `共享日历数据导出（格式 1）
 格式说明作者：Ping Weng
@@ -23,7 +27,7 @@ manifest 中 synthetic=true 表示合成样本数据。数据来源、授权与�
 
 function invalid(): never { throw new Error('导出数据计数、身份或关联异常，未生成 ZIP。'); }
 
-function validateRelations(space: ExportSpace, actorId: string) {
+export function validateExportRelations(space: ExportSpace, actorId: string) {
   const t = space.tables, meta = t.space[0], spaceId = meta.id;
   const byId = (rows: ExportRow[]) => new Map(rows.map((row) => [row.id, row]));
   const members = new Set(t.members.map((row) => row.user_id));
@@ -90,8 +94,9 @@ export function prepareExport(input: ExportInput) {
   if (!Number.isFinite(Date.parse(input.startedAt)) || !Number.isFinite(Date.parse(input.finishedAt))
     || Date.parse(input.startedAt) > Date.parse(input.finishedAt) || !input.spaces.length || typeof input.synthetic !== 'boolean') invalid();
   const encoder = new TextEncoder(), files: Record<string, Uint8Array> = {};
-  const included = input.scope === 'personal-calendar' ? personalCalendarTables : exportTables;
-  if (input.scope !== undefined && (input.scope !== 'personal-calendar' || input.spaces.length !== 1 || input.spaces[0].tables.space[0]?.kind !== 'personal')) invalid();
+  const included = input.scope === 'personal-calendar' ? personalCalendarTables : input.scope === 'core-spaces' ? coreSpaceTables : exportTables;
+  if (input.scope !== undefined && input.scope !== 'personal-calendar' && input.scope !== 'core-spaces') invalid();
+  if (input.scope === 'personal-calendar' && (input.spaces.length !== 1 || input.spaces[0].tables.space[0]?.kind !== 'personal')) invalid();
   const manifest = {
     format_version: 1, synthetic: input.synthetic, exported_by_user_id: input.actorId, started_at: input.startedAt, finished_at: input.finishedAt,
     transactional_snapshot: false, includes_disabled_modules: true,
@@ -107,7 +112,8 @@ export function prepareExport(input: ExportInput) {
   let bytes = 0;
   const addFile = (path: string, value: string) => {
     const encoded = encoder.encode(value); bytes += encoded.byteLength;
-    if (bytes > exportByteLimit || files[path]) throw new Error('导出文件超出本地验证容量或路径重复，未生成 ZIP。');
+    if (bytes > exportByteLimit) throw new ExportCapacityError();
+    if (files[path]) invalid();
     files[path] = encoded;
   };
   for (const space of input.spaces) {
@@ -130,10 +136,10 @@ export function prepareExport(input: ExportInput) {
       const path = `spaces/${directory}/${table}.csv`;
       addFile(path, csv); manifest.files.push({ path, rows: count });
     }
-    validateRelations(space, input.actorId);
+    validateExportRelations(space, input.actorId);
     manifest.spaces.push({ id: String(meta.id), name: meta.name, kind: String(meta.kind), directory });
   }
-  const scopeNote = input.scope === 'personal-calendar' ? '阶段性导出：仅个人空间日程及重复例外，不是完整备份。\n包含space、members、events、event_occurrence_exceptions。\nmodules、任务、清单、重要日、回顾尚未纳入，标记not_included且不生成对应CSV；不能解释为已查询为空。\n\n' : '';
+  const scopeNote = input.scope === 'personal-calendar' ? '阶段性导出：仅个人空间日程及重复例外，不是完整备份。\n包含space、members、events、event_occurrence_exceptions。\nmodules、任务、清单、重要日、回顾尚未纳入，标记not_included且不生成对应CSV；不能解释为已查询为空。\n\n' : input.scope === 'core-spaces' ? '阶段性导出：所选个人及共享空间的日程、任务、清单、重要日和空间设置。\n回顾review_rounds、review_entries尚未纳入，标记not_included且不生成CSV；这不是包含回顾的完整备份。\n关闭模块的可读历史仍包含；成员仅导出当前授权成员ID/角色/加入时间，不越权解析历史昵称。\n\n' : '';
   addFile('README.txt', (scopeNote + readme).replace(/\n/g, '\r\n'));
   addFile('manifest.json', JSON.stringify(manifest, null, 2) + '\n');
   const filename = `shared-calendar-export_${new Date(input.finishedAt).toISOString().replace(/[:.]/g, '-')}.zip`;
