@@ -12,7 +12,7 @@ v0.1.21
 
 ## Current status
 
-2026-11-04 — **数据导出中文格式2／UX RELEASE AUTHORIZED / USER ACCEPTANCE PENDING**。用户授权本轮17文件限定Review、Commit/正常Push及既有Vercel自动发布；基线40e57c5无分叉，前轮17/17指纹一致。12类中文CSV/102字段映射、保存/更新/按需备用分支通过必要复验。正式v0.1.21不变，不修改后端/真实数据；旧格式个人真机成功不扩展为新UX验收。实际Git/部署Source/公开资源及Freshness见/private/tmp/calendar-export-ux-release/RELEASE_RECEIPT.md，不预写部署或人工成功。下方为历史。
+2026-11-04 — **导出短说明 RELEASE AUTHORIZED / FINAL ACCEPTANCE PENDING**。用户授权本轮三文件Commit/正常Push及既有Git/Vercel发布，源码仅一行替换为“选择空间，导出你有权访问的数据。”。状态/错误/容量/操作及ZIP README/CSV/格式/权限均不变。Chrome/WebKit2/2、375/390、TypeScript/Build/diff通过；正式v0.1.21不变。实际部署Source/资源及Freshness见/private/tmp/calendar-export-copy-release/RELEASE_RECEIPT.md，不预写成功或全部验收关闭。下方为历史。
 
 
 2026-11-04 — **用户数据导出 Slice 1 已独立本地Commit 9c3c237；Slice 2 LOCAL VERIFIED / READY FOR REVIEW，未提交**。账户→导出→本人personal成员关系→完整日程/重复例外→阶段ZIP→保存链路实现。Node49/49、直接浏览器30/30＋原账户8/8、TypeScript/Build通过；独立Python回读Mock读取器输出。阶段范围明确not_included，未包装完整备份。Production JSON cast、真实RLS登录态及iPhone standalone PWA未验证；不请求真实账号验收。无Push/Deploy/后台变更，无新版本；v0.1.21已接受关闭范围及旧稳定性Slice 1暂缓保持。下方Slice 1待review等为历史。
@@ -502,6 +502,8 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
+本轮短说明已获正常Git/Vercel发布授权，仅一行页面文案及两份必要治理记录。实际Source/URL/资源和未登录验证见/private/tmp/calendar-export-copy-release/RELEASE_RECEIPT.md，不预写成功；不改后端/数据。下方为历史。
+
 本轮中文格式2/导出UX已获正常Git/Vercel发布授权，仅前端与必要治理；实际Source/URL/静态资源及未登录验证以/private/tmp/calendar-export-ux-release/RELEASE_RECEIPT.md为准，不预写成功。后端与真实数据不改；以下为历史。
 
 既有数据导出Production Source40e57c5已部署、21资源与Build一致（回执/private/tmp/calendar-export-release/RELEASE_RECEIPT.md）；用户报告个人iPhone PWA保存/解压12CSV成功。当前中文格式2和保存UI优化仅本地，未提交/发布，不补造新真机验收。下方为历史。
@@ -677,7 +679,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-用户在Source/资源已核对的正式iPhone PWA复验中文页面、主保存、更新最新数据、正常无备用、取消重试、新ZIP的12中文文件/表头，以及Numbers或Excel可读性；不提前CLOSED/ACCEPTED，不启动账号注销。
+用户在核对Source/资源后的Production iPhone PWA最终确认一句说明与页面间距，等待最终验收反馈，不提前CLOSED/PASS，不启动账号注销。
 
 ## Blockers
 

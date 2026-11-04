@@ -1,5 +1,15 @@
 # Development Log
 
+## 2026-11-04 — 导出短说明正式发布授权
+
+用户授权仅三个既有文件Commit/Push/现有Vercel自动发布；基线a2b7f73无分叉，仅页面说明一行变化，ZIP/CSV/权限/操作不改。Chrome/WebKit2/2、375/390布局、TypeScript/Build/diff复验通过。正常Push Gate与实际部署Source/21资源/未登录验证、Post-Push Freshness见/private/tmp/calendar-export-copy-release/RELEASE_RECEIPT.md，不预写成功。不改正式v0.1.21或后端/真实数据，不提前关闭全部验收。
+
+## 2026-11-04 — 导出页面说明压缩（仅本地）
+
+用户报告真实iPhone PWA导出成功，并在电脑Numbers确认CSV字体显示一致，CSV无需修复。本轮基线a2b7f73、起始clean，仅将DataExportPage长说明替换为“选择空间，导出你有权访问的数据。”，沿用原样式/间距；不增加说明按钮或弹窗。状态、错误、容量提示及所有操作不变，详细权限/非事务/容量/不可恢复说明仍在原ZIP README，CSV/映射/格式/读取器均无改动。
+
+既有Chrome/WebKit定向2/2通过，375/390截图已实际查看，选择区随说明缩短上移，无额外占位或不合理间距；TypeScript（tsc -b）/Build/diff-check通过，原大chunk提示保持。证据/private/tmp/calendar-export-copy/。仅源码一行及必要治理记录，未提交/Push/Deploy，不改Production或其他项目，不读取真实业务/密钥。
+
 ## 2026-11-04 — 中文导出UX发布授权
 
 用户授权当前17文件限定Review、Commit/正常Push与现有Vercel自动Production，未授权后端/真实数据操作。Fetch确认40e57c5无分叉，17/17前轮指纹一致；中文12CSV/102字段及manifest格式2完整，保存/取消/技术失败/按需备用和更新重读逻辑无阻塞。必要Node15/15、Chrome/WebKit14/14、独立ZIP回读、TypeScript/Build/语法/diff复验通过，既有大chunk提示保持。版本v0.1.21不变，无依赖/读取器/Schema变更。
