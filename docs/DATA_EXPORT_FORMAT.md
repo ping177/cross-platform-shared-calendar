@@ -1,6 +1,6 @@
 # 用户数据导出：格式合同与分阶段实现
 
-格式说明作者：Ping Weng。状态：格式 2 与保存UI优化 RELEASE AUTHORIZED / USER ACCEPTANCE PENDING；实际部署见独立ux-release回执，不预写成功；已发布格式1的个人Space保存解压由用户报告成功。项目正式版本仍为 v0.1.21，本合同的 `format_version=2` 是文件协议修订，不是项目版本号。
+格式说明作者：Ping Weng。状态：CLOSED / ACCEPTED（用户已验收的个人/共享导出、中文CSV/Numbers及最终UI范围）；验收Source feb729c8608b30f6d714e8a7d037fed39ff83a16。历史回顾参与者RLS真实多账号反向验证仍NOT VERIFIED，详见TESTING最新节。项目正式版本v0.1.21、文件format_version=2不变。
 
 ## 已确认规则与范围
 

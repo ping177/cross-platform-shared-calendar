@@ -1,5 +1,14 @@
 # Development Log
 
+## 2026-11-05 — 数据导出Governance Closeout
+
+个人/共享Space ZIP生成→文件App保存→解压/12类CSV、中文文件名/表头、Numbers阅读和最终页面交互已获用户确认。验收Source feb729c8608b30f6d714e8a7d037fed39ff83a16，按该范围CLOSED / ACCEPTED。历史回顾参与者RLS真实多账号反向验证仍NOT VERIFIED，不因共享导出成功记为PASS；其他未明确执行边界保持TESTING的证据分层。
+
+本轮仅治理文档，不改业务/格式/后端/真实数据，不重跑代码测试或创建新版本。Git/Production元数据核对原Source成功；docs-only Push会触发自动部署与用户“不重新部署”存在冲突，Push待用户明确处理，不主动创建部署或修改配置。必要diff/范围/Push Gate检查按实际执行记录。
+
+下一优先项：用户自主注销账号的设计与安全调查，尚未开始；本轮不实施、不删除账号或记录。正式v0.1.21及format_version=2不变，下方旧等待验收/发布记录为历史。
+
+
 ## 2026-11-04 — 导出短说明正式发布授权
 
 用户授权仅三个既有文件Commit/Push/现有Vercel自动发布；基线a2b7f73无分叉，仅页面说明一行变化，ZIP/CSV/权限/操作不改。Chrome/WebKit2/2、375/390布局、TypeScript/Build/diff复验通过。正常Push Gate与实际部署Source/21资源/未登录验证、Post-Push Freshness见/private/tmp/calendar-export-copy-release/RELEASE_RECEIPT.md，不预写成功。不改正式v0.1.21或后端/真实数据，不提前关闭全部验收。
