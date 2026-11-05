@@ -12,7 +12,7 @@ v0.1.21
 
 ## Current status
 
-2026-11-05 — **数据导出 CLOSED / ACCEPTED（用户已验收范围）**。用户真实iPhone PWA确认个人/共享ZIP生成、文件App保存解压及12类CSV齐全，中文文件名/表头与电脑Numbers阅读正常，最终短说明/布局/交互认可。验收Source feb729c8608b30f6d714e8a7d037fed39ff83a16。历史回顾参与者RLS真实多账号反向验证仍NOT VERIFIED，不记PASS；详细范围见TESTING最新节。正式v0.1.21/格式2不变。本轮仅治理，不改业务/后端，不主动部署；Git自动关联部署与禁止重新部署的冲突需用户明确处理。下方为历史。
+2026-11-05 — **数据导出 CLOSED / ACCEPTED（用户已验收范围）**。用户真实iPhone PWA确认个人/共享ZIP生成、文件App保存解压及12类CSV齐全，中文文件名/表头与电脑Numbers阅读正常，最终短说明/布局/交互认可。验收Source feb729c8608b30f6d714e8a7d037fed39ff83a16。历史回顾参与者RLS真实多账号反向验证仍NOT VERIFIED，不记PASS；详细范围见TESTING最新节。正式v0.1.21/格式2不变。本轮仅治理，不改业务/后端，不主动部署；用户已明确允许docs-only Push自动触发同应用产物部署，不主动创建部署或修改配置。下方为历史。
 
 
 2026-11-04 — **用户数据导出 Slice 1 已独立本地Commit 9c3c237；Slice 2 LOCAL VERIFIED / READY FOR REVIEW，未提交**。账户→导出→本人personal成员关系→完整日程/重复例外→阶段ZIP→保存链路实现。Node49/49、直接浏览器30/30＋原账户8/8、TypeScript/Build通过；独立Python回读Mock读取器输出。阶段范围明确not_included，未包装完整备份。Production JSON cast、真实RLS登录态及iPhone standalone PWA未验证；不请求真实账号验收。无Push/Deploy/后台变更，无新版本；v0.1.21已接受关闭范围及旧稳定性Slice 1暂缓保持。下方Slice 1待review等为历史。
@@ -504,7 +504,7 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
-用户验收归属Production Source feb729c8608b30f6d714e8a7d037fed39ff83a16，原Vercel成功及21资源证据见/private/tmp/calendar-export-copy-release/RELEASE_RECEIPT.md。本轮仅docs治理，不主动重新部署或改配置；Git自动关联行为须遵守用户明确授权，不把治理Git提交当新业务验收。下方为历史。
+用户验收归属Production Source feb729c8608b30f6d714e8a7d037fed39ff83a16，原Vercel成功及21资源证据见/private/tmp/calendar-export-copy-release/RELEASE_RECEIPT.md。本轮仅docs治理，不主动重新部署或改配置；用户已允许Git自动触发同产物部署，不主动创建部署，不把治理Git提交当新业务验收。下方为历史。
 
 本轮短说明已获正常Git/Vercel发布授权，仅一行页面文案及两份必要治理记录。实际Source/URL/资源和未登录验证见/private/tmp/calendar-export-copy-release/RELEASE_RECEIPT.md，不预写成功；不改后端/数据。下方为历史。
 
