@@ -1,6 +1,6 @@
 # Account Deletion — 用户自主注销账号设计冻结
 
-Status: `FINAL_EXECUTION_READY_FOR_REVIEW`（2026-11-06，仅隔离本地服务端闭环，待审查）。已可信受理的合成job经Storage/业务/Auth hard delete及真实Cron恢复、严格完成/短期回执验证；正式UI未实施、Production安全性 `NOT VERIFIED`，功能不标CLOSED。正式版本保持v0.1.21。
+Status: `FRONTEND_READY_FOR_REVIEW`（2026-11-06，仅隔离本地，前端未提交）。后端本地里程碑7bc144f已获授权建立，用户/ChatGPT已接受后端本地阶段；本轮前端与真实合成Auth/Edge/Cron闭环通过。Production SQL/Edge/Cron和入口均未发布，真实PWA/设备仍NOT VERIFIED，功能不标CLOSED。正式版本保持v0.1.21。
 
 Author: Ping Weng。记录日期：2026-11-05。正式项目版本仍为 `v0.1.21`；本规格不分配下一版本号，不新增 Version Index 里程碑。
 
@@ -13,6 +13,18 @@ Author: Ping Weng。记录日期：2026-11-05。正式项目版本仍为 `v0.1.2
 规则来源：[AGENTS](../AGENTS.md)、[DECISIONS 的 v0.1.13 生命周期合同](./DECISIONS.md#v0113-slice-1--closed--pass)、[Shared Life Architecture](./SHARED_LIFE_ARCHITECTURE.md)、[v0.1.14 Review](./v0.1.14_STRUCTURED_CHECKIN_SPEC.md)、[v0.1.15 Lists](./v0.1.15_SHARED_LISTS_SPEC.md)。本规格只为永久账号注销增加必要能力；不重设计 Space 权限或业务归属。后续 Event collaboration 等已生效规则仍有效，不回退旧历史权限。
 
 原设计冻结轮次仅写规格及治理；本轮用户已另行授权Slice 1必要canonical SQL、独立forward patch、专项测试与记录。仍不操作Production、真实账号/Storage，不改UI、不实现Auth Admin/Edge/Cron，不Commit/Push/Deploy。两个闲置账号继续保留，不用于开发试删。
+
+### Frontend and backend local checkpoint — 2026-11-06
+
+按用户授权逐项核对39份后端成果、无临时/缓存/真实凭据、测试日志及治理一致后，创建仅本地Commit `7bc144f feat: implement account deletion backend locally`，无Push/Deploy。前端及本轮窄接口/记录保持未提交，不产生第二Commit，不分配新正式版本/Version Index。
+
+复用UI v2与既有账户/导出/空间管理，新增“我的→账户管理→注销账号”：说明/可跳过导出→全部Owner检查及原空间管理→同身份OTP→主动勾选最终确认→外层状态接管/回执恢复→completed后清理与返回登录。旧业务页面布局不改；复用导出/空间页面仅增加可选返回文案，默认保留已验收文字，空间操作后刷新外层状态。
+
+入口必须同时满足显式VITE_ACCOUNT_DELETION_ENABLED=true、DEV、前端与后端均loopback HTTP。Production构建关闭；服务器原isolated-local及本地URL保护保留，浏览器无service/worker凭据。部署和真实用户接受仍未经授权。
+
+补两个必要窄合同：原会话在账号门闩下撤销未受理许可，解决未知响应后返回与迟到确认竞态；历史注销身份按已授权Review原参与者范围读取completed且Auth真实不存在的UUID标记，绝不按Profile缺失推断。均独立forward patch/canonical追加，不重新实施旧删除算法或放宽RLS。
+
+本地真实浏览器已覆盖Owner转让、实际SMTP错误/自然过期/重发/重放拒绝、独立确认、关页后原Cron完成、Auth删除后回执/清理及历史“已注销用户”正文；组件模拟与真实API证据分开。准确命令见TESTING，前端安全合同与限制见覆盖报告§10。完整本地阶段FRONTEND_READY_FOR_REVIEW，不是Production PASS/CLOSED，停止等待审查。
 
 ### Final Execution & Offline Recovery checkpoint — 2026-11-06
 
@@ -243,7 +255,7 @@ Edge持有的Auth Admin服务凭据本身仍具广泛平台能力；job约束缩
 
 ## 8. Implementation slices
 
-当前审计/受理/屏障/Personal及Slice 3服务端最终执行与离线恢复已获本地证据；本轮FINAL_EXECUTION_READY_FOR_REVIEW。Slice 4正式UI/历史身份显示与Production门禁仍未实施/通过，不整体关闭账号注销。下方为完整目标和历史拆分，实际边界以最新checkpoint为准。
+当前后端已建立本地里程碑，Slice 4前端/历史身份及本地集成FRONTEND_READY_FOR_REVIEW；前端未提交，Production与真实设备门禁仍未通过，不整体关闭账号注销。下方为完整目标和历史拆分，实际边界以最新checkpoint为准。
 
 每个Slice需独立实施授权、评审、实际验证记录；以下文件/对象为预计，不是本轮变更。涉及多个写入口时拆成小批SQL变更、每批尽量不超过约5个实现/测试文件，治理记录按需同步；整个注销入口在屏障覆盖完成前不得开放。
 

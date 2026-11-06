@@ -1,7 +1,7 @@
 import type { CurrentSpace, ReviewEntry, ReviewRound } from '../types.ts';
 
 export type ReviewDetailTarget = { spaceId: string; reviewId: string; justCreated: boolean };
-export type ReviewDetail = { round: ReviewRound; own: ReviewEntry; other: ReviewEntry | null };
+export type ReviewDetail = { round: ReviewRound; own: ReviewEntry; other: ReviewEntry | null; deletedParticipantIds?: string[] };
 
 export class ReviewUnavailableError extends Error {
   constructor() { super('这次回顾暂不可访问，请返回历史列表。'); }

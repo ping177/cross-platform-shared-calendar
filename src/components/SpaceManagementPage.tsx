@@ -221,7 +221,8 @@ function SpaceDetail({ space, userId, onSpaceChange, busy, onBusyChange, onLifec
   return <SpaceDetailContent space={space} members={members} moduleState={module.state} moduleError={module.error} moduleBusy={module.busy} onModuleRetry={() => void module.retry()} onModuleToggle={() => void toggleModule('tasks', module.toggle)} reviewModuleState={reviewModule.state} reviewModuleError={reviewModule.error} reviewModuleBusy={reviewModule.busy} onReviewModuleRetry={() => void reviewModule.retry()} onReviewModuleToggle={() => void toggleModule('review', reviewModule.toggle)} listsModuleState={listsModule.state} listsModuleError={listsModule.error} listsModuleBusy={listsModule.busy} onListsModuleRetry={() => void listsModule.retry()} onListsModuleToggle={() => void toggleModule('lists', listsModule.toggle)} importantDatesModuleState={importantDatesModule.state} importantDatesModuleError={importantDatesModule.error} importantDatesModuleBusy={importantDatesModule.busy} onImportantDatesModuleRetry={() => void importantDatesModule.retry()} onImportantDatesModuleToggle={() => void toggleModule('important_dates', importantDatesModule.toggle)} onSpaceChange={onSpaceChange} nameEditor={(space.kind === 'personal' || members.some((member) => member.user_id === userId && member.role === 'owner')) ? <SpaceNameEditor key={`${space.id}:${userId}`} space={space} userId={userId} busy={busy} onBusyChange={onBusyChange} onSpaceChange={onSpaceChange} /> : null} lifecycleControls={<SpaceLifecycleControls space={space} members={members} userId={userId} busy={busy} onBusyChange={onBusyChange} onSettled={onLifecycleSettled} />} />;
 }
 
-export function SpaceManagementPage({ swipeClickGuard, spaces, selectedSpaceId, userId, detailRevision, onSelect, onBack, onReady, onSpaceChange, onLifecycleSettled, onModuleChanged, busy, onBusyChange }: {
+export function SpaceManagementPage({ swipeClickGuard, spaces, selectedSpaceId, userId, detailRevision, onSelect, onBack, onReady, onSpaceChange, onLifecycleSettled, onModuleChanged, busy, onBusyChange, backLabel = '我的' }: {
+  backLabel?: string;
   swipeClickGuard?: SwipeClickGuard;
   spaces: CurrentSpace[];
   selectedSpaceId: string | null;
@@ -245,7 +246,7 @@ export function SpaceManagementPage({ swipeClickGuard, spaces, selectedSpaceId, 
   return (
     <main {...swipe} className="ui-spaces-page mx-auto min-h-[100dvh] w-full max-w-3xl px-ui-4 py-ui-4 bg-ui-page font-ui text-ui-text safe-bottom">
       <header className="ui-spaces-header flex min-h-11 items-center gap-ui-3">
-        <button className="ui-focus inline-flex min-h-11 items-center gap-1 text-ui-meta font-ui-semibold text-ui-accent disabled:opacity-50" type="button" onClick={onBack} disabled={busy}><ChevronLeft size={18} />{selected ? '空间管理' : '我的'}</button>
+        <button className="ui-focus inline-flex min-h-11 items-center gap-1 text-ui-meta font-ui-semibold text-ui-accent disabled:opacity-50" type="button" onClick={onBack} disabled={busy}><ChevronLeft size={18} />{selected ? '空间管理' : backLabel}</button>
         <h1 className="min-w-0 flex-1 break-all text-ui-section">{selected ? selected.name : '空间管理'}</h1>
       </header>
       {selected ? <div className="mt-4"><SpaceDetail key={`${selected.id}:${selected.membershipRole}:${detailRevision}`} space={selected} userId={userId} onSpaceChange={onSpaceChange} busy={busy} onBusyChange={onBusyChange} onLifecycleSettled={onLifecycleSettled} onModuleChanged={onModuleChanged} /></div> : (

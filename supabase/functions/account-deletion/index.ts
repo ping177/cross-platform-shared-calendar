@@ -3,7 +3,6 @@ import { executeOneDeletion, wakeAuthorized } from './execution.ts';
 import { deletionInput, newConfirmationToken, permitDigest, verifiedSession } from './logic.ts';
 
 const headers = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' };
-function reply(body: unknown, status: number) { return new Response(JSON.stringify(body), { status, headers }); }
 function config(name: string) { const value = Deno.env.get(name); if (!value) throw new Error('Service unavailable.'); return value; }
 async function requestBody(request: Request): Promise<unknown> {
   const reader = request.body?.getReader();
@@ -20,11 +19,16 @@ async function requestBody(request: Request): Promise<unknown> {
 }
 
 Deno.serve(async request => {
+  const origin = request.headers.get('Origin');
+  const allowedOrigin = origin && ['http://127.0.0.1:5175', 'http://localhost:5175'].includes(origin) ? origin : null;
+  const responseHeaders = { ...headers, ...(allowedOrigin ? { 'Access-Control-Allow-Origin': allowedOrigin, Vary: 'Origin',
+    'Access-Control-Allow-Headers': 'authorization, apikey, content-type', 'Access-Control-Allow-Methods': 'POST, OPTIONS' } : {}) };
+  const reply = (body: unknown, status: number) => new Response(JSON.stringify(body), { status, headers: responseHeaders });
   // No deployment/config resource is added. Default is fail-closed; this draft
   // can accept requests only in the deliberately configured isolated test stack.
   if (Deno.env.get('ACCOUNT_DELETION_RUNTIME_MODE') !== 'isolated-local') return reply({ error: 'Service unavailable.' }, 503);
+  if (request.method === 'OPTIONS' && allowedOrigin) return new Response(null, { status: 204, headers: responseHeaders });
   if (request.method !== 'POST') return reply({ error: 'Method not allowed.' }, 405);
-  const origin = request.headers.get('Origin');
   if (origin && !['http://127.0.0.1:5175', 'http://localhost:5175'].includes(origin)) return reply({ error: 'Origin is not allowed.' }, 403);
   const authorization = request.headers.get('Authorization');
   try {
@@ -62,6 +66,11 @@ Deno.serve(async request => {
         if (sendError) return reply({ error: 'Verification is unavailable.' }, 503);
       }
       return reply({ request_id: data.request_id, challenge_id: data.challenge_id }, 200);
+    }
+    if (body.action === 'cancel') {
+      const { data, error: cancelError } = await caller.rpc('cancel_my_deletion_preparation');
+      if (cancelError || typeof data !== 'boolean') return reply({ error: 'Confirmation is unavailable.' }, 409);
+      return reply({ cancelled: data }, 200);
     }
     if (body.action === 'confirm') {
       const { data, error: acceptError } = await caller.rpc('accept_my_account_deletion', {

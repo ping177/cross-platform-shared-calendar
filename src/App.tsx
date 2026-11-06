@@ -1,3 +1,4 @@
+import { AccountDeletionBoundary } from './components/AccountDeletionBoundary';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { SpaceFilterDropdown } from './components/SpaceFilterDropdown';
 import { useMobileSwipe } from './components/useMobileSwipe';
@@ -222,11 +223,9 @@ export default function App() {
     return <FullScreenMessage title="正在载入" body="正在恢复登录状态。" />;
   }
 
-  if (!session) {
-    return <AuthPage />;
-  }
-
-  return <CalendarApp key={`${session.user.id}:${authEpoch}`} session={session} restoreOnStartup={startupUserId === session.user.id} />;
+  return <AccountDeletionBoundary session={session} onFinished={clearSession => { if (clearSession) { setSession(null); setStartupUserId(null); setAuthEpoch(value => value + 1); } }}>
+    {session ? <CalendarApp key={`${session.user.id}:${authEpoch}`} session={session} restoreOnStartup={startupUserId === session.user.id} /> : <AuthPage />}
+  </AccountDeletionBoundary>;
 }
 
 function sessionNavigationStorage(): Storage | null {
@@ -812,7 +811,7 @@ function CalendarApp({ session, restoreOnStartup }: { session: Session; restoreO
           onViewModeChange={setViewMode}
         />
       )}
-      {navigation.tab === 'me' && myScreen === 'profile' && <MyPage userId={userId} loginEmail={session.user.email} onManageSpaces={() => { setMyScreen('management'); void refreshSpaces(false); }} />}
+      {navigation.tab === 'me' && myScreen === 'profile' && <MyPage userId={userId} loginEmail={session.user.email} onSpacesChanged={() => { void refreshSpaces(false); void moduleAvailability.refresh(); }} onManageSpaces={() => { setMyScreen('management'); void refreshSpaces(false); }} />}
       {navigation.tab === 'me' && myScreen !== 'profile' && (
         spaceListStatus === 'ready'
           ? <SpaceManagementPage

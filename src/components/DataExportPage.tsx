@@ -8,7 +8,7 @@ import { createExportDownload, requestExportSave, supportsExportFileShare } from
 import { useMobileSwipe } from './useMobileSwipe';
 
 type Archive = { file: File; spaceIds: string[] };
-export default function DataExportPage({ userId, onBack }: { userId: string; onBack: () => void }) {
+export default function DataExportPage({ userId, onBack, backLabel = '账户管理' }: { userId: string; onBack: () => void; backLabel?: string }) {
   const [spaces, setSpaces] = useState<ExportRow[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const selectedRef = useRef(selected); selectedRef.current = selected;
@@ -117,7 +117,7 @@ export default function DataExportPage({ userId, onBack }: { userId: string; onB
   const disabled = phase !== 'idle';
   const canShare = archive ? supportsExportFileShare(archive.file) : false;
   return <main {...swipe} className="mx-auto min-h-[100dvh] w-full max-w-3xl bg-ui-page px-ui-4 py-ui-4 font-ui text-ui-text safe-bottom">
-    <header className="ui-spaces-header flex min-h-11 items-center gap-ui-3"><button type="button" className="ui-focus inline-flex min-h-11 shrink-0 items-center gap-ui-1 rounded-ui-control text-ui-meta font-ui-semibold text-ui-accent" onClick={leave}><ChevronLeft size={18} aria-hidden="true" />账户管理</button><h1 className="min-w-0 flex-1 break-all text-ui-section">导出数据</h1></header>
+    <header className="ui-spaces-header flex min-h-11 items-center gap-ui-3"><button type="button" className="ui-focus inline-flex min-h-11 shrink-0 items-center gap-ui-1 rounded-ui-control text-ui-meta font-ui-semibold text-ui-accent" onClick={leave}><ChevronLeft size={18} aria-hidden="true" />{backLabel}</button><h1 className="min-w-0 flex-1 break-all text-ui-section">导出数据</h1></header>
     <p className="mt-ui-4 text-ui-meta text-ui-muted">选择空间，导出你有权访问的数据。</p>
     {loaded && <fieldset className="mt-ui-4"><legend className="text-ui-body font-ui-semibold">选择空间</legend>
       <button type="button" className="ui-focus min-h-11 text-ui-accent" disabled={disabled || !spaces.length} onClick={() => changeSelection(selected.length === spaces.length ? [] : spaces.map(space => String(space.id)))}>{selected.length === spaces.length && spaces.length ? '取消全选' : '全选'}</button>

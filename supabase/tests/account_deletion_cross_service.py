@@ -114,7 +114,9 @@ class Gate:
             else:
                 raise AssertionError(service+' unavailable')
         if getattr(self,'schema_mode','upgrade') == 'fresh':
-            self.sql((ROOT/'supabase/schema.sql').read_text())
+            canonical=(ROOT/'supabase/schema.sql').read_text()
+            if not getattr(self,'include_frontend',False):canonical=canonical.split('-- ACCOUNT_DELETION_FRONTEND_BEGIN')[0]
+            self.sql(canonical)
         else:
             self.sql(subprocess.check_output(['git','show','4b1032e:supabase/schema.sql'],cwd=ROOT,text=True))
             for name in ['audit-snapshots','barrier']:

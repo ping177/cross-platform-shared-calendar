@@ -1,0 +1,41 @@
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { ChevronLeft } from 'lucide-react';
+import { beginDeletion, verifyDeletion } from '../lib/account-deletion-api';
+import type { DeletionIntent, DeletionProof } from '../lib/account-deletion';
+import { listCurrentSpaces } from '../lib/current-spaces';
+import { supabase } from '../lib/supabase';
+import type { CurrentSpace } from '../types';
+import { SpaceManagementPage } from './SpaceManagementPage';
+import { useMobileSwipe } from './useMobileSwipe';
+const DataExportPage = lazy(() => import('./DataExportPage'));
+const button = 'ui-focus min-h-11 rounded-ui-control px-ui-3 text-ui-meta font-ui-semibold disabled:opacity-50';
+export default function AccountDeletionPage({ userId, onBack, onConfirm }: { userId: string; onBack: () => void; onConfirm: (proof: DeletionProof) => Promise<void> }) {
+  const [screen,setScreen]=useState<'intro'|'owners'|'otp'|'confirm'|'export'|'spaces'>('intro');
+  const [spaces,setSpaces]=useState<CurrentSpace[]>([]),[selected,setSelected]=useState<string|null>(null);
+  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[email,setEmail]=useState('');
+  const [otp,setOtp]=useState(''),[intent,setIntent]=useState<DeletionIntent|null>(null),[proof,setProof]=useState<DeletionProof|null>(null);
+  const [checked,setChecked]=useState(false),[cooldown,setCooldown]=useState(0);
+  const active=useRef(true),lock=useRef(false),revision=useRef(0),input=useRef<HTMLInputElement>(null);
+  useEffect(()=>{active.current=true;const sub=supabase.auth.onAuthStateChange((event)=>{if(event==='INITIAL_SESSION'||event==='TOKEN_REFRESHED')return;revision.current++;setProof(null);setIntent(null);setOtp('');setChecked(false);setScreen(s=>s==='otp'||s==='confirm'?'owners':s);});return()=>{active.current=false;revision.current++;sub.data.subscription.unsubscribe();};},[userId]);
+  useEffect(()=>{if(screen==='otp')input.current?.focus();},[screen]);
+  useEffect(()=>{if(!cooldown)return;const timer=setTimeout(()=>setCooldown(v=>v-1),1000);return()=>clearTimeout(timer);},[cooldown]);
+  async function run(task:()=>Promise<void>) { if(lock.current)return;lock.current=true;setBusy(true);setError('');try{await task();}catch(e){if(active.current)setError(e instanceof Error?e.message:'操作未完成，请重试。');}finally{lock.current=false;if(active.current)setBusy(false);} }
+  async function refresh() { const all=await listCurrentSpaces(userId);if(active.current)setSpaces(all);return all; }
+  async function owners() {setProof(null);setChecked(false);setScreen('owners');await run(async()=>{await refresh();});}
+  async function send() { await run(async()=>{const rev=revision.current;const all=await refresh();if(all.some(s=>s.kind==='shared'&&s.membershipRole==='owner')){setScreen('owners');throw Error('请先处理全部共享空间的所有权。');}
+    const {data,error:authError}=await supabase.auth.getUser();if(authError||data.user?.id!==userId||!data.user.email_confirmed_at)throw Error('登录身份已变化，请重新打开账户管理。');
+    const next=await beginDeletion(userId);if(!active.current||rev!==revision.current)return;setEmail(data.user.email??'当前登录邮箱');setIntent(next);setProof(null);setOtp('');setChecked(false);setCooldown(60);setScreen('otp');}); }
+  async function verify() {if(!intent)return;const code=otp;setOtp('');await run(async()=>{const rev=revision.current;const verified=await verifyDeletion(userId,intent,code);if(active.current&&rev===revision.current){setProof(verified);setChecked(false);setScreen('confirm');}});}
+  const swipe=useMobileSwipe({enabled:!busy,scope:`${userId}:deletion`,direction:'right',onSwipe:onBack});
+  if(screen==='export')return <Suspense fallback={<p role="status">正在打开导出数据…</p>}><DataExportPage backLabel="返回注销" userId={userId} onBack={()=>setScreen('intro')}/></Suspense>;
+  if(screen==='spaces')return <><SpaceManagementPage backLabel="返回注销" spaces={spaces} selectedSpaceId={selected} userId={userId} detailRevision={0} onSelect={setSelected} onBack={()=>{if(selected)setSelected(null);else void owners();}} onReady={async()=>{await refresh();return true;}} onSpaceChange={()=>void refresh()} onLifecycleSettled={async(_action,failure)=>{await refresh();setSelected(null);if(failure)setError('空间操作尚未确认，请重新检查。');}} onModuleChanged={()=>undefined} busy={busy} onBusyChange={setBusy}/>{error&&<p role="alert" className="p-ui-4 text-ui-danger">{error}</p>}</>;
+  const owned=spaces.filter(s=>s.kind==='shared'&&s.membershipRole==='owner');
+  return <main {...swipe} className="mx-auto min-h-[100dvh] w-full max-w-3xl bg-ui-page px-ui-4 py-ui-4 font-ui text-ui-text safe-bottom">
+    <header className="ui-spaces-header flex min-h-11 items-center gap-ui-3"><button type="button" className={`${button} inline-flex items-center gap-ui-1 text-ui-accent`} disabled={busy} onClick={onBack}><ChevronLeft size={18} aria-hidden="true"/>账户管理</button><h1 className="min-w-0 flex-1 text-ui-section">注销账号</h1></header>
+    {screen==='intro'&&<section className="ui-space-group mt-ui-4"><h2 className="text-ui-list font-ui-semibold">注销前，请确认</h2><ul className="mt-ui-3 list-disc space-y-ui-3 pl-ui-4 text-ui-body leading-7 text-ui-muted"><li>账号、个人空间和全部私人数据将永久删除，无法恢复。</li><li>共享空间按现有成员规则处理，共享内容会保留。你需要先处理自己拥有的共享空间。</li><li>历史共享回顾和必要历史记录，可能继续由有权访问的原参与者保留。</li><li>建议先导出数据。已导出的文件不会因注销自动消失。</li></ul><div className="mt-ui-4 flex flex-col gap-ui-2"><button className={`${button} bg-ui-accent-soft text-ui-accent`} onClick={()=>setScreen('export')}>导出数据</button><button className={`${button} text-ui-muted`} onClick={()=>void owners()}>跳过导出，继续注销</button></div></section>}
+    {screen==='owners'&&<section className="ui-space-group mt-ui-4"><h2 className="text-ui-list font-ui-semibold">处理共享空间所有权</h2><p className="mt-ui-3 text-ui-body text-ui-muted">需要检查你拥有的全部共享空间。请先转让给现有成员，或在空间管理中单独确认删除。</p>{owned.map(s=><p key={s.id} className="mt-ui-3 break-words text-ui-body">{s.name} · 所有者</p>)}<div className="mt-ui-4 flex flex-col gap-ui-2"><button className={`${button} text-ui-accent`} disabled={busy} onClick={()=>{setSelected(null);setScreen('spaces');}}>打开空间管理</button><button className={`${button} text-ui-accent`} disabled={busy} onClick={()=>void owners()}>重新检查所有权</button><button className={`${button} bg-ui-accent-soft text-ui-accent`} disabled={busy||owned.length>0||Boolean(error)} onClick={()=>void send()}>{busy?'正在检查…':'发送注销验证码'}</button></div></section>}
+    {screen==='otp'&&<form className="ui-space-group mt-ui-4" onSubmit={e=>{e.preventDefault();void verify();}}><h2 className="text-ui-list font-ui-semibold">重新验证邮箱</h2><p className="mt-ui-3 break-all text-ui-body text-ui-muted">验证码已发送至 {email}</p><label htmlFor="deletion-otp" className="mt-ui-4 block text-ui-meta">8 位验证码</label><input id="deletion-otp" ref={input} className="ui-input mt-ui-2 min-h-11 w-full rounded-ui-control border border-ui-border bg-ui-surface px-ui-3 text-base" inputMode="numeric" autoComplete="one-time-code" value={otp} maxLength={8} onChange={e=>setOtp(e.target.value.replace(/\D/g,'').slice(0,8))} aria-invalid={Boolean(error)} disabled={busy}/><p className="mt-ui-2 text-ui-meta text-ui-muted">这是本次注销的身份确认，不会直接注销账号。</p><button type="submit" className={`${button} mt-ui-4 w-full bg-ui-accent-soft text-ui-accent`} disabled={busy||otp.length!==8}>{busy?'正在验证…':'验证并继续'}</button><button type="button" className={`${button} mt-ui-2 w-full text-ui-accent`} disabled={busy||cooldown>0} onClick={()=>void send()}>{cooldown?`${cooldown} 秒后可重发`:'重新发送验证码'}</button></form>}
+    {screen==='confirm'&&proof&&<section className="ui-space-group mt-ui-4"><h2 className="text-ui-list font-ui-semibold text-ui-danger">最终确认</h2><p className="mt-ui-3 text-ui-body leading-7 text-ui-muted">服务端受理后将永久删除原账号、个人空间和私人数据，无法撤销。共享内容按上述规则保留。</p><label className="mt-ui-4 flex min-h-11 items-start gap-ui-3 text-ui-body"><input type="checkbox" className="mt-1 h-5 w-5 shrink-0" checked={checked} disabled={busy} onChange={e=>setChecked(e.target.checked)}/>我已了解永久删除后果，确认注销账号</label><button className={`${button} mt-ui-4 w-full bg-ui-danger text-white`} disabled={!checked||busy} onClick={()=>{if(checked)void run(async()=>{await onConfirm(proof);});}}>永久注销账号</button><button className={`${button} mt-ui-2 w-full text-ui-accent`} onClick={onBack}>暂不注销</button></section>}
+    {error&&<p role="alert" className="mt-ui-4 text-ui-meta leading-6 text-ui-danger">{error}</p>}
+  </main>;
+}

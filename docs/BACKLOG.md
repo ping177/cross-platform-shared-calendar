@@ -1,5 +1,11 @@
 # Backlog
 
+## 2026-11-06 — 注销前端本地完成／等待审查
+
+后端本地里程碑7bc144f已建立，前端及两个必要窄合同FRONTEND_READY_FOR_REVIEW且未提交。真实SMTP/Auth/Owner转让、前端最终确认、关页Cron完成、回执恢复/清理和历史“已注销用户”闭环通过；42 Node/44浏览器及Build等证据见TESTING。
+
+下一步仅用户/ChatGPT审查本地diff及回执/隔离/历史权限。真实设备登录/OTP/PWA/Push由用户后续验收；Production安全门禁、迁移/Edge/Cron/开关/网关配置另需明确授权，本轮不申请或自动执行。两个闲置账号不动，v0.1.21与既有导出关闭/旧暂缓项保持；不再Commit/Push/Deploy。下方为历史。
+
 ## 2026-11-06 — Final Execution本地待审查
 
 本轮服务端完整本地闭环FINAL_EXECUTION_READY_FOR_REVIEW：已受理job经Storage/业务/Auth hard delete/严格完成与短期回执；真实Cron/Net/Vault、Edge崩溃/租约到期恢复、失败/丢响应和共享数据权限通过。53真实服务断言、822 SQL/28双会话、121 Node/类型/Build，详见覆盖报告§9及TESTING。

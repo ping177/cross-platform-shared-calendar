@@ -28,17 +28,18 @@ export function ReviewDetailPanels({ detail, userId, mobilePanel, onMobilePanelC
   onBusyChange?: (busy: boolean) => void;
 }) {
   const shared = detail.other !== null;
+  const otherLabel = detail.other && detail.deletedParticipantIds?.includes(detail.other.user_id) ? '已注销用户' : '对方';
   return <>
     {shared && <div className="mt-ui-6 grid grid-cols-2 gap-ui-2 md:hidden" role="tablist" aria-label="回顾参与者">
       <button className={`ui-focus min-h-ui-touch rounded-ui-control text-ui-meta font-ui-semibold ${mobilePanel === 'mine' ? 'bg-ui-accent-soft text-ui-accent' : 'bg-ui-surface text-ui-muted'}`} id="review-mine-tab" type="button" role="tab" aria-selected={mobilePanel === 'mine'} aria-controls="review-mine-panel" onClick={() => onMobilePanelChange('mine')}>我的</button>
-      <button className={`ui-focus min-h-ui-touch rounded-ui-control text-ui-meta font-ui-semibold ${mobilePanel === 'other' ? 'bg-ui-accent-soft text-ui-accent' : 'bg-ui-surface text-ui-muted'}`} id="review-other-tab" type="button" role="tab" aria-selected={mobilePanel === 'other'} aria-controls="review-other-panel" onClick={() => onMobilePanelChange('other')}>对方</button>
+      <button className={`ui-focus min-h-ui-touch rounded-ui-control text-ui-meta font-ui-semibold ${mobilePanel === 'other' ? 'bg-ui-accent-soft text-ui-accent' : 'bg-ui-surface text-ui-muted'}`} id="review-other-tab" type="button" role="tab" aria-selected={mobilePanel === 'other'} aria-controls="review-other-panel" onClick={() => onMobilePanelChange('other')}>{otherLabel}</button>
     </div>}
     <div className={`mt-4 grid min-w-0 gap-4 ${shared ? 'md:grid-cols-2 md:items-start' : ''}`}>
       <div className={`min-w-0 ${shared && mobilePanel !== 'mine' ? 'hidden md:block' : ''}`} id="review-mine-panel" role={shared ? 'tabpanel' : undefined} aria-labelledby={shared ? 'review-mine-tab' : undefined}>
         <ReviewEntryEditor reviewId={detail.round.id} userId={userId} startEditing={startEditing} onDirtyChange={onDirtyChange} onBusyChange={onBusyChange} />
       </div>
       {detail.other && <div className={`min-w-0 ${mobilePanel !== 'other' ? 'hidden md:block' : ''}`} id="review-other-panel" role="tabpanel" aria-labelledby="review-other-tab">
-        <h2 className="mb-ui-3 text-ui-section">对方</h2>
+        <h2 className="mb-ui-3 text-ui-section">{otherLabel}</h2>
         <ReviewReadOnlyEntry entry={detail.other} />
       </div>}
     </div>

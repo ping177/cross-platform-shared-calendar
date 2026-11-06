@@ -13,7 +13,7 @@ function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : '操作失败，请稍后再试。';
 }
 
-export function MyPage({ userId, loginEmail, onManageSpaces }: { userId: string; loginEmail?: string; onManageSpaces: () => void }) {
+export function MyPage({ userId, loginEmail, onManageSpaces, onSpacesChanged }: { userId: string; loginEmail?: string; onManageSpaces: () => void; onSpacesChanged?: () => void }) {
   const account = useAccountNavigation(userId);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -57,7 +57,7 @@ export function MyPage({ userId, loginEmail, onManageSpaces }: { userId: string;
   }
 
   return <>
-    {account.open && <AccountManagementPage userId={userId} email={loginEmail} error={error} onBack={account.back} onSignOut={() => void signOut()} />}
+    {account.open && <AccountManagementPage userId={userId} email={loginEmail} error={error} onSpacesChanged={onSpacesChanged} onBack={account.back} onSignOut={() => void signOut()} />}
     <div hidden={account.open}>
     <main className="ui-my-page mx-auto min-h-[100dvh] w-full max-w-3xl px-ui-4 py-ui-4 bg-ui-page font-ui text-ui-text">
       <h1 className="ui-me-title flex min-h-11 items-center text-ui-page-title">我的</h1>

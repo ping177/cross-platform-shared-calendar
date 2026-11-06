@@ -2,7 +2,7 @@
 
 Author: Ping Weng。2026-11-05。正式版本v0.1.21不变。
 
-Status: `FINAL_EXECUTION_READY_FOR_REVIEW`（2026-11-06，仅隔离本地完整服务端执行，待审查）。§1–8保留历史检查点；最新租约、Storage/Auth执行、真实Cron、回执与安全边界以§9为准。不是Production PASS、正式UI可用或账号注销CLOSED。产品规则见[主规格](./ACCOUNT_DELETION_SPEC.md)，准确命令及证据分层见[TESTING](./TESTING.md)。
+Status: `FRONTEND_READY_FOR_REVIEW`（2026-11-06，仅本地，前端未提交）。后端7bc144f仅本地Commit，未Push/Deploy；§1–9保留历史证据，最新前端/两个窄合同与本地集成见§10。Production与真实设备均未验收，功能不标CLOSED。
 
 ## 1. Baseline and authority
 
@@ -293,3 +293,36 @@ receipt动作接受POST body中的有效随机凭据，经Edge服务端摘要查
 仍未授权/未验证：Production catalog/默认角色/受限角色安装能力、实际Storage版本/路由/平台事故处理、pg_net请求队列与Vault ACL、调度凭据配置和健康检查、Production Auth/邮件/网关行为、用户真实PWA操作及正式UI。所有本地闭环也不代表CLOSED或Production PASS。
 
 本轮最终证据：升级50＋fresh3＝53项真实Auth/SMTP/PostgREST/Storage/Edge/Cron断言PASS，真实catalog权限检查分别执行；822 SQL/28双会话/2隔离检查为历史子集回归，Node121/121、cached Deno及Build PASS。具体失败注入和未验证项见TESTING。状态FINAL_EXECUTION_READY_FOR_REVIEW，仅本地；完成后停止等待用户/ChatGPT审查，不提交、不发布。
+
+## 10. Frontend flow and local integration — 2026-11-06
+
+Author: Ping Weng。后端39文件清单/证据/密钥模式核对后按用户明确授权本地Commit 7bc144f，无Push/Deploy。当前前端从该里程碑增量实现，正式v0.1.21/Version Index不变。
+
+### 10.1 UI and environment boundary
+
+AccountManagementPage增加默认隐藏入口，独立AccountDeletionPage复用原header、卡片、按钮、OTP表单习惯和移动返回手势。导出页面可退出再跳过，失败不锁注销；全部listCurrentSpaces分页读取Owner，失败关闭，操作后/发OTP前再读；转让/删除只走原SpaceManagementPage及独立确认，不在注销里静默删共享空间。复用页可选backLabel仅该路径显示“返回注销”，默认入口/布局保留，离开后刷新外层Space/模块状态。
+
+仅VITE_ACCOUNT_DELETION_ENABLED=true + DEV + 浏览器与VITE_SUPABASE_URL均loopback HTTP时启用；生产Build返回false。没有任何VITE service/worker key。Edge原isolated-local/本地URL门禁保持，新增只允许两个5175本地Origin的OPTIONS/CORS响应以支持浏览器连接，任意Origin仍拒绝；无Production配置或资源。
+
+OTP与一次性确认许可只在当前组件内存，不另存JWT，不向客户端提供目标UUID参数。沿用SDK既有登录Session保存约定，OTP实际验证在服务器独立client完成；前端不setSession为OTP结果。退出/身份变动清空内存许可，正常token刷新不误当新验证。服务端对错误/过期/已使用验证码可能使用同类拒绝，UI准确合并提示，不虚构可区分的供应商原因；网络、身份/意图变化、重发冷却与许可失效分别提示。
+
+### 10.2 Receipt ownership and business gate
+
+Root App在CalendarApp初始化之前包AccountDeletionBoundary；本地启用时先查current_account_active，未知/停用不bootstrap。最终提交前先持久化只读receipt，成功核对写入后才调用confirm；存储受限则拒绝提交、中文提示。localStorage仅token、expires及原UUID的SHA256本机绑定摘要（用于防止清理另一个后来登录账号，不是匿名化或服务端授权），无OTP/确认许可/邮箱/原UUID副本。回执能力仅查status，7天上限，过期/损坏本机记录清除，绝不放URL、日志或事件分析。
+
+回执状态接管立即卸载业务/导出页，清内存快照/临时File与已有Object URL effect；接受回包未知时继续查询，不把点击/超时当成功。storage事件同步其他标签；重开即使Auth已删也能查询。accepted/processing没有取消；needs_attention保持隔离、不虚构人工渠道。没有回执且账号inactive只报告无法确认注销结果，不谎称未完成或已成功。
+
+只有completed才清理：按旧合同尽力unsubscribe本机Push（远端已由后台删除）、原账号SDK local signOut，按绑定摘要匹配清理selectedSpaceId/navigation，移除回执及原App Session/状态，显示成功并返回登录。未知错误不清回执；登录清理错误可重试，不让旧账号恢复业务。若当前是不同账号，不退出其Session、不清它的偏好或Push；仅移除旧回执。平台不支持/离线时本机unsubscribe仍是best-effort，不冒称真机Push已验收。
+
+### 10.3 Two minimal database contracts
+
+- cancel_my_deletion_preparation()：无目标参数，仅authenticated、auth.uid和真实原session；账号EX门闩→未接受job行，已accepted直接false且不等清理行。未受理时清许可/claim/challenge，使迟到confirm/finish不能接受；不删除数据、不撤回已接受job、不改永久授权。用于未知结果时“核实未受理并返回”；先核对回执绑定，再经专用Edge的cancel动作固定原会话client调用，身份切换不能丢弃别人的旧回执；没有从preparing查询结果猜测在途请求已结束。
+- review_deleted_participants(review_id)：仅authenticated，先复用can_read_review_round的当前成员+原参与者要求；只返回本轮相关participant且job completed/Auth不存在的UUID，不给任意UUID查询或private表读取。正文、RLS及历史可见范围不变。前端只用明确标记替换“对方”为“已注销用户”；Profile失败/普通退群/标记查询失败保持未知，不解析旧昵称/邮箱/头像。
+
+独立frontend-contract forward patch与canonical追加；旧四份审计/barrier/trusted/execution patch、清理算法、调度和完整执行权限不重写。两个RPC的运行身份/反向越权已在真实本地Auth/PostgREST中验证。
+
+### 10.4 Local evidence and remaining gate
+
+真实集成使用既有隔离栈及合成账号，浏览器固定127.0.0.1:5175，经进程内loopback测试代理转发真实Auth/PostgREST/Edge/Storage；不替换认证返回或数据、不继承用户实际会话。SMTP真实8位OTP/30秒自然到期、重发新邮件游标、受理和后台Cron均实际执行。测试桥仅瞬时回环端口，无长期网关或新依赖；所有Docker/网络/tmpfs资源自有并最终清理。
+
+Chrome/WebKit的状态/存储/身份变动/App bootstrap防护是明确的模拟API组件测试，不能当真实Auth E2E。真实API及浏览器命令、计数/截图核对见TESTING。Production实际catalog/两新RPC/Role/Vault/队列/网关/Storage/SMTP/部署版本仍NOT VERIFIED；真实iPhone/Android/PWA/推送与登录由用户验收。FRONTEND_READY_FOR_REVIEW仅本地，不第二次Commit、Push或Deploy。

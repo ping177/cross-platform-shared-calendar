@@ -1,5 +1,17 @@
 # Development Log
 
+## 2026-11-06 — 前端本地里程碑核对／只读预检获授权
+
+用户/ChatGPT已接受前端阶段，明确授权31文件限定本地Commit `feat: add account deletion frontend locally`。核对Git diff、未跟踪来源、密钥模式、canonical/forward块及44浏览器/真实Auth集成既有记录一致；必要Node42/42、Build/diff复核通过，不重复完整测试或启动删除。PROJECT_STATE已更新已接受与只读预检Next Action，版本/Version Index不变，Production未部署。只暂存已审查清单，不Push/Deploy；之后的只读预检报告独立保留本地。
+
+## 2026-11-06 — Account Deletion前端本地闭环／待审查
+
+后端已按用户明确授权本地Commit 7bc144f（39份限定文件），未Push/Deploy。其后增量前端保持未提交：复用UI v2账户/导出/空间管理，说明/跳过导出、Owner核对/原转让、OTP、最终同意、Root隔离/短期回执恢复、完成清理及可靠历史身份。正常账户页面布局保持，可选返回文案默认不变。两个必要窄RPC解决未受理撤销与Review参与者范围标记；旧后端算法/权限模型不重做，Edge仅补本地CORS。
+
+真实合成浏览器、SMTP自然过期/重发/重放、原空间转让、关页后Cron及Auth删除后重开/Review标记通过；模拟组件与真实API证据分开。42 Node、44浏览器（注销26/邮箱4/导出14）、Build/cached Deno/语法/diff通过，命令与限制见TESTING，安全合同见覆盖报告§10。实际查看确认/处理中截图。原后端四补丁与治理证据保留。最终审查补充跨账号未知请求不得撤销/丢弃旧回执、固定session的Edge cancel、无回执不误称未完成、无效响应中文提示及只清理绑定账号偏好。
+
+FRONTEND_READY_FOR_REVIEW仅本地，正式v0.1.21/Version Index不变。PROJECT_STATE已同步，停止等待ChatGPT与用户审查；无第二Commit、Push/Deploy、Production/真实账号操作或新依赖。只有测试临时桥/容器/图片在项目外，自有资源清理；不读取/输出真实凭据、OTP/JWT/回执。
+
 ## 2026-11-06 — 后端本地里程碑检查通过／前端获授权
 
 用户/ChatGPT已接受本地后端阶段，授权39文件限定Commit `feat: implement account deletion backend locally`。逐项核对来源/文件类型/密钥模式、canonical与patch、53真实服务/822 SQL/28并发/121 Node/Build证据，均一致；无缓存/容器产物/真实凭据。PROJECT_STATE已更新本地已接受、前端Next Action及未部署Production边界，Version Index不新增版本。按明确清单暂存，不Push/Deploy；前端实现另保持未提交待审查。

@@ -2,11 +2,11 @@ const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export function deletionInput(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Invalid request.');
   const body = value as Record<string, unknown>;
-  const keys = body.action === 'begin' ? ['action'] : body.action === 'verify'
+  const keys = body.action === 'begin' || body.action === 'cancel' ? ['action'] : body.action === 'verify'
     ? ['action', 'request_id', 'challenge_id', 'otp'] : body.action === 'confirm'
       ? ['action', 'request_id', 'confirmation_token', 'confirmed'] : [];
   if (!keys.length || Object.keys(body).some(key => !keys.includes(key))) throw new Error('Invalid request.');
-  if (body.action !== 'begin' && (typeof body.request_id !== 'string' || !uuid.test(body.request_id))) throw new Error('Invalid request.');
+  if (body.action !== 'begin' && body.action !== 'cancel' && (typeof body.request_id !== 'string' || !uuid.test(body.request_id))) throw new Error('Invalid request.');
   if (body.action === 'verify' && (typeof body.challenge_id !== 'string' || !uuid.test(body.challenge_id)
     || typeof body.otp !== 'string' || !/^\d{8}$/.test(body.otp))) throw new Error('Invalid request.');
   if (body.action === 'confirm' && (body.confirmed !== true || typeof body.confirmation_token !== 'string'

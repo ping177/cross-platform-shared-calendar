@@ -1,10 +1,10 @@
 import { useEffect, useId, useRef, useState } from 'react';
 
 // Scope browser Back/Forward to this My-page instance; never persist an email.
-export function useAccountNavigation(userId: string, scope: 'account' | 'export' = 'account') {
+export function useAccountNavigation(userId: string, scope: 'account' | 'export' | 'deletion' = 'account') {
   const id = useId();
   const token = `${userId}:${id}`;
-  const key = scope === 'account' ? 'calendarAccount' : 'calendarExport';
+  const key = scope === 'account' ? 'calendarAccount' : scope === 'export' ? 'calendarExport' : 'calendarDeletion';
   const leaving = useRef(false);
   const [open, setOpen] = useState(false);
   useEffect(() => {

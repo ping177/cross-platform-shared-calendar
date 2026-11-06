@@ -1,5 +1,13 @@
 # Decisions
 
+## 2026-11-06 — 注销前端本地开关、回执和未知响应
+
+用户接受后端后授权本地里程碑及前端，已建立7bc144f，前端不再Commit。入口仅显式开关+DEV+双端loopback，Production默认隐藏、后端继续默认拒绝。复用原UI v2/导出/空间生命周期；导出非强制、不静默删共享空间、不改旧权限/正文规则。
+
+Root在bootstrap前检查active，确认前可靠保存只读回执，再将业务/导出组件卸载；OTP/确认许可只内存，SDK既有登录机制不变。本机仅存回执/期限与账号摘要绑定，用于避免旧回执清理新账号；不是匿名化/删除授权。completed才清原账号Session/偏好/回执并尽力unsubscribe，needs_attention/未知结果均不恢复业务或谎报成功。
+
+未知受理结果不能凭preparing快照猜测请求已结束，新增无目标参数、原session绑定的原子未受理撤销RPC；accepted只返回false。历史标记仅授权Review原参与者范围内completed+Auth不存在，缺Profile不当注销；无全局UUID探测。详见覆盖报告§10。本轮仍不授权Production发布或真实设备验收，不创建新正式版本。
+
 ## 2026-11-06 — 最终执行、离线恢复与最小回执（仅本地）
 
 延续唯一job、专用Edge与既有受限清理：随机90秒租约＋generation，每次服务端唤醒一阶段；Storage API→业务事务→Auth hard delete→API/DB最终postflight，已完成子操作也要核对真实后置条件。临时失败持久有限退避；安全异常needs_attention仅owner在修复后恢复同job，不恢复业务访问。completed只能由严格最终函数/guard写入。回执在接受前发放，摘要保存、7天期限，仅返回status，不依赖被删Session。

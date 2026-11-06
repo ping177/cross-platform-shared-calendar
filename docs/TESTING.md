@@ -1,5 +1,20 @@
 # Testing
 
+## 2026-11-06 — Account Deletion Frontend／仅本地待审查
+
+后端阶段获用户/ChatGPT接受，经39文件范围、证据与密钥/临时产物核对后创建授权本地Commit `7bc144f feat: implement account deletion backend locally`。无Push/Deploy；前端和本轮窄合同未提交。当前FRONTEND_READY_FOR_REVIEW，版本仍v0.1.21，不记Production PASS/CLOSED。
+
+- `python3 -B supabase/tests/account_deletion_frontend_local.py`：**真实合成前端闭环PASS**，含10项显式API权限/后置断言及浏览器步骤断言。真实本地Auth/SMTP/REST/Storage/Edge/Cron：账户→导出/跳过→全部Owner阻塞→原空间管理真实转让→错误OTP/真实自然过期/重发新邮件/重放拒绝→独立勾选确认；服务端受理后关页，真实Cron继续完成；重开在Auth已删除时查回执、清本机状态并返回登录。原参与者实际页面显示“已注销用户”和双方保留正文；Shared整行JSON保持，无关账号及新Owner标记RPC403；另一个普通退群参与者Profile确实不可见但标记为空。frontend canonical/upgrade schema+ACL独立fresh一致。原session撤销未受理许可后迟到confirm409，已受理取消返回false。本地Edge预检实际204/正确Origin。
+- 真浏览器使用固定虚拟页面127.0.0.1:5175和临时loopback测试桥，真实请求在自有内部Docker栈执行，不以SQL身份stub替代。测试桥修正过count响应头、Auth SDK预检头与虚拟页跨端口传输，最终同源测试代理真实转发；未改系统安全设置。SMTP重发用邮件游标等待新邮件，过期等待真实30秒以上，不改Auth时间或弱化验证。
+- `PLAYWRIGHT_MODULE_PATH=<existing cache>/playwright/index.mjs node --test tests/account-deletion.browser.mjs tests/login-email.browser.mjs tests/data-export.browser.mjs`：**44/44 PASS**，其中注销26项、原邮箱4项、原导出14项。明确模拟API：默认关闭；unknown/needs_attention/accepted不报成功；接受后无取消；未受理原子核实；主动最终同意/提前返回；存储阻止写入则不提交；Auth变动丢弃许可；跨账号旧回执不退出新账号；completed清理；实际App Root对已受理/无回执停用身份均不ensure Personal。320/390/430无横溢出。合成JWT结构修正后两引擎通过，不能将模拟记录冒称真实Auth。
+- `python3 -B supabase/tests/account_deletion_frontend_local.py --contracts-only`：最终固定session取消Edge真实Auth/REST专项7项PASS，拒绝任意UUID参数、跨账号不影响原许可、迟到确认409、接受后cancelled=false。只测试窄合同，不调用Auth删除或启动Cron。
+- `node --test tests/account-deletion-client.test.ts tests/account-deletion-acceptance.test.ts tests/account-deletion-execution.test.ts tests/account-access.test.ts tests/review-detail-data.test.ts tests/review-entry-data.test.ts tests/data-export-save.test.ts tests/data-export-presentation.test.ts tests/space-management.test.ts tests/space-lifecycle-ui.test.ts`：**42/42 PASS**。包含DEV/loopback/显式开关、只读回执摘要绑定、TTL与匹配账号偏好清理、未知状态不成功及既有服务端/Review/导出/空间规则。
+- `npm run build`（含tsc）、专用Edge `deno check --cached-only --no-lock --config supabase/functions/account-deletion/deno.json supabase/functions/account-deletion/index.ts`、Python AST/Node语法/git diff --check/新文件空白与canonical追加块核对PASS。原大chunk提示保留。截图 `/tmp/calendar-deletion-confirm.png`、`/tmp/calendar-deletion-processing.png` 已实际查看，沿用UI v2、中文、独立确认及处理状态清晰。
+
+配置：DEV启动时显式VITE_ACCOUNT_DELETION_ENABLED=true并指向隔离loopback后端才显示；生产Build关闭，即使误入口服务端仍默认拒绝。普通DataExport/SpaceManagement页面仅有可选返回标签，默认行为/布局保持；没有新框架、业务状态库、Production资源或新生产依赖。OTP/许可只内存，本功能不额外持久化JWT；既有SDK登录保存机制不改。
+
+未验：真实iPhone/Android standalone、真实用户OTP/Push/设备退出、Production catalog/配置/部署、浏览器清除/丢失回执后跨设备找回（不新增找回接口）。Storage平台边界沿用已接受合同，不承诺隐藏字节立刻物理清零。仅本轮隔离新建合成账号hard delete；无真实账号/两个闲置账号、Production或Git发布操作。旧后端53真实服务/822 SQL/28并发是原阶段证据，本轮不重跑全项目稳定性，不混计。
+
 ## 2026-11-06 — Final Execution & Offline Recovery／仅本地 READY FOR REVIEW
 
 状态FINAL_EXECUTION_READY_FOR_REVIEW；不是Production PASS或功能CLOSED。用户已接受前阶段，本轮使用33文件未提交基线、保留原审计/barrier/trusted patch；原清理算法未改。当前执行合同及权限边界见[覆盖报告§9](./ACCOUNT_DELETION_BARRIER_COVERAGE.md#9-final-execution--offline-recovery--2026-11-06)。
