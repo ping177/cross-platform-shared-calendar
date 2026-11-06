@@ -180,6 +180,16 @@ begin
 end;
 $$;
 
+-- Owner-managed admission switch. No app/service role can change rollout policy.
+create table private.account_deletion_admission (
+  singleton boolean primary key default true check (singleton),
+  enabled boolean not null default false,
+  allowed_user_ids uuid[]
+);
+insert into private.account_deletion_admission(singleton) values (true);
+alter table private.account_deletion_admission enable row level security;
+revoke all on private.account_deletion_admission from public,anon,authenticated,service_role;
+
 create function public.accept_my_account_deletion(p_request_id uuid,p_confirmation_token text)
 returns jsonb language plpgsql security definer set search_path=pg_catalog,pg_temp as $$
 declare actor uuid:=auth.uid(); sid uuid:=private.deletion_session(); job private.account_deletions; expected_hash text;
@@ -191,6 +201,11 @@ begin
   if not found or job.verification_session_id is distinct from sid or job.permit_hash is distinct from expected_hash
     or job.identity_verified_at is null then raise exception 'DELETION_PERMIT_REQUIRED' using errcode='42501'; end if;
   if job.accepted_at is not null then return jsonb_build_object('request_id',job.request_id,'status',job.status); end if;
+  -- Hold the policy row through commit: closing admission waits for any earlier
+  -- acceptance to commit. Policy updates take no Space/account/job locks.
+  perform 1 from private.account_deletion_admission
+    where singleton and enabled and (allowed_user_ids is null or actor=any(allowed_user_ids)) for share;
+  if not found then raise exception 'NEW_DELETION_REQUESTS_DISABLED' using errcode='42501'; end if;
   select * into job from private.account_deletions where user_id=actor and request_id=p_request_id for update;
   if job.verification_session_id is distinct from sid or job.permit_hash is distinct from expected_hash
     or job.permit_expires_at<=clock_timestamp() or job.permit_expires_at is null or job.permit_used_at is not null then

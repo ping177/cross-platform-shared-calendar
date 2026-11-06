@@ -54,8 +54,9 @@ def main():
     parser.add_argument('--red', action='store_true')
     parser.add_argument('--barrier', action='store_true')
     parser.add_argument('--trusted', action='store_true')
+    parser.add_argument('--historical-baseline', action='store_true')
     args = parser.parse_args()
-    if args.trusted: args.barrier = True
+    if args.trusted or args.historical_baseline: args.barrier = True
     endpoint = subprocess.check_output(DOCKER + ['context', 'inspect', '--format', '{{.Endpoints.docker.Host}}'], text=True).strip()
     assert endpoint.startswith('unix://'), 'Only local Unix-socket Docker is allowed'
     name = 'calendar_account_audit_' + uuid.uuid4().hex[:12]
@@ -162,6 +163,29 @@ commit;""")
                 if mode == 'upgrade':
                     before_state_rows = fingerprint(db)
                     state_patch = (ROOT / 'supabase/patches/2026-11-05-account-deletion-barrier.sql').read_text()
+                    if args.historical_baseline:
+                        history = (ROOT / 'supabase/patches/2026-09-23-v0.1.10-multispace-foundation.sql').read_text()
+                        definitions = []
+                        for function in ('ensure_personal_space', 'join_space_by_invite_code'):
+                            match = re.search(r'create or replace function public\.' + function
+                                              + r'\([^;]*?as \$\$.*?\$\$;', history, re.S)
+                            assert match, function
+                            definitions.append(match.group())
+                        sql(db, '\n'.join(definitions))
+                    # An unreviewed body (even a comment-only change) must fail
+                    # closed for either function, without partial DDL or row changes.
+                    for signature in ('public.ensure_personal_space()', 'public.join_space_by_invite_code(text)'):
+                        definition = sql(db, f"select pg_get_functiondef('{signature}'::regprocedure);")
+                        delimiter = re.search(r'AS (\$\w*\$)', definition).group(1)
+                        at = definition.rindex(delimiter)
+                        altered = definition[:at] + '\n-- unreviewed baseline fixture\n' + definition[at:]
+                        sql(db, altered)
+                        before_rejection = normalized_dump(dump(db))
+                        sql(db, state_patch, fail=True)
+                        assert before_rejection == normalized_dump(dump(db)), 'Rejected patch changed schema/ACL'
+                        assert before_state_rows == fingerprint(db), 'Rejected patch changed business data'
+                        sql(db, definition)
+                        print('PASS unknown body rejected atomically: ' + signature, flush=True)
                     sql(db, state_patch)
                     sql(db, state_patch, fail=True)
                     assert before_state_rows == fingerprint(db), 'Barrier installation changed business rows'
@@ -169,6 +193,8 @@ commit;""")
                     trusted_patch=(ROOT/'supabase/patches/2026-11-06-account-deletion-trusted.sql').read_text()
                     sql(db,trusted_patch)
                     sql(db,trusted_patch,fail=True)
+                if args.trusted:
+                    sql(db, "update private.account_deletion_admission set enabled=true where singleton;")
                 tap(db, barrier_test)
                 if args.trusted:
                     tap(db,ROOT/'supabase/tests/2026-11-06-account-deletion-trusted.test.sql')

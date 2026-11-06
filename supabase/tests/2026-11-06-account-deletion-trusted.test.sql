@@ -16,6 +16,9 @@ select ok(not has_function_privilege('authenticated','public.delete_lifecycle_ev
 select is((select r.rolname from pg_proc p join pg_roles r on p.proowner=r.oid where p.oid='public.cleanup_account_business(uuid,bigint)'::regprocedure),
   'account_deletion_executor','cleanup function owner is restricted executor');
 select ok(not prosecdef,'reused lifecycle helper preserves invoker identity') from pg_proc where oid='public.delete_lifecycle_event_set(uuid,uuid)'::regprocedure;
+select ok(not has_table_privilege('authenticated','private.account_deletion_admission','UPDATE'),'client cannot change admission');
+select ok(not has_table_privilege('service_role','private.account_deletion_admission','UPDATE'),'service cannot change admission');
+select ok(not has_table_privilege('anon','private.account_deletion_admission','SELECT'),'admission policy is private');
 set local role service_role;
 select set_config('app.deletion_request','bb000000-0000-4000-8000-000000000001',true);
 select throws_ok($$select public.cleanup_account_business('bb000000-0000-4000-8000-000000000001',0)$$,

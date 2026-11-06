@@ -56,12 +56,13 @@ createServer(async(req,res)=>{
     def start_deletion(self):
         if getattr(self,'schema_mode','upgrade')!='fresh':
             self.sql((ROOT/'supabase/patches/2026-11-06-account-deletion-trusted.sql').read_text())
+        self.sql('update private.account_deletion_admission set enabled=true where singleton;')
         self.sql("notify pgrst,'reload schema';")
         self.bundle_dir=tempfile.TemporaryDirectory(prefix='calendar-trusted-edge-')
         subprocess.run(['node','supabase/tests/account_deletion_edge_bundle.mjs',self.bundle_dir.name,'account-deletion'],cwd=ROOT,check=True)
         name=self.prefix+'_deletion';self.containers.append(name)
         args=['create','--pull=never','--name',name,'--network',self.prefix,'--network-alias','deletion']
-        env=dict(SUPABASE_URL='http://storage:8080',SUPABASE_ANON_KEY=self.anon,SUPABASE_SERVICE_ROLE_KEY=self.service,ACCOUNT_DELETION_RUNTIME_MODE='isolated-local')
+        env=dict(SUPABASE_URL='http://storage:8080',SUPABASE_ANON_KEY=self.anon,SUPABASE_SERVICE_ROLE_KEY=self.service,ACCOUNT_DELETION_RUNTIME_MODE='isolated-local',ACCOUNT_DELETION_ACCEPT_NEW='true')
         for key,value in env.items():args+=['-e',key+'='+value]
         self.command(args+['public.ecr.aws/supabase/edge-runtime:v1.74.1','start','--main-service','/tmp/function','--port','9000'])
         self.command(['cp',self.bundle_dir.name+'/account-deletion',name+':/tmp/function'])

@@ -50,7 +50,7 @@ test('a different Auth verification UUID cannot issue a permit; only its tempora
   const originalFetch = globalThis.fetch;
   const calls: { path: string; body: unknown }[] = [];
   const other = 'a1000000-0000-4000-8000-000000000099';
-  Object.assign(globalThis, { Deno: { env: { get: (key: string) => ({ ACCOUNT_DELETION_RUNTIME_MODE: 'isolated-local',
+  Object.assign(globalThis, { Deno: { env: { get: (key: string) => ({ ACCOUNT_DELETION_RUNTIME_MODE: 'isolated-local', ACCOUNT_DELETION_ACCEPT_NEW: 'true',
     SUPABASE_URL: 'http://localhost:55431', SUPABASE_ANON_KEY: 'synthetic-anon', SUPABASE_SERVICE_ROLE_KEY: 'synthetic-service' })[key] },
     serve: (callback: typeof handler) => { handler = callback; } } });
   globalThis.fetch = async (input, init) => {

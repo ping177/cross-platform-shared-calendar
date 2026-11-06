@@ -1,3 +1,4 @@
+import { deletionRuntime, acceptsDeletion, deletionOrigin } from './runtime.ts';
 import { createClient } from '@supabase/supabase-js';
 import { executeOneDeletion, wakeAuthorized } from './execution.ts';
 import { deletionInput, newConfirmationToken, permitDigest, verifiedSession } from './logic.ts';
@@ -19,17 +20,17 @@ async function requestBody(request: Request): Promise<unknown> {
 }
 
 Deno.serve(async request => {
+  let runtime: ReturnType<typeof deletionRuntime>;
+  try { runtime = deletionRuntime(name => Deno.env.get(name)); }
+  catch { return new Response(JSON.stringify({ error: 'Service unavailable.' }), { status: 503, headers }); }
   const origin = request.headers.get('Origin');
-  const allowedOrigin = origin && ['http://127.0.0.1:5175', 'http://localhost:5175'].includes(origin) ? origin : null;
+  const allowedOrigin = origin && deletionOrigin(runtime, origin) ? origin : null;
   const responseHeaders = { ...headers, ...(allowedOrigin ? { 'Access-Control-Allow-Origin': allowedOrigin, Vary: 'Origin',
     'Access-Control-Allow-Headers': 'authorization, apikey, content-type', 'Access-Control-Allow-Methods': 'POST, OPTIONS' } : {}) };
   const reply = (body: unknown, status: number) => new Response(JSON.stringify(body), { status, headers: responseHeaders });
-  // No deployment/config resource is added. Default is fail-closed; this draft
-  // can accept requests only in the deliberately configured isolated test stack.
-  if (Deno.env.get('ACCOUNT_DELETION_RUNTIME_MODE') !== 'isolated-local') return reply({ error: 'Service unavailable.' }, 503);
   if (request.method === 'OPTIONS' && allowedOrigin) return new Response(null, { status: 204, headers: responseHeaders });
   if (request.method !== 'POST') return reply({ error: 'Method not allowed.' }, 405);
-  if (origin && !['http://127.0.0.1:5175', 'http://localhost:5175'].includes(origin)) return reply({ error: 'Origin is not allowed.' }, 403);
+  if (origin && !allowedOrigin) return reply({ error: 'Origin is not allowed.' }, 403);
   const authorization = request.headers.get('Authorization');
   try {
     const raw = await requestBody(request);
@@ -41,9 +42,7 @@ Deno.serve(async request => {
     if (!internal && !receipt && !authorization?.startsWith('Bearer ')) return reply({ error: 'Authentication required.' }, 401);
     const body = internal || receipt ? special : deletionInput(raw);
     const options = { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } };
-    const url = config('SUPABASE_URL');
-    const localUrl = new URL(url);
-    if (localUrl.protocol !== 'http:' || !['127.0.0.1','localhost','storage','kong'].includes(localUrl.hostname)) throw new Error('Service unavailable.');
+    const url = runtime.url;
     const anon = config('SUPABASE_ANON_KEY');
     if (internal || receipt) {
       const admin = createClient(url, config('SUPABASE_SERVICE_ROLE_KEY'), { ...options, global: { fetch: (input, init) => fetch(input, { ...init, signal: AbortSignal.timeout(8000) }) } });
@@ -57,6 +56,8 @@ Deno.serve(async request => {
     const { data: { user }, error } = await caller.auth.getUser(token);
     if (error || !user?.email || !user.email_confirmed_at) return reply({ error: 'Authentication required.' }, 401);
     const sessionId = verifiedSession(token, user.id);
+    // Cancel only resolves unaccepted uncertainty; workers/receipts never use this switch.
+    if (body.action !== 'cancel' && !acceptsDeletion(runtime, user.id)) return reply({ error: 'New requests are unavailable.' }, 503);
     if (body.action === 'begin') {
       const { data, error: prepareError } = await caller.rpc('prepare_my_account_deletion');
       if (prepareError || !data?.request_id || !data?.challenge_id) return reply({ error: 'Verification is unavailable.' }, 409);

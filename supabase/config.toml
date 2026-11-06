@@ -426,3 +426,8 @@ enabled = true
 # declarative_schema_path = "./database"
 # JSON string passed through to pg-delta SQL formatting.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":80,\"commaStyle\":\"trailing\"}"
+
+# Handler validates user JWTs, independent worker capability and receipt tokens.
+# This single function needs non-JWT worker/receipt requests; not a global bypass.
+[functions.account-deletion]
+verify_jwt = false

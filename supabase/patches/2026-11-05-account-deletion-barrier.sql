@@ -23,7 +23,13 @@ begin
     ('public.task_reminder_is_eligible(public.tasks,date,uuid,uuid,timestamptz,text,timestamptz,timestamptz)','7f9b56b47a6a4661ff33142fa78e6d85'),
     ('public.check_event_reminder_delivery(uuid,uuid,timestamptz,timestamptz,date,uuid,timestamptz,text)','970c56d90893135a18f54e1b2792a836')
   ) expected(signature,source_hash) join pg_proc p on p.oid=to_regprocedure(expected.signature)
-    where md5(p.prosrc)=expected.source_hash)<>9 then
+    where md5(p.prosrc)=expected.source_hash
+      -- Exact reviewed v0.1.10 bodies: formatting-only canonical differences.
+      -- Keep one expected row per signature and reject every other body.
+      or (expected.signature='public.ensure_personal_space()'
+        and md5(p.prosrc)='8a0d5b46299e724c5cfa25756504ec11')
+      or (expected.signature='public.join_space_by_invite_code(text)'
+        and md5(p.prosrc)='a3ef55f1c186a61ab9781a4a7446b4f6'))<>9 then
     raise exception 'Account barrier RPC baseline drift; inspect before replacing';
   end if;
   if (select count(*) from pg_class t join pg_namespace n on n.oid=t.relnamespace
