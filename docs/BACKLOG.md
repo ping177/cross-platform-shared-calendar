@@ -1,5 +1,16 @@
 # Backlog
 
+## 2026-11-06 — 正式模式本地准备完成／待审查与独立发布授权
+
+E4关闭、P2精确兼容保持；Edge正式模式/默认关闭新受理、DB私有最终门禁与前端Root/回执分离本地完成，证据与门禁见Production runbook/readiness最新节。下一步审查diff，再单独授权精确P1–P5及配置/部署/合成与设备门禁，不再重复本地开发或权限补证。Production尚未操作，v0.1.21/f259f0d不变，不Commit/Push/Deploy。
+
+
+## 2026-11-06 — 注销Production Readiness Review / HOLD
+
+前后端本地阶段已接受，里程碑7bc144f与f259f0d均仅本地。当前预检报告与只读SQL补充见ACCOUNT_DELETION_PRODUCTION_READINESS.md；Production数据库/Edge/Cron/Storage/Vault/队列及Vercel控制面缺可靠最新证据，不能发布或启用。
+
+下一项：补齐筛选元数据；再单独授权最小Production运行/CORS/网关及分离受理/恢复/回执控制的本地适配，评审后另行申请逐步迁移/部署/合成门禁。任何真实账号/两个闲置账号不作试删；真实OTP/设备由用户验收。正式v0.1.21与已关闭范围保持，无Push/Deploy。下方为历史。
+
 ## 2026-11-06 — 注销前端本地完成／等待审查
 
 后端本地里程碑7bc144f已建立，前端及两个必要窄合同FRONTEND_READY_FOR_REVIEW且未提交。真实SMTP/Auth/Owner转让、前端最终确认、关页Cron完成、回执恢复/清理和历史“已注销用户”闭环通过；42 Node/44浏览器及Build等证据见TESTING。

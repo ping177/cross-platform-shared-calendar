@@ -12,7 +12,7 @@ v0.1.21
 
 ## Current status
 
-2026-11-06 — **FRONTEND LOCAL ACCEPTED / READINESS PREFLIGHT AUTHORIZED**。用户与ChatGPT接受前端本地阶段，31文件/现有证据/凭据及临时产物检查通过，获授权仅本地前端Commit。当前仅准备Production元数据只读调查，不迁移、不启用、不Push/Deploy；所有注销线上能力未发布，正式v0.1.21不变。下方为历史。
+2026-11-06 — **PRODUCTION_MODE_LOCAL_READY_FOR_REVIEW / PRODUCTION_READINESS_HOLD**。E4已关闭：rls_auto_enable为DDL事件触发器，无普通App任意DDL路径证据；不再新增检查。固定项目/CORS的Edge正式模式、默认关闭新受理、私有DB最终门禁与worker/receipt分离、前端Root/入口分离本地完成。真实本地17项、828 SQL/28并发、31 Node/44浏览器/类型/Build通过；P2精确兼容保持。v0.1.21/f259f0d与旧修改保留，无线上配置/迁移/真实账号/Commit/Push/Deploy。见readiness最新节与Production runbook；下方为历史。
 
 2026-11-06 — **FRONTEND_READY_FOR_REVIEW（仅本地，前端未提交）**。后端获授权本地Commit 7bc144f；已接UI v2注销说明/可跳过导出、全部Owner/原空间管理、可信OTP/最终确认、Root隔离与短期回执、完成清理/可靠历史身份。真实合成Auth/SMTP/Edge/Cron前端闭环及42 Node/44浏览器/Build通过；Production默认关闭、未部署，真实设备未验，v0.1.21不变。下方为历史。
 
@@ -138,6 +138,8 @@ UI v2 Slice6 = LOCAL PASS / VISUAL PASS：用户已认可四张居中概览卡�
 v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3为LOCAL PASS / VISUAL PASS；Slice4为LOCAL PASS / VISUAL PROVISIONALLY ACCEPTED。Slice5月视图本地验证与离线视觉验收通过：两条短标题/准确+N、六色圆点与日期浮层，261/261相关测试、build/diff-check、28组四宽度离线检查PASS；用户确认普通月、密集月、空月及浮层满意。已授权本地commit；不代表真实账号、真机、installed PWA或Production验收。Space Color System继续Deferred；真实账号/真机/installed PWA/Production未验收。正式版本仍v0.1.20。
 
 ## Latest completed
+
+E4权限调查按用户证据关闭；最小正式模式与独立受理开关本地验证。发现并修复有效许可可直调RPC绕过Edge开关：P3/canonical新增owner-only默认false受理行，DB/Edge可限定合成身份；前端入口关闭仍保留Root/回执。17真实本地、828 SQL/28并发、31 Node/44浏览器/Build通过，配置和发布门禁已成runbook。下方为历史。
 
 授权后端本地里程碑7bc144f；账号注销前端/两个窄合同与真实合成本地服务集成通过：原Owner转让、OTP错误/自然过期/重发/重放、关页后台完成、重开回执清理及历史身份。42 Node/44浏览器（真实与模拟分层）、Build等见TESTING/覆盖报告§10。前端未提交，无Production操作；下方为历史。
 
@@ -540,6 +542,8 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
+后端7bc144f与前端f259f0d均仅本地，账号注销没有通过本轮迁移/部署/启用；Production仍未获授权。只读GitHub最新成功Production记录7565048535指向4b1032e（2026-11-05），正式公开别名仍旧前端；Vercel当前alias精确Source仍NOT VERIFIED；用户已提供Supabase Q1–Q5摘要，当前catalog差异见预检报告最新Evidence Review，账号注销尚未迁移。现已具备固定目标的正式模式本地实现，全部线上配置/部署仍待独立授权。见预检报告，不把历史已部署提醒版本当本轮核验。下方为历史。
+
 账号注销后端仅本地Commit 7bc144f；前端/本轮SQL与CORS修改未提交，所有新数据库、Edge和Cron未部署Production。入口仅DEV显式开关与loopback可用，Production保持默认关闭；无Push/Deploy。下方为历史部署记录。
 
 账号注销仅本地后端里程碑，全部新SQL/Edge/Cron未部署Production；Production默认不开放注销，正式v0.1.21及既有已验收功能部署保持。本轮仅本地Commit与前端实施授权。下方为历史部署记录。
@@ -723,13 +727,15 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-进行账号注销Production元数据与配置只读预检，确认可访问证据、补丁依赖/兼容性和分阶段上线门禁；不得执行线上迁移/配置/删除、启用、Push或Deploy。报告后等待用户与ChatGPT审查及独立授权。
+审查当前本地正式模式diff、私有受理门禁/开关、测试与Production runbook；通过后再独立授权逐步SQL/Edge/Secrets/Vault/Cron/前端部署和合成门禁。E4已关闭不追加E5/E6；本轮停止，不Commit/Push/Deploy或任何线上操作。
 
 ## Blockers
 
-暂无明确阻塞。
+本地准备已通过，Production仍未获迁移/配置/部署授权。实际owner/ACL/Storage安装postflight、托管gateway/apikey/Authorization、Secrets/Vault/Cron HTTP、Vercel Source及独立合成/用户设备验收尚未完成；不能用本地传输映射或fixture替代。原E4/P2格式/开关缺失不再是未解决本地阻塞。
 
 ## Important Context
+
+当前本地两个里程碑已提交，预检/治理增补未提交；无fetch/Push/Deploy。GitHub API读ref不等于更新本地origin/main。正式启用前须核验真实catalog与平台双层授权；关入口不得停掉已accepted任务的worker/receipt/业务隔离。当前仅候选上线顺序，未实施Production适配，报告和只读SQL不是迁移授权。下方为历史。
 
 当前前端本地READY_FOR_REVIEW。回执仅只读status能力，token/7天期限/账号摘要可本机恢复，OTP/确认许可不持久化；App Root防bootstrap，未知响应由回执或原子未受理撤销核实。历史“已注销用户”须授权Review轮completed/Auth不存在标记，不因Profile失败判定。原后端7bc144f之后的全部工作未提交，默认关闭，无Production/真实账号变化；详见覆盖报告§10。下方为历史。
 
@@ -862,7 +868,13 @@ Slice 5 Gate 2已按用户真实Production证据PASS，不要求重复SQL/REST/�
 
 ## Handoff Prompt
 
-先读SPEC最新checkpoint、覆盖报告§10、TESTING：FRONTEND_READY_FOR_REVIEW，仅本地。后端39文件已按授权Commit 7bc144f，前端及窄合同保持未提交；42 Node/44浏览器/真实合成Auth/SMTP/Edge/Cron集成/Build通过。保留全部工作，等用户/ChatGPT审查，不再Commit/Push/Deploy、不操作真实账号或Production；正式v0.1.21。真实iPhone/Android/PWA/Push及Production配置门禁仍待另行授权。下方为历史交接。
+先读readiness最新Production Mode Local Preparation与runbook：E4按用户证据关闭，不再追查E5/E6；P2精确兼容保持。正式模式/独立开关/私有DB最终受理门禁/Root与入口分离已本地验证，17真实服务、828 SQL/28并发、31 Node/44浏览器/类型/Build通过。v0.1.21/f259f0d保持，所有修改未提交，无Production操作。等待用户/ChatGPT审查，再单独授权按P1–P5/通知Edge/协调Edge/Secrets/Cron/前端/合成门禁推进，默认DB与Edge新受理关闭。下方为历史交接。
+
+先读readiness最新Local Compatibility节：v0.1.21/f259f0d不变。P2两签名精确增加历史MD5已隔离验证；原安全检查与runtime/canonical不动，未提交。E1–E3已完成：Dashboard仅public/graphql_public，E1无配置行不代表无API，E3代表该scope无view；rls_auto_enable仅ACL/动态标记，不当普通RPC漏洞或安全PASS。只补E4及既有安全结果，不重跑大调查、不改权限/Production、不Commit/Push/Deploy。等待用户/ChatGPT审查。下方为历史交接。
+
+当前Production Catalog Evidence Review完成，MIGRATION COMPATIBILITY HOLD，v0.1.21/f259f0d保持。先读预检报告最新节：Q1–Q5用户摘要已收到；两个函数hash精确对应历史v0.1.10格式，不用索取完整source，但P2需另授权本地精确适配与历史升级验证。平台net默认授权不靠REVOKE修；只补E1–E3及exposed schemas/既有安全结果，核对实际可达链。保留全部未提交修改，不迁移、不读秘密/业务行、不Commit/Push/Deploy。下方为历史交接。
+
+先读ACCOUNT_DELETION_PRODUCTION_READINESS.md与只读catalog补充：状态PRODUCTION_READINESS_REVIEW/HOLD，正式v0.1.21。后端7bc144f、前端f259f0d仅本地已提交；31文件检查、42 Node/Build通过，原真实合成验收沿用。Supabase只读查询超时，当前Prod catalog/Edge/Cron/Storage/Vault及Vercel控制面未证实；现有源码DEV/loopback限制与新受理/worker/receipt共用开关须另行授权适配。只补元数据，不读用户行/密钥，不迁移、不创建/删除账号、不Push/Deploy；等待ChatGPT和用户审查。下方为历史交接。
 
 先读覆盖报告§9、SPEC最新checkpoint、TESTING：FINAL_EXECUTION_READY_FOR_REVIEW，仅隔离本地后端。53真实Auth/Storage/Edge/Cron断言、SQL822/并发28、Node121/类型/Build通过；真实SIGKILL/90秒租约/双Cron无Session恢复。原清理service直调撤销，调度Vault与pg_net排队头有效ACL已核验。保留全部未提交成果，等待用户/ChatGPT审查；不自动开始UI、Production安全门禁/迁移、真实账号操作或Commit/Push/Deploy，正式v0.1.21。下方为历史交接。
 

@@ -1,5 +1,33 @@
 # Development Log
 
+## 2026-11-06 — E4关闭与Production模式最小本地准备
+
+按用户E4返回event_trigger/owner/事件标签/无public CREATE及包装提示关闭调查，未新增E5/E6。固定HTTPS项目/CORS的Edge模式与verify_jwt单函数配置本地准备；新受理默认关闭，work/receipt/cancel独立。核对直调RPC发现仅Edge开关不足，P3/canonical加owner-only唯一受理配置行及持锁检查，默认false并支持合成UUID限制，不改删除算法/空间权限。前端正式运行与入口分离保持Root/回执/历史标记，不改布局。真实本地17项、828 SQL/28并发、31 Node/44浏览器/类型/Build通过；隔离测试转发/文件名修正后重跑，不放宽保护。runbook列五patch与Edge/Secrets/Cron/前端顺序/停止条件。正式v0.1.21/f259f0d，旧修改保留，无Production/真实账号/凭据或其他项目变更，无安装依赖、Commit/Push/Deploy。
+
+
+## 2026-11-06 — P2精确历史兼容／E1–E3证据收口
+
+使用已有隔离runner先复现历史baseline drift RED，再仅为P2两签名各增加已核实历史MD5 OR分支，canonical/运行时/其余patch不变。runner增加历史定义路径和两函数未知注释版本原子拒绝，历史/canonical各794 SQL/28并发/2隔离及fresh/upgrade ACL一致。Docker首轮沙箱权限失败不当RED；正常权限仅缓存无网络自有tmpfs容器完成，已清理。解释E1起表过滤与E3无view，Dashboard schema名单补足scope；rls_auto_enable仍缺返回类型/事件绑定，仅追加不执行该函数的E4元数据。报告/TESTING/PROJECT_STATE及必要合同说明已更新，保留全部旧修改，正式v0.1.21/f259f0d，无Production/真实账号/凭据读取、其他项目文件修改或Commit/Push/Deploy。
+
+
+## 2026-11-06 — Production Catalog Evidence Review / Migration Compatibility HOLD
+
+用户已执行Q1–Q5并提供摘要；不再把旧超时当当前阻塞。只读本地提取函数体MD5，Production两实际值精确匹配v0.1.10历史patch，canonical差异仅空白排版，P2后版本另有账号断言；现有P2仍严格拒绝，未修改patch/白名单。官方最新pg_net资料明确平台默认PUBLIC授权、不支持项目自行改平台表grants/RLS；修正旧队列ACL门禁，改核实际Data API、包装RPC/view与LOGIN信任链。新增E1–E3仅metadata补充，不输出源码/请求头/Secret。报告/SPEC/覆盖/PROJECT_STATE更新，所有原修改保留；无Production调用/写入、无业务代码/其他项目/密钥或用户行读取，无Commit/Push/Deploy。
+
+
+## 2026-11-06 — Production catalog查询拆分／等待Dashboard反馈
+
+审查旧查询无业务写入；本轮进一步收窄为Q0及六条独立catalog SELECT，移除大聚合中的多域耦合、SET/事务控制与bucket/Cron/迁移配置表取行。保留16个阶段摘要及缺对象安全的有效ACL查询，新增CATALOG_MANUAL_GUIDE。先SELECT 1；失败即停止，仅看健康/资源/平台状态，不改配置。未重试Supabase远程通道；公开文档读取因本机代理不可达失败，不当数据库证据。未取得catalog，五patch适用性NOT VERIFIED。保留HEAD f259f0d和所有已有未提交文件，无业务代码/其他项目/Production变更、密钥或用户行读取、Commit/Push/Deploy。
+
+
+## 2026-11-06 — 前端本地Commit与Production只读预检
+
+按授权精确暂存已审查31文件，建立f259f0d503b8a4ff9666c4a87f715952585b5677（feat: add account deletion frontend locally），提交后clean；相对本地origin/main为2/0，未fetch/Push。Node42/42、Build/diff通过；未重复真实删除/全套测试。随后仅新增本地预检报告、元数据只读SQL及必要治理更新，保持未提交。
+
+只读GitHub main与最新成功Production记录均4b1032e，公开别名仍旧JS/SW；不可变部署URL跳转vercel.com/login，不当应用核验。Supabase functions/secrets/projects及显式READ ONLY catalog查询全部有界超时；不宣称线上对象不存在或已适用，不读取业务行/凭据。Vercel控制面无可靠授权入口，实际Source/自动规则未核验。报告明确五patch次序、旧客户端兼容条件、网关/内部身份、Vault/pg_net请求头ACL及本地模式/共用开关的上线阻塞；本轮不修业务或配置。
+
+PROJECT_STATE已更新为PRODUCTION_READINESS_REVIEW/HOLD，Version Index/正式v0.1.21保持。无Production写入、账号创建/删除、Push/Deploy；不安装依赖、不读.env或提取/输出密钥、不改其他项目文件。停止等待审查，后续先补只读证据，再单独授权最小上线适配。
+
 ## 2026-11-06 — 前端本地里程碑核对／只读预检获授权
 
 用户/ChatGPT已接受前端阶段，明确授权31文件限定本地Commit `feat: add account deletion frontend locally`。核对Git diff、未跟踪来源、密钥模式、canonical/forward块及44浏览器/真实Auth集成既有记录一致；必要Node42/42、Build/diff复核通过，不重复完整测试或启动删除。PROJECT_STATE已更新已接受与只读预检Next Action，版本/Version Index不变，Production未部署。只暂存已审查清单，不Push/Deploy；之后的只读预检报告独立保留本地。

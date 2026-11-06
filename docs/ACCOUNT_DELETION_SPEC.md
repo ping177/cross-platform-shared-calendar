@@ -1,8 +1,12 @@
 # Account Deletion — 用户自主注销账号设计冻结
 
-Status: `FRONTEND_READY_FOR_REVIEW`（2026-11-06，仅隔离本地，前端未提交）。后端本地里程碑7bc144f已获授权建立，用户/ChatGPT已接受后端本地阶段；本轮前端与真实合成Auth/Edge/Cron闭环通过。Production SQL/Edge/Cron和入口均未发布，真实PWA/设备仍NOT VERIFIED，功能不标CLOSED。正式版本保持v0.1.21。
+Status: `PRODUCTION_MODE_LOCAL_READY_FOR_REVIEW`（2026-11-06，仅本地）；Production继续HOLD。E4按用户事件触发器证据关闭；固定项目正式模式/独立受理与恢复开关/DB私有最终受理门禁已本地验证，P2精确历史兼容保持。前端Root/receipt与入口分离，无UI重设计。部署与配置顺序见ACCOUNT_DELETION_PRODUCTION_RUNBOOK.md及readiness最新节；v0.1.21/f259f0d保持，未Commit/Push/Deploy，不标Production PASS/CLOSED。
 
 Author: Ping Weng。记录日期：2026-11-05。正式项目版本仍为 `v0.1.21`；本规格不分配下一版本号，不新增 Version Index 里程碑。
+
+## Production mode checkpoint — 2026-11-06
+
+新受理默认关闭，Edge与DB私有配置双门禁；DB门禁防有效许可绕过Edge直调，owner-only设置，支持合成UUID范围。worker、receipt与cancel不受新受理开关影响，前端正式运行的Root/历史身份/回执也不随入口关闭。先DB关闭并提交，再关Edge/前端入口，不撤既有accepted隔离。固定项目/正式Origin、单函数gateway与内部三类授权边界/设置顺序详见runbook。此为技术实现合同补充，不改变Shared/Review/Storage/永久删除产品规则；真实托管平台仍待授权验证。
 
 ## 1. Baseline and authority
 
@@ -255,7 +259,7 @@ Edge持有的Auth Admin服务凭据本身仍具广泛平台能力；job约束缩
 
 ## 8. Implementation slices
 
-当前后端已建立本地里程碑，Slice 4前端/历史身份及本地集成FRONTEND_READY_FOR_REVIEW；前端未提交，Production与真实设备门禁仍未通过，不整体关闭账号注销。下方为完整目标和历史拆分，实际边界以最新checkpoint为准。
+当前前后端本地里程碑7bc144f/f259f0d均已建立，本地阶段已接受；当前PRODUCTION_READINESS_REVIEW/HOLD，Production与真实设备门禁仍未通过，不整体关闭账号注销。下方为完整目标和历史拆分，实际边界以最新checkpoint为准。
 
 每个Slice需独立实施授权、评审、实际验证记录；以下文件/对象为预计，不是本轮变更。涉及多个写入口时拆成小批SQL变更、每批尽量不超过约5个实现/测试文件，治理记录按需同步；整个注销入口在屏障覆盖完成前不得开放。
 

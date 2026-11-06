@@ -2,7 +2,7 @@
 
 Author: Ping Weng。2026-11-05。正式版本v0.1.21不变。
 
-Status: `FRONTEND_READY_FOR_REVIEW`（2026-11-06，仅本地，前端未提交）。后端7bc144f仅本地Commit，未Push/Deploy；§1–9保留历史证据，最新前端/两个窄合同与本地集成见§10。Production与真实设备均未验收，功能不标CLOSED。
+Status: `PRODUCTION_MODE_LOCAL_READY_FOR_REVIEW`（2026-11-06，仅本地）；Production继续HOLD。E4按用户事件触发器证据关闭；固定项目正式模式/独立受理与恢复开关/DB私有最终受理门禁已本地验证，P2精确历史兼容保持。前端Root/receipt与入口分离，无UI重设计。部署与配置顺序见ACCOUNT_DELETION_PRODUCTION_RUNBOOK.md及readiness最新节；v0.1.21/f259f0d保持，未Commit/Push/Deploy，不标Production PASS/CLOSED。
 
 ## 1. Baseline and authority
 
@@ -326,3 +326,7 @@ Root App在CalendarApp初始化之前包AccountDeletionBoundary；本地启用�
 真实集成使用既有隔离栈及合成账号，浏览器固定127.0.0.1:5175，经进程内loopback测试代理转发真实Auth/PostgREST/Edge/Storage；不替换认证返回或数据、不继承用户实际会话。SMTP真实8位OTP/30秒自然到期、重发新邮件游标、受理和后台Cron均实际执行。测试桥仅瞬时回环端口，无长期网关或新依赖；所有Docker/网络/tmpfs资源自有并最终清理。
 
 Chrome/WebKit的状态/存储/身份变动/App bootstrap防护是明确的模拟API组件测试，不能当真实Auth E2E。真实API及浏览器命令、计数/截图核对见TESTING。Production实际catalog/两新RPC/Role/Vault/队列/网关/Storage/SMTP/部署版本仍NOT VERIFIED；真实iPhone/Android/PWA/推送与登录由用户验收。FRONTEND_READY_FOR_REVIEW仅本地，不第二次Commit、Push或Deploy。
+
+## 11. Production mode local preparation — 2026-11-06
+
+E4已关闭，不新增检查。入口关闭不影响Edge work/receipt/cancel及前端Root/历史标记；public accept RPC另有默认false的owner-only私有DB受理门禁，防有效许可直调绕开Edge，兼容已accepted重放。P3/canonical一致，P2精确历史兼容不变。真实本地17项与SQL828/28并发/Node31/Browser44/类型/Build通过；HTTPS仅测试传输映射到internal栈，托管gateway/配置/实际权限及用户真机未验收。配置/停受理/发布顺序以Production runbook为准，不关闭runtime使已有任务停滞；不引入新队列或改原Space权限。

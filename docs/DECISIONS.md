@@ -1,5 +1,21 @@
 # Decisions
 
+## 2026-11-06 — 新受理最终门禁与恢复能力独立
+
+本轮按用户授权实现最小Production本地模式。仅Edge/前端关闭不能阻止尚有效许可直调受理RPC，故P3与canonical新增private.account_deletion_admission owner-only唯一配置行、默认false和可选合成UUID列表；确认事务持行共享锁至commit。配置更新不混业务事务/锁顺序。Edge运行、Edge新验证/确认、DB受理、前端入口与Root/receipt运行分离；停止新接受先DB关闭提交，再关Edge/前端入口，保持worker/receipt/runtime与业务隔离。无通用权限框架/新队列。单函数verify_jwt=false保留handler三种独立授权。E4调查已关闭，不擅改平台event trigger/pg_net授权，Production配置和托管验收仍独立授权。
+
+
+## 2026-11-06 — P2仅接受精确已核实历史函数版本
+
+本轮授权的兼容修复仅扩展ensure_personal_space与join_space_by_invite_code两个签名的精确MD5允许集合，保留原canonical摘要、九签名计数与全部失败关闭检查；无通用空白归一化或宽松匹配，不改runtime函数。历史与canonical版本隔离升级、未知摘要拒绝及fresh ACL对照通过。平台event trigger的EXECUTE ACL不等于普通RPC可执行，rls_auto_enable证据仅定向补E4，不擅自REVOKE或重构权限。Production依然另行审查/授权。
+
+
+## 2026-11-06 — 账号注销本地里程碑与Production预检边界
+
+前端本地阶段已获接受并按授权Commit f259f0d；本轮仅只读Production元数据调查与本地报告，正式v0.1.21不变。Supabase查询超时，不把本地schema/测试或旧部署记录当实际Production PASS。准确补丁次序与候选门禁集中在ACCOUNT_DELETION_PRODUCTION_READINESS.md，未授权执行。
+
+预检识别的上线前技术依赖（本轮未实施）：固定目标HTTPS运行/CORS、单函数gateway与内部用户/worker/receipt分别校验、可信队列/Vault权限，以及“停新受理但继续已受理任务恢复/回执/Root隔离”的分离控制。当前DEV/loopback共用开关适用于本地阶段，不能直接切环境变量开放Production。需独立授权最小适配和真实平台核验，不改变冻结产品/Shared/Review/Storage合同，不引入新框架。
+
 ## 2026-11-06 — 注销前端本地开关、回执和未知响应
 
 用户接受后端后授权本地里程碑及前端，已建立7bc144f，前端不再Commit。入口仅显式开关+DEV+双端loopback，Production默认隐藏、后端继续默认拒绝。复用原UI v2/导出/空间生命周期；导出非强制、不静默删共享空间、不改旧权限/正文规则。

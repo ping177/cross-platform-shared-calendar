@@ -1,5 +1,33 @@
 # Testing
 
+## 2026-11-06 — Production模式/受理开关／仅本地
+
+python3 -B supabase/tests/account_deletion_production_local.py：17真实本地Auth/SMTP/PostgREST/Storage/Edge/Cron/Net/Vault断言PASS，含默认关闭、有效OTP许可直调RPC与名单拒绝、关闭后Storage/Auth失败恢复、后台独立completed/receipt及Shared保留。HTTPS固定项目仅测试临时产物映射到internal HTTP；不访问Production，不冒充托管gateway/TLS。python3 -B supabase/tests/account_deletion_local.py --trusted：828 SQL、28并发、2隔离/fresh ACL一致；Auth/Storage为SQL fixture。Node相关31/31、PLAYWRIGHT_MODULE_PATH=<existing cache>/playwright/index.mjs node --test tests/account-deletion.browser.mjs tests/login-email.browser.mjs tests/data-export.browser.mjs：44/44；deno check --cached-only supabase/functions/account-deletion/index.ts、npm run build、diff通过。真实测试仅新合成账号；未重复全部后端故障套件。细分范围/测试夹具修正见readiness最新节，Production配置/用户设备仍NOT VERIFIED。
+
+
+## 2026-11-06 — P2历史/canonical隔离升级兼容
+
+旧patch下python3 -B supabase/tests/account_deletion_local.py --historical-baseline实际报Account barrier RPC baseline drift，RED确认（Docker权限错误不算）。修复后同命令PASS；python3 -B supabase/tests/account_deletion_local.py --barrier PASS。每路794 pgTAP断言、28观察并发、2非READ-COMMITTED拒绝、两函数逐个未知注释版本拒绝并验证schema/ACL与15表数据指纹未变；真实历史函数定义升级提交、fresh parity/重复拒绝通过。两容器均缓存/无网络/tmpfs，仅合成数据、Auth stub/Storage policy fixture，不记Auth/Storage/Production E2E。Python语法、git diff --check通过。React/Edge runtime未变，不重复Build/Node或真实删除测试。E4仅静态检查，待用户结果，rls_auto_enable未记PASS。
+
+
+## 2026-11-06 — Catalog Evidence Review／静态来源与补充查询
+
+本地提取历史、canonical前缀与barrier两函数体，MD5共6个版本对照通过；历史与canonical diff仅空行/换行，barrier相对canonical只增加assert_active_account语句。P2 preflight对当前用户报告baseline仍必拒绝，未修改SQL/测试使其通过。新增E1–E3只SELECT catalog元数据，未在Production执行验证；文本风险标记/直接view依赖不等于完整调用图。git diff --check通过。仅文档/只读补充，无业务修改，不重跑Node/Build。完整Q4默认ACL、Data API及执行角色证据待反馈，不记PASS。
+
+
+## 2026-11-06 — Catalog手动获取／仅静态检查
+
+拆分SQL仅系统catalog与内置只读函数，不查询配置/业务表行；静态检查语句边界、FROM来源、16摘要及缺失对象NULL分支，git diff --check通过。未在Production执行、未取得用户Dashboard输出，语法/权限/耗时与五patch实际差异NOT VERIFIED。无业务修改，不重跑Node/Build；操作与停止条件见ACCOUNT_DELETION_CATALOG_MANUAL_GUIDE.md。
+
+
+## 2026-11-06 — Local Frontend Checkpoint / Production Readiness只读检查
+
+本轮在原已接受且未变的前端阶段仅复核必要检查：沿用下节完整命令的相关Node **42/42 PASS**；`npm run build`（tsc/Vite）**PASS**，既有chunk提示保持；`git diff --check` **PASS**。原44浏览器与真实合成本地Auth/SMTP/Storage/Edge/Cron证据核对一致，**本轮未重跑**，未执行任何真实或合成账号删除。授权本地前端Commit f259f0d已完成，无Push/Deploy。
+
+GitHub远端main/最新成功Production记录、公开别名HTML/JS/CSS/SW只读核验有结果；不能当Vercel当前active Source或设置证明。Supabase CLI各元数据调用25秒、functions重试22秒、Management只读catalog28秒均超时；数据库/Edge/Cron/Vault/Storage实际权限与配置为**NOT VERIFIED**。未读用户行、Auth记录、对象文件或Secret值；不执行Production测试数据或迁移。
+
+新增ACCOUNT_DELETION_PRODUCTION_CATALOG_READONLY.sql仅手工元数据补充，不是迁移；首块BEGIN READ ONLY、statement_timeout、catalog SELECT、ROLLBACK，可选块须先确认关系/权限。已做静态语句范围与16个阶段摘要对照检查，**未在Production执行验证**，不记SQL/平台PASS。正式上线顺序、pre/postflight、停止/恢复条件见ACCOUNT_DELETION_PRODUCTION_READINESS.md。当前PRODUCTION_READINESS_REVIEW/HOLD，真实设备与Production门禁仍待授权。
+
 ## 2026-11-06 — Account Deletion Frontend／仅本地待审查
 
 后端阶段获用户/ChatGPT接受，经39文件范围、证据与密钥/临时产物核对后创建授权本地Commit `7bc144f feat: implement account deletion backend locally`。无Push/Deploy；前端和本轮窄合同未提交。当前FRONTEND_READY_FOR_REVIEW，版本仍v0.1.21，不记Production PASS/CLOSED。
