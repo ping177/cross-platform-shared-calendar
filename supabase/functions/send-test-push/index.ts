@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { requireActiveAccount } from '../_shared/account-access.ts';
 import { loadVapidConfig, sendWebPush } from '../_shared/web-push.ts';
 import {
   installationIdFromRequestBody,
@@ -85,6 +86,8 @@ Deno.serve(async (request) => {
     if (authError || !user) {
       return jsonResponse(origin, { error: 'Authentication required.' }, 401);
     }
+    const readAccountAccess = async () => await callerClient.rpc('current_account_active');
+    await requireActiveAccount(readAccountAccess);
 
     let body: unknown;
     try {
@@ -123,16 +126,19 @@ Deno.serve(async (request) => {
         }
         return data;
       },
-      send: (subscription) => sendWebPush({
-        subscription,
-        payload: {
-          title: '共享日历',
-          body: '通知测试成功',
-          url: '/',
-          tag: 'shared-calendar-test',
-        },
-        vapid,
-      }),
+      send: async (subscription) => {
+        await requireActiveAccount(readAccountAccess);
+        return sendWebPush({
+          subscription,
+          payload: {
+            title: '共享日历',
+            body: '通知测试成功',
+            url: '/',
+            tag: 'shared-calendar-test',
+          },
+          vapid,
+        });
+      },
       disable: async (subscriptionId) => {
         const { error } = await adminClient
           .from('push_subscriptions')

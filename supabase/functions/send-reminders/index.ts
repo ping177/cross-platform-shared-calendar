@@ -1,4 +1,5 @@
 import { ledgerFilter, type LedgerIdentity } from './ledger.ts';
+import { activeNotificationAccounts } from '../_shared/account-access.ts';
 import { createClient } from '@supabase/supabase-js';
 import { loadVapidConfig, sendWebPush } from '../_shared/web-push.ts';
 import {
@@ -169,6 +170,9 @@ Deno.serve(async (request) => {
           const subscriptions: ReminderSubscription[] = [];
           for (let index = 0; index < userIds.length; index += LOOKUP_BATCH_SIZE) {
             const batch = userIds.slice(index, index + LOOKUP_BATCH_SIZE);
+            const active = await activeNotificationAccounts(
+              async () => await adminClient.rpc('active_notification_accounts', { p_user_ids: batch }), batch,
+            );
             const { data, error } = await adminClient
               .from('push_subscriptions')
               .select('id, user_id, installation_id, endpoint, p256dh, auth, expiration_time, disabled_at')
@@ -177,7 +181,7 @@ Deno.serve(async (request) => {
             if (error) {
               throw new Error('Reminder subscription lookup failed.');
             }
-            subscriptions.push(...((data ?? []) as ReminderSubscription[]));
+            subscriptions.push(...((data ?? []) as ReminderSubscription[]).filter((subscription) => active.has(subscription.user_id)));
           }
           return subscriptions;
         },

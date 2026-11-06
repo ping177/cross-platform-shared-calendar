@@ -1,5 +1,43 @@
 # Decisions
 
+## 2026-11-06 — 最终执行、离线恢复与最小回执（仅本地）
+
+延续唯一job、专用Edge与既有受限清理：随机90秒租约＋generation，每次服务端唤醒一阶段；Storage API→业务事务→Auth hard delete→API/DB最终postflight，已完成子操作也要核对真实后置条件。临时失败持久有限退避；安全异常needs_attention仅owner在修复后恢复同job，不恢复业务访问。completed只能由严格最终函数/guard写入。回执在接受前发放，摘要保存、7天期限，仅返回status，不依赖被删Session。
+
+本地真实pg_cron/pg_net/Vault证明独立恢复；调度能力与用户JWT严格分开，无任意UUID请求。必须同时保护Vault和pg_net排队Authorization头，不能仅假定Vault足够；本地配置由实际平台owner收紧并断言权限。Production同项需独立catalog/平台授权核验，不把管理员能力交给Edge。service key仍具平台广泛权限，不宣称RPC约束能限制泄露key。
+
+本轮仅FINAL_EXECUTION_READY_FOR_REVIEW，不创建新正式版本、不开UI/正式受理、不标Production PASS/CLOSED，无Commit/Push/Deploy。详见覆盖报告§9和TESTING；下方为历史。
+
+## 2026-11-06 — 本地可信受理与Personal清理权限合同
+
+在用户授权的隔离范围实施专用Edge→真实邮箱OTP→同UUID/原session/意图的一次性许可→原子受理；不以登录成功记录或客户端布尔值授权。许可只存摘要，Auth临时Session local退出，真实本地验证证据见TESTING。默认关闭且拒绝非本地后端，无正式部署资源。
+
+Personal清理采用NOLOGIN/NOBYPASSRLS函数owner、受限job/工作集策略与精确目标保护分支，普通Personal保护保持。复用Space系列/成员生命周期及历史UUID合同，事务失败整体回滚；仅记录business_cleaned_at，不推进Auth或completed。已受理重放不再持账号排他门闩等待job行，避免与清理Space等待构环。细节集中在覆盖报告§8。
+
+本轮范围READY_FOR_REVIEW；完整Storage/Auth执行器、离线恢复/回执与UI未实现，不开放真实受理、不授权Production或Git发布，正式v0.1.21不变。下方先前“未实施”是历史检查点。
+
+## 2026-11-05 — Slice 2内部状态与SQL屏障边界
+
+已按本地授权实现private、每Auth UUID唯一意图；prepare/accept/status保持无应用角色权限，未来OTP同UUID证明/最终确认未集成前不开放包装。completed预留但禁止提前转入，accepted不能删除/回退；不保存OTP/JWT/邮件内容，不把fixture当真实可信受理。
+
+账号门闩不改变旧Space锁顺序：受理仅等账号共享写结束、查Owner并更新private记录，不锁Space/Push行；普通写后锁重查，非默认隔离失败关闭。RLS、definer、目标身份、Storage SQL和通知服务分别覆盖，细节/实测/未封闭路径见[覆盖报告](./ACCOUNT_DELETION_BARRIER_COVERAGE.md)。提醒预过滤避免受理账号持续占预算；无通用队列或基础设施扩张。
+
+本轮SQL/并发LOCAL PASS，但真实Auth/Storage/PostgREST及已签URL边界尚未闭合，整体PARTIAL，不记SLICE_2_READY_FOR_REVIEW。Personal专用删除、公开受理、完成/自动恢复仍未开放，无Production/Git发布授权，新正式版本不分配。原产品/Shared历史合同不变。
+
+## 2026-11-05 — Account Deletion Slice 1安全拆分与审计快照
+
+按本轮本地授权实现四类created_by不可变UUID快照，保留全部非审计活身份/归属/指派/系列FK及原权限、生命周期函数/触发器；不因历史创建者删除而丢共同内容，不改写创建者为新Owner。已通过隔离SQL与相关前端读取回归，具体证据见TESTING；Production未应用。
+
+专用Personal删除必须依赖可信已受理授权，当前未建立，故本轮不创建可调用例外、状态表、执行角色或清理helper，完整Slice 1为PARTIAL。技术顺序澄清为“Slice 1审计子集→受理授权/屏障经审查验证→回补受限Personal删除”，不自动授权Slice 2，不用测试fixture替代真实许可，不放宽已冻结产品规则。现有五条Auth/Profile活身份FK仍有意保留；它们应由未来合法生命周期处理，不是继续删FK的理由。新版本/Production/Git授权均未发生。
+
+## 2026-11-05 — Account Deletion产品规则冻结／技术设计待审查
+
+用户已确认自主注销：专用路径删除Personal Space及私人业务数据，普通Personal保护继续有效；Shared Owner须先转让/明确删除，共享业务归属沿用v0.1.13–v0.1.15。Shared Review双方正文与原参与者权限保留；必要原UUID可作历史快照，Auth/Profile必须真删除，系统身份显示「已注销用户」，不宣称完全匿名化。本人Push订阅/接收账本和被删个人日程账本清理，其他成员共享提醒历史及去重机制保留。导出可跳过，注销须服务端同UUID的邮箱OTP重新验证。
+
+最终确认且服务端持久接受后必须独立于PWA自动推进，不能依赖用户下次登录；明确未接受、处理中、完成、异常处理，严格postflight前不报成功。备份/平台日志/已发送通知不承诺立即物理清除。完整产品合同、候选事务/权限/恢复方案与Slices集中于[ACCOUNT_DELETION_SPEC](./ACCOUNT_DELETION_SPEC.md)，不在治理重复细节。
+
+状态仅`DESIGN_READY_FOR_REVIEW`：产品已冻结，技术方案待评审/本地验证，Production catalog/Auth/Storage/调度安全性NOT VERIFIED；功能NOT IMPLEMENTED。正式v0.1.21不变，本轮仅文档，无业务/SQL/Production操作或Commit/Push/Deploy。下方“调查尚未开始”为历史。
+
 ## 2026-11-05 — 数据导出按已验收范围关闭
 
 个人/共享Space ZIP生成→文件App保存→解压/12类CSV、中文文件名/表头、Numbers阅读和最终页面交互已获用户确认。验收Source feb729c8608b30f6d714e8a7d037fed39ff83a16，按该范围CLOSED / ACCEPTED。历史回顾参与者RLS真实多账号反向验证仍NOT VERIFIED，不因共享导出成功记为PASS；其他未明确执行边界保持TESTING的证据分层。

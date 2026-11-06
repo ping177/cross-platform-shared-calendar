@@ -1,5 +1,35 @@
 # Backlog
 
+## 2026-11-06 — Final Execution本地待审查
+
+本轮服务端完整本地闭环FINAL_EXECUTION_READY_FOR_REVIEW：已受理job经Storage/业务/Auth hard delete/严格完成与短期回执；真实Cron/Net/Vault、Edge崩溃/租约到期恢复、失败/丢响应和共享数据权限通过。53真实服务断言、822 SQL/28双会话、121 Node/类型/Build，详见覆盖报告§9及TESTING。
+
+下一步仅用户与ChatGPT审查。正式UI/已注销身份展示、真实设备验收和独立Production门禁未完成，另获授权后再行动。Production必须核对受限角色/实际函数owner、Auth/Storage、pg_net待发头与Vault权限及调度运维，不自动套本地配置。两个闲置账号未动，正式v0.1.21/已接受导出与旧暂缓项保持，无Commit/Push/Deploy；下方为历史。
+
+## 2026-11-06 — 可信受理与Personal业务清理本地待审查
+
+本轮授权范围已本地实现并验证，状态TRUSTED_ACCEPTANCE_AND_PERSONAL_CLEANUP_READY_FOR_REVIEW；真实本地SMTP OTP/原会话一次性许可、原子accepted屏障、受限Personal/私人业务清理、共享逐行/Review权限保留及失败回滚通过。Storage本地设计Gate已由用户接受，详见覆盖报告§8与TESTING；不重做已收口调查。
+
+下一步仅用户/ChatGPT审查diff、证据及受限角色/锁边界。另获授权后再实现Storage/Auth分阶段执行与最小离线恢复、状态回执及严格完成postflight；当前没有Cron/Auth删除/UI，不可部署真实受理入口。Production catalog/平台条件/迁移发布仍独立门禁，两个闲置账号不动，正式v0.1.21与原导出/暂缓结论保持。无Commit/Push/Deploy，下方为历史。
+
+## 2026-11-05 — Account Deletion Slice 2 PARTIAL／待跨服务验证
+
+内部私有状态与SQL级读写/目标权限屏障已本地验证（794 SQL、28双会话、113 Node、类型/Build），详细入口见ACCOUNT_DELETION_BARRIER_COVERAGE。OTP受理包装仍不可调用，Storage/Auth/PostgREST真实集成及已签URL边界未闭合；不标完整Slice 2 READY，也不自动回补Personal删除或进入自动恢复。
+
+下一步仅用户/ChatGPT审查本轮实现与覆盖，另获授权后优先隔离真实服务角色/隔离/Storage HTTP与在途能力验证及OTP证明设计。现有未提交成果保留；Production门禁未通过，两个闲置账号不动，v0.1.21、已验收导出及旧暂缓项不变。无Commit/Push/Deploy。
+
+## 2026-11-05 — Account Deletion Slice 1 PARTIAL／待审查
+
+审计子集已本地实现并验证：四类creator FK转UUID快照，共享数据保留/历史Review权限、普通Personal保护、fresh/upgrade及相关回归PASS（TESTING）。未实施Personal专用删除；其可信accepted授权尚未建立，已在规格澄清依赖顺序，不提前开放入口、不冒称SLICE_1_READY_FOR_REVIEW。Slices 2–4未开始，Production门禁未通过。
+
+下一步仅用户与ChatGPT审查本轮diff、证据和依赖边界，再明确授权下一小步；不自动实现Slice 2或处理真实账号。两个闲置账号保持，正式v0.1.21、已验收导出关闭及旧暂缓项不变。无Commit/Push/Deploy。
+
+## 2026-11-05 — Account Deletion Design Freeze待审查
+
+前轮只读调查READ_ONLY_COMPLETE，用户已正式确认Review正文、历史UUID、提醒清理、OTP及离线自动完成规则。已形成[ACCOUNT_DELETION_SPEC](./ACCOUNT_DELETION_SPEC.md)，状态DESIGN_READY_FOR_REVIEW；产品规则冻结不等于技术验证/实施完成。下一步仅ChatGPT与用户审查，再另行授权本地Slice 1；Slices 1–4均NOT STARTED，独立Production安全门禁NOT PASSED。
+
+本地计划依次验证数据合同/专用Personal清理、持久接受与全部账号屏障、服务端及Cron自动恢复、账户流程/已注销身份展示。真实catalog/Auth/Storage依赖核验和合成账号测试通过后才能申请迁移/部署授权。两个闲置账号不用于试删；数据导出CLOSED / ACCEPTED、历史Review真实多账号反向验证NOT VERIFIED、旧稳定性Slice 1 DEFERRED保持。无下一正式版本号，本轮无代码/SQL/Production/资源变更或Git发布操作；下方旧“调查未开始”为历史。
+
 ## 2026-11-05 — 数据导出已验收收口／下一优先项
 
 数据导出的个人/共享ZIP、12类中文CSV、Numbers阅读及最终UI按用户确认范围CLOSED / ACCEPTED。历史回顾参与者RLS真实多账号反向验证未验证，作为独立安全验收保留，不计PASS（见TESTING最新节）。已完成的导出发布/短说明验收不再列当前待办。

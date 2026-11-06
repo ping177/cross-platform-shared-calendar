@@ -1,5 +1,65 @@
 # Development Log
 
+## 2026-11-06 — 后端本地里程碑检查通过／前端获授权
+
+用户/ChatGPT已接受本地后端阶段，授权39文件限定Commit `feat: implement account deletion backend locally`。逐项核对来源/文件类型/密钥模式、canonical与patch、53真实服务/822 SQL/28并发/121 Node/Build证据，均一致；无缓存/容器产物/真实凭据。PROJECT_STATE已更新本地已接受、前端Next Action及未部署Production边界，Version Index不新增版本。按明确清单暂存，不Push/Deploy；前端实现另保持未提交待审查。
+
+## 2026-11-06 — Final Execution & Offline Recovery／本地待审查
+
+在用户新授权内追加execution patch/canonical块和既有专用Edge执行模块：固定已受理job、随机租约/代次、分阶段Storage API清理/复查、复用Personal事务、Auth hard delete及独立不存在确认、严格completed、短期状态回执、退避/needs_attention与owner-only恢复。原审计/barrier/trusted算法保留；原清理函数service直调已收紧为租约包装，不用owner运行时凭据。普通Personal与Shared/Review权限不变。
+
+真实缓存Cron/Net/Vault在自有隔离栈通过；发现并修复实际owner grant/revoke及pg_net待发Authorization头可被应用角色读取的本地配置问题，以实际ACL断言拒绝无效REVOKE。Edge Auth删除后SIGKILL，真实90秒租约到期后双Cron在无用户/PWA时继续完成。精确职责/平台边界见覆盖报告§9，53真实服务、SQL822/并发28/隔离2、Node121、类型/Build及检查命令见TESTING。fresh/upgrade结构/ACL一致；Shared整行、头像字节、Review历史权限保持。
+
+FINAL_EXECUTION_READY_FOR_REVIEW仅本地后端阶段，不是CLOSED或Production PASS。原33个未提交路径保留增补；只删除本轮隔离栈新建合成Auth/文件，所有自有资源清理。无UI、新依赖、Production、真实secret读取/输出、Commit/Push/Deploy。PROJECT_STATE已同步，正式v0.1.21，停止等待用户与ChatGPT审查；下一阶段和Production仍需单独授权。
+
+## 2026-11-06 — Trusted Acceptance & Personal Cleanup／本地待审查
+
+在已有状态/屏障上追加trusted patch和canonical对应块：同UUID/原session/意图的真实Email OTP许可、原子受理及受限NOLOGIN Personal业务清理。普通Personal保护保留，Shared按原生命周期清理本人归属/成员/指派，其他共享内容及Review正文权限不动；失败整笔回滚。修正accepted重放持账号门闩等job的潜在锁环，不改变Space锁顺序。默认关闭、仅本地HTTP后端的专用Edge草案，无正式入口/部署配置。
+
+验证：真实本地SMTP/Auth/PostgREST/Edge升级54＋fresh7＝61项；SQL822＋28双会话＋2隔离检查；Node119/119；cached Deno、Build（既有chunk提示）、语法/diff通过。完整命令、真实/模拟分层及异常边界见TESTING，权限矩阵见覆盖报告§8。共享整行JSON、末尾故障15表回滚、重试/旧generation、Owner及历史参与者反向权限均有本地证据。原审计/barrier补丁与专项、通知Edge及既有测试指纹保持；25个既有路径保留增补。
+
+结果TRUSTED_ACCEPTANCE_AND_PERSONAL_CLEANUP_READY_FOR_REVIEW，仅本轮范围。清理后processing/storage和business_cleaned_at，Auth/Storage仍未完成，无completed、Auth Admin删除、Cron/离线执行器、状态回执或UI。无Production、真实账号/文件删除、依赖安装、环境secret读取/输出、Commit/Push/Deploy；正式v0.1.21不变。PROJECT_STATE已同步，等待ChatGPT及用户审查，不继续实施下一阶段。
+
+## 2026-11-06 — Storage Drain & Recovery Gate／本地设计待审查
+
+仅新增Storage故障专项，复用真实隔离bootstrap；29项专项、17项头像Node及语法/diff通过。硬上传崩溃可留本地孤立blob，公开API无法发现，正确记录needs_attention而非完成；正常metadata失败、超时、删除崩溃及丢确认重试已有证据。官方自动清理说明与本地默认无持久队列/扫描的差异已分层记录，不推导上传硬上界。
+
+按用户本轮授权区分应用对象清理/发布屏障与供应商底层生命周期，建议CROSS_SERVICE_GATE_PASS_FOR_LOCAL_DESIGN；完整注销/Production未完成。详见TESTING和覆盖报告§7。原24路径业务实现保持，更新五份记录及PROJECT_STATE；无业务SQL/前端/Edge变化，无新依赖、Auth删除、Cron、Production或Commit/Push/Deploy。测试自有匿名卷/容器/网络已清理，等待审查。
+
+## 2026-11-06 — Account Deletion Cross-Service Integration Gate／PARTIAL
+
+仅新增3个隔离测试文件及验证记录，原21路径业务实现未改。真实缓存Auth/PostgREST/Storage/两Edge入口112项HTTP与后置条件、Node113/113、Build/语法/diff通过；使用真实合成Session/JWT，外部Push为替身，不是OTP/PWA验收。结果和命令见[TESTING](./TESTING.md)，详细权限审查、版本、隔离及Storage方案见[覆盖报告§6](./ACCOUNT_DELETION_BARRIER_COVERAGE.md#6-cross-service-integration-gate--2026-11-06)。
+
+Storage空列表与成功DELETE可同时存在在途blob；本地正常迟到提交被拒绝并清理，但崩溃/清理失败恢复及硬排空上界未证实，因此PARTIAL，不开始Slice 3、不开放受理/删除。初次CLI误拉新镜像后已中断，新增缓存保留；最终harness强制pull=never，仅用启动前缓存、自有内部网络/tmpfs并清理自有资源，现有业务库未启动或改写。未读项目.env/真实凭据、无Production/Auth删除/Commit/Push/Deploy；v0.1.21不变，PROJECT_STATE已更新，等待审查。
+
+## 2026-11-05 — Account Deletion Slice 2内部状态/SQL屏障／PARTIAL
+
+基线HEAD4b1032e、本地main/origin-main0/0；记录11路径SHA256，保留全部前轮成果，原审计patch/SQL/Tasks测试逐字未变，canonical旧前缀hash不变。新增独立状态/屏障forward patch与同体canonical块；详细入口/锁/权限清单见[覆盖报告](./ACCOUNT_DELETION_BARRIER_COVERAGE.md)。private job绑定user/request唯一身份，无OTP/JWT/邮件字段，prepare/accept/status不授予任何应用角色；completed本轮不可写入。仅新增账号restrictive policy/触发器及九个必要definer/eligibility补充，保留原Space/归属/参与者规则；新旧客户端不可借旧JWT继续SQL业务读写。
+
+受理只更新private job，不持账号排他锁等Space/Push行；正常写共享门闩后重查，非READ COMMITTED读写失败关闭。提醒增加100用户一批的service-only预过滤，避免accepted接收者占满预算；测试推送getUser后和发送前caller-only复核。两个现有Edge仅本地源码改变，无部署；无新正式Edge/Cron或完整注销/Personal删除。
+
+TDD先复现4项缺失合同及“仅RLS仍可经definer读/写”的入口失败。最终fresh/upgrade各59新屏障+338关联断言，共794 SQL PASS；28个真实双会话场景及2个非默认隔离检查PASS，113相关Node、两入口Deno cached-only类型、TS/Build/语法/diff PASS，既有chunk warning保持。测试harness修正合成邀请码大小写/升级样本作用域，未放松保护；public/private/Storage SQL夹具schema/ACL一致，补丁重放拒绝、安装不改业务行。每次只用自有无网络tmpfs容器并清理，不碰原本地业务库/Production。
+
+状态PARTIAL：Auth/claim仅SQL模拟，Storage最小SQL夹具及拦截fetch不是真服务E2E，实际角色/隔离/在途blob与signed URL尚未验证，旧头像URL有既有有效期。本轮禁止开放受理/删除入口，不把内部owner调用当OTP可信证明；Personal专用删除、完成/自动恢复仍待后续。PROJECT_STATE与必要治理更新，正式v0.1.21不变；无真实数据删除、秘密主动读取/打印、外部项目文件变更、依赖安装或Commit/Push/Deploy。停止等待审查。
+
+## 2026-11-05 — Account Deletion Slice 1：审计子集本地验证／PARTIAL
+
+基线4b1032e、main与本地origin/main一致0/0；六份未提交设计/治理内容和指纹先核对保存，修改记录前仍逐字一致，未覆盖前轮工作。用户本轮仅授权本地SQL/测试及必要记录，不授权Production/Git发布。canonical仅四行创建者FK定义改为不可变UUID快照，新增独立forward patch；扫描public全部九条Auth/Profile FK，保留五条活身份引用，未知依赖/动作漂移/重放拒绝。无RLS、Trigger、RPC、grant变更，无状态表/执行角色/清理入口。
+
+已复现两项baseline语义RED：审计FK仍存在、退群创建者Profile删除会级联丢Shared Task。最终隔离fresh/upgrade各44专项+294关联回归，共676 SQL断言PASS；包括双方Review完整正文/identity/revision、后来成员与新Owner拒读、Shared Task全行/日程/清单关联/重要日保留、历史创建者Auth SQL stub删除及后续系列派生、空/非空Personal保护、现有Owner/生命周期回归。迁移前后15表测试数据指纹保持、仅四FK DDL差异、fresh/upgrade public schema+ACL一致，未知FK与重放拒绝。48相关Node、TypeScript/Build、Python AST/Node语法与diff通过，既有大chunk提示保留。具体命令和未验证范围见TESTING。
+
+测试先恢复本机Docker Desktop，仅用已缓存17.6.1.127镜像运行无网络/端口/bind mount的tmpfs随机容器；未启动/写入原Supabase业务库，无下载/安装依赖。初始化UTF-8与pg_dump对象标题比较问题在harness中修正，未放松数据库保护；每次临时容器均清理。没有Production或真实账号/空间/文件操作、主动读取/打印.env或密钥；Build仅使用既有配置。
+
+完整Slice 1为PARTIAL：Personal专用删除依赖尚未建立的可信accepted授权，不用fixture假冒可用授权、不提前开放例外。本轮明确停止于安全边界，规格澄清依赖顺序；专用删除正向、真实Auth/Session/Storage、屏障/并发及自动恢复NOT VERIFIED，未自动实施Slice 2。PROJECT_STATE/规格及必要治理已更新；版本v0.1.21不变，未Commit/Push/Deploy，等待用户与ChatGPT审查。
+
+## 2026-11-05 — Account Deletion Design Freeze／仅文档
+
+基线4b1032e1924ee64d6f7f5faa24f36ec7af831161，本地main/origin-main相同、ahead/behind0/0、开始clean；未重新联网核验远端或Production。前轮READ_ONLY_COMPLETE与本轮用户正式决策为输入，未重复完整调查。新增[ACCOUNT_DELETION_SPEC](./ACCOUNT_DELETION_SPEC.md)，记录已冻结产品规则、数据保留/删除边界、同UUID OTP、服务端接受不可逆点、受限Personal清理、四类创建者UUID快照候选迁移、账号屏障、分阶段事务、最小Cron/Edge持久恢复、严格完成判定、四个未实施Slice及独立Production门禁。
+
+同步DECISIONS/BACKLOG/TESTING与PROJECT_STATE当前状态/Next Action/交接；不改Version Index或下一版本号。产品规则已冻结，技术设计待审查/本地验证，Production安全性NOT VERIFIED，功能NOT IMPLEMENTED。数据导出已验收关闭、历史Review反向权限真实验收未验证、旧暂缓项保留。
+
+本轮只改六份docs文件，无业务代码、SQL/RLS/Trigger/FK、依赖、Auth配置、部署资源或Production变化；未读取/打印.env或密钥，未操作真实账号/Storage，未Commit/Push/Deploy。docs-only执行git diff --check与相对文件链接/范围核对；不运行Build或会创建账号/修改数据库的测试。状态DESIGN_READY_FOR_REVIEW，完成后停止，等待ChatGPT与用户审查。
+
 ## 2026-11-05 — 数据导出Governance Closeout
 
 个人/共享Space ZIP生成→文件App保存→解压/12类CSV、中文文件名/表头、Numbers阅读和最终页面交互已获用户确认。验收Source feb729c8608b30f6d714e8a7d037fed39ff83a16，按该范围CLOSED / ACCEPTED。历史回顾参与者RLS真实多账号反向验证仍NOT VERIFIED，不因共享导出成功记为PASS；其他未明确执行边界保持TESTING的证据分层。

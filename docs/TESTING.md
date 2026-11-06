@@ -1,5 +1,123 @@
 # Testing
 
+## 2026-11-06 — Final Execution & Offline Recovery／仅本地 READY FOR REVIEW
+
+状态FINAL_EXECUTION_READY_FOR_REVIEW；不是Production PASS或功能CLOSED。用户已接受前阶段，本轮使用33文件未提交基线、保留原审计/barrier/trusted patch；原清理算法未改。当前执行合同及权限边界见[覆盖报告§9](./ACCOUNT_DELETION_BARRIER_COVERAGE.md#9-final-execution--offline-recovery--2026-11-06)。
+
+### Real services and native offline recovery
+
+`python3 -B supabase/tests/account_deletion_execution_local.py`最终**升级50＋fresh3＝53项真实服务断言PASS**；两个路径都在真实schema运行新增execution catalog/ACL SQL检查。沿用缓存PG17.6/Auth2.193.0/PostgREST14.5/Storage1.65.1/Edge1.74.1及原SMTP Mailpit。Auth账号仅本轮新建合成身份，受理经过真实邮件OTP，不用SQL伪造可信许可；只对这些账号真实Auth Admin hard delete（false）并查Auth API/DB确认不存在，未删真实/Production账号。
+
+| 范围 | 实测证据与边界 |
+|---|---|
+| 正常闭环与共享 | 有完整Personal与两个Shared成员关系，另有独立fresh空Personal。日程系列/例外、Tasks/Lists/Section/Item/Date/Review/账本按既有算法；保留记录整行JSON、历史UUID、关联和他人共享账本一致。原参与者可读双方Review，新Owner旧轮无权限 |
+| 分页与底层观察 | 真实API上传101个目标头像及另一用户头像，第一页100删除后剩1，再清完；目标metadata/源对象读取/本地文件均核对，另一用户字节不变。元数据以外未知平台内部字节不承诺立即物理消失 |
+| Storage失败/确认丢失 | 自有HTTP网关分别在真实DELETE前返回503、或等真实DELETE提交后丢弃响应返回503。job保持storage、Auth仍在、有持久退避；后续独立wake重枚举/幂等完成。先经合法Personal子操作删除Profile也能按UUID定位文件。此轮确认丢失发生在网关边界，不冒称模拟了全部网络故障 |
+| 业务失败 | 事务末尾额外测试trigger抛57014取消，15表指纹全部回滚、阶段不前推；移除故障trigger后重试成功。没有关闭既有RLS/trigger/FK |
+| Auth失败/丢确认 | 网关在DELETE前503，Auth保留；真实hard delete已提交但网关丢响应，Auth不存在而job仍auth；后续get确认及DB postflight前进，不把HTTP状态当完成 |
+| 崩溃与独立恢复 | 真实Auth删除后、响应前暂停网关并SIGKILL Edge，租约和auth阶段保留；重启后不缩短/回填租约时间。等待真实90秒到期，两个真实每秒pg_cron→pg_net调度竞争唤醒并接续至completed；有cron成功运行与net HTTP200记录，无PWA/用户JWT参与 |
+| 租约/权限 | 两个并发claim只有一份有效租约；释放后的旧token/generation拒绝。普通用户、匿名、service JWT不能作为work凭据，内部唤醒不能执行用户动作/指定UUID；client不能claim/advance/发completed；service不能绕租约调用原清理函数 |
+| 异常停止 | 额外未知bucket的目标owner对象触发needs_attention，未扩删、Auth保留、普通wake idle；owner用Storage API修复后调用未暴露的private resume，同job从Storage重新核验并完成 |
+| 完成与回执 | 有租约也不能跨阶段直接完成；Auth/Storage/业务postflight全部后才completed。回执在最终接受前交付，hard delete后匿名请求仅得status，随机猜测/过期404；不返回UUID/邮箱/空间/原因。回执过期用DB时间fixture，不是等待7天 |
+| 正常用户 | 其他账号头像字节、Shared正文/Review权限完整，之后仍可正常写Task；提醒相关Node回归通过，不冒称本轮重跑真实通知供应商 |
+
+真实本地调度配置：`supabase/tests/account_deletion_local_cron.sql`无凭据值/线上URL，测试通过stdin把随机合成能力写入native Vault；cron.command只有固定函数调用。以隔离平台owner收紧net.http_request_queue对PUBLIC/anon/authenticated的SELECT后才创建secret，并核对Vault/队列不可读。调度完成后取消并销毁全部自有容器/网络/tmpfs，既有业务库未启动/写入。schema/forward patch不自动安装Cron；无正式Edge/Cron部署。
+
+TDD `--red`在旧trusted基线实际返回claim RPC404；开始一次错误覆盖preload造成Auth不可用已撤回，仅读/用缓存原配置，不以环境错误当RED。验证发现普通postgres对受限函数owner及pg_net平台表的REVOKE只发警告而不生效；测试拒绝，分别以实际函数owner/隔离平台表owner安装，最终有效ACL断言通过。一次自动审批因用量限制未完成，命令未执行；用户要求继续后走正常审批重跑通过，未绕过安全检查。
+
+### Targeted regression, not SQL Auth E2E
+
+- `python3 -B supabase/tests/account_deletion_local.py --trusted`：**822 SQL、28双会话、2非READ-COMMITTED检查PASS**。harness截取execution块之前的trusted检查点，原业务/Owner/Review/审计保护回归；Auth/Storage是SQL fixture，不能计为真实Auth/Cron。本轮执行patch本身由上面的真实catalog/fresh-upgrade验证。
+- `node --test tests/account-deletion-execution.test.ts tests/account-deletion-acceptance.test.ts tests/account-access.test.ts tests/send-reminders-entrypoint.test.ts tests/send-reminders.test.ts tests/send-test-push.test.ts tests/send-test-push-source.test.ts tests/task-reminder-delivery.test.ts tests/important-date-claim.test.ts tests/recurring-reminders.test.ts tests/supabase-schema-tasks.test.ts tests/review-entry-data.test.ts tests/review-detail-data.test.ts tests/space-management.test.ts tests/space-lifecycle-ui.test.ts`：**121/121 PASS**，其中新增2项为Node唤醒能力/阻止异常Auth调用的模拟单元，不混计53项真实服务。
+- `deno check --cached-only --no-lock --config supabase/functions/account-deletion/deno.json supabase/functions/account-deletion/index.ts`、`npm run build`含tsc PASS；既有chunk提示保留。Python AST、Node语法、patch/canonical exact块、基线指纹、git diff --check/新文件空白检查PASS。
+
+上一节trusted真实HTTP命令对应前阶段的未部署检查点（其service直调清理合同已被本轮租约包装替代）；当前全服务入口使用execution_local.py，不把旧命令结果当最新执行验收。原Storage故障29项/其他跨服务112项不重复跑，证据保持其原版本范围。7天回执自然到期、生产SMTP/PWA、托管Storage所有路由/内部orphan恢复、Production队列/角色/网关/调度故障运维和容量仍NOT VERIFIED；保持独立Production门禁。
+
+无新依赖安装、项目.env/真实secret读取或输出，无UI/Production/真实账号数据变更、Commit/Push/Deploy。Markdown作者归属Ping Weng，未创建含第三方/工具错误作者的二进制交付文件。
+
+## 2026-11-06 — Trusted Acceptance & Personal Cleanup／LOCAL READY FOR REVIEW
+
+范围仅用户授权的隔离本地受理与数据库业务清理，状态TRUSTED_ACCEPTANCE_AND_PERSONAL_CLEANUP_READY_FOR_REVIEW；不是完整注销或Production许可。实施/权限/锁说明集中在[覆盖报告§8](./ACCOUNT_DELETION_BARRIER_COVERAGE.md#8-trusted-acceptance--personal-cleanup--2026-11-06)。原25个未提交路径先做SHA256清单；审计/barrier补丁及专项SQL保持，不重复实现四FK迁移。
+
+### Real Auth / SMTP / PostgREST / Edge
+
+`python3 -B supabase/tests/account_deletion_trusted_local.py`：升级54项＋独立fresh 7项＝**61项真实HTTP及数据库后置断言PASS**。复用缓存PG/Auth/PostgREST/Storage/Edge，增加既有缓存Mailpit v1.22.3，在自有内部网络接收真实Auth发出的8位Email OTP。初始合成账号由真实Auth Admin create确认/密码Session；注销重验完整经过Auth→SMTP邮件→verifyOtp，没有SQL模拟OTP或Auth成功。实际OTP过期按隔离Auth配置30秒等待，不回填Auth时间；仓库/Production登录配置和模板不改。
+
+覆盖：正确/错误/过期/成功重放OTP、不同调用者UUID、原会话绑定、临时OTP Session local登出不影响原Session、双设备意图冲突/许可拒绝、同会话同时确认与双账号并发、全部Shared Owner未处理拒绝/处理后可接受、直接RPC不能发许可/清理、service直接Personal DELETE拒绝、旧JWT bootstrap屏障原子生效。服务端OTP返回不同UUID的异常仅Node模拟验证，真实Auth不能合理制造该错配，不冒充Auth E2E；许可五分钟过期用DB时钟fixture单独验证，不是实际等待五分钟。
+
+业务夹具覆盖空Personal和含日程/重复根/拆分/例外、Tasks、Lists/Section/Item、Important Dates、Review双方、Push与账本的Personal。共享记录逐行JSON比较ID/正文/创建者/participant/关键关联；只允许既有生命周期的邀请码、本人Task指派及对应更新时间/提醒marker变化。本人接收账本、被删personal事件/逻辑根和私人Task/Date来源账本清除，即使接收者是另一人；另一人的保留Shared账本完整。
+
+在Profile删除（事务末尾）注入额外测试trigger错误，**15表指纹及generation全回滚**；移除该故障trigger后重试成功，未禁用任何既有保护。丢响应/旧generation重放无额外删除。已退出的历史创建者Profile删除不影响Shared Task/Review整行；剩余原参与者可读双方正文，新Owner无旧轮权限。清理等Space锁时确认重放返回/新指派被拒，无死锁。fresh/upgrade真实public/private schema+ACL一致，authenticator不能SET清理角色。清理后Auth保留、status=processing/phase=storage、business_cleaned_at非空、completed_at为空。
+
+TDD先执行`python3 -B supabase/tests/account_deletion_trusted_local.py --red`：真实SMTP OTP同UUID成功，但旧基线缺少prepare RPC（404）明确RED；不是环境故障。之后`--smoke`真实受理+空Personal清理PASS，最终以上完整命令PASS。初次SQL权限/保护回归失败用于收窄角色/helper身份和延迟trigger上下文，修正后全套通过，未关闭保护。
+
+### SQL, Node and build
+
+- `python3 -B supabase/tests/account_deletion_local.py --trusted`：fresh/upgrade各59屏障＋14新增权限＋44审计＋58生命周期＋135Lists＋62Event collaboration＋39Review conflict，共**822 SQL断言PASS**；原28个双会话顺序场景及2个非READ-COMMITTED失败关闭检查PASS。canonical/patch exact块、public/private/Storage SQL夹具schema+ACL一致，新patch重放/基线漂移失败关闭。**此套Auth/Storage为SQL stub，不计真实SMTP/API证据**。
+- `node --test tests/account-deletion-acceptance.test.ts tests/account-access.test.ts tests/send-reminders-entrypoint.test.ts tests/send-reminders.test.ts tests/send-test-push.test.ts tests/send-test-push-source.test.ts tests/task-reminder-delivery.test.ts tests/important-date-claim.test.ts tests/recurring-reminders.test.ts tests/supabase-schema-tasks.test.ts tests/review-entry-data.test.ts tests/review-detail-data.test.ts tests/space-management.test.ts tests/space-lifecycle-ui.test.ts`：**119/119 PASS**，其中6项新增输入/session/随机许可/异常同UUID/临时会话与local-only guard断言为Node单元/拦截请求验证。
+- `deno check --cached-only --no-lock --config supabase/functions/account-deletion/deno.json supabase/functions/account-deletion/index.ts` PASS；`npm run build`（含tsc）PASS，原大chunk提示保留。Python AST、MJS/Node语法、git diff --check及新增文件空白检查PASS。未重跑全项目稳定性/既有Storage故障专项，旧结论按原范围沿用。
+
+所有容器pull=never、自有内部网络/tmpfs，无host端口/既有业务挂载；Mailpit/Edge/DB资源finally清理。没有安装依赖、读取项目.env/真实凭据或打印OTP/JWT/邮件/许可，合成key不输出。无Auth删除、真实数据/Production/Git操作。未启动正式UI或用户浏览器会话。
+
+尚未验证/实施：Production catalog/角色安装/默认ACL/SMTP与AuthSession配置、真实设备/PWA、完整Storage/Auth执行与离线恢复/回执/最终postflight；后续独立授权。不得以数据库清理成功标completed或部署真实受理入口。
+
+## 2026-11-06 — Storage Drain & Recovery Gate／LOCAL DESIGN PASS，待审查
+
+`python3 -B supabase/tests/account_deletion_storage_recovery.py`：29项专项断言PASS，复用真实缓存PG/Auth/REST/Storage，不运行旧全套。标准及signed上传全部字节落盘后受理/拒绝metadata、DELETE超时重试、删除请求中SIGKILL/卷持久化后重试、API成功但执行端丢确认后幂等重试，均查真实文件及metadata；另一个用户文件字节不变。执行端确认丢失在测试client边界注入，不修改Storage核心。
+
+硬上传崩溃后真实无metadata blob重启仍在、API list为空且DELETE无法发现；旧JWT不能访问/重新发布，现有job记录needs_attention且拒绝completed。**此项PASS是安全异常结果，不是自动恢复成功**；残留只在测试卷销毁时清掉。精确物理unlink后/DB commit前崩溃、托管S3/队列/运维修复、TUS/S3 HTTP及通用硬时限NOT VERIFIED；不改核心来制造微窗口。
+
+`node --test tests/avatar.test.ts tests/avatar-ui.test.ts`17/17 PASS；Python AST、git diff --check及新文件空白检查PASS。首次重启探针遇短暂ECONNREFUSED后修正探针重试，未改业务保护。旧112跨服务/794 SQL等未重跑，证据不混计；业务/前端未改，不重复Build。
+
+隔离：全部pull=never、自有内部网络、无host端口或既有业务挂载；Storage使用匿名自有卷保持跨SIGKILL数据，最终核验自有容器/网络/卷清理。合成真实Auth Session，未删Auth用户，无Production/秘密读取打印/依赖安装或Git发布。原24路径实施文件保持。
+
+建议CROSS_SERVICE_GATE_PASS_FOR_LOCAL_DESIGN，仅应用对象清理+迟到发布屏障+已知异常不完成+平台内部生命周期边界；官方来源与最小恢复合同见[覆盖报告§7](./ACCOUNT_DELETION_BARRIER_COVERAGE.md#7-storage-drain--recovery-gate--2026-11-06)。不是完整注销实现或Production许可；等待用户与ChatGPT审查。
+
+## 2026-11-06 — Account Deletion Cross-Service Integration Gate／PARTIAL
+
+新增可复现隔离真实服务harness及两个小型测试辅助；原21个未提交路径在文档增补前21/21 SHA256不变，业务SQL/Edge未改。完整证据、镜像/缓存SDK版本、权限审查、Storage反例与候选排空合同见[覆盖报告§6](./ACCOUNT_DELETION_BARRIER_COVERAGE.md#6-cross-service-integration-gate--2026-11-06)。正式v0.1.21不变；无Slice 3、Personal清理/Auth删除、Production或Commit/Push/Deploy。
+
+- `python3 -B supabase/tests/account_deletion_cross_service.py`最终112项真实HTTP/后置条件PASS：真实Auth Session/JWT及refresh、PostgREST CRUD/RPC/RLS、Shared/Review保留、目标指派/转让、两个真实Edge入口和Storage字节/签名/在途；PostgREST与接受双向等待实测无死锁。外部Push provider是唯一通知替身；Auth合成邮箱自动确认，不是OTP/真机验收。所有账号均由本轮真实本地Auth新建，未调用任何Auth删除。
+- 旧下载URL受理后仍可读；未过期上传签名不带用户JWT也被namespace guard拒绝。实际在途blob可在API list为空时存在，DELETE成功也未排空；迟到metadata被拒绝且本地平台正常失败清理移除了文件。崩溃/cleanup失败恢复、硬超时/排空上界NOT VERIFIED，不能据空列表或一次正常清理标completed，因此整体PARTIAL。
+- 两个Edge用缓存Runtime1.74.1与缓存SDK2.57.0运行，真实Auth/REST、合成provider；正常通知成功，accepted测试发送401/no-dispatch，service prefilter和pre-send复核有效。未部署、未测试真实FCM/APNs。
+- 相关Node113/113、`npm run build`（含tsc）PASS；原chunk提示保留。Python AST/MJS语法/diff PASS。旧794 SQL/28双会话仅沿用历史SQL模拟证据，本轮未重跑，不混计真实API。
+- 初次CLI启动误触发不同版本镜像下载，发现后中断；未启动该临时项目数据库，新增缓存保留，无全局清理/安全设置修改。最终测试仅启动前缓存镜像、强制pull=never、自有内部网络/无端口/tmpfs，finally清理自有资源，现有业务容器未启动/改写。未读取项目.env/真实凭据，测试密钥不输出。
+
+生产catalog/Auth依赖/实际Storage后端与超时/签名配置、部署入口和真实OTP/PWA仍未核验；当前private受理不向应用角色开放。等待用户与ChatGPT审查，不进入Slice 3。
+
+## 2026-11-05 — Account Deletion Slice 2：SQL LOCAL PASS／跨服务PARTIAL
+
+覆盖清单与未封闭路径见[ACCOUNT_DELETION_BARRIER_COVERAGE](./ACCOUNT_DELETION_BARRIER_COVERAGE.md)。不记SLICE_2_READY_FOR_REVIEW，不改变历史真实多账号/PWA验收的NOT VERIFIED。
+
+- TDD：`python3 -B supabase/tests/account_deletion_local.py --barrier --red`在旧基线明确4项缺失状态/屏障合同RED；第二增量实测仅加RLS时ensure/Shared创建/Review上一份计划/业务definer仍可运行，再补实际入口。未以环境错误冒称RED，未禁RLS/触发器/FK。
+- 最终`python3 -B supabase/tests/account_deletion_local.py --barrier`：fresh/upgrade各59项状态/权限/Storage SQL夹具断言，另各44审计+58生命周期+135Lists+62Event collaboration+39Review conflict，共794 SQL断言PASS。保持Shared内容/历史UUID、原参与者权限及普通Personal保护；伪造created_by/修改历史UUID、新权限指向accepted账号拒绝。
+- 每路径14个真实PostgreSQL双会话场景，共28个：新建/ensure、加入/退出/移除、转让、指派、创建新Owner、同request两个接受者与竞争request。需要等待时确认pg_blocking_pids及advisory wait，移除场景确认受理不等Space锁；无deadlock，核对Shared Task/Event ID和正文。另2个非READ COMMITTED读/写失败关闭检查PASS。不模拟锁成功，也不把这些当真实两个设备OTP测试。
+- 安装状态/屏障前后15张业务表测试行指纹不变；public/private/Storage夹具schema+ACL fresh/upgrade一致；九函数旧source指纹/15表RLS门禁，private命名空间/Storage策略漂移与重放失败关闭。本轮原Slice 1审计patch/SQL/Tasks测试指纹保持，canonical旧前缀保持。
+- `node --test tests/account-access.test.ts tests/send-reminders-entrypoint.test.ts tests/send-reminders.test.ts tests/send-test-push.test.ts tests/send-test-push-source.test.ts tests/task-reminder-delivery.test.ts tests/important-date-claim.test.ts tests/recurring-reminders.test.ts tests/supabase-schema-tasks.test.ts tests/review-entry-data.test.ts tests/review-detail-data.test.ts tests/space-management.test.ts tests/space-lifecycle-ui.test.ts`：113/113 PASS。包含失败关闭/二次复核/service批量响应验证，拦截HTTP入口确认accepted候选不claim/不发送，不触达供应商。
+- `deno check --cached-only --no-lock --config supabase/functions/send-test-push/deno.json supabase/functions/send-test-push/index.ts`及send-reminders对应config/index均PASS，无网络安装；`npm run build`含tsc PASS，原chunk warning保持；Python AST/Node语法、git diff --check、新文件空白/链接核对PASS。Build后只改SQL测试/门禁及文档，不重复无关前端全量检查。
+
+身份分层：Auth仅SQL stub，request.jwt.claim.sub/SET ROLE为合成模拟，private受理由测试库owner调用；不是邮箱重验/JWT验签或客户可用授权。Storage为明确的最小SQL表夹具，不是真storage-api；尚需真实Auth/PostgREST/Storage角色、默认隔离、签名/签名上传、在途blob/对象锁集成验证。旧头像signed URL不会因状态即时失效。没有提供应用角色prepare/accept/advance入口，completed转入被拒绝，未实现Personal删除/完成器/恢复worker/UI；无Production、真实账号、正式Edge/Cron或Git发布操作。隔离容器无网络/端口/bind mount、仅缓存镜像，finally清理；现有业务库未启动或写入。
+
+## 2026-11-05 — Account Deletion Slice 1审计子集／LOCAL PASS，完整Slice PARTIAL
+
+本轮实现仅审计快照合同，不是完整注销流程。TDD：先在固定4b1032e baseline运行`python3 -B supabase/tests/account_deletion_local.py --red`，明确两项语义失败（creator FK、Profile级联误删Shared Task），再修改canonical/单份forward patch。首次测试环境SQL_ASCII无法加载既有Unicode SQL，改为UTF-8；迁移对比排除pg_dump自身对象标题/随机nonce，未禁用RLS/触发器/FK保护。没有把环境错误当语义RED。
+
+- 最终`python3 -B supabase/tests/account_deletion_local.py`：fresh/upgrade各44项专项、58项v0.1.13、135项Lists、62项Event collaboration、39项Review conflict，共676 SQL断言全部PASS。原始4FK补丁未知额外依赖/重放拒绝；15张业务表升级前后测试行指纹不变；DDL归一化比对仅四个审计FK被移除，全部函数/触发器/RLS/ACL与其余约束不变；fresh/upgrade public schema+ACL一致。普通权限用authenticated/anon/service_role，管理员仅合成fixture布置、检查及SQL层外键删除验证，不是可调用注销路径。
+- Shared保留验证比较完整JSON行（ID/正文/时间/创建者/关联/revision/sort），而非只比数量：退群B创建、A仍使用的Task，历史Space/日程（含B创建但归A的personal事件）、Review双方、Lists/Sections/Items与Important Dates均正确；本人被指派Task仅解除指派，原Owner日程系列/拆分/例外按leave规则删除。合成已退群B的Auth SQL stub可删；A可继续编辑Task/本人Review并派生旧创建者系列；新成员/新Owner不能读写未参与旧轮。live Event owner FK仍阻止错误Auth删除并回滚成员级联。
+- 空/非空Personal的普通DELETE、普通空间RPC、service_role及原始Auth/Profile级联删除仍被拒绝；非空个人Event/Task/Review保留，内部helper客户端执行被拒绝。**Personal专用删除未实现/正向NOT VERIFIED**，不能把拒绝测试当成功删除验收。
+- Node命令：`node --test tests/supabase-schema-tasks.test.ts tests/space-lifecycle-ui.test.ts tests/space-management.test.ts tests/review-detail-data.test.ts tests/review-history-data.test.ts tests/review-entry-data.test.ts tests/space-export.test.ts tests/review-export.test.ts`，48/48 PASS。旧Tasks历史patch测试保持原约束，新canonical测试核对快照并保留归属/指派/权限规则。
+- `npm run build`（含tsc -b）PASS，既有大chunk提示保持；Python AST与`node --check tests/supabase-schema-tasks.test.ts`通过，git diff --check及新增文件空白检查通过。不跑重复全项目稳定性审查/真实账号浏览器验收。
+
+隔离边界：缓存PostgreSQL17.6.1.127，随机自有容器、network none、无host端口/bind mount、tmpfs库；不读取/写入现有本地业务库，每次finally只清理本次自有容器。Auth为SQL stub，无Storage schema（canonical按既有约定跳过头像桶配置）；因此真实Auth Admin、Session/JWT、Storage/签名URL、自动恢复、并发屏障及Production catalog安全均NOT VERIFIED。原历史Review真实多账号反向验收也仍NOT VERIFIED，本次SQL RLS不能替代真实设备/认证验收。六份既有文档保留并增补，未Commit/Push/Deploy。
+
+## 2026-11-05 — Account Deletion设计冻结／验证尚未实施
+
+设计状态DESIGN_READY_FOR_REVIEW，产品规则已冻结，技术方案待评审/验证；不存在注销功能测试PASS或Production安全PASS。完整专项矩阵、Slice验收和独立Production门禁见[ACCOUNT_DELETION_SPEC §§8–9](./ACCOUNT_DELETION_SPEC.md#8-implementation-slices)。
+
+未来仅用隔离本地库及合成账号验证：fresh/upgrade parity、Personal保护与专用清理、共享Tasks/Review/历史UUID保留、普通成员与各类Owner、多空间与重复链、ledger清理/去重、同UUID OTP、旧JWT和全写入口、双会话锁、Storage真实API在途/失败、Auth失败/丢响应、租约重领及客户端离线后Cron自动完成。简化Auth表SQL测试不能替代完整本地Auth/Storage/Session集成；不能禁RLS/Trigger或拿两个闲置及其他现有真实账号试删。
+
+本轮仅docs的git diff --check、相对文件链接和变更范围静态核对；不跑Build/业务测试/数据库harness，不新增测试账号/数据/部署资源。真实catalog/Auth/Storage/调度凭据仍NOT VERIFIED；实际OTP、登录态和iPhone/Android/PWA验收由用户在受支持的隔离/合成环境完成。既有历史Review真实多账号反向验证NOT VERIFIED不因设计文件而变PASS；数据导出CLOSED / ACCEPTED保持。无Commit/Push/Deploy。
+
 ## 2026-11-05 — 数据导出最终真实验收（用户报告）
 
 2026-11-05 — 用户确认Production Source `feb729c8608b30f6d714e8a7d037fed39ff83a16`的真实iPhone standalone PWA验收：个人Space与共享Space均成功生成ZIP、保存至文件App并解压，均有12类CSV；中文文件名/表头已检查，电脑Numbers阅读正常；最终短说明、布局与交互获认可。按这些已验收范围记录 **CLOSED / ACCEPTED**，不是所有安全边界已验证。

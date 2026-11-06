@@ -37,6 +37,8 @@ test('authenticates the caller and scopes lookup and disable operations to that 
   const source = await readFile(new URL('index.ts', functionRoot), 'utf8');
 
   assert.match(source, /auth\.getUser/);
+  assert.match(source, /callerClient\.rpc\('current_account_active'\)/);
+  assert.equal((source.match(/await requireActiveAccount\(readAccountAccess\)/g) ?? []).length, 2);
   assert.match(source, /\.eq\('user_id', lookupUserId\)/);
   assert.match(source, /\.eq\('installation_id', lookupInstallationId\)/);
   assert.match(source, /\.eq\('id', subscriptionId\)/);

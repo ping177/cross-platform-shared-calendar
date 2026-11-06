@@ -65,7 +65,13 @@ for (const [label, sql] of [['bootstrap schema', schema], ['forward patch', patc
 
     assert.match(table, /id uuid primary key default gen_random_uuid\(\)/i);
     assert.match(table, /space_id uuid not null references public\.spaces\(id\) on delete cascade/i);
-    assert.match(table, /created_by uuid not null default auth\.uid\(\) references public\.profiles\(id\) on delete cascade/i);
+    if (label === 'bootstrap schema') {
+      assert.match(table, /created_by uuid not null default auth\.uid\(\),/i);
+      assert.doesNotMatch(table, /created_by[^\n]*references/i);
+    } else {
+      // The historical migration stays unchanged; the later audit patch replaces this FK.
+      assert.match(table, /created_by uuid not null default auth\.uid\(\) references public\.profiles\(id\) on delete cascade/i);
+    }
     assert.match(
       table,
       /foreign key \(space_id, assigned_to_user_id\)[\s\S]*references public\.space_members\(space_id, user_id\)[\s\S]*on delete set null \(assigned_to_user_id\)/i,

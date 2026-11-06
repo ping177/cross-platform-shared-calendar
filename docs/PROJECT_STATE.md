@@ -12,6 +12,22 @@ v0.1.21
 
 ## Current status
 
+2026-11-06 — **BACKEND LOCAL ACCEPTED / FRONTEND AUTHORIZED**。用户与ChatGPT已接受FINAL_EXECUTION本地后端阶段；本轮授权经审查建立本地后端Commit及实现默认关闭的前端。39文件范围与既有测试证据核对，无临时/缓存/真实凭据；不Push/Deploy，账号注销后端尚未部署Production，正式v0.1.21不变。下方为历史。
+
+2026-11-06 — **FINAL_EXECUTION_READY_FOR_REVIEW（仅隔离本地）**。已受理job的Storage API/业务事务/Auth hard delete/严格completed与短期回执闭环通过；真实双Cron/Net/Vault在Edge SIGKILL及90秒租约到期后无用户Session恢复。53真实服务、822 SQL/28并发、121 Node/类型/Build，Shared/Review权限与他人文件保持。无正式UI/Production/Git发布，v0.1.21不变；见覆盖报告§9。下方为历史。
+
+2026-11-06 — **TRUSTED_ACCEPTANCE_AND_PERSONAL_CLEANUP_READY_FOR_REVIEW（仅本地）**。真实SMTP OTP/同UUID原会话一次性许可→原子受理屏障→受限Personal业务清理通过；61真实跨服务、822 SQL/28并发、119 Node/类型/Build。普通Personal保护与Shared/历史Review权限保持，事务失败整体回滚。processing/storage及business_cleaned_at不代表完成，Auth/Storage最终执行与离线恢复/UI未实施。无Production/Git发布，正式v0.1.21保持；详见覆盖报告§8和TESTING。下方为历史。
+
+2026-11-06 — **CROSS_SERVICE_GATE_PASS_FOR_LOCAL_DESIGN（Storage Gate，待审查）**。29项真实Storage故障/17项头像Node通过，原实现未改。完成边界明确为应用对象清理/迟到发布屏障；平台底层生命周期不伪称零字节，已知残留needs_attention不得完成。无完整注销、Production或Git发布；v0.1.21保持，见覆盖报告§7。下方为历史。
+
+2026-11-06 — **Account Deletion Cross-Service Integration Gate PARTIAL**。真实隔离Auth/PostgREST/Storage/两Edge入口112项HTTP及后置条件、Node113/113、Build通过；在途blob可与空列表并存，Storage硬排空/失败清理恢复未证实，不标完整Gate PASS。原SQL/Edge未改，无OTP受理包装、Personal/Auth删除、Slice 3或Production/Git操作；正式v0.1.21保持，等待审查。详见ACCOUNT_DELETION_BARRIER_COVERAGE §6；下方为历史。
+
+2026-11-05 — **Account Deletion Slice 2 PARTIAL**。私有状态、SQL级账号/目标权限屏障及通知复核本地验证：794 SQL、28双会话、113 Node、两Edge cached类型/Build通过；真实Auth/PostgREST/Storage HTTP/签名URL边界未验证，不能称完整屏障。受理函数不向应用角色开放，无OTP/删除/完成/恢复执行器或Production操作；等待用户与ChatGPT审查。Slice 1审计子集保持，Personal专用删除未实施。正式v0.1.21不变，无Commit/Push/Deploy；下方为历史。
+
+2026-11-05 — **Account Deletion Slice 1 PARTIAL**。审计快照子集本地SQL/forward patch与专项验证完成：676 SQL、48 Node、TypeScript/Build通过，共享数据保留及普通Personal保护有效。Personal专用删除因可信受理授权尚未建立而停止，未开放任何删除入口；完整注销未实施，Production安全NOT VERIFIED。既有六份设计/治理修改已保留增补，无Commit/Push/Deploy；等待用户与ChatGPT审查。正式v0.1.21及原关闭/暂缓结论保持；下方为历史。
+
+2026-11-05 — **Account Deletion DESIGN_READY_FOR_REVIEW**。前轮只读调查已完成；本轮用户确认的产品规则已写入[账号注销规格](./ACCOUNT_DELETION_SPEC.md)，技术设计待审查/本地验证，功能NOT IMPLEMENTED，Production安全性NOT VERIFIED。仅规格及必要治理，无业务/SQL/Production/部署资源变化，无Commit/Push/Deploy；等待ChatGPT与用户审查。正式v0.1.21、数据导出CLOSED / ACCEPTED与旧稳定性Slice 1 DEFERRED保持；下方为历史。
+
 2026-11-05 — **数据导出 CLOSED / ACCEPTED（用户已验收范围）**。用户真实iPhone PWA确认个人/共享ZIP生成、文件App保存解压及12类CSV齐全，中文文件名/表头与电脑Numbers阅读正常，最终短说明/布局/交互认可。验收Source feb729c8608b30f6d714e8a7d037fed39ff83a16。历史回顾参与者RLS真实多账号反向验证仍NOT VERIFIED，不记PASS；详细范围见TESTING最新节。正式v0.1.21/格式2不变。本轮仅治理，不改业务/后端，不主动部署；用户已明确允许docs-only Push自动触发同应用产物部署，不主动创建部署或修改配置。下方为历史。
 
 
@@ -118,6 +134,20 @@ UI v2 Slice6 = LOCAL PASS / VISUAL PASS：用户已认可四张居中概览卡�
 v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3为LOCAL PASS / VISUAL PASS；Slice4为LOCAL PASS / VISUAL PROVISIONALLY ACCEPTED。Slice5月视图本地验证与离线视觉验收通过：两条短标题/准确+N、六色圆点与日期浮层，261/261相关测试、build/diff-check、28组四宽度离线检查PASS；用户确认普通月、密集月、空月及浮层满意。已授权本地commit；不代表真实账号、真机、installed PWA或Production验收。Space Color System继续Deferred；真实账号/真机/installed PWA/Production未验收。正式版本仍v0.1.20。
 
 ## Latest completed
+
+最终执行与离线恢复本地闭环：单job租约/代次、Storage分页/复查、复用Personal事务、真实Auth hard delete、失败重试/needs_attention、严格完成与短期匿名回执。真实Cron进程崩溃恢复及本地队列/Vault凭据边界验证；53真实服务和必要回归通过。仅本轮合成账号实际删除，不代表Production可用；详见覆盖报告§9/TESTING。下方为历史完成记录。
+
+本地可信受理与受限Personal清理：真实邮箱OTP、会话/意图一次性许可、全部Owner复核及原子屏障，NOLOGIN角色/精确目标清理与失败回滚；Shared ID/正文/关联、Review历史权限保留。61真实API、822 SQL/28并发、119 Node/类型/Build通过；完整Storage/Auth/恢复仍待实施，见覆盖报告§8。下方为历史完成记录。
+
+Storage应用/平台生命周期与异常恢复设计收口：29项故障断言（含硬崩溃残留needs_attention，不是清理成功）及17项头像回归；独立重试/丢确认/崩溃恢复、安全完成条件见覆盖报告§7。无业务实现扩展。
+
+真实本地跨服务专项：112项HTTP/数据库后置条件、两通知Edge、真实JWT/refresh、双向PostgREST并发及Storage在途反例；仅正常平台失败清理已证实，完整排空合同待验。见覆盖报告§6。
+
+Slice 2内部状态和SQL屏障子集：唯一请求/不可回退受理、15表restrictive RLS与写guard、9个必要读取/eligibility补充、Storage SQL策略、通知预过滤/复核；794 SQL/28双会话/113 Node/类型/Build通过。跨服务和公开可信受理未完成，覆盖与限制见ACCOUNT_DELETION_BARRIER_COVERAGE。
+
+账号注销审计子集：四类创建者FK→不可变UUID快照，保留五条活身份引用；本地676 SQL/48 Node/Build通过，迁移15表测试数据不变、权限/函数/触发器不变、fresh/upgrade一致。Personal专用删除未实施，不能把审计子集当完整Slice 1完成。
+
+账号注销产品合同与候选技术方案已成文，状态DESIGN_READY_FOR_REVIEW；包含同UUID OTP、数据/权限边界、离线Cron恢复、严格完成定义、四个NOT STARTED Slice与独立Production门禁。只完成设计文档，不代表功能实施或验证完成。
 
 数据导出按2026-11-05用户报告的个人/共享导出、中文CSV/Numbers及最终UI范围完成治理收口；历史回顾真实多账号反向验收保留未验证。业务代码保持已验收Source，测试分层与限制未抹除。
 
@@ -504,6 +534,8 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
+账号注销仅本地后端里程碑，全部新SQL/Edge/Cron未部署Production；Production默认不开放注销，正式v0.1.21及既有已验收功能部署保持。本轮仅本地Commit与前端实施授权。下方为历史部署记录。
+
 用户验收归属Production Source feb729c8608b30f6d714e8a7d037fed39ff83a16，原Vercel成功及21资源证据见/private/tmp/calendar-export-copy-release/RELEASE_RECEIPT.md。本轮仅docs治理，不主动重新部署或改配置；用户已允许Git自动触发同产物部署，不主动创建部署，不把治理Git提交当新业务验收。下方为历史。
 
 本轮短说明已获正常Git/Vercel发布授权，仅一行页面文案及两份必要治理记录。实际Source/URL/资源和未登录验证见/private/tmp/calendar-export-copy-release/RELEASE_RECEIPT.md，不预写成功；不改后端/数据。下方为历史。
@@ -683,13 +715,27 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-用户自主注销账号的设计与安全调查（尚未开始）：身份确认、个人/共享数据归属、清理边界及不可恢复风险。另保留历史回顾真实多账号反向验证为独立安全验收；本轮不开始调查实现或真实删除。
+完成已授权的账号注销前端与隔离后端本地集成：复用UI v2、Owner处理/可跳过导出、专用OTP/确认、短期回执与Session屏障、可靠历史注销身份。前端完成后等待审查，不再次Commit、不Push/Deploy或操作真实账号。
 
 ## Blockers
 
 暂无明确阻塞。
 
 ## Important Context
+
+本轮本地服务端闭环READY_FOR_REVIEW，普通用户入口仍默认关闭且仅本地后端；无正式UI/线上配置。Edge无DB owner凭据，原service清理直调撤销、租约包装限定固定job。真实Cron能力凭据在Vault，pg_net待发请求头也须不可被应用角色读取；缓存默认不安全，已仅在隔离配置以平台表owner修正并断言，Production仍独立核验。平台隐藏临时字节不承诺立即清零，已知异常needs_attention不完成。保留全部未提交成果，无Production/真实数据/Git发布；下方为历史。
+
+本轮本地受理/Personal清理可用仅用于合成账号隔离验证；专用Edge默认503且仅允许本地HTTP后端。private内部任意UUID受理仍无应用/service权限，许可摘要绑定真实会话与意图；service只能窄调用已受理job清理，不能SET受限执行角色。业务清理后Auth仍在、Storage待处理、completed禁止转入；没有离线执行器前不得部署真实受理入口。所有旧未提交成果保留，未安装依赖/读项目.env或真实secret/改Production。Storage Gate已获用户接受，不重复调查；下方为历史。
+
+Storage本地设计PASS不等于Production准入或功能完成。没有通用上传硬上界；不靠TTL/sleep判完成。已登记对象由API删除，迟到metadata由guard拒绝，平台隐藏临时字节由官方生命周期管理；已知清理异常必须needs_attention。生产版本/全部路由/guard、平台清理能力与支持渠道仍待核验；OTP/Personal执行/自动恢复器未实施。原24路径业务实现保留，本轮仅一个专项测试及五份文档；下方为历史。
+
+2026-11-06真实本地API证据已补充，不再将全部Auth/PostgREST/Storage一概记未验证；仅本轮缓存版本/文件后端/正常路径通过。真实OTP、平台故障/硬排空、线上版本/配置及PWA仍未验。原21路径业务实现保持，新增3测试辅助；CLI误下载缓存与隔离清理实绩见覆盖报告，不以此改系统安全设置。下方为历史。
+
+当前Slice 2仅本地实现/测试，private意图表与函数无应用角色权限；owner SQL测试不是OTP/Auth E2E。READ COMMITTED以外失败关闭，部署前必须核对真实角色/隔离；旧头像signed URL不立即撤销。原Slice 1审计patch/专项SQL/Tasks测试逐字保留，canonical原前缀不变；无UI、真实账号、正式Edge/Cron、部署或Git操作。详细覆盖报告是本轮技术交接源；下方为历史。
+
+当前授权为Slice 1本地SQL/专项测试及必要记录；受理状态表、执行角色、Personal删除例外、UI、Auth Admin、Edge/Cron均未实现。保留五条非审计用户FK是预期保护，不是迁移遗漏。Docker测试仅缓存镜像的自有无网络tmpfs容器，不写原本地业务库/Production；SQL Auth stub不等于真实认证。下方仅文档授权为前轮历史。
+
+账号注销产品规则已冻结，技术设计/权限/并发/Storage及自动恢复尚待验证；详见ACCOUNT_DELETION_SPEC，不能沿用旧“调查尚未开始”作为当前状态。必须有独立于客户端的持久恢复执行器；已受理不等于完成。两闲置账号保持，不作试删。当前授权仅文档，旧导出/Git发布授权不延伸到注销实现或发布。下方原范围的关闭/历史证据保持。
 
 当前本地格式修订2与项目v0.1.21分开。原12类字段/值/权限/分页/容量不变，仅CSV中文命名/列顺序和manifest映射；外部旧解析器需适配。主保存前仍需权限核验＋第二次主动点击，无系统分享则直接下载；备用折叠，结果仅内存。用户报告的个人真机成功属于既有格式1，不自动覆盖新UI/格式或共享真实权限。下方旧授权为历史。
 
@@ -806,7 +852,15 @@ Slice 5 Gate 2已按用户真实Production证据PASS，不要求重复SQL/REST/�
 
 ## Handoff Prompt
 
-数据导出已按用户确认范围CLOSED / ACCEPTED（个人/共享ZIP、12类中文CSV、Numbers阅读、最终UI），验收Source feb729c。历史回顾参与者RLS真实多账号反向验证仍NOT VERIFIED；看TESTING最新节，不补造PASS。下一项仅“用户自主注销账号”的设计与安全调查，尚未开始，不自动实施/删除。正式v0.1.21不变，Git/Push以实时事实为准。下方旧待验收/发布交接为历史。
+先读覆盖报告§9、SPEC最新checkpoint、TESTING：FINAL_EXECUTION_READY_FOR_REVIEW，仅隔离本地后端。53真实Auth/Storage/Edge/Cron断言、SQL822/并发28、Node121/类型/Build通过；真实SIGKILL/90秒租约/双Cron无Session恢复。原清理service直调撤销，调度Vault与pg_net排队头有效ACL已核验。保留全部未提交成果，等待用户/ChatGPT审查；不自动开始UI、Production安全门禁/迁移、真实账号操作或Commit/Push/Deploy，正式v0.1.21。下方为历史交接。
+
+先读覆盖报告§8/规格最新checkpoint/TESTING：TRUSTED_ACCEPTANCE_AND_PERSONAL_CLEANUP_READY_FOR_REVIEW，仅本地SMTP OTP与受限Personal数据库清理；61真实API、822 SQL/28并发、119 Node/类型/Build通过。保留全部未提交修改，等用户/ChatGPT审查；不自动开始完整Storage/Auth执行/离线恢复或UI，更不得Production、真实账号删除、Commit/Push/Deploy。Auth保留、processing/storage不报completed，正式v0.1.21。下方为历史交接。
+
+先读覆盖报告§7和TESTING最新节：Storage Gate建议CROSS_SERVICE_GATE_PASS_FOR_LOCAL_DESIGN，29专项/17头像Node通过；平台内部字节不伪称零、已知残留needs_attention不得完成。保留全部未提交修改，等待审查；不重新扩大Storage系统、不启动Slice 3、Production或Git发布。下方为历史交接。
+
+继续前先读ACCOUNT_DELETION_BARRIER_COVERAGE §6和TESTING最新节：Cross-Service Gate PARTIAL，112项真实HTTP/113 Node/Build通过；Storage在途硬边界及故障清理待验证。保留全部未提交改动，不重做审计迁移、不开始Slice 3、不开放受理或删除，不Commit/Push/Deploy。等待用户与ChatGPT审查。下方为历史交接。
+
+先读ACCOUNT_DELETION_BARRIER_COVERAGE、ACCOUNT_DELETION_SPEC和TESTING最新节：Slice 2 PARTIAL，内部状态/SQL屏障已验证（794 SQL/28双会话/113 Node/类型/Build），但真实Auth/PostgREST/Storage和签名URL边界NOT VERIFIED；private受理/状态接口不向应用开放，completed禁止转入，不把fixture当OTP。全部前轮未提交成果保留，Slice 1审计子集保持、Personal专用删除未实施，无完整注销/UI/Auth Admin/正式Edge/Cron/Production/Commit/Push/Deploy；停止等待用户与ChatGPT审查并另行授权下一小步。正式v0.1.21、既有导出关闭/旧暂缓项及真实Review反向验收NOT VERIFIED保持，两个闲置账号不动。下方为历史。
 
 本轮中文格式2/UX已获正常Git发布授权，实际提交/部署Source/公开验证见独立ux-release回执；下一步仅用户正式iPhone/Numbers/Excel复验，不提前关闭。无后端/真实数据操作，不启动注销；正式v0.1.21不变。下方旧待授权为历史。
 

@@ -18,7 +18,7 @@ Object.assign(globalThis, { Deno: { env: { get: (name: string) => values[name] }
 await import('../supabase/functions/send-reminders/index.ts');
 
 test('entrypoint wires candidate/claim/check RPCs and failed finalize without provider dispatch', async () => {
-  for (const mode of ['reject', 'check-error', 'scan-incomplete', 'event-incomplete', 'recurring-incomplete', 'exception-incomplete', 'exception-duplicate', 'task-reject', 'task-check-error', 'task-scan-incomplete', 'ledger-incomplete', 'ledger-row-incomplete'] as const) {
+  for (const mode of ['reject', 'check-error', 'scan-incomplete', 'event-incomplete', 'recurring-incomplete', 'exception-incomplete', 'exception-duplicate', 'task-reject', 'task-check-error', 'task-scan-incomplete', 'ledger-incomplete', 'ledger-row-incomplete', 'account-revoked'] as const) {
     const taskMode = mode.startsWith('task-');
     const calls: { path: string; body: unknown }[] = [];
     const originalFetch = globalThis.fetch;
@@ -45,6 +45,10 @@ test('entrypoint wires candidate/claim/check RPCs and failed finalize without pr
         id: sourceId, space_id: spaceId, space_kind: 'shared', personal_owner_id: memberId, title: 'Task', assigned_to_user_id: null,
         due_on: '2026-10-02', status: 'open', reminder_kind: 'all_day_same_day_08', time_zone: 'UTC', reminder_schedule_changed_at: marker }] : [];
       else if (path.endsWith('/space_members')) data = [{ space_id: spaceId, user_id: memberId }];
+      else if (path.endsWith('/active_notification_accounts')) {
+        assert.deepEqual(body, { p_user_ids: [memberId] });
+        data = mode === 'account-revoked' ? [] : [memberId];
+      }
       else if (path.endsWith('/push_subscriptions')) data = [{ id: subscriptionId, user_id: memberId, installation_id: subscriptionId,
         endpoint: 'https://fcm.googleapis.com/fixture', p256dh: 'fake', auth: 'fake', expiration_time: null, disabled_at: null }];
       else if (path.endsWith('/claim_task_reminder_delivery')) data = deliveryId;
@@ -74,6 +78,13 @@ test('entrypoint wires candidate/claim/check RPCs and failed finalize without pr
       const incomplete = mode.endsWith('incomplete') || mode === 'exception-duplicate';
       assert.equal(response.status, incomplete ? 500 : 200);
       const call = (name: string) => calls.find(entry => entry.path.endsWith(`/${name}`));
+      if (mode === 'account-revoked') {
+        assert.equal(response.status, 200);
+        assert.equal(result.sent, 0); assert.equal(result.failed, 0);
+        assert.equal(call('claim_important_date_reminder_delivery'), undefined);
+        assert.equal(call('claim_task_reminder_delivery'), undefined);
+        continue;
+      }
       assert.deepEqual(call('list_important_date_reminder_candidates')?.body, { p_after_id: null, p_limit: 100 });
       if (incomplete) { assert.equal(call('claim_important_date_reminder_delivery'), undefined); assert.equal(call('claim_task_reminder_delivery'), undefined); continue; }
       assert.equal(result.failed, 1); assert.equal(result.sent, 0);
