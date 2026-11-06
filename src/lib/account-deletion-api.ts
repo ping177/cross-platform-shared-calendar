@@ -1,10 +1,11 @@
 import { supabase } from './supabase';
-import { isDeletionStatus, localDeletionEnabled, type DeletionIntent, type DeletionProof, type DeletionStatus } from './account-deletion';
+import { isDeletionStatus, deletionRecoveryEnabled, type DeletionIntent, type DeletionProof, type DeletionStatus } from './account-deletion';
 const url = import.meta.env.VITE_SUPABASE_URL ?? '';
 const anon = import.meta.env.VITE_SUPABASE_ANON_KEY ?? '';
-export const accountDeletionEnabled = localDeletionEnabled(import.meta.env.VITE_ACCOUNT_DELETION_ENABLED, import.meta.env.DEV, url, typeof location === 'undefined' ? '' : location.hostname);
+export const accountDeletionRecoveryEnabled = deletionRecoveryEnabled(import.meta.env.VITE_ACCOUNT_DELETION_RUNTIME_MODE, import.meta.env.VITE_ACCOUNT_DELETION_ENABLED, import.meta.env.DEV, url, typeof location === 'undefined' ? '' : location.hostname);
+export const accountDeletionEnabled = accountDeletionRecoveryEnabled && import.meta.env.VITE_ACCOUNT_DELETION_ENABLED === 'true';
 export async function deletionRequest(body: Record<string, unknown>, userId?: string): Promise<Record<string, unknown>> {
-  if (!accountDeletionEnabled) throw new Error('账号注销暂未开放。');
+  if (!accountDeletionRecoveryEnabled || (!accountDeletionEnabled && ['begin','verify','confirm'].includes(body.action as string))) throw new Error('账号注销暂未开放。');
   let authorization = anon;
   if (userId) {
     const { data, error } = await supabase.auth.getUser();

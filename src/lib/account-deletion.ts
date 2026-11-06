@@ -10,6 +10,11 @@ export function localDeletionEnabled(enabled: unknown, development: boolean, bac
   try { const url = new URL(backend); return development && enabled === 'true' && ['127.0.0.1','localhost'].includes(host)
     && url.protocol === 'http:' && ['127.0.0.1','localhost'].includes(url.hostname); } catch { return false; }
 }
+export function deletionRecoveryEnabled(mode: unknown, enabled: unknown, development: boolean, backend: string, host: string) {
+  if (mode === 'production') return backend === 'https://ximazjhxvmktpcdbypka.supabase.co'
+    && host === 'cross-platform-shared-calendar.vercel.app';
+  return localDeletionEnabled(enabled, development, backend, host);
+}
 export function readDeletionReceipt(storage: Pick<Storage,'getItem'>, now = Date.now()): DeletionReceipt | null {
   try { const value = JSON.parse(storage.getItem(deletionReceiptKey) ?? 'null');
     return value && hex.test(value.token) && hex.test(value.binding) && Number.isFinite(value.expires) && value.expires > now ? { token: value.token, expires: value.expires, binding: value.binding } : null;

@@ -1,6 +1,7 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
+  readonly VITE_ACCOUNT_DELETION_RUNTIME_MODE?: string;
   readonly VITE_ACCOUNT_DELETION_ENABLED?: string;
   readonly VITE_SUPABASE_URL?: string;
   readonly VITE_SUPABASE_ANON_KEY?: string;

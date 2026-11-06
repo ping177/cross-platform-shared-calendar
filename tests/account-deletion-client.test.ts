@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { clearDeletionPreferences, receiptAccountBinding, localDeletionEnabled, readDeletionReceipt, writeDeletionReceipt, deletionReceiptKey, deletionStatusCopy } from '../src/lib/account-deletion.ts';
+import { clearDeletionPreferences, receiptAccountBinding, localDeletionEnabled, deletionRecoveryEnabled, readDeletionReceipt, writeDeletionReceipt, deletionReceiptKey, deletionStatusCopy } from '../src/lib/account-deletion.ts';
 test('deletion requires explicit DEV flag and loopback frontend/backend',()=>{
  assert.equal(localDeletionEnabled('true',true,'http://127.0.0.1:54321','localhost'),true);
  for(const args of [[undefined,true,'http://127.0.0.1:54321','localhost'],['true',false,'http://127.0.0.1:54321','localhost'],['true',true,'https://project.supabase.co','localhost'],['true',true,'http://127.0.0.1:54321','example.com']] as const)assert.equal(localDeletionEnabled(...args),false);
@@ -22,4 +22,11 @@ test('completed receipt clears only matching account preferences without retaini
  const storage={get length(){return values.size;},key:(index:number)=>Array.from(values.keys())[index]??null,removeItem:(key:string)=>{values.delete(key);}};
  await clearDeletionPreferences(storage,await receiptAccountBinding('old'));
  assert.deepEqual([...values.keys()],['selectedSpaceId:other','unrelated']);
+});
+
+test('production recovery stays enabled while the new-entry switch is off',()=>{
+ const url='https://ximazjhxvmktpcdbypka.supabase.co';
+ assert.equal(deletionRecoveryEnabled('production','false',false,url,'cross-platform-shared-calendar.vercel.app'),true);
+ assert.equal(deletionRecoveryEnabled('production','false',false,url,'evil.invalid'),false);
+ assert.equal(deletionRecoveryEnabled(undefined,'false',false,url,'cross-platform-shared-calendar.vercel.app'),false);
 });

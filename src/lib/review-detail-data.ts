@@ -1,4 +1,4 @@
-import { accountDeletionEnabled } from './account-deletion-api';
+import { accountDeletionRecoveryEnabled } from './account-deletion-api';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { mapReviewDetail, ReviewUnavailableError, type ReviewDetail } from './review-detail.ts';
 import type { CurrentSpace, ReviewEntry, ReviewRound } from '../types.ts';
@@ -24,7 +24,7 @@ export async function readReviewDetail(client: SupabaseClient, space: CurrentSpa
   if (!entries) throw new Error('回顾参与者内容读取失败，请重试。');
   await assertCurrentUser(client, userId);
   const detail = mapReviewDetail(round as ReviewRound, entries as ReviewEntry[], space, userId);
-  if (accountDeletionEnabled) {
+  if (accountDeletionRecoveryEnabled) {
     const { data: deleted, error: markerError } = await client.rpc('review_deleted_participants', { p_review_id: reviewId });
     if (!markerError && Array.isArray(deleted) && deleted.every(id => typeof id === 'string' && entries.some(entry => entry.user_id === id))) detail.deletedParticipantIds = deleted;
   }
