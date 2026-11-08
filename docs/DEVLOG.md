@@ -1,5 +1,14 @@
 # Development Log
 
+## 2026-11-08 — 账号注销后台验收收口／前端暗发布预检
+
+- Production P1～P5、account-deletion Edge 暗部署、Worker Secret、Vault、`private.wake_account_deletions()` 权限及手动空跑均 PASS。手动空跑请求 68457 为 HTTP 200 / idle。
+- **WORKER_WAKE_CRON_PASS**。唯一注销 Cron `account-deletion-every-minute`（job ID 2，`* * * * *`）两次自然调度为 succeeded：北京时间 15:53（run 68486 → request 68487）、16:00（run 68500 → request 68501），均 HTTP 200 / `{"status":"idle"}`。原提醒 Cron job ID 1 配置未变、运行正常。Edge 与数据库双受理关闭，Edge 未配置 allowlist、数据库 allowlist 为 NULL，注销任务与已受理任务均为 0。
+- **FRONTEND_DARK_RELEASE_READY** 仅指本地：53 项 Node、44 项 Chrome/WebKit 模拟浏览器、TypeScript 和暗发布构建通过。前端尚未正式发布或由用户在真实登录浏览器/PWA 验收。最终确认文案须在合成账号测试前补齐平台备份与日志边界。
+- 用户已在 Vercel Dashboard 核验连接的 GitHub 仓库为 `ping177/cross-platform-shared-calendar`，Production Branch 为 `main`，Push 到 main 自动部署。仅 Production 的两个 Config 变量为 `VITE_ACCOUNT_DELETION_RUNTIME_MODE=production`、`VITE_ACCOUNT_DELETION_ENABLED=false`，`VITE_SUPABASE_URL` 和 `VITE_SUPABASE_ANON_KEY` 已配置。
+- 既有只读证据显示 GitHub main 与本地 origin/main 均为 4b1032e，最新成功的 GitHub Production 部署记录 7565048535 同 SHA，正式别名公开产物指向预期 Supabase 项目。治理记录同步清除上一轮 Vercel 配置阻塞，保留部署后 Source 和正式别名核验。待推送范围包含前后端，Git Push 与其触发的 Production 暗发布需另行授权。
+- 前端仍未 Push 或暗发布，真实登录浏览器/PWA 人工验收及合成账号完整注销闭环均待办，正式开放另需授权。正式版本仍为 v0.1.21，本次范围未 CLOSED。本轮仅治理文档，无业务代码或 Production 变更，无 Push 或 Deploy。
+
 ## 2026-11-06 — E4关闭与Production模式最小本地准备
 
 按用户E4返回event_trigger/owner/事件标签/无public CREATE及包装提示关闭调查，未新增E5/E6。固定HTTPS项目/CORS的Edge模式与verify_jwt单函数配置本地准备；新受理默认关闭，work/receipt/cancel独立。核对直调RPC发现仅Edge开关不足，P3/canonical加owner-only唯一受理配置行及持锁检查，默认false并支持合成UUID限制，不改删除算法/空间权限。前端正式运行与入口分离保持Root/回执/历史标记，不改布局。真实本地17项、828 SQL/28并发、31 Node/44浏览器/类型/Build通过；隔离测试转发/文件名修正后重跑，不放宽保护。runbook列五patch与Edge/Secrets/Cron/前端顺序/停止条件。正式v0.1.21/f259f0d，旧修改保留，无Production/真实账号/凭据或其他项目变更，无安装依赖、Commit/Push/Deploy。
