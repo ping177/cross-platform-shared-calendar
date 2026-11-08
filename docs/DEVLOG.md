@@ -1,5 +1,18 @@
 # Development Log
 
+## 2026-11-08 — 账号注销单账号试点／仅本地
+
+- 按用户决定以原计划注销的账号 A 为唯一真实 E2E 目标，B 保留用于核验共享数据。全局入口保持关闭，新增公开构建配置 `VITE_ACCOUNT_DELETION_PILOT_USER_ID`，只匹配 A，独立状态核对和回执能力保留。最终确认页补充备份、审计、日志与无法远程收回的副本提示。
+- 增量 SQL 补丁在现有账号锁之后、写入准备记录之前校验 DB 受理和明确名单，NULL/空名单拒绝。现有 RPC 授权、OTP、正式受理和 Worker 删除流程不变。历史补丁保留，验证见 TESTING。
+- 既有 Production 暗发布人工验收记录保留。本轮仅本地修改及自动化测试，未配置 A UUID、未改 Production、未 Commit/Push/Deploy。v0.1.21 不变，Production 试点及正式开放分别待授权。
+
+## 2026-11-08 — Production 暗发布人工验收
+
+- Vercel Production 自动部署成功。Source SHA `6bc5b6151a834a58d38f4e62b81f58b616abd2ac`，Deployment ID `FW8xahANz1TCiAZt4QVQaHzBM2MJ`。正式域名新版产物指向既定 Supabase 项目，保留账号状态核对与回执能力。
+- 用户确认 **Desktop Production E2E：PASS**、**Mobile PWA Production E2E：PASS**。原有功能正常，账号注销入口隐藏。沿用发布后只读复核：Edge 和 DB 双受理关闭，两侧未配置 allowlist，注销任务及已受理任务均为 0。
+- 合成账号测试尚未开始。最终确认文案须先说明平台备份和日志边界，并确认受控前端的访问方案。仅允许另行授权的合成账号和合成空间，Edge/DB 必须采用同范围的明确 UUID 名单。
+- 正式版本仍为 v0.1.21，本次范围未 CLOSED。本轮仅同步治理与审查，无业务代码或 Production 配置变更，无 Commit、Push 或部署。
+
 ## 2026-11-08 — 账号注销后台验收收口／前端暗发布预检
 
 - Production P1～P5、account-deletion Edge 暗部署、Worker Secret、Vault、`private.wake_account_deletions()` 权限及手动空跑均 PASS。手动空跑请求 68457 为 HTTP 200 / idle。

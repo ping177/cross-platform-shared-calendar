@@ -2,10 +2,18 @@ import { supabase } from './supabase';
 import { isDeletionStatus, deletionRecoveryEnabled, type DeletionIntent, type DeletionProof, type DeletionStatus } from './account-deletion';
 const url = import.meta.env.VITE_SUPABASE_URL ?? '';
 const anon = import.meta.env.VITE_SUPABASE_ANON_KEY ?? '';
-export const accountDeletionRecoveryEnabled = deletionRecoveryEnabled(import.meta.env.VITE_ACCOUNT_DELETION_RUNTIME_MODE, import.meta.env.VITE_ACCOUNT_DELETION_ENABLED, import.meta.env.DEV, url, typeof location === 'undefined' ? '' : location.hostname);
-export const accountDeletionEnabled = accountDeletionRecoveryEnabled && import.meta.env.VITE_ACCOUNT_DELETION_ENABLED === 'true';
+const mode = import.meta.env.VITE_ACCOUNT_DELETION_RUNTIME_MODE;
+const enabled = import.meta.env.VITE_ACCOUNT_DELETION_ENABLED;
+const pilotUserId = import.meta.env.VITE_ACCOUNT_DELETION_PILOT_USER_ID;
+export const accountDeletionRecoveryEnabled = deletionRecoveryEnabled(mode, enabled, import.meta.env.DEV, url, typeof location === 'undefined' ? '' : location.hostname);
+// This is a UI gate. Edge and database admission independently authorize the user.
+export function canStartAccountDeletion(userId?: string): boolean {
+  if (!accountDeletionRecoveryEnabled || !userId) return false;
+  return enabled === 'true' || (mode === 'production' && enabled === 'false' &&
+    userId === pilotUserId && /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(userId));
+}
 export async function deletionRequest(body: Record<string, unknown>, userId?: string): Promise<Record<string, unknown>> {
-  if (!accountDeletionRecoveryEnabled || (!accountDeletionEnabled && ['begin','verify','confirm'].includes(body.action as string))) throw new Error('账号注销暂未开放。');
+  if (!accountDeletionRecoveryEnabled || (['begin','verify','confirm'].includes(body.action as string) && !canStartAccountDeletion(userId))) throw new Error('账号注销暂未开放。');
   let authorization = anon;
   if (userId) {
     const { data, error } = await supabase.auth.getUser();

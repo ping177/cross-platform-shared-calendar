@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
-import { accountDeletionRecoveryEnabled, deletionRequest, receiptStatus } from '../lib/account-deletion-api';
+import { accountDeletionRecoveryEnabled, canStartAccountDeletion, deletionRequest, receiptStatus } from '../lib/account-deletion-api';
 import { clearDeletionPreferences, deletionReceiptEvent, deletionReceiptKey, deletionStatusCopy, receiptAccountBinding, readDeletionReceipt, writeDeletionReceipt, type DeletionProof, type DeletionReceipt, type DeletionStatus } from '../lib/account-deletion';
 import { supabase } from '../lib/supabase';
 import { unsubscribeCurrentPushSubscription } from '../lib/push-notifications';
 function stored() {try{const receipt=readDeletionReceipt(window.localStorage);if(!receipt)window.localStorage.removeItem(deletionReceiptKey);return receipt;}catch{return null;}}
 function changed() {window.dispatchEvent(new Event(deletionReceiptEvent));}
 export async function submitDeletionFromPage(userId: string, proof: DeletionProof) {
+  if (!canStartAccountDeletion(userId)) throw new Error('账号注销暂未开放。');
   writeDeletionReceipt(window.localStorage,proof.receipt_token,await receiptAccountBinding(userId));changed(); // Persist before irreversible request; unmount business/export state.
   try { await deletionRequest({action:'confirm',request_id:proof.request_id,confirmation_token:proof.confirmation_token,confirmed:true},userId); }
   finally {changed();} // Unknown response is resolved only by receipt or atomic cancellation.

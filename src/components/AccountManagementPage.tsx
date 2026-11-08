@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { ChevronLeft, Download, LogOut, UserRoundX } from 'lucide-react';
-import { accountDeletionEnabled } from '../lib/account-deletion-api';
+import { canStartAccountDeletion } from '../lib/account-deletion-api';
 import { submitDeletionFromPage } from './AccountDeletionBoundary';
 import { LoginEmail } from './LoginEmail';
 import { useMobileSwipe } from './useMobileSwipe';
@@ -14,8 +14,10 @@ export function AccountManagementPage({ userId, email, error, onBack, onSignOut,
 }) {
   const deletionNavigation = useAccountNavigation(userId, 'deletion');
   const exportNavigation = useAccountNavigation(userId, 'export');
-  const swipe = useMobileSwipe({ enabled: !exportNavigation.open && !deletionNavigation.open, scope: `${userId}:account`, direction: 'right', onSwipe: onBack });
-  if (accountDeletionEnabled && deletionNavigation.open) return <Suspense fallback={<p role="status">正在打开注销账号…</p>}><AccountDeletionPage userId={userId} onBack={() => { deletionNavigation.back(); onSpacesChanged?.(); }} onConfirm={proof => submitDeletionFromPage(userId, proof)}/></Suspense>;
+  const accountDeletionEnabled = canStartAccountDeletion(userId);
+  const deletionOpen = accountDeletionEnabled && deletionNavigation.open;
+  const swipe = useMobileSwipe({ enabled: !exportNavigation.open && !deletionOpen, scope: `${userId}:account`, direction: 'right', onSwipe: onBack });
+  if (deletionOpen) return <Suspense fallback={<p role="status">正在打开注销账号…</p>}><AccountDeletionPage userId={userId} onBack={() => { deletionNavigation.back(); onSpacesChanged?.(); }} onConfirm={proof => submitDeletionFromPage(userId, proof)}/></Suspense>;
   if (exportNavigation.open) return <Suspense fallback={<main className="p-ui-4"><button type="button" onClick={exportNavigation.back}>返回账户管理</button><p role="status">正在打开导出数据…</p></main>}><DataExportPage key={userId} userId={userId} onBack={exportNavigation.back} /></Suspense>;
   return <main {...swipe} className="mx-auto min-h-[100dvh] w-full max-w-3xl bg-ui-page px-ui-4 py-ui-4 font-ui text-ui-text safe-bottom">
     <header className="ui-spaces-header flex min-h-11 items-center gap-ui-3">

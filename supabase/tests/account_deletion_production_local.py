@@ -56,6 +56,7 @@ def main():
         path=b['id']+'/'+uid()+'.jpg'
         assert g.http('storage','/object/profile-avatars/'+path,'POST',token=b['jwt'],binary=b'\xff\xd8\xff\xe0fixture\xff\xd9')['status']==200
         g.accepting('true')
+        g.sql(f"update private.account_deletion_admission set allowed_user_ids=array['{b['id']}']::uuid[] where singleton")
         probe=g.action(b,'begin')
         assert probe['status']==200, 'Production begin failed: '+str(probe['status'])+' '+g.data(probe).get('error','')
         permit=g.permit(b)

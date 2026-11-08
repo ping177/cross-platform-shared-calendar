@@ -1,5 +1,11 @@
 # Testing
 
+## 2026-11-08 — 账号注销单账号试点／仅本地
+
+- `python3 -B supabase/tests/account_deletion_pilot_local.py`：缓存镜像、无网络、无持久卷的 PostgreSQL 17.6；旧 RPC 在关闭状态仍可准备的 RED 已复现。升级/全新各 15 项通过，包括关闭、NULL、空名单、A/B 直调、错会话、匿名、普通账号状态和 Worker ACL。补丁重复应用、未知函数体拒绝、现有 ACL 与其余函数不变。A 的准备记录仅为事务内 fixture，全部回滚，无已受理任务或 Worker 调用。
+- 本地 Chrome/WebKit 请求全拦截，50 项通过，验证 A/B 入口、直接路由和前端调用、全局开关、状态/回执和最终确认文案。Node 相关注销、空间、回顾、通知及提醒回归 118 项通过，TypeScript 和 Production 模式构建通过。模拟测试不接触真实账号、OTP 或 Production。
+- 既有真实本地完整删除脚本已同步明确名单的 fixture，未重跑实际 Worker/删除链路。真实 Production 单账号 E2E 待独立授权。
+
 ## 2026-11-06 — Production模式/受理开关／仅本地
 
 python3 -B supabase/tests/account_deletion_production_local.py：17真实本地Auth/SMTP/PostgREST/Storage/Edge/Cron/Net/Vault断言PASS，含默认关闭、有效OTP许可直调RPC与名单拒绝、关闭后Storage/Auth失败恢复、后台独立completed/receipt及Shared保留。HTTPS固定项目仅测试临时产物映射到internal HTTP；不访问Production，不冒充托管gateway/TLS。python3 -B supabase/tests/account_deletion_local.py --trusted：828 SQL、28并发、2隔离/fresh ACL一致；Auth/Storage为SQL fixture。Node相关31/31、PLAYWRIGHT_MODULE_PATH=<existing cache>/playwright/index.mjs node --test tests/account-deletion.browser.mjs tests/login-email.browser.mjs tests/data-export.browser.mjs：44/44；deno check --cached-only supabase/functions/account-deletion/index.ts、npm run build、diff通过。真实测试仅新合成账号；未重复全部后端故障套件。细分范围/测试夹具修正见readiness最新节，Production配置/用户设备仍NOT VERIFIED。

@@ -18,7 +18,11 @@ class FrontendGate(ExecutionGate):
         super().start_deletion()
         if self.sql("select to_regprocedure('public.cancel_my_deletion_preparation()') is null")=='t':
             self.sql((ROOT/'supabase/patches/2026-11-06-account-deletion-frontend-contract.sql').read_text())
+        self.sql((ROOT/'supabase/patches/2026-11-08-account-deletion-pilot-preparation.sql').read_text())
         self.sql("notify pgrst,'reload schema';")
+
+    def allow_preparation(self, user):
+        self.sql(f"update private.account_deletion_admission set allowed_user_ids=array['{user['id']}']::uuid[] where singleton;")
 
 def main():
     g=FrontendGate();server=None;mail_state={};control=secrets.token_hex(32)
@@ -28,7 +32,7 @@ def main():
         expected_schema=schema_dump(g)
         preflight=json.loads(g.command(['exec','-i',g.prefix+'_storage','node','--input-type=module','-e',HTTP],json.dumps(dict(service='deletion',path='/',method='OPTIONS',headers={'Origin':'http://127.0.0.1:5175'}))))
         g.ok(preflight['status']==204 and preflight['headers'].get('access-control-allow-origin')=='http://127.0.0.1:5175','real Edge preflight allows only the local UI origin')
-        cancelled=g.new_user();old=g.permit(cancelled)
+        cancelled=g.new_user();g.allow_preparation(cancelled);old=g.permit(cancelled)
         if '--contracts-only' in sys.argv:
             outsider=g.new_user()
             g.ok(g.action(outsider,'cancel')['status']==200,'another authenticated caller can revoke only its own preparation')
@@ -36,14 +40,14 @@ def main():
             g.ok(g.action(cancelled,'cancel',user_id=outsider['id'])['status']==400,'cancel Edge rejects caller-selected UUID parameters')
             g.ok(g.data(g.action(cancelled,'cancel'))=={'cancelled':True},'fixed-session Edge atomically confirms unaccepted cancellation')
             g.ok(g.action(cancelled,'confirm',request_id=old['request_id'],confirmation_token=old['confirmation_token'],confirmed=True)['status']==409,'cancel Edge fences a late confirmation')
-            accepted=g.new_user();permit=g.permit(accepted)
+            accepted=g.new_user();g.allow_preparation(accepted);permit=g.permit(accepted)
             assert g.action(accepted,'confirm',request_id=permit['request_id'],confirmation_token=permit['confirmation_token'],confirmed=True)['status']==202
             g.ok(g.data(g.action(accepted,'cancel'))=={'cancelled':False},'fixed-session Edge cannot cancel durable acceptance')
             print('PASS final cancellation Edge contract on real Auth/PostgREST',flush=True)
             return
         g.ok(g.rpc(cancelled['jwt'],'cancel_my_deletion_preparation')['status']==200,'real session can atomically cancel only its unaccepted preparation')
         g.ok(g.action(cancelled,'confirm',request_id=old['request_id'],confirmation_token=old['confirmation_token'],confirmed=True)['status']==409,'late confirmation cannot accept a cancelled permit')
-        a,b=g.new_user(),g.new_user();fixture=seed(g,a,b);before=retained(g,fixture)
+        a,b=g.new_user(),g.new_user();g.allow_preparation(b);fixture=seed(g,a,b);before=retained(g,fixture)
         owned=g.data(g.rpc(b['jwt'],'create_space_with_invite',{'space_name':'待处理共享空间'}))
         assert g.rpc(a['jwt'],'join_space_by_invite_code',dict(code=owned['invite_code']))['status']==200
         logged=g.data(g.http('auth','/token?grant_type=password','POST',dict(email=b['email'],password=b['password'])))

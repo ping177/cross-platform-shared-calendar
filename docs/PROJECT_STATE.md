@@ -12,6 +12,10 @@ v0.1.21
 
 ## Current status
 
+2026-11-08 — **单账号试点本地实现／待发布授权**。用户指定原本就准备注销的账号 A 验证真实 E2E，保留 B 做共享数据对照，不创建 Production 合成账号。前端单账号入口、准备 RPC 名单校验及确认页备份/日志边界仅在本地实现。已验收的 Production 暗发布、双受理关闭和零任务状态不变，正式版本仍为 v0.1.21。以下为已验收的暗发布及历史记录。
+
+2026-11-08 — **POST_DARK_RELEASE_ACCEPTANCE_PASS**。v0.1.21 Production 暗发布已完成，用户确认 Desktop Production E2E 与 Mobile PWA Production E2E 均 PASS，原有功能正常、注销入口隐藏。Edge 与 DB 双受理门禁仍关闭，注销任务与已受理任务均为 0。合成账号注销闭环和正式开放尚未执行，本次范围未 CLOSED。以下为历史。
+
 2026-11-08 — **FRONTEND_DARK_RELEASE_READY（本地），正式发布与人工验收待办**。P1～P5 Production PASS，account-deletion Edge 暗部署 PASS，Worker Secret、Vault、私有唤醒包装及手动空跑 PASS，WORKER_WAKE_CRON_PASS。Edge 与数据库双受理门禁关闭，注销任务和已受理任务均为 0。前端 53 项 Node、44 项 Chrome/WebKit 模拟浏览器、TypeScript 与暗发布构建通过。用户已在 Vercel Dashboard 核验暗发布构建配置。正式版本仍为 v0.1.21，本次账号注销范围尚未收口。以下为历史。
 
 2026-11-06 — **PRODUCTION_MODE_LOCAL_READY_FOR_REVIEW / PRODUCTION_READINESS_HOLD**。E4已关闭：rls_auto_enable为DDL事件触发器，无普通App任意DDL路径证据；不再新增检查。固定项目/CORS的Edge正式模式、默认关闭新受理、私有DB最终门禁与worker/receipt分离、前端Root/入口分离本地完成。真实本地17项、828 SQL/28并发、31 Node/44浏览器/类型/Build通过；P2精确兼容保持。v0.1.21/f259f0d与旧修改保留，无线上配置/迁移/真实账号/Commit/Push/Deploy。见readiness最新节与Production runbook；下方为历史。
@@ -140,6 +144,8 @@ UI v2 Slice6 = LOCAL PASS / VISUAL PASS：用户已认可四张居中概览卡�
 v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3为LOCAL PASS / VISUAL PASS；Slice4为LOCAL PASS / VISUAL PROVISIONALLY ACCEPTED。Slice5月视图本地验证与离线视觉验收通过：两条短标题/准确+N、六色圆点与日期浮层，261/261相关测试、build/diff-check、28组四宽度离线检查PASS；用户确认普通月、密集月、空月及浮层满意。已授权本地commit；不代表真实账号、真机、installed PWA或Production验收。Space Color System继续Deferred；真实账号/真机/installed PWA/Production未验收。正式版本仍v0.1.20。
 
 ## Latest completed
+
+用户完成真实登录电脑浏览器及手机 PWA 暗发布验收。发布后只读核验新版产物指向预期 Supabase 项目，账号状态核对和回执可用，注销入口隐藏。以下为历史。
 
 Production 注销 Cron `account-deletion-every-minute`（job ID 2）为唯一注销调度，每分钟运行。2026-11-08 北京时间 15:53、16:00 自然调度均 succeeded，对应 pg_net 请求 68487、68501 均 HTTP 200 / idle。原提醒 Cron（job ID 1）配置与基线一致，最近运行成功。前端暗发布就绪审查通过。
 
@@ -546,6 +552,8 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
+2026-11-08 — `main` Push 自动触发 Vercel Production 暗发布，Source SHA `6bc5b6151a834a58d38f4e62b81f58b616abd2ac`，Deployment ID `FW8xahANz1TCiAZt4QVQaHzBM2MJ`，构建成功。正式域名提供新版暗发布产物，用户已完成人工验收。发布后只读复核 Edge/DB 双受理关闭，Edge 未配置 allowlist，DB allowlist 为 NULL，注销任务与已受理任务均为 0。以下为历史。
+
 账号注销 P1～P5、Edge、Vault 与后台调度已部署并通过对应 Production 门禁。Edge 新受理关闭、未配置 allowlist，数据库受理关闭、allowlist 为 NULL，注销任务为 0。账号注销前端已在本地 main（69c2e8b）提交，尚未 Push 或部署。2026-11-08 只读确认正式别名公开产物指向既定 Supabase 项目，尚无前端账号状态检查标记。GitHub 最新成功 Production 部署记录为 4b1032e。用户在 Vercel Dashboard 确认连接 `ping177/cross-platform-shared-calendar`，Production Branch 为 `main`，Push 自动触发部署。两个仅用于 Production 的 Config 变量为 `VITE_ACCOUNT_DELETION_RUNTIME_MODE=production` 和 `VITE_ACCOUNT_DELETION_ENABLED=false`，`VITE_SUPABASE_URL` 与 `VITE_SUPABASE_ANON_KEY` 已配置。正式暗发布后核验新构建 Source 和正式别名。以下为历史。
 
 后端7bc144f与前端f259f0d均仅本地，账号注销没有通过本轮迁移/部署/启用；Production仍未获授权。只读GitHub最新成功Production记录7565048535指向4b1032e（2026-11-05），正式公开别名仍旧前端；Vercel当前alias精确Source仍NOT VERIFIED；用户已提供Supabase Q1–Q5摘要，当前catalog差异见预检报告最新Evidence Review，账号注销尚未迁移。现已具备固定目标的正式模式本地实现，全部线上配置/部署仍待独立授权。见预检报告，不把历史已部署提醒版本当本轮核验。下方为历史。
@@ -733,13 +741,15 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-Vercel 配置已核验。等待 Git Push 与随之触发的 Production 暗发布授权，发布后核验构建 Source、正式别名，再由用户完成真实登录浏览器及 PWA 验收。暗发布保持 Edge/数据库受理关闭，前端入口 false，仅启用状态核对和回执能力。
+审查本地单账号试点、确认文案和增量 SQL 补丁。分别授权 Production SQL 应用、Vercel 单账号配置和暗发布、Edge/DB 一致单元素名单及有限开启。由用户在 A 会话亲自完成 OTP 与最终确认，B 保留用于共享空间、内容和历史回顾验收。正式开放另需授权。
 
 ## Blockers
 
-前端尚未 Push 或正式暗发布，真实登录浏览器/PWA 人工验收及合成账号完整注销闭环均未完成。最终确认文案须在合成账号测试前补齐平台备份与日志边界。合成测试与正式开放另需授权。
+单账号试点尚未发布或获准开启。先核对目标 A/B 身份和共享数据基线，完成增量 SQL 与前端发布验收，再在双受理关闭时配置并核对同一个 A UUID。当前线上双受理继续关闭。
 
 ## Important Context
+
+Production 暗发布保持前端入口 false、Edge/DB 新受理关闭。受控合成测试与正式开放分别授权，真实用户不参与试删。停止新受理时保留 Worker、Cron 和回执。以下为历史。
 
 Git 待推送范围含账号注销前端与已独立上线的后端源码，并非仅治理文档。Vercel 已确认对 main 启用 Git 自动部署，Push 前必须取得 Git Push 和对应 Production 暗发布授权。关闭新受理时保留 Worker、Cron 和回执能力。以下为历史。
 
@@ -875,6 +885,10 @@ Slice 5 Gate 2已按用户真实Production证据PASS，不要求重复SQL/REST/�
 - `v0.1.9 Shared Tasks` Slice 1/2/3 are CLOSED / PASS: backend applied/postflight verified, frontend deployed through Vercel, Desktop A/B Production acceptance and iPhone smoke passed. At the v0.1.13 closeout, Structured Review / Check-in and Shared Lists were future candidates; v0.1.14/14.1 subsequently closed, and Shared Lists was selected for v0.1.15. Its design is frozen and Slice 1 DB foundation is `CLOSED / PASS` after Production postflight.
 
 ## Handoff Prompt
+
+继续单账号试点，不新建 Production 合成账号。仅本地已实现 A 入口、准备 RPC 门禁及确认文案。未经单独授权不应用 SQL、不配置 Vercel/名单、不 Push/部署、不启用受理。A 的最终确认由用户亲自完成，B 不注销。以下为历史。
+
+沿用 WORKER_WAKE_CRON_PASS 和用户确认的 Desktop/Mobile PWA Production E2E PASS。先审查最终确认文案及受控合成测试方案，不再等待暗发布，不开启任何受理门禁。正式版本保持 v0.1.21。以下为历史。
 
 先读当前状态及 DEVLOG 2026-11-08 发布预检，沿用 WORKER_WAKE_CRON_PASS，不重跑后台验收。Vercel Production 配置已由用户核验。后续按独立授权推进 Git Push、随之触发的 Production 暗发布及用户验收。默认保持双受理门禁关闭，不创建注销任务。以下为历史。
 
