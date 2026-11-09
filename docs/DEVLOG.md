@@ -1,5 +1,11 @@
 # Development Log
 
+## 2026-11-09 — v0.1.21 最终治理收口
+
+- 本轮开发和账号 A 的真实 Production 注销试点 CLOSED / PASS。邮件修复代码及测试已随 `1ff994e3` 推送 GitHub main。试点完整验收覆盖最终页面、回执、Worker、Auth 和相关私人数据清理。
+- Vercel 前端沿用已验收的 `ba5c3d3` Ready 部署。`1ff994e3` 只改 Supabase 文件、测试和文档，前端构建输入一致。未见该 SHA 的新 Vercel 部署记录，原因未确认。Supabase Magic Link 模板及 `account-deletion` v6 已独立发布，后续只读验收通过，Edge 为 ACTIVE、JWT OFF，Worker、Cron 和 Vault 正常。
+- DB 与 Edge 双受理关闭，A-only 名单保留，普通用户尚未开放。真实 Production 注销邮件发送及共享数据的真实注销场景未验证。本地与线上邮件主题差异保留，postflight 诊断粒度继续列为低优先级工具改进项。
+
 ## 2026-11-09 — v0.1.21 账号注销试点与邮件模板收口准备
 
 - 账号 A 完成真实 Production 永久注销。用户确认前端、回执、Worker、Auth 及相关私人数据清理通过。该试点未验收涉及共享空间、共同内容和历史回顾的真实注销后保留场景。试点结束后 DB 与 Edge 双受理关闭，A-only 名单保留，唯一试点任务为 `completed`。
