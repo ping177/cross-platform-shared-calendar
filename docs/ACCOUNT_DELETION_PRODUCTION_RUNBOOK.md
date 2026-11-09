@@ -48,3 +48,16 @@ DB确认在既有账号锁之后取得受理配置行FOR SHARE，持有至commit
 任何前置摘要/ACL/Owner/Storage保护不符、通知回归、独立Cron失败、Shared误删或提前completed均停止后续步骤。已知清理异常needs_attention保持隔离，受控owner修复后恢复同job。代码/入口开关可独立退回关闭；已发生永久删除不可逆，历史FK不能无条件加回。数据库采用新审查的forward corrective，不承诺一键rollback。任何已受理任务存在时不能以关掉runtime/Cron作为常规回滚。
 
 本地已验证与托管待验项目见readiness最新节；本轮未配置任何Production Secret/Cron/Vault/gateway，未部署或创建/删除线上账号。
+
+## 5. 正式开放（已完成本地验证，待发布）
+
+本节以已通过的账号 A 线上试点及 GA 隔离回归为依据，取代第 3 节第 11–12 步原规划的发布路径。GA 放行检查不要求再删除真实 Production 账号。
+
+只需应用 `2026-11-09-account-deletion-general-availability.sql`。该补丁要求 DB 受理已关闭，只对齐准备 RPC 和最终受理 RPC 的名单语义。关闭时仍拒绝，开启且名单为 NULL 时允许符合条件的已认证用户，空数组拒绝所有人，非空数组按名单限制。前端和 Edge 已具备全量配置路径。
+
+1. **入口保持关闭。** 确认 Vercel 正式产物的全局入口为 false、DB 与 Edge 双受理均为 false。保留历史任务和回执。先应用 SQL 补丁，核对准备 RPC 新摘要 `a88c998442071e5cd87a0191c3d8a233`、原权限和仍为 false 的数据库开关。
+2. **清除服务端试点名单。** 在双门禁仍关闭时，由数据库 owner 将 singleton 的 `allowed_user_ids` 设为 NULL。移除 Edge 的 `ACCOUNT_DELETION_ACCEPT_USER_IDS`，回读验证名单已清除。
+3. **先开服务端，再开放入口。** DB 仍为 false 时设 Edge `ACCOUNT_DELETION_ACCEPT_NEW=true`，验证运行配置。此时准备和最终受理仍受 DB 阻断。确认名单已清除且 Worker 正常后，由 owner 将数据库 singleton 的 `enabled` 设为 true，回读两层状态。随后才配置 Vercel Production 的下一份构建。保留 `VITE_ACCOUNT_DELETION_RUNTIME_MODE=production`，移除 `VITE_ACCOUNT_DELETION_PILOT_USER_ID`，设置 `VITE_ACCOUNT_DELETION_ENABLED=true` 并发布。验证正式别名对应的构建包含新入口配置。
+4. **紧急关闭。** 先将 DB `enabled` 设为 false，再设 Edge `ACCOUNT_DELETION_ACCEPT_NEW=false`。随后将 Vercel 全局入口设回 false 并发布关闭版。保留 Production runtime、Worker、Cron 和回执，以继续处理已受理任务。
+
+Edge v6 沿用现有 Auth 身份绑定、OTP、最终确认、Owner 检查和回执逻辑。无需重新部署 Edge 或同步 Supabase Auth 配置。发布只读核对邮件模板、已有任务、Worker 与 Cron。任一层回读不一致时停止公开前端入口。

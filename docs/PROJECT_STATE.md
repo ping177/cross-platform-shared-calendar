@@ -12,6 +12,8 @@ v0.1.21
 
 ## Current status
 
+**账号注销正式开放已完成本地实现和回归，待 Production 开启。** 准备 RPC 与最终受理统一使用既有名单语义。前端和 Edge 复用全量配置路径。Production DB 和 Edge 仍关闭且保留一致的单账号名单，正式前端仍为试点配置。此项独立于下方 v0.1.21 试点收口。
+
 **v0.1.21 本轮开发和账号 A 的真实 Production 注销试点 CLOSED / PASS。** 验收覆盖前端最终页面、回执、Worker、Auth 和相关私人数据清理。注销尚未向普通用户开放，DB 与 Edge 双受理关闭，A-only 名单保留。邮件修复已上线并通过独立只读验收。真实 Production 注销邮件发送，以及共享空间、共同内容和历史回顾在真实注销后的保留场景，均尚未验证。详见 [测试记录](./TESTING.md)。以下为历史。
 
 2026-11-08 — **单账号试点本地实现／待发布授权**。用户指定原本就准备注销的账号 A 验证真实 E2E，保留 B 做共享数据对照，不创建 Production 合成账号。前端单账号入口、准备 RPC 名单校验及确认页备份/日志边界仅在本地实现。已验收的 Production 暗发布、双受理关闭和零任务状态不变，正式版本仍为 v0.1.21。以下为已验收的暗发布及历史记录。
@@ -749,7 +751,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-本轮已收口。后续若推进普通用户开放，单独确认真实 Production 注销邮件发送和涉及共享数据的真实注销验收范围。
+按 [正式开放步骤](./ACCOUNT_DELETION_PRODUCTION_RUNBOOK.md#5-正式开放已完成本地验证待发布) 先应用准备 RPC 补丁，再清除运行中的试点名单、开启服务端并发布前端入口。真实 Production 注销邮件发送及共享数据注销仍保留未验证标记。
 
 ## Blockers
 

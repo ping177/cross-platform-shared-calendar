@@ -26,7 +26,7 @@ before(async()=>{for(const [key,engine] of [['Chrome',chromium],['WebKit',webkit
    build:{write:false,rollupOptions:{input:'tests/fixtures/account-deletion-browser.tsx'}}})).output;
  }
  enabled=await bundle('true');disabled=await bundle('false');pilot=await bundle('false',true,id);
- productionOpen=await bundle('true',true,id);productionClosed=await bundle('false',true);
+ productionOpen=await bundle('true',true);productionClosed=await bundle('false',true);
 });
 after(async()=>{for(const browser of browsers.values())await browser.close();});
 async function pageFor(engine,mode,flag=true,root=false,userId=id,path='/account'){
@@ -86,8 +86,10 @@ for(const engine of ['Chrome','WebKit']){
     assert.equal(await p.getByRole('button',{name:'注销账号',exact:true}).count(),0);
    }finally{await p.close();}
   }
-  const {p}=await pageFor(engine,'none','open',false,otherId);
-  try{await p.getByRole('button',{name:'注销账号',exact:true}).waitFor();}finally{await p.close();}
+  for(const userId of [id,otherId]){
+   const {p}=await pageFor(engine,'none','open',false,userId);
+   try{await p.getByRole('button',{name:'注销账号',exact:true}).waitFor();}finally{await p.close();}
+  }
  });
  test(`${engine}: pilot preserves receipt recovery for B`,async()=>{
   const {p,calls}=await pageFor(engine,'accepted','pilot',false,otherId);

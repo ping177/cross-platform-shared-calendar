@@ -1,5 +1,10 @@
 # Development Log
 
+## 2026-11-09 — 账号注销正式开放准备
+
+- 新增前向 SQL 补丁，将准备 RPC 的 NULL 名单行为与最终受理对齐。默认关闭、空名单拒绝、显式名单、账号锁、会话和 ACL 保持原有约束。前端与 Edge 已支持全量配置，复用 OTP、Owner 转让、最终确认、Worker 和回执。
+- 隔离验证通过。Production 只读确认仍为关闭的试点状态，DB 与 Edge 名单一致、既有任务完成，两个 Cron 最近成功，Vault 条目和私有 wrapper 存在。正式产物仍是已验收的关闭全量入口构建。开启顺序及紧急关闭见 runbook。
+
 ## 2026-11-09 — v0.1.21 最终治理收口
 
 - 本轮开发和账号 A 的真实 Production 注销试点 CLOSED / PASS。邮件修复代码及测试已随 `1ff994e3` 推送 GitHub main。试点完整验收覆盖最终页面、回执、Worker、Auth 和相关私人数据清理。

@@ -4,6 +4,7 @@ The owned Docker network is internal. No Production request is sent. No hosted
 Supabase gateway is simulated as PASS. Only newly synthesized test identities.
 """
 import json
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from account_deletion_execution_local import ExecutionGate, stage, fault, fixture_due, wait_for
 from account_deletion_cross_service import ROOT, uid
@@ -53,21 +54,32 @@ def main():
         g.ok(g.action(a,'cancel')['status']==200,'cancel uncertainty remains authorized while new acceptance is closed')
         from account_deletion_trusted_fixtures import seed,retained
         ids=seed(g,a,b);kept=retained(g,ids)
+        owned=g.data(g.rpc(b['jwt'],'create_space_with_invite',{'space_name':'Transfer before deletion'}))
+        assert g.rpc(a['jwt'],'join_space_by_invite_code',{'code':owned['invite_code']})['status']==200
         path=b['id']+'/'+uid()+'.jpg'
         assert g.http('storage','/object/profile-avatars/'+path,'POST',token=b['jwt'],binary=b'\xff\xd8\xff\xe0fixture\xff\xd9')['status']==200
         g.accepting('true')
-        g.sql(f"update private.account_deletion_admission set allowed_user_ids=array['{b['id']}']::uuid[] where singleton")
-        probe=g.action(b,'begin')
-        assert probe['status']==200, 'Production begin failed: '+str(probe['status'])+' '+g.data(probe).get('error','')
+        g.ok(g.sql("select allowed_user_ids is null from private.account_deletion_admission where singleton")=='t','GA starts without a UUID allowlist')
+        g.ok(g.action(b,'begin',user_id=a['id'])['status']==400,'verified user cannot supply a different deletion target')
         permit=g.permit(b)
+        confirmation=dict(request_id=permit['request_id'],confirmation_token=permit['confirmation_token'],confirmed=True)
+        denied=g.action(b,'confirm',**confirmation)
+        g.ok(denied['status']==409 and g.data(denied)['error']=='Shared ownership requires action.'
+             and stage(g,permit).endswith(':preparing'),'owner cannot accept a deletion before handling ownership')
+        g.ok(g.rpc(b['jwt'],'transfer_space_ownership',dict(p_space_id=owned['id'],p_new_owner_user_id=a['id']))['status']==204,
+             'owner can transfer using the existing lifecycle API')
         g.accepting('false')
         direct=g.rpc(b['jwt'],'accept_my_account_deletion',dict(p_request_id=permit['request_id'],p_confirmation_token=permit['confirmation_token']))
         g.ok(direct['status']==403,'database admission blocks direct RPC with still-valid OTP permit')
         g.accepting('true')
         g.sql(f"update private.account_deletion_admission set allowed_user_ids=array['{a['id']}']::uuid[] where singleton")
         g.ok(g.rpc(b['jwt'],'accept_my_account_deletion',dict(p_request_id=permit['request_id'],p_confirmation_token=permit['confirmation_token']))['status']==403,'database synthetic allowlist cannot be bypassed with a valid permit')
-        g.sql(f"update private.account_deletion_admission set allowed_user_ids=array['{b['id']}']::uuid[] where singleton")
-        assert g.action(b,'confirm',request_id=permit['request_id'],confirmation_token=permit['confirmation_token'],confirmed=True)['status']==202
+        g.sql('update private.account_deletion_admission set allowed_user_ids=null where singleton')
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            confirmations=list(pool.map(lambda _:g.action(b,'confirm',**confirmation),range(2)))
+        g.ok(all(r['status']==202 for r in confirmations)
+             and g.sql(f"select count(*) from private.account_deletions where user_id='{b['id']}' and accepted_at is not null")=='1',
+             'owner can confirm after transfer and concurrent confirmation converges to one accepted request')
         p=permit;g.accepting('false')
         g.ok(g.action(a,'begin')['status']==503,'closing switch stops further accepted intentions')
         g.ok(g.data(g.http('deletion','/','POST',dict(action='receipt',receipt_token=p['receipt_token'])))=={'status':'accepted'},'receipt remains available with acceptance off')
@@ -89,7 +101,29 @@ def main():
         g.ok(stage(g,p)=='verify:completed','native cron/net completes after acceptance disabled with no client/PWA')
         g.ok(g.http('storage','/object/authenticated/profile-avatars/'+path,token=g.service)['status']>=400,'target avatar unavailable after API cleanup')
         g.ok(kept==retained(g,ids),'shared IDs bodies links and original Review data preserved')
+        review_path=f"/review_entries?review_id=eq.{ids['round']}"
+        g.ok(len(g.data(g.http('rest',review_path,token=a['jwt'])))==2,'remaining Review participant retains both historical entries')
+        g.ok(g.sql(f"select count(*) from public.spaces where id='{ids['personal']}'")=='0'
+             and g.sql(f"select count(*) from public.tasks where id='{ids['private_task']}'")=='0',
+             'departing member personal Space and private task are removed')
         g.ok(g.data(g.http('deletion','/','POST',dict(action='receipt',receipt_token=p['receipt_token'])))=={'status':'completed'},'receipt works after Auth deletion while acceptance off')
+        outsider=g.new_user()
+        code=g.sql(f"select invite_code from public.spaces where id='{ids['shared']}'")
+        assert g.rpc(outsider['jwt'],'join_space_by_invite_code',{'code':code})['status']==200
+        g.ok(g.data(g.http('rest',review_path,token=outsider['jwt']))==[],'new member cannot read historical Review')
+        g.ok(g.rpc(outsider['jwt'],'leave_shared_space',{'p_space_id':ids['shared']})['status']==204,'new member leaves before the personal-only test')
+        g.accepting('true')
+        personal=g.data(g.rpc(outsider['jwt'],'ensure_personal_space'))
+        personal_id=g.sql(f"select id from public.spaces where kind='personal' and created_by='{outsider['id']}'")
+        g.ok(bool(personal) and bool(personal_id),'personal-only identity has its own Space')
+        p=g.permit(outsider)
+        assert g.action(outsider,'confirm',request_id=p['request_id'],confirmation_token=p['confirmation_token'],confirmed=True)['status']==202
+        g.accepting('false')
+        wait_for(lambda:stage(g,p)=='verify:completed',30)
+        g.ok(g.sql(f"select count(*) from auth.users where id='{outsider['id']}'")=='0'
+             and g.sql(f"select count(*) from public.spaces where id='{personal_id}'")=='0'
+             and g.data(g.http('deletion','/','POST',dict(action='receipt',receipt_token=p['receipt_token'])))=={'status':'completed'},
+             'unlisted personal-only identity completes Auth and Space cleanup with a final receipt')
         g.sql("select cron.unschedule('production-policy-fixture')")
         print(f'PASS {len(g.results)} production-policy real-local assertions; hosted gateway NOT VERIFIED',flush=True)
     finally:g.close()
