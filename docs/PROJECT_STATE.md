@@ -12,9 +12,9 @@ v0.1.21
 
 ## Current status
 
-**账号注销正式开放已完成本地实现和回归，待 Production 开启。** 准备 RPC 与最终受理统一使用既有名单语义。前端和 Edge 复用全量配置路径。Production DB 和 Edge 仍关闭且保留一致的单账号名单，正式前端仍为试点配置。此项独立于下方 v0.1.21 试点收口。
+**账号注销已在 Production 正式开放。** 2026-11-09 回读确认数据库与 Edge 均开启受理并解除试点名单限制，正式域名已提供全局入口。符合条件的已登录用户可在完成邮箱验证、共享空间所有权检查和最终确认后申请永久注销。
 
-**v0.1.21 本轮开发和账号 A 的真实 Production 注销试点 CLOSED / PASS。** 验收覆盖前端最终页面、回执、Worker、Auth 和相关私人数据清理。注销尚未向普通用户开放，DB 与 Edge 双受理关闭，A-only 名单保留。邮件修复已上线并通过独立只读验收。真实 Production 注销邮件发送，以及共享空间、共同内容和历史回顾在真实注销后的保留场景，均尚未验证。详见 [测试记录](./TESTING.md)。以下为历史。
+**v0.1.21 账号 A 的真实 Production 注销试点 CLOSED / PASS。** 验收覆盖前端最终页面、回执、Worker、Auth 和相关私人数据清理。邮件修复已上线并通过独立只读验收。真实 Production 注销邮件投递，以及共享空间、共同内容和历史回顾在真实注销后的保留场景，均尚未验证。详见 [测试记录](./TESTING.md)。以下为历史。
 
 2026-11-08 — **单账号试点本地实现／待发布授权**。用户指定原本就准备注销的账号 A 验证真实 E2E，保留 B 做共享数据对照，不创建 Production 合成账号。前端单账号入口、准备 RPC 名单校验及确认页备份/日志边界仅在本地实现。已验收的 Production 暗发布、双受理关闭和零任务状态不变，正式版本仍为 v0.1.21。以下为已验收的暗发布及历史记录。
 
@@ -148,6 +148,8 @@ UI v2 Slice6 = LOCAL PASS / VISUAL PASS：用户已认可四张居中概览卡�
 v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3为LOCAL PASS / VISUAL PASS；Slice4为LOCAL PASS / VISUAL PROVISIONALLY ACCEPTED。Slice5月视图本地验证与离线视觉验收通过：两条短标题/准确+N、六色圆点与日期浮层，261/261相关测试、build/diff-check、28组四宽度离线检查PASS；用户确认普通月、密集月、空月及浮层满意。已授权本地commit；不代表真实账号、真机、installed PWA或Production验收。Space Color System继续Deferred；真实账号/真机/installed PWA/Production未验收。正式版本仍v0.1.20。
 
 ## Latest completed
+
+2026-11-09 — 账号注销正式开放。生产 GA SQL 补丁已应用，Vercel 全局入口和 Supabase 两层受理均通过回读。试点任务保留为 `completed`，两个 Cron 最近均运行成功，Vault 唤醒条目存在。
 
 账号 A 的 Production 单账号试点与邮件修复已完成收口。代码及测试已随 `1ff994e3a70d28d0ec84d8a4d18c03f0d93b0cf7` 推送 GitHub main。部署和验收范围见 [开发日志](./DEVLOG.md)。
 
@@ -558,6 +560,8 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
+2026-11-09 — Vercel Production 部署 `8i3sakL6DYDAmLWs8RbSp3a6VD4e` 为 Ready，来源为 `aa1346cbc793f7f4febeb55bd6257395a662eec7`。正式域名实际提供 `/assets/index-Bp4PGwAs.js`，构建核验确认全局入口开启且指向 `ximazjhxvmktpcdbypka`。Supabase Edge 为生产模式，`ACCOUNT_DELETION_ACCEPT_NEW=true` 且已移除试点名单变量。数据库为 `enabled=true`、`allowed_user_ids IS NULL`，GA 准备 RPC 摘要符合补丁。
+
 邮件模板与 Supabase `account-deletion` v6 已独立发布并通过只读验收。Edge 为 ACTIVE、JWT OFF，Worker、Cron、Vault 和私有唤醒函数检查通过。Production Magic Link 正文 SHA-256 为 `56e80d3c69a4ff52a3af5ca8063c0c738dfcf9e10dab666b20c285e3ce397e65`，主题为 `Your Shared Calendar verification code`，精确注销 Redirect URL 已在允许名单。仓库 `supabase/config.toml` 使用本地主题「你的登录验证码」。同步 Production Auth 配置前须单独审查主题和模板差异。
 
 Vercel 前端验收基线为 `ba5c3d3dff34acc992660aea1fca41da1db967d7`，Production 部署为 Ready，包含本轮所需的全部前端功能。已推送的邮件修复提交 `1ff994e3` 不涉及前端构建输入。未发现该提交的新 Vercel 部署记录，原因未确认。现有前端已满足收口范围，无需为对齐 GitHub HEAD 重新部署。以下为历史。
@@ -751,7 +755,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-按 [正式开放步骤](./ACCOUNT_DELETION_PRODUCTION_RUNBOOK.md#5-正式开放已完成本地验证待发布) 先应用准备 RPC 补丁，再清除运行中的试点名单、开启服务端并发布前端入口。真实 Production 注销邮件发送及共享数据注销仍保留未验证标记。
+按 [生产运行手册](./ACCOUNT_DELETION_PRODUCTION_RUNBOOK.md#5-正式开放) 维护正式开放状态，留意自然注销任务与后台调度。真实 Production 注销邮件投递及共享数据注销仍保留未验证标记。
 
 ## Blockers
 

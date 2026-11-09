@@ -1,5 +1,11 @@
 # Development Log
 
+## 2026-11-09 — 账号注销 Production 正式开放
+
+- GA 提交 `aa1346c` 已推送 `main`。生产应用准备 RPC 补丁后，清除试点名单，先开启 Edge，再开启数据库受理。回读确认 Edge 新受理为 `true`、试点名单变量已移除，DB 为 `enabled=true`、`allowed_user_ids IS NULL`。
+- Vercel Production `8i3sakL6DYDAmLWs8RbSp3a6VD4e` 为 Ready，正式域名实际加载全局入口构建，仍要求登录身份。生产 Edge 拒绝匿名注销请求（401）及无凭据 Worker 请求（403）。试点任务仍为 `completed`，两个 Cron 最近均运行成功，Vault 唤醒条目存在。
+- 邮箱验证、共享空间所有权检查、最终确认和共享数据权限已通过隔离测试。真实 Production 注销邮件投递及涉及共享数据的真实注销仍未验证。
+
 ## 2026-11-09 — 账号注销正式开放准备
 
 - 新增前向 SQL 补丁，将准备 RPC 的 NULL 名单行为与最终受理对齐。默认关闭、空名单拒绝、显式名单、账号锁、会话和 ACL 保持原有约束。前端与 Edge 已支持全量配置，复用 OTP、Owner 转让、最终确认、Worker 和回执。

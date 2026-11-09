@@ -49,7 +49,7 @@ DB确认在既有账号锁之后取得受理配置行FOR SHARE，持有至commit
 
 本地已验证与托管待验项目见readiness最新节；本轮未配置任何Production Secret/Cron/Vault/gateway，未部署或创建/删除线上账号。
 
-## 5. 正式开放（已完成本地验证，待发布）
+## 5. 正式开放
 
 本节以已通过的账号 A 线上试点及 GA 隔离回归为依据，取代第 3 节第 11–12 步原规划的发布路径。GA 放行检查不要求再删除真实 Production 账号。
 
