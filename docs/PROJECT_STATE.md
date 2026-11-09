@@ -12,6 +12,8 @@ v0.1.21
 
 ## Current status
 
+**v0.1.21 账号注销收口准备。** 账号 A 的真实 Production 永久注销已通过，覆盖前端、回执、Worker、Auth 和相关私人数据清理。共享空间、共同内容及历史回顾在真实注销后的保留场景尚未验收。试点已关闭 DB 与 Edge 双受理，保留 A-only 名单。邮件模板修复已上线并通过独立只读回查，实际 Production 注销邮件发送尚未验证。详见 [测试记录](./TESTING.md)。以下为历史。
+
 2026-11-08 — **单账号试点本地实现／待发布授权**。用户指定原本就准备注销的账号 A 验证真实 E2E，保留 B 做共享数据对照，不创建 Production 合成账号。前端单账号入口、准备 RPC 名单校验及确认页备份/日志边界仅在本地实现。已验收的 Production 暗发布、双受理关闭和零任务状态不变，正式版本仍为 v0.1.21。以下为已验收的暗发布及历史记录。
 
 2026-11-08 — **POST_DARK_RELEASE_ACCEPTANCE_PASS**。v0.1.21 Production 暗发布已完成，用户确认 Desktop Production E2E 与 Mobile PWA Production E2E 均 PASS，原有功能正常、注销入口隐藏。Edge 与 DB 双受理门禁仍关闭，注销任务与已受理任务均为 0。合成账号注销闭环和正式开放尚未执行，本次范围未 CLOSED。以下为历史。
@@ -144,6 +146,8 @@ UI v2 Slice6 = LOCAL PASS / VISUAL PASS：用户已认可四张居中概览卡�
 v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3为LOCAL PASS / VISUAL PASS；Slice4为LOCAL PASS / VISUAL PROVISIONALLY ACCEPTED。Slice5月视图本地验证与离线视觉验收通过：两条短标题/准确+N、六色圆点与日期浮层，261/261相关测试、build/diff-check、28组四宽度离线检查PASS；用户确认普通月、密集月、空月及浮层满意。已授权本地commit；不代表真实账号、真机、installed PWA或Production验收。Space Color System继续Deferred；真实账号/真机/installed PWA/Production未验收。正式版本仍v0.1.20。
 
 ## Latest completed
+
+已完成账号 A 的 Production 单账号试点及关闭后的只读核验。Magic Link 新正文与本地一致，`account-deletion` v6 ACTIVE、JWT OFF，部署制品匹配。Cron、Worker、Vault 和私有唤醒函数检查通过。
 
 用户完成真实登录电脑浏览器及手机 PWA 暗发布验收。发布后只读核验新版产物指向预期 Supabase 项目，账号状态核对和回执可用，注销入口隐藏。以下为历史。
 
@@ -552,6 +556,10 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
+邮件模板与 Supabase `account-deletion` v6 已独立发布。Production Magic Link 正文 SHA-256 为 `56e80d3c69a4ff52a3af5ca8063c0c738dfcf9e10dab666b20c285e3ce397e65`，主题为 `Your Shared Calendar verification code`，精确注销 Redirect URL 已在允许名单。仓库 `supabase/config.toml` 仍使用本地中文主题。同步 Production Auth 配置前需单独审查主题和模板差异。收口提交尚未创建，向 `main` 推送会触发 Vercel Production 前端构建。
+
+GitHub 最近的 Production 部署记录对应试点提交 `ba5c3d3dff34acc992660aea1fca41da1db967d7`，状态由 `vercel[bot]` 报告为 `success`。以下为历史。
+
 2026-11-08 — `main` Push 自动触发 Vercel Production 暗发布，Source SHA `6bc5b6151a834a58d38f4e62b81f58b616abd2ac`，Deployment ID `FW8xahANz1TCiAZt4QVQaHzBM2MJ`，构建成功。正式域名提供新版暗发布产物，用户已完成人工验收。发布后只读复核 Edge/DB 双受理关闭，Edge 未配置 allowlist，DB allowlist 为 NULL，注销任务与已受理任务均为 0。以下为历史。
 
 账号注销 P1～P5、Edge、Vault 与后台调度已部署并通过对应 Production 门禁。Edge 新受理关闭、未配置 allowlist，数据库受理关闭、allowlist 为 NULL，注销任务为 0。账号注销前端已在本地 main（69c2e8b）提交，尚未 Push 或部署。2026-11-08 只读确认正式别名公开产物指向既定 Supabase 项目，尚无前端账号状态检查标记。GitHub 最新成功 Production 部署记录为 4b1032e。用户在 Vercel Dashboard 确认连接 `ping177/cross-platform-shared-calendar`，Production Branch 为 `main`，Push 自动触发部署。两个仅用于 Production 的 Config 变量为 `VITE_ACCOUNT_DELETION_RUNTIME_MODE=production` 和 `VITE_ACCOUNT_DELETION_ENABLED=false`，`VITE_SUPABASE_URL` 与 `VITE_SUPABASE_ANON_KEY` 已配置。正式暗发布后核验新构建 Source 和正式别名。以下为历史。
@@ -741,13 +749,15 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-审查本地单账号试点、确认文案和增量 SQL 补丁。分别授权 Production SQL 应用、Vercel 单账号配置和暗发布、Edge/DB 一致单元素名单及有限开启。由用户在 A 会话亲自完成 OTP 与最终确认，B 保留用于共享空间、内容和历史回顾验收。正式开放另需授权。
+审查本地邮件修复和收口文档后，单独授权提交及推送。推送授权须覆盖 Vercel Production 自动构建。真实邮件发送、共享数据场景和正式开放均有独立验收范围。
 
 ## Blockers
 
-单账号试点尚未发布或获准开启。先核对目标 A/B 身份和共享数据基线，完成增量 SQL 与前端发布验收，再在双受理关闭时配置并核对同一个 A UUID。当前线上双受理继续关闭。
+本地收口无技术阻塞。正式开放前仍待单独验收真实 Production 注销邮件发送及涉及共享数据的真实注销场景。
 
 ## Important Context
+
+单账号试点的 Production 验收只覆盖 A。保留 B 用于对照。新受理关闭时保留 Worker、Cron 和回执能力。以下为历史。
 
 Production 暗发布保持前端入口 false、Edge/DB 新受理关闭。受控合成测试与正式开放分别授权，真实用户不参与试删。停止新受理时保留 Worker、Cron 和回执。以下为历史。
 
@@ -885,6 +895,8 @@ Slice 5 Gate 2已按用户真实Production证据PASS，不要求重复SQL/REST/�
 - `v0.1.9 Shared Tasks` Slice 1/2/3 are CLOSED / PASS: backend applied/postflight verified, frontend deployed through Vercel, Desktop A/B Production acceptance and iPhone smoke passed. At the v0.1.13 closeout, Structured Review / Check-in and Shared Lists were future candidates; v0.1.14/14.1 subsequently closed, and Shared Lists was selected for v0.1.15. Its design is frozen and Slice 1 DB foundation is `CLOSED / PASS` after Production postflight.
 
 ## Handoff Prompt
+
+从 v0.1.21 账号注销收口准备继续。沿用账号 A 已完成的 Production 注销及邮件部署只读回查，提交前核对 [测试记录](./TESTING.md)。推送 `main` 会触发 Vercel Production 自动构建，需单独授权。真实邮件发送和共享数据场景按未验证记录。以下为历史。
 
 继续单账号试点，不新建 Production 合成账号。仅本地已实现 A 入口、准备 RPC 门禁及确认文案。未经单独授权不应用 SQL、不配置 Vercel/名单、不 Push/部署、不启用受理。A 的最终确认由用户亲自完成，B 不注销。以下为历史。
 

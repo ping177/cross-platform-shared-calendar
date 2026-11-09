@@ -4,6 +4,8 @@ import { executeOneDeletion, wakeAuthorized } from './execution.ts';
 import { deletionInput, newConfirmationToken, permitDigest, verifiedSession } from './logic.ts';
 
 const headers = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' };
+// This fixed URL selects email copy. Authorization remains in the deletion flow.
+const deletionOtpEmailRedirect = 'https://cross-platform-shared-calendar.vercel.app/account-deletion-otp';
 function config(name: string) { const value = Deno.env.get(name); if (!value) throw new Error('Service unavailable.'); return value; }
 async function requestBody(request: Request): Promise<unknown> {
   const reader = request.body?.getReader();
@@ -63,7 +65,10 @@ Deno.serve(async request => {
       if (prepareError || !data?.request_id || !data?.challenge_id) return reply({ error: 'Verification is unavailable.' }, 409);
       if (data.send_needed) {
         const verifier = createClient(url, anon, options);
-        const { error: sendError } = await verifier.auth.signInWithOtp({ email: user.email, options: { shouldCreateUser: false } });
+        const { error: sendError } = await verifier.auth.signInWithOtp({
+          email: user.email,
+          options: { shouldCreateUser: false, emailRedirectTo: deletionOtpEmailRedirect },
+        });
         if (sendError) return reply({ error: 'Verification is unavailable.' }, 503);
       }
       return reply({ request_id: data.request_id, challenge_id: data.challenge_id }, 200);

@@ -6,6 +6,7 @@ Never prints messages, OTPs, Auth hashes, JWTs or synthetic service credentials.
 import argparse
 import subprocess
 import json
+import re
 from pathlib import Path
 import secrets
 import tempfile
@@ -14,6 +15,17 @@ import time
 from account_deletion_cross_service import DOCKER, Gate, HTTP, IMAGES, ROOT, uid
 
 MAIL_IMAGE='public.ecr.aws/supabase/mailpit:v1.22.3'
+DELETION_OTP_REDIRECT='https://cross-platform-shared-calendar.vercel.app/account-deletion-otp'
+MAGIC_LINK_SUBJECT='Your Shared Calendar verification code'
+PRODUCTION_LOGIN_BODY="""<h2>共享日历登录验证码</h2>
+
+<p>请输入以下验证码完成登录：</p>
+
+<h1>{{ .Token }}</h1>
+
+<p>验证码仅限本人使用，请勿分享给他人。</p>
+
+<p>如果这不是你的登录请求，可以忽略此邮件。</p>"""
 
 
 class TrustedGate(Gate):
@@ -26,6 +38,10 @@ class TrustedGate(Gate):
                 GOTRUE_SMTP_HOST='mail',GOTRUE_SMTP_PORT='1025',GOTRUE_SMTP_ADMIN_EMAIL='noreply@gate.invalid',
                 GOTRUE_SMTP_SENDER_NAME='Isolated Auth',GOTRUE_SMTP_MAX_FREQUENCY='1s',GOTRUE_RATE_LIMIT_EMAIL_SENT='1000',
                 GOTRUE_MAILER_TEMPLATES_MAGIC_LINK='http://storage:8080/template')
+            if getattr(self,'check_email_template',False):
+                env.update(GOTRUE_URI_ALLOW_LIST=','.join([DELETION_OTP_REDIRECT,DELETION_OTP_REDIRECT+'-other']),
+                    GOTRUE_MAILER_SUBJECTS_MAGIC_LINK=MAGIC_LINK_SUBJECT,
+                    GOTRUE_MAILER_TEMPLATES_CONFIRMATION='http://storage:8080/confirmation-template')
         return super().run(kind,env)
 
     def command(self,args,source=None,timeout=60):
@@ -35,12 +51,14 @@ class TrustedGate(Gate):
 
     def start(self):
         super().start()
-        template=(ROOT/'supabase/templates/magic_link.html').read_text().replace('1 小时','30 秒（隔离测试）')
+        template=(ROOT/'supabase/templates/magic_link.html').read_text()
+        confirmation=(ROOT/'supabase/templates/confirmation.html').read_text().replace('1 小时','30 秒（隔离测试）')
         script="""
 const {createServer}=require('node:http');
 createServer(async(req,res)=>{
  try{
   if(req.url==='/template'){res.setHeader('Content-Type','text/html');res.end(TEMPLATE);return;}
+  if(req.url==='/confirmation-template'){res.setHeader('Content-Type','text/html');res.end(CONFIRMATION);return;}
   const [prefix,base]=req.url.startsWith('/auth/v1/')?['/auth/v1','http://auth:9999']:['/rest/v1','http://rest:3000'];
   if(!req.url.startsWith(prefix+'/')){res.writeHead(404).end();return;}
   const chunks=[];for await(const chunk of req)chunks.push(chunk);
@@ -49,7 +67,7 @@ createServer(async(req,res)=>{
   res.writeHead(r.status,Object.fromEntries([...r.headers].filter(([k])=>!['transfer-encoding','content-encoding'].includes(k))));res.end(Buffer.from(await r.arrayBuffer()));
  }catch{res.writeHead(502).end();}
 }).listen(8080,'0.0.0.0');
-""".replace('TEMPLATE',json.dumps(template))
+""".replace('TEMPLATE',json.dumps(template)).replace('CONFIRMATION',json.dumps(confirmation))
         if hasattr(self,'gateway_script'):script=self.gateway_script(script)
         self.command(['exec','-d',self.prefix+'_storage','node','-e',script])
 
@@ -92,19 +110,76 @@ createServer(async(req,res)=>{
         assert r['status']==200,'Real initial session unavailable'
         v=self.data(r);return dict(id=v['user']['id'],email=email,password=password,jwt=v['access_token'])
 
-    def mail_code(self,email,after=None):
+    def mail_message(self,email,after=None):
         for _ in range(50):
             messages=self.data(self.http('mail','/api/v1/messages')).get('messages',[])
             for message in messages:
                 if after and message['ID']==after:continue
                 if any(to.get('Address')==email for to in message.get('To',[])):
-                    v=self.data(self.http('mail','/api/v1/message/'+message['ID']))
-                    import re
-                    match=re.search(r'\b(\d{8})\b',v.get('Text','')+' '+v.get('HTML',''))
-                    assert match,'Mail arrived but did not contain configured real OTP'
-                    return match.group(1),message['ID']
+                    return self.data(self.http('mail','/api/v1/message/'+message['ID'])),message['ID']
             time.sleep(.05)
-        raise AssertionError('NOT VERIFIED: local SMTP OTP email was not received')
+        raise AssertionError('NOT VERIFIED: local SMTP email was not received')
+
+    def mail_code(self,email,after=None):
+        message,message_id=self.mail_message(email,after)
+        return email_code(message),message_id
+
+
+def email_code(message):
+    match=re.search(r'\b(\d{8})\b',message.get('Text','')+' '+message.get('HTML',''))
+    assert match,'Mail arrived but did not contain configured real OTP'
+    return match.group(1)
+
+
+def verify_email_template(g):
+    from urllib.parse import quote
+
+    for path in ('/otp','/otp?redirect_to='+quote(DELETION_OTP_REDIRECT+'-other',safe='')):
+        user=g.new_user()
+        reply=g.http('auth',path,'POST',dict(email=user['email'],create_user=False))
+        g.ok(reply['status']==200,'Local login OTP sent')
+        message,_=g.mail_message(user['email'])
+        code=email_code(message)
+        html=message['HTML'].replace('\r\n','\n').rstrip('\n')
+        g.ok(message['Subject']==MAGIC_LINK_SUBJECT and html==PRODUCTION_LOGIN_BODY.replace('{{ .Token }}',code),
+             'Login mail keeps the original Production subject and HTML without the exact marker')
+        reply=g.http('auth','/verify','POST',dict(email=user['email'],token=code,type='email'))
+        g.ok(reply['status']==200 and g.data(reply)['user']['id']==user['id'],'Login OTP verifies the same identity')
+
+    user=g.new_user()
+    reply=g.action(user,'begin',emailRedirectTo=DELETION_OTP_REDIRECT+'-other')
+    g.ok(reply['status']==400,'Client cannot supply the OTP redirect')
+    reply=g.action(user,'begin')
+    g.ok(reply['status']==200,'Local deletion OTP sent')
+    intent=g.data(reply)
+    message,_=g.mail_message(user['email'])
+    code=email_code(message)
+    html=message['HTML']
+    g.ok(message['Subject']==MAGIC_LINK_SUBJECT and '<h2>共享日历账号注销验证码</h2>' in html
+         and '永久注销账号的请求' in html and '在应用中完成最终确认' in html
+         and '如果这不是你的账号注销请求，可以忽略此邮件。' in html
+         and '共享日历登录验证码' not in html,'Deletion OTP changes only the purpose-specific copy')
+    g.ok(html.count(f'<h1>{code}</h1>')==1 and '<p>验证码仅限本人使用，请勿分享给他人。</p>' in html,
+         'Deletion mail retains the original token heading and sharing warning')
+    wrong_code='00000000' if code!='00000000' else '11111111'
+    g.ok(g.action(user,'verify',**intent,otp=wrong_code)['status']==403,'Wrong deletion OTP is rejected')
+    g.ok(g.action(user,'verify',**intent,otp=code)['status']==200,'Deletion OTP still verifies through the Edge')
+    g.ok(g.sql('select count(*) from private.account_deletions where accepted_at is not null')=='0',
+         'Email verification never accepts a deletion')
+
+    email=uid()+'@gate.invalid'
+    reply=g.http('auth','/signup','POST',dict(email=email,password=secrets.token_hex(16)))
+    g.ok(reply['status']==200,'Local first registration sends confirmation')
+    message,_=g.mail_message(email)
+    g.ok('邮箱确认验证码' in message['HTML'] and '账号注销验证码' not in message['HTML']
+         and bool(email_code(message)),'Registration still uses its own OTP template')
+
+    user=g.new_user()
+    reply=g.http('auth','/recover','POST',dict(email=user['email']))
+    g.ok(reply['status']==200,'Local password recovery sends mail')
+    message,_=g.mail_message(user['email'])
+    g.ok('type=recovery' in message['HTML'] and '账号注销验证码' not in message['HTML'],
+         'Recovery still uses its own recovery-link template')
 
 
 def probe(g):
@@ -304,14 +379,21 @@ def verify_fresh(expected_schema):
 
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--red',action='store_true');parser.add_argument('--smoke',action='store_true');opts=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('--red',action='store_true');parser.add_argument('--smoke',action='store_true');parser.add_argument('--email-template',action='store_true');opts=parser.parse_args()
     g=TrustedGate();expected=None
+    g.check_email_template=opts.email_template
+    if opts.email_template:
+        # The current Edge verifies through the receipt binding RPC in the execution schema.
+        g.schema_mode='fresh'
     try:
         g.start()
         if opts.red:probe(g)
         else:
             g.start_deletion()
-            if not opts.smoke:
+            if opts.email_template:
+                verify_email_template(g)
+                print(f'PASS {len(g.results)} isolated Auth/Mailpit assertions',flush=True)
+            elif not opts.smoke:
                 verify(g);expected=schema_dump(g)
             else:
                 user=g.new_user();g.rpc(user['jwt'],'ensure_personal_space')

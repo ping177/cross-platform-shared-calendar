@@ -1,5 +1,18 @@
 # Testing
 
+## 2026-11-09 — v0.1.21 账号注销与邮件模板验收范围
+
+| 范围 | 结果与证据 |
+|---|---|
+| 真实 Production 账号 A 注销 | PASS。前端、回执、Worker、Auth 和相关私人数据清理通过。试点后 DB／Edge 双受理关闭，A-only 名单保留，唯一任务为 `completed`。 |
+| 共享数据 | 隔离测试已有共享记录逐行保留、成员权限及历史 Review 验证。真实 Production 注销后的共享空间、共同内容和历史回顾保留尚未验收。 |
+| 真实 Production 邮件 | 模板发布及独立只读回查 PASS，正文与批准模板逐字节一致，英文主题与精确 Redirect URL 已核验。真实 Production 注销邮件发送未验证。 |
+| 部署后后台 | `account-deletion` v6 ACTIVE、JWT OFF，五个部署文件匹配。Cron 1/2、Vault 和私有唤醒函数符合基线，Worker 自然调度 `71574` 返回 HTTP 200 / idle。发布脚本的合并断言曾报错，缺少当时的逐项快照，具体差异无法追溯。独立只读验收通过。 |
+
+本地以 `python3 -B supabase/tests/account_deletion_trusted_local.py --email-template` 验证隔离 Auth／Mailpit 收信。普通登录分支保留原 Production 正文，只有精确注销 Redirect URL 进入注销分支，两种验证码均通过验证，并检查错误码、注册和恢复邮件。相关 Node 回归覆盖受理、客户端、执行和运行门禁。
+
+收口重跑结果为隔离 Auth／Mailpit 17/17、Node 17/17、Deno 类型检查、`npm run build`（含 TypeScript）及 `git diff --check` 全部通过。构建保留既有 Vite 大包提示。
+
 ## 2026-11-08 — 账号注销单账号试点／仅本地
 
 - `python3 -B supabase/tests/account_deletion_pilot_local.py`：缓存镜像、无网络、无持久卷的 PostgreSQL 17.6；旧 RPC 在关闭状态仍可准备的 RED 已复现。升级/全新各 15 项通过，包括关闭、NULL、空名单、A/B 直调、错会话、匿名、普通账号状态和 Worker ACL。补丁重复应用、未知函数体拒绝、现有 ACL 与其余函数不变。A 的准备记录仅为事务内 fixture，全部回滚，无已受理任务或 Worker 调用。

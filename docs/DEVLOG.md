@@ -1,5 +1,12 @@
 # Development Log
 
+## 2026-11-09 — v0.1.21 账号注销试点与邮件模板收口准备
+
+- 账号 A 完成真实 Production 永久注销。用户确认前端、回执、Worker、Auth 及相关私人数据清理通过。该试点未验收涉及共享空间、共同内容和历史回顾的真实注销后保留场景。试点结束后 DB 与 Edge 双受理关闭，A-only 名单保留，唯一试点任务为 `completed`。
+- Magic Link 模板沿用 Production 原结构、品牌、主题及验证码，仅为精确注销 Redirect URL 增加用途文案。Production 已回读确认正文 SHA-256 为 `56e80d3c69a4ff52a3af5ca8063c0c738dfcf9e10dab666b20c285e3ce397e65`，主题仍为 `Your Shared Calendar verification code`。Supabase `account-deletion` v6 ACTIVE、JWT OFF，五个部署文件逐字节匹配。
+- 发布脚本最后的合并断言曾报不匹配，执行时的逐项快照未保存，具体差异无法追溯。随后独立只读验收通过，确认正文、精确 Redirect URL、双受理及名单、Cron 1/2、Vault 和 Worker 正常。脚本的诊断粒度列为低优先级工具改进。邮件文案经隔离 Auth／Mailpit 验证，真实 Production 注销邮件发送尚未执行。
+- 仓库 Magic Link 主题仍为「你的登录验证码」，用于本地 Supabase。直接对 Production 执行 `supabase config push` 有覆盖线上英文主题的风险，需作为独立配置变更审查。Git `main` 推送将触发 Vercel Production 构建，本轮准备待提交范围，未 Commit、Push 或重新部署。
+
 ## 2026-11-08 — 账号注销单账号试点／仅本地
 
 - 按用户决定以原计划注销的账号 A 为唯一真实 E2E 目标，B 保留用于核验共享数据。全局入口保持关闭，新增公开构建配置 `VITE_ACCOUNT_DELETION_PILOT_USER_ID`，只匹配 A，独立状态核对和回执能力保留。最终确认页补充备份、审计、日志与无法远程收回的副本提示。
