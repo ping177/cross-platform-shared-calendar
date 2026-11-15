@@ -1,5 +1,14 @@
 # Testing
 
+## 2026-11-15 — 回顾上一份计划持续显示：本地回归
+
+- **TDD**：在 `justCreated: false` 的真实详情组件中新增 4 项 WebKit／Chrome 测试；修复前均在等待参考区内容时失败，移除查询与渲染的新建限定后通过。
+- **Node 76/76 PASS**：`node --test tests/review*.test.ts tests/supabase-schema-review-date.test.ts tests/navigation-persistence.test.ts`。包含历史回顾／日期锚点、RPC 精确当前 ID、空态不回退合同、草稿保存、填写状态／版本冲突、导航恢复和空间权限边界；SQL 合同在本轮仅静态检查，未运行数据库集成测试。
+- **WebKit／Chrome 45/45 PASS**：`node --test tests/review-ux.browser.mjs tests/review-conflict.browser.mjs`，使用已有 Playwright runtime（通过 `PLAYWRIGHT_MODULE_PATH` 指定），未安装依赖。全部网络限定并拦截于 `http://127.0.0.1:5175` 的离线合成夹具。覆盖退出重进、刷新、独立浏览器上下文读取相同已保存草稿、本人身份隔离、首次／空计划、参考读取失败重试不覆盖未保存四字段、对方只读，以及原编辑／标记／冲突／返回交互。
+- **构建／静态 PASS**：`npm run build`（含 TypeScript；保留既有大包提示）、`node --check tests/review-ux.browser.mjs`、`git diff --check`。
+- **全量基线对照**：`node --test tests/*.test.ts tests/*.test.js` 为 1125 项，900 PASS、225 FAIL。将未修改 HEAD 通过 `git archive HEAD` 解出到临时目录并复用既有 node_modules 后运行相同全量测试，结果及 225 个失败名称完全一致，无新增失败。既有失败涉及 7 个测试文件中的 React 替身缺少 `lazy`，报错位置为 `AccountManagementPage.tsx`；本次未修改这些文件。不宣称全量通过。
+- **限制**：浏览器 RPC 为合成响应，历史定位与权限依赖既有未修改 RPC 合同；不把模拟测试当作真实 Supabase／双账号／跨设备／PWA 验收。刷新夹具以 sessionStorage 模拟服务器已保存草稿，跨上下文显式提供同一服务器行；业务未增加存储或未保存输入恢复能力。实现阶段未进行真实登录／后端／Production 操作；最终 diff 审查 PASS，用户已授权正常 Git→Vercel 发布。发布前公开资源目标为既有 Supabase，原只读 previous-plan RPC 匿名探测为401／42501（函数存在、匿名不可调用），未读写业务数据；Production 配置 TypeScript／Build通过。正式 Source／状态／资源证据见 `/private/tmp/calendar-review-plan-release/RELEASE_RECEIPT.md`。用户已接受225项为遗留问题；发布核验后停在真实 App 人工验收，不把静态核验记作功能PASS。
+
 ## 2026-11-09 — 账号注销正式开放本地回归
 
 - 隔离 PostgreSQL 通过 15 项原试点断言及升级、新建各 8 项 GA pgTAP 断言。验证旧版拒绝 NULL 名单、新版关闭时拒绝、打开时允许两个合法会话独立准备、重复请求复用验证、错误会话拒绝、空名单拒绝和显式名单限制。验证补丁拒绝在门禁开启时应用、可重复应用、其他函数及准备 RPC ACL 不变。

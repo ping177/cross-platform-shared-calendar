@@ -1,5 +1,12 @@
 # Development Log
 
+## 2026-11-15 — 回顾上一份计划持续显示修复（最终审查通过／发布授权）
+
+- 用户确认最小方案后实施。根因：`ReviewDetailPage` 同时以 `justCreated` 限制参考内容的查询与渲染；历史重进及刷新导航恢复为 false，导致参考消失。移除两处限制，保留新建自动编辑行为。
+- 每次详情读取成功、窗口聚焦或日期更正后，复用 `readPreviousPlan()`／`get_my_previous_review_plan(p_review_id)`。仍以当前回顾 ID 定位同空间、日期紧邻上一篇的本人计划，不查“最新一轮”、不跳过空计划、不复制到草稿；原请求过期保护、空态与重试保持。无 UI 样式、生命周期、保存、数据结构、RLS 或 RPC 改动，无依赖增删。
+- TDD：新增 WebKit／Chrome 4 项测试修复前因参考区缺失失败，修复后通过。相关 Node 76/76、回顾 UX／填写冲突浏览器 45/45、TypeScript／Vite Build、脚本语法与 diff 检查通过。全量 Node 900/1125 通过、225 失败；临时目录内未修改 HEAD 基线同样 900/1125、同名 225 失败，均为既有 React 测试替身 `lazy is not a function`，无新增失败，未扩大范围修复。
+- 代码／安全复核未发现本次阻断项：查询仍经详情可访问性检查、RPC 调用前后身份校验及既有请求过期保护；无客户端参与者参数、新权限或持久化路径。复核历史日期定位、双方只读／独立填写、保存及冲突流程。跨设备以独立浏览器上下文和模拟服务器已保存内容覆盖；刷新夹具使用 sessionStorage 模拟服务器草稿持久化，不向业务引入本地草稿存储，也不承诺恢复未保存输入。真实账号／设备功能尚未验收。实现阶段未 Commit／Push／部署；本轮用户现已明确授权正常 Git→Vercel Production 发布，最终 diff 审查 PASS。225项既有失败按用户要求只记录遗留。正式公开构建目标及原 RPC 存在／匿名拒绝已核验，无后端写入；Production 配置构建通过。实际 Source、部署状态、资源比对、回退基线及只读 post-push freshness 记录于 `/private/tmp/calendar-review-plan-release/RELEASE_RECEIPT.md`，不预写成功。发布后停在真实 App 人工验收检查点。
+
 ## 2026-11-09 — 账号注销 Production 正式开放
 
 - GA 提交 `aa1346c` 已推送 `main`。生产应用准备 RPC 补丁后，清除试点名单，先开启 Edge，再开启数据库受理。回读确认 Edge 新受理为 `true`、试点名单变量已移除，DB 为 `enabled=true`、`allowed_user_ids IS NULL`。

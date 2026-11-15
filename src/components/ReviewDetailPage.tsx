@@ -75,7 +75,6 @@ export function ReviewDetailPage({ swipeClickGuard, target, userId, onBack, onDi
   useEffect(() => { onDirtyChange(dirty); }, [dirty, onDirtyChange]);
 
   async function refreshPrevious(round: ReviewDetail['round']) {
-    if (!target.justCreated) return;
     const request = previousGuard.current.begin();
     setPreviousState('loading');
     try {
@@ -216,13 +215,13 @@ export function ReviewDetailPage({ swipeClickGuard, target, userId, onBack, onDi
         <button ref={dateButton} className="ui-focus mt-ui-2 min-h-ui-touch min-w-11 rounded-ui-control text-ui-meta font-ui-semibold text-ui-accent" type="button" aria-label="更正回顾日期" disabled={dateBusy || deleteBusy} onClick={openDate}>更正日期</button>
       </section>
       {refreshError && <div className="mt-3 text-ui-meta text-ui-danger" role="alert">{refreshError}<button className="ui-focus ml-ui-2 min-h-ui-touch min-w-11 rounded-ui-control font-ui-semibold text-ui-accent" type="button" onClick={() => void refreshDetail()}>重试</button></div>}
-      {target.justCreated && <section className="mt-ui-6 min-w-0 rounded-ui-group border border-ui-border bg-ui-surface p-ui-4" aria-label="上一份计划参考">
+      <section className="mt-ui-6 min-w-0 rounded-ui-group border border-ui-border bg-ui-surface p-ui-4" aria-label="上一份计划参考">
         <h2 className="text-ui-list font-ui-semibold">上一份计划</h2>
         <p className="mt-ui-1 text-ui-meta text-ui-muted">仅供参考，不会复制到本次回顾。</p>
         {previousState === 'loading' && <p className="mt-ui-3 text-ui-meta text-ui-muted" role="status">正在读取上一份计划…</p>}
         {previousState === 'error' && <p className="mt-3 text-ui-meta text-ui-danger" role="alert">上一份计划暂时无法读取。<button className="ui-focus ml-ui-2 min-h-ui-touch min-w-11 rounded-ui-control font-ui-semibold text-ui-accent" type="button" onClick={() => void refreshPrevious(detail.round)}>重试</button></p>}
         {previousState === 'ready' && <div className="mt-ui-3 max-h-36 min-w-0 overflow-y-auto whitespace-pre-wrap break-words text-ui-body text-ui-muted">{previousPlan ?? '上一份计划暂无内容'}</div>}
-      </section>}
+      </section>
       <fieldset className="min-w-0" disabled={deleteBusy}>
       <ReviewDetailPanels detail={detail} userId={userId} mobilePanel={mobilePanel} onMobilePanelChange={setMobilePanel} onDirtyChange={setDirty} onBusyChange={setEntryBusy} startEditing={target.justCreated} />
       </fieldset>

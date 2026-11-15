@@ -12,6 +12,8 @@ v0.1.21
 
 ## Current status
 
+2026-11-15 — **回顾上一份计划持续显示修复 FINAL REVIEW PASS / RELEASE AUTHORIZED / USER ACCEPTANCE PENDING。** 业务仅详情查询／渲染两处新建限定移除，复用原 RPC，无数据库、权限、依赖或其他业务修改。Node76／Browser45／Build通过；全量225项既有失败与HEAD一致，用户确认本轮不修。用户已授权正常 Commit、Push 和既有 Vercel Production；实际发布状态见 `/private/tmp/calendar-review-plan-release/RELEASE_RECEIPT.md`，不预写成功。正式版本 v0.1.21 不变；停在用户真实 App 验收检查点。
+
 **账号注销已在 Production 正式开放。** 2026-11-09 回读确认数据库与 Edge 均开启受理并解除试点名单限制，正式域名已提供全局入口。符合条件的已登录用户可在完成邮箱验证、共享空间所有权检查和最终确认后申请永久注销。
 
 **v0.1.21 账号 A 的真实 Production 注销试点 CLOSED / PASS。** 验收覆盖前端最终页面、回执、Worker、Auth 和相关私人数据清理。邮件修复已上线并通过独立只读验收。真实 Production 注销邮件投递，以及共享空间、共同内容和历史回顾在真实注销后的保留场景，均尚未验证。详见 [测试记录](./TESTING.md)。以下为历史。
@@ -148,6 +150,8 @@ UI v2 Slice6 = LOCAL PASS / VISUAL PASS：用户已认可四张居中概览卡�
 v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3为LOCAL PASS / VISUAL PASS；Slice4为LOCAL PASS / VISUAL PROVISIONALLY ACCEPTED。Slice5月视图本地验证与离线视觉验收通过：两条短标题/准确+N、六色圆点与日期浮层，261/261相关测试、build/diff-check、28组四宽度离线检查PASS；用户确认普通月、密集月、空月及浮层满意。已授权本地commit；不代表真实账号、真机、installed PWA或Production验收。Space Color System继续Deferred；真实账号/真机/installed PWA/Production未验收。正式版本仍v0.1.20。
 
 ## Latest completed
+
+2026-11-15 — 回顾上一份计划持续显示最小前端修复、本地回归及最终 diff 审查完成，发布已获用户授权。原 UI 样式、生命周期、草稿保存、双方独立填写、空间及权限体系保持；无 SQL／RPC／数据结构修改。全量测试既有失败与 HEAD 基线一致，详见 TESTING 最新节。
 
 2026-11-09 — 账号注销正式开放。生产 GA SQL 补丁已应用，Vercel 全局入口和 Supabase 两层受理均通过回读。试点任务保留为 `completed`，两个 Cron 最近均运行成功，Vault 唤醒条目存在。
 
@@ -560,6 +564,8 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
+2026-11-15 — 本次仅经已授权正常 Git Push 触发既有 Vercel Production，不修改 Supabase、环境配置或真实数据。发布前公开静态资源确认目标为 `ximazjhxvmktpcdbypka`，原只读 previous-plan RPC 存在且匿名访问被拒绝（401／42501）；当前前后端参数合同一致。实际 Source SHA、部署状态、正式别名／构建资源核验及回退基线以 `/private/tmp/calendar-review-plan-release/RELEASE_RECEIPT.md` 为准，不预写部署成功。
+
 2026-11-09 — Vercel Production 部署 `8i3sakL6DYDAmLWs8RbSp3a6VD4e` 为 Ready，来源为 `aa1346cbc793f7f4febeb55bd6257395a662eec7`。正式域名实际提供 `/assets/index-Bp4PGwAs.js`，构建核验确认全局入口开启且指向 `ximazjhxvmktpcdbypka`。Supabase Edge 为生产模式，`ACCOUNT_DELETION_ACCEPT_NEW=true` 且已移除试点名单变量。数据库为 `enabled=true`、`allowed_user_ids IS NULL`，GA 准备 RPC 摘要符合补丁。
 
 邮件模板与 Supabase `account-deletion` v6 已独立发布并通过只读验收。Edge 为 ACTIVE、JWT OFF，Worker、Cron、Vault 和私有唤醒函数检查通过。Production Magic Link 正文 SHA-256 为 `56e80d3c69a4ff52a3af5ca8063c0c738dfcf9e10dab666b20c285e3ce397e65`，主题为 `Your Shared Calendar verification code`，精确注销 Redirect URL 已在允许名单。仓库 `supabase/config.toml` 使用本地主题「你的登录验证码」。同步 Production Auth 配置前须单独审查主题和模板差异。
@@ -699,7 +705,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Version Index
 
-- v0.1.21 — CLOSED / PASS（已接受范围 Slices 2–5，以及本轮开发与账号 A 的真实注销试点）。Slice 1 DEFERRED、未完成，Notification Cleanup 用户确认不需要。普通用户注销入口未开放。
+- v0.1.21 — CLOSED / PASS（已接受范围 Slices 2–5，以及本轮开发与账号 A 的真实注销试点）。Slice 1 DEFERRED、未完成，Notification Cleanup 用户确认不需要。账号注销已正式开放；真实 Production 注销邮件与共享数据注销场景未验收。
 - v0.1 — 共享日历 MVP
 - v0.1-smoke-test — Supabase 验收
 - v0.1.1 — 个人事件权限
@@ -754,6 +760,8 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 2026-10-16 — 全量Node990/990（无失败/跳过）、现有原并行Browser81/81（UI26/筛选26/删除18/Space手势11）PASS；上次Chrome Calendar原生tap超时本轮未复现，未改timeout或删除断言。TypeScript/Production Build、脚本语法、diff-check通过，生产依赖audit0；旧大chunk提示保持。真实四模块375/430标题20px600/筛选y76/空文字60px/折叠44px与12px节奏、Review两Sheet底距0，最终截图和测量通过；首页16px600的10场景原证据与最终源码/CSS一致。提交前Production公开目标/anon客户端/VAPID与新Build一致，无后台能力变化；发布后Source和正式资产由独立报告核验，不驱动真实Session。
 
 ## Next Action
+
+本次获授权发布完成且正式构建核验通过后，由用户在真实 App 验证上一轮本人计划持续显示：退出重进、刷新、已保存草稿恢复、跨设备、历史回顾及双方独立填写；首次／空计划保持空态。Codex 不驱动真实登录会话，不提前标记人工验收通过。
 
 按 [生产运行手册](./ACCOUNT_DELETION_PRODUCTION_RUNBOOK.md#5-正式开放) 维护正式开放状态，留意自然注销任务与后台调度。真实 Production 注销邮件投递及共享数据注销仍保留未验证标记。
 
@@ -901,6 +909,8 @@ Slice 5 Gate 2已按用户真实Production证据PASS，不要求重复SQL/REST/�
 - `v0.1.9 Shared Tasks` Slice 1/2/3 are CLOSED / PASS: backend applied/postflight verified, frontend deployed through Vercel, Desktop A/B Production acceptance and iPhone smoke passed. At the v0.1.13 closeout, Structured Review / Check-in and Shared Lists were future candidates; v0.1.14/14.1 subsequently closed, and Shared Lists was selected for v0.1.15. Its design is frozen and Slice 1 DB foundation is `CLOSED / PASS` after Production postflight.
 
 ## Handoff Prompt
+
+2026-11-15：回顾参考计划修复最终 diff 审查 PASS，用户授权本次 Commit／正常 Push／Vercel Production。业务仅两处新建限定移除，无后台或权限变更；Node76／Browser45及Production配置Build通过。225项既有React替身失败记录遗留、不在本轮修复。实际发布证据见 `/private/tmp/calendar-review-plan-release/RELEASE_RECEIPT.md`。发布核验后停在真实 App 人工验收，不自动关闭范围、不操作用户登录会话。v0.1.21 及既有已接受范围保持。下方为历史。
 
 v0.1.21 本轮开发和账号 A 试点已 CLOSED / PASS。沿用 Vercel 前端 `ba5c3d3` 验收基线及 Supabase 独立发布证据。双受理门禁关闭，真实邮件发送和共享数据场景按未验证记录。邮件发布脚本的 postflight 诊断粒度为 [低优先级遗留项](./BACKLOG.md)。以下为历史。
 

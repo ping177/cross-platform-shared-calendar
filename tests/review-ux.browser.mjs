@@ -8,7 +8,7 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 const out = process.env.REVIEW_UX_ARTIFACTS;
 const browsers = new Map();
 let files;
-const api = `export const supabase={auth:{async getUser(){return {data:{user:{id:'me'}},error:null}}},from(table){return window.reviewUx.query(table)},rpc(name,args){return window.reviewUx.rpc(name,args)}};`;
+const api = `export const supabase={auth:{async getUser(){return {data:{user:{id:window.reviewUx.userId}},error:null}}},from(table){return window.reviewUx.query(table)},rpc(name,args){return window.reviewUx.rpc(name,args)}};`;
 before(async () => {
   files = (await build({ root, configFile: false, envFile: false, logLevel: 'error', plugins: [{ name: 'review-ux-boundary', enforce: 'pre', resolveId(id) { if (/\/supabase(?:\.ts)?$/.test(id)) return '\0review-ux-client'; }, load(id) { if (id === '\0review-ux-client') return api; } }], build: { write: false, minify: false, rollupOptions: { input: root + 'tests/fixtures/review-ux-browser.jsx' } } })).output;
   if (out) await mkdir(out, { recursive: true });
@@ -218,6 +218,66 @@ for (const engine of ['WebKit', 'Chrome']) {
         await button.click();
         await page.getByRole('textbox', { name: '近期专注事项', exact: true }).waitFor();
         assert.equal(await edit(page).count(), 0);
+        assert.deepEqual(page.errors, []);
+      } finally { await page.close(); }
+    }
+  });
+}
+
+for (const engine of ['WebKit', 'Chrome']) {
+  test(`${engine}: previous plan survives reentry, reload and a fresh device context with saved draft`, async () => {
+    const page = await pageFor(engine, 'previous');
+    try {
+      const reference = page.getByRole('region', { name: '上一份计划参考', exact: true });
+      await reference.getByText('me 的上一轮计划', { exact: true }).waitFor();
+      await edit(page).click();
+      await fill(page);
+      await page.getByRole('button', { name: '保存草稿', exact: true }).click();
+      await page.waitForFunction(() => !window.reviewUx.dirty);
+      await page.getByRole('button', { name: '回顾列表', exact: true }).click();
+      await page.getByRole('button', { name: '重新打开回顾', exact: true }).click();
+      await reference.getByText('me 的上一轮计划', { exact: true }).waitFor();
+      await edit(page).click();
+      await assertDraft(page);
+      const saved = await page.evaluate(() => window.reviewUx.row);
+      await page.reload();
+      await reference.getByText('me 的上一轮计划', { exact: true }).waitFor();
+      await edit(page).click();
+      await assertDraft(page);
+      const device = await pageFor(engine, 'previous');
+      try {
+        // A separate context has no navigation flags or cached plan; model the same saved server row.
+        await device.evaluate(row => { window.reviewUx.row = row; }, saved);
+        await device.getByRole('button', { name: '回顾列表', exact: true }).click();
+        await device.getByRole('button', { name: '重新打开回顾', exact: true }).click();
+        await device.getByRole('region', { name: '上一份计划参考' }).getByText('me 的上一轮计划', { exact: true }).waitFor();
+        await edit(device).click();
+        await assertDraft(device);
+        assert.deepEqual(device.errors, []);
+      } finally { await device.close(); }
+      const calls = await page.evaluate(() => window.reviewUx.previousCalls);
+      assert.ok(calls.length >= 1);
+      assert.ok(calls.every(call => call.name === 'get_my_previous_review_plan' && JSON.stringify(call.args) === '{"p_review_id":"review"}'));
+      assert.deepEqual(page.errors, []);
+    } finally { await page.close(); }
+  });
+  test(`${engine}: previous-plan empty states, user isolation and retry leave own editing independent`, async () => {
+    for (const mode of ['first', 'empty-plan', 'other-user']) {
+      const page = await pageFor(engine, mode);
+      try {
+        const reference = page.getByRole('region', { name: '上一份计划参考' });
+        await reference.getByText(mode === 'other-user' ? 'other 的上一轮计划' : '上一份计划暂无内容', { exact: true }).waitFor();
+        assert.doesNotMatch(await reference.innerText(), /me 的上一轮计划|已保存计划|对方只读内容/);
+        await edit(page).click();
+        await fill(page);
+        await page.evaluate(() => { window.reviewUx.previousError = true; window.dispatchEvent(new Event('focus')); });
+        await reference.getByRole('button', { name: '重试', exact: true }).waitFor();
+        await assertDraft(page);
+        await page.evaluate(() => { window.reviewUx.previousError = false; });
+        await reference.getByRole('button', { name: '重试', exact: true }).click();
+        await reference.getByText(mode === 'other-user' ? 'other 的上一轮计划' : '上一份计划暂无内容', { exact: true }).waitFor();
+        await assertDraft(page);
+        assert.equal(await page.locator('#review-other-panel textarea, #review-other-panel button').count(), 0);
         assert.deepEqual(page.errors, []);
       } finally { await page.close(); }
     }
