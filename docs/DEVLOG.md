@@ -1,5 +1,13 @@
 # Development Log
 
+## 2026-11-16 — PWA 品牌图标适配（最终审查通过／发布授权）
+
+- 按用户确认原图 `assets/branding/shared-life-pwa-icon.png`（1254×1254、sRGB、不透明）等比缩小，原图 SHA-256 `500532bc53a703a84d120901772b3009712b4f95a88570d767cdd065b7bda7cd` 保持。使用已有宿主 Sharp 0.35.5、Lanczos3，不安装或新增项目依赖；不裁切、调色、重绘或预切圆角。生成192／512 PNG（any maskable）、180 Apple Touch PNG、16／32 Favicon PNG及含16／32帧的ICO，文件名带各自内容哈希前8位。
+- 仅更新 `index.html` 图标链接、Manifest icons，以及 `vercel.json` 中仅匹配 `/manifest.webmanifest` 的 `Cache-Control: no-cache`（允许缓存但要求重新验证）。原 Manifest URL、无显式 id／scope 状态、start_url、name／short_name、主题、SW scope及其他安装身份配置保持；旧SVG保留、Cron不变。没有修改业务、数据库、权限、通知或Service Worker逻辑。
+- PNG尺寸／色彩／哈希／无EXIF或XMP检查通过；Pillow独立解码全部6文件，ICO两帧与相同尺寸PNG解码像素相同。绿色主体最远约为边长32.93%的半径，处于40%安全圆内；圆形、圆角及安全圆预览人工视觉检查通过。原图自然留白完整保留。
+- Node相关测试15/15、Chrome／WebKit各2轮构建静态引用／解码／刷新检查、TypeScript／Vite Build、diff检查通过。浏览器检查隔离于127.0.0.1:5175，不执行应用JS或真实登录；静态验证不代表iOS／Android安装或线上缓存验收。既有大包提示保留，225项旧React替身失败仍为遗留，本轮无业务修改，未重跑全量。
+- 核验记录在 `/private/tmp/calendar-pwa-branding/`，遮罩预览为 `/Users/wp/.codex/visualizations/2026/11/15/01a1debb-4acf-7bf0-853f-4aee3640af01/pwa-icon-preview.png`。发布后已有安装图标更新由系统控制，iOS不保证立即替换；不清理站点数据、不注销SW或改变通知订阅。实现阶段仅本地，无外部项目或秘密文件操作。用户随后明确授权最终确认的品牌原图一并纳入版本管理，并完成Commit／正常Push／既有Vercel Production。最终diff审查PASS，无其他业务变更；实际Source、部署状态、静态资源／Manifest响应头及推送后只读状态审查记录于 `/private/tmp/calendar-pwa-branding-release/RELEASE_RECEIPT.md`，不预写部署成功。完成后停在手机PWA人工验收，不提前关闭。
+
 ## 2026-11-15 — 回顾上一份计划持续显示修复（最终审查通过／发布授权）
 
 - 用户确认最小方案后实施。根因：`ReviewDetailPage` 同时以 `justCreated` 限制参考内容的查询与渲染；历史重进及刷新导航恢复为 false，导致参考消失。移除两处限制，保留新建自动编辑行为。

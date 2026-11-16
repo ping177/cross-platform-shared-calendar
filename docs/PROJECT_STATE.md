@@ -12,6 +12,8 @@ v0.1.21
 
 ## Current status
 
+2026-11-16 — **PWA 品牌图标 FINAL REVIEW PASS / RELEASE AUTHORIZED / MOBILE ACCEPTANCE PENDING。** 原图及6个派生图标保持已确认设计，用户授权将原图纳入版本管理并正常Commit／Push／Vercel Production。安装身份、名称、业务、数据库及通知不变；Node15／Chrome与WebKit静态验证／Build通过。正式部署Source、资源及Manifest响应头实绩见 `/private/tmp/calendar-pwa-branding-release/RELEASE_RECEIPT.md`，不预写成功。v0.1.21不变，发布核验后停在手机PWA人工验收。
+
 2026-11-15 — **回顾上一份计划持续显示修复 FINAL REVIEW PASS / RELEASE AUTHORIZED / USER ACCEPTANCE PENDING。** 业务仅详情查询／渲染两处新建限定移除，复用原 RPC，无数据库、权限、依赖或其他业务修改。Node76／Browser45／Build通过；全量225项既有失败与HEAD一致，用户确认本轮不修。用户已授权正常 Commit、Push 和既有 Vercel Production；实际发布状态见 `/private/tmp/calendar-review-plan-release/RELEASE_RECEIPT.md`，不预写成功。正式版本 v0.1.21 不变；停在用户真实 App 验收检查点。
 
 **账号注销已在 Production 正式开放。** 2026-11-09 回读确认数据库与 Edge 均开启受理并解除试点名单限制，正式域名已提供全局入口。符合条件的已登录用户可在完成邮箱验证、共享空间所有权检查和最终确认后申请永久注销。
@@ -150,6 +152,8 @@ UI v2 Slice6 = LOCAL PASS / VISUAL PASS：用户已认可四张居中概览卡�
 v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3为LOCAL PASS / VISUAL PASS；Slice4为LOCAL PASS / VISUAL PROVISIONALLY ACCEPTED。Slice5月视图本地验证与离线视觉验收通过：两条短标题/准确+N、六色圆点与日期浮层，261/261相关测试、build/diff-check、28组四宽度离线检查PASS；用户确认普通月、密集月、空月及浮层满意。已授权本地commit；不代表真实账号、真机、installed PWA或Production验收。Space Color System继续Deferred；真实账号/真机/installed PWA/Production未验收。正式版本仍v0.1.20。
 
 ## Latest completed
+
+2026-11-16 — PWA图标最小适配、本地验证及最终diff审查完成，发布已获授权。原图哈希未变，圆形／圆角／40%安全圆视觉核验通过；旧SVG与SW保持，详见TESTING最新节。
 
 2026-11-15 — 回顾上一份计划持续显示最小前端修复、本地回归及最终 diff 审查完成，发布已获用户授权。原 UI 样式、生命周期、草稿保存、双方独立填写、空间及权限体系保持；无 SQL／RPC／数据结构修改。全量测试既有失败与 HEAD 基线一致，详见 TESTING 最新节。
 
@@ -564,6 +568,8 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
+2026-11-16 — 用户授权本次原图／派生图标／引用及Manifest缓存响应头通过正常Git→既有Vercel Production发布。只核验静态资源及安装身份合同，不操作后台配置或真实账号。实际Source／部署状态／正式资源哈希与Manifest Cache-Control见 `/private/tmp/calendar-pwa-branding-release/RELEASE_RECEIPT.md`；手机PWA验收仍由用户完成，不提前PASS。
+
 2026-11-15 — 本次仅经已授权正常 Git Push 触发既有 Vercel Production，不修改 Supabase、环境配置或真实数据。发布前公开静态资源确认目标为 `ximazjhxvmktpcdbypka`，原只读 previous-plan RPC 存在且匿名访问被拒绝（401／42501）；当前前后端参数合同一致。实际 Source SHA、部署状态、正式别名／构建资源核验及回退基线以 `/private/tmp/calendar-review-plan-release/RELEASE_RECEIPT.md` 为准，不预写部署成功。
 
 2026-11-09 — Vercel Production 部署 `8i3sakL6DYDAmLWs8RbSp3a6VD4e` 为 Ready，来源为 `aa1346cbc793f7f4febeb55bd6257395a662eec7`。正式域名实际提供 `/assets/index-Bp4PGwAs.js`，构建核验确认全局入口开启且指向 `ximazjhxvmktpcdbypka`。Supabase Edge 为生产模式，`ACCOUNT_DELETION_ACCEPT_NEW=true` 且已移除试点名单变量。数据库为 `enabled=true`、`allowed_user_ids IS NULL`，GA 准备 RPC 摘要符合补丁。
@@ -761,6 +767,8 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
+本次获授权图标发布核验通过后，由用户在手机PWA验证主屏幕、启动及应用切换图标和裁切效果，条件允许时检查iOS／Android。已有安装图标可延迟更新；不要求清理站点数据或改变通知订阅，不把静态核验记为真机PASS。
+
 本次获授权发布完成且正式构建核验通过后，由用户在真实 App 验证上一轮本人计划持续显示：退出重进、刷新、已保存草稿恢复、跨设备、历史回顾及双方独立填写；首次／空计划保持空态。Codex 不驱动真实登录会话，不提前标记人工验收通过。
 
 按 [生产运行手册](./ACCOUNT_DELETION_PRODUCTION_RUNBOOK.md#5-正式开放) 维护正式开放状态，留意自然注销任务与后台调度。真实 Production 注销邮件投递及共享数据注销仍保留未验证标记。
@@ -909,6 +917,8 @@ Slice 5 Gate 2已按用户真实Production证据PASS，不要求重复SQL/REST/�
 - `v0.1.9 Shared Tasks` Slice 1/2/3 are CLOSED / PASS: backend applied/postflight verified, frontend deployed through Vercel, Desktop A/B Production acceptance and iPhone smoke passed. At the v0.1.13 closeout, Structured Review / Check-in and Shared Lists were future candidates; v0.1.14/14.1 subsequently closed, and Shared Lists was selected for v0.1.15. Its design is frozen and Slice 1 DB foundation is `CLOSED / PASS` after Production postflight.
 
 ## Handoff Prompt
+
+2026-11-16：品牌图标最终diff审查PASS；用户授权原图一并纳入版本管理、Commit／正常Push／Vercel Production。仅图标、index引用、Manifest icons及Manifest缓存头和治理记录，旧SVG／名称／安装身份／业务／数据库／SW／通知不变。原图和6个输出哈希匹配本地测试，Node15／双引擎静态检查／Build通过。实际发布证据见 `/private/tmp/calendar-pwa-branding-release/RELEASE_RECEIPT.md`。部署成功后停在手机PWA人工验收，不自动关闭范围。下方为历史。
 
 2026-11-15：回顾参考计划修复最终 diff 审查 PASS，用户授权本次 Commit／正常 Push／Vercel Production。业务仅两处新建限定移除，无后台或权限变更；Node76／Browser45及Production配置Build通过。225项既有React替身失败记录遗留、不在本轮修复。实际发布证据见 `/private/tmp/calendar-review-plan-release/RELEASE_RECEIPT.md`。发布核验后停在真实 App 人工验收，不自动关闭范围、不操作用户登录会话。v0.1.21 及既有已接受范围保持。下方为历史。
 

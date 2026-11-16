@@ -1,5 +1,14 @@
 # Testing
 
+## 2026-11-16 — PWA 品牌图标本地验证
+
+- 输入原图：1254×1254不透明sRGB PNG，SHA-256 `500532bc53a703a84d120901772b3009712b4f95a88570d767cdd065b7bda7cd`，生成前后相同。5张PNG为16／32／180／192／512正方形，仅用已有Sharp 0.35.5 Lanczos3等比缩小；ICO包含16／32帧。输出哈希匹配文件名，PNG无EXIF／XMP。已有宿主Pillow独立重新打开全部6文件并验证尺寸、ICO帧及帧像素一致性。
+- 原图绿色主体包围盒约为(298,350)～(956,904)，512输出的主体最远中心距离为边长32.93%，小于maskable 40%安全半径。圆形／圆角／安全圆预览均未裁切房屋、勾或叶片。所有素材保持原图背景、配色、比例与留白，没有为小图标另行放大主体。
+- **PASS** `node --test tests/service-worker.test.ts tests/push-notifications.test.ts tests/web-push.test.ts`：15/15。`npm run build`（含TypeScript）及 `git diff --check` PASS，保留既有大包提示。无需安装依赖；未运行与图标无关的全量测试，225项已知React替身失败仍列遗留。
+- **PASS** Chrome／WebKit各2轮构建产物检查：原HTML head／Manifest引用、全部PNG及ICO浏览器解码尺寸、刷新后引用一致、名称及start_url不变、无pageerror。离线请求全部限定127.0.0.1:5175；应用JS置空以隔离业务／后端，未进行安装、真实账号、PWA通知或设备验收。脚本及结果见 `/private/tmp/calendar-pwa-branding/browser-check.mjs` 和 `browser-results.json`。
+- **PASS** 当前Manifest除icons外与HEAD逐字段相同：URL仍为 `/manifest.webmanifest`，start_url仍为 `/`，不新增id或scope。SW逐字节相同、Cron配置相同；Vercel响应头仅针对Manifest设no-cache。图标采用新内容指纹URL，旧SVG未删；本轮用户已单独授权发布，实际线上响应头及资源证据见 `/private/tmp/calendar-pwa-branding-release/RELEASE_RECEIPT.md`，不以本地配置代替上线核验。
+- 后续发布后由用户验证iOS Apple Touch和Android普通／maskable安装效果；系统可延迟更新已有主屏幕图标，不以刷新页面保证立即替换，也不要求清站点数据或重新申请通知权限。实现阶段无Commit／Push／部署；最终diff审查后用户已授权原图一并版本管理及正常Git→Vercel发布。完成后停在手机PWA人工验收；原回顾功能人工验收状态保持，不因图标验证关闭。
+
 ## 2026-11-15 — 回顾上一份计划持续显示：本地回归
 
 - **TDD**：在 `justCreated: false` 的真实详情组件中新增 4 项 WebKit／Chrome 测试；修复前均在等待参考区内容时失败，移除查询与渲染的新建限定后通过。
