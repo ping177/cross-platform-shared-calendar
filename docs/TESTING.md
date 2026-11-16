@@ -1,5 +1,13 @@
 # Testing
 
+## 2026-11-16 — PWA 品牌图标 v3 发布前验证
+
+- 原图SHA-256 `8ad82e7caa3b4f99b17a380468af051796acf84ed62571c5a9279af0a1063dab` 生成前后不变；保持用户已确认的1254×1254原设计。新5张PNG尺寸16／32／180／192／512、sRGB／RGB、不透明，文件名指纹匹配SHA-256；Pillow独立重开6个输出，ICO16／32帧与PNG解码像素一致，PNG无EXIF或XMP。
+- 512输出主体最远中心半径37.96% < 40%安全半径；圆形、圆角和安全圆预览未裁掉房屋、勾及叶片，无额外主体缩放。v3及全部历史原图、派生资源均保留。
+- **PASS** `node --test tests/service-worker.test.ts tests/push-notifications.test.ts tests/web-push.test.ts` 15/15；Production配置 `npm run build`（含TypeScript，既有大包提示）和 `git diff --check`。应用主包与发布前正式资源逐字节相同，未读秘密文件或输出公开客户端key。225项既有React替身失败不在本轮范围，未重跑无关全量。
+- **PASS** Chrome／WebKit各2轮构建静态HTML head／Manifest引用、PNG／ICO解码尺寸、刷新及无pageerror检查，脚本及结果见 `/private/tmp/calendar-pwa-branding-v3-release/`。请求全部拦截在127.0.0.1:5175，应用JS置空；不是手机安装、真实账号或通知验收。
+- **PASS** Manifest除两项icon src外不变，index除4项图标href外不变；Vercel配置、Manifest no-cache、Cron、应用／数据库／权限／Service Worker和通知代码不变。用户已授权Git→Production，实际Source／静态资源哈希／缓存响应头证据见 `/private/tmp/calendar-pwa-branding-v3-release/RELEASE_RECEIPT.md`，不预写成功。完成后由用户做手机PWA人工验收，系统可能延迟更新已安装图标；不清站点数据或重置通知订阅，不提前PASS。
+
 ## 2026-11-16 — PWA 品牌图标 v2 发布前验证
 
 - 原图SHA-256 `4a8677a3e566a3f3e75d7b87d094af07c56bdc722086d742488a5bf738276598` 生成前后不变；保持用户已确认的1254×1254原设计。新5张PNG尺寸16／32／180／192／512、sRGB／RGB、不透明，文件名指纹匹配SHA-256；Pillow独立重开6个输出，ICO16／32帧与PNG解码像素一致，PNG无EXIF或XMP。

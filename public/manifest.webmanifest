@@ -8,13 +8,13 @@
   "theme_color": "#0f766e",
   "icons": [
     {
-      "src": "/icons/shared-life-192-3cd55b11.png",
+      "src": "/icons/shared-life-192-090b60f6.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icons/shared-life-512-681253e0.png",
+      "src": "/icons/shared-life-512-7b6f6c04.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
