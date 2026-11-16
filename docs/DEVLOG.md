@@ -1,5 +1,12 @@
 # Development Log
 
+## 2026-11-16 — PWA 品牌图标 v2（最终审查通过／发布授权）
+
+- 用户确认 `assets/branding/shared-life-pwa-icon-v2.png` 并授权本轮Commit／正常Push／Vercel Production。保留1254×1254、不透明sRGB原图，SHA-256 `4a8677a3e566a3f3e75d7b87d094af07c56bdc722086d742488a5bf738276598` 未变；沿用已有Sharp 0.35.5／Lanczos3整图等比缩小为16／32／180／192／512 PNG及16／32帧ICO，不调色、不裁切、不单独缩放主体或修改设计，无新增依赖。原图一并版本管理。
+- 仅更新index的Apple／Favicon与Manifest两项src，新6个派生资源带内容哈希前8位。上一版原图／PNG／ICO及旧SVG保留；Manifest URL、name／short_name、start_url、无显式id／scope状态及其他字段、Vercel Manifest no-cache／Cron、业务、数据库、权限、SW及通知全部保持。
+- 独立Pillow解码、尺寸／哈希／帧像素／无EXIF或XMP检查通过；512输出绿色主体最大中心半径为边长37.96%，在40%安全圆内，圆形／圆角／安全圆视觉检查通过。Node相关15/15、Chrome／WebKit各2轮构建静态引用／解码／刷新、Production配置TypeScript／Build及diff检查PASS。应用主包与发布前Production逐字节一致；已有大包提示保持，225项旧React替身失败仍为遗留，本轮不重跑无关全量。
+- 最终diff审查PASS，仅v2原图／6派生图／index／Manifest及3治理文件共12文件，不删旧资源。证据和实际Source／部署状态／正式资源／响应头／post-push freshness以 `/private/tmp/calendar-pwa-branding-v2-release/RELEASE_RECEIPT.md` 为准，不预写部署成功。预览为 `/Users/wp/.codex/visualizations/2026/11/15/01a1debb-4acf-7bf0-853f-4aee3640af01/pwa-icon-v2-preview.png`；发布后停在手机PWA人工验收，不驱动真实登录会话，不更改通知订阅、不清站点数据。已有图标可由系统延迟更新。
+
 ## 2026-11-16 — PWA 品牌图标适配（最终审查通过／发布授权）
 
 - 按用户确认原图 `assets/branding/shared-life-pwa-icon.png`（1254×1254、sRGB、不透明）等比缩小，原图 SHA-256 `500532bc53a703a84d120901772b3009712b4f95a88570d767cdd065b7bda7cd` 保持。使用已有宿主 Sharp 0.35.5、Lanczos3，不安装或新增项目依赖；不裁切、调色、重绘或预切圆角。生成192／512 PNG（any maskable）、180 Apple Touch PNG、16／32 Favicon PNG及含16／32帧的ICO，文件名带各自内容哈希前8位。
