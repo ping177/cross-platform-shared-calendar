@@ -1,5 +1,11 @@
 # Development Log
 
+## 2026-11-16 — PWA Branding Update CLOSED / PASS
+
+- 用户已完成手机PWA人工验收，明确确认保留v3作为最终图标，验收结果PASS；记录为 `USER_REPORTED_MOBILE_PWA_ACCEPTANCE=PASS`。仅记录用户报告的手机PWA范围，不补写未明确报告的平台、设备或逐项场景PASS。
+- 已验收业务Source为 `947c0a974bff3cfe8b3718446c41d70156b803b0`。沿用发布阶段Vercel Production成功、40个正式资源HTTP200／哈希匹配、Manifest no-cache，以及既有Node15／双浏览器静态验证／Build证据；本轮不重复测试或构建。v1、v2、v3原图及全部历史图标资源保留。
+- 收口前本地main、origin/main与远端main均为947c0a9，工作区干净。仅更新DEVLOG、TESTING、PROJECT_STATE并按用户授权正常Commit／Push；PROJECT_STATE记录关闭状态及稳定后续动作，正式版本v0.1.21不变，不新增版本任务。不改业务、设计、图标、数据库、权限、通知或其他功能，不主动创建部署或改配置；其他模块验收状态及225项已知遗留问题保持。
+
 ## 2026-11-16 — PWA 品牌图标 v3（最终审查通过／发布授权）
 
 - 用户确认v3为最终设计，使用 `assets/branding/shared-life-pwa-icon-v3.png` 并授权本轮Commit／正常Push／Vercel Production。保留1254×1254、不透明sRGB原图，SHA-256 `8ad82e7caa3b4f99b17a380468af051796acf84ed62571c5a9279af0a1063dab` 未变；沿用已有Sharp 0.35.5／Lanczos3整图等比缩小为16／32／180／192／512 PNG及16／32帧ICO，不调色、不裁切、不单独缩放主体或修改设计，无新增依赖。原图一并版本管理。

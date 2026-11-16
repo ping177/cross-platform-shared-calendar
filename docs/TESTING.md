@@ -1,5 +1,11 @@
 # Testing
 
+## 2026-11-16 — PWA Branding Update 手机PWA验收 CLOSED / PASS
+
+- **用户实际验收PASS**：用户明确报告“已完成手机PWA人工验收，确认保留v3作为最终图标，验收结果PASS”。记录 `USER_REPORTED_MOBILE_PWA_ACCEPTANCE=PASS`，据此关闭本次图标优化。未细分报告的iOS／Android、设备或具体场景不单独补记PASS；此结论不替代其他模块的验收。
+- **已验收发布基线**：业务Source `947c0a974bff3cfe8b3718446c41d70156b803b0`，Vercel Production `6J9if5hr8XXmkNdw3ebAuET6S1ik` / GitHub部署7818047239成功。发布阶段正式40文件HTTP200且SHA-256匹配、v3引用／Manifest no-cache／安装身份核验通过；回执见 `/private/tmp/calendar-pwa-branding-v3-release/RELEASE_RECEIPT.md`。下方“待手机验收”为当时的历史状态。
+- **本轮docs-only验证**：只检查Git状态、文档diff及 `git diff --check`，确认业务／资源树未改；v1／v2／v3原图与历史图标保留。不重复Node、浏览器或构建，不修改测试证据、不修复225项既有遗留失败、不新增版本任务。正式版本仍为v0.1.21。
+
 ## 2026-11-16 — PWA 品牌图标 v3 发布前验证
 
 - 原图SHA-256 `8ad82e7caa3b4f99b17a380468af051796acf84ed62571c5a9279af0a1063dab` 生成前后不变；保持用户已确认的1254×1254原设计。新5张PNG尺寸16／32／180／192／512、sRGB／RGB、不透明，文件名指纹匹配SHA-256；Pillow独立重开6个输出，ICO16／32帧与PNG解码像素一致，PNG无EXIF或XMP。

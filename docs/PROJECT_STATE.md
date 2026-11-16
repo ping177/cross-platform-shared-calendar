@@ -12,7 +12,7 @@ v0.1.21
 
 ## Current status
 
-2026-11-16 — **PWA 品牌图标 v3 FINAL REVIEW PASS / RELEASE AUTHORIZED / MOBILE ACCEPTANCE PENDING。** 用户确认v3为最终图标，原图保持并纳入版本管理，沿用6输出尺寸及内容指纹，仅更新图标引用。Node15／Chrome与WebKit各2轮静态检查／Production配置Build通过，应用主包与发布前正式版相同；安装身份、名称、业务、数据库及通知不变。用户授权Commit／正常Push／既有Vercel Production。实际发布证据见 `/private/tmp/calendar-pwa-branding-v3-release/RELEASE_RECEIPT.md`；v0.1.21不变，停在手机PWA人工验收。
+2026-11-16 — **PWA Branding Update CLOSED / PASS。** 用户已完成手机PWA人工验收，明确确认保留v3为最终图标，验收结果PASS（USER_REPORTED_MOBILE_PWA_ACCEPTANCE=PASS）。验收业务Source为 `947c0a974bff3cfe8b3718446c41d70156b803b0`；v1、v2、v3原图及历史资源保留。正式版本仍v0.1.21，不新增版本任务；本轮仅治理收口，不修改设计、业务或其他功能。下方品牌发布授权／待验收状态为历史检查点。
 
 2026-11-16 — **PWA 品牌图标 v2 FINAL REVIEW PASS / RELEASE AUTHORIZED / MOBILE ACCEPTANCE PENDING。** 用户确认v2原图，原图保持并纳入版本管理，沿用6输出尺寸及内容指纹，仅更新图标引用。Node15／Chrome与WebKit各2轮静态检查／Production配置Build通过，应用主包与发布前正式版相同；安装身份、名称、业务、数据库及通知不变。用户授权Commit／正常Push／既有Vercel Production。实际发布证据见 `/private/tmp/calendar-pwa-branding-v2-release/RELEASE_RECEIPT.md`；v0.1.21不变，停在手机PWA人工验收。
 
@@ -157,7 +157,7 @@ v0.1.20 CLOSED / PASS及既有Production/PWA历史验收保持。UI v2 Slice2/3�
 
 ## Latest completed
 
-2026-11-16 — PWA品牌图标v3适配、独立图像／安全区／双浏览器静态验证、构建及最终diff审查通过；新版原图与6派生资源对应本次已授权发布，旧资源保留。详见TESTING最新节。
+2026-11-16 — 用户手机PWA验收PASS，确认v3最终图标；本次PWA Branding Update CLOSED / PASS。用户实际确认与发布阶段自动化／静态证据分别记录于TESTING最新节；不扩大为未报告设备或平台的逐项验收。
 
 2026-11-16 — PWA品牌图标v2适配、独立图像／安全区／双浏览器静态验证、构建及最终diff审查通过；新版原图与6派生资源对应本次已授权发布，旧资源保留。详见TESTING最新节。
 
@@ -576,7 +576,7 @@ Slice 2 Aggregate Calendar is implemented under Option A: `all` has no create ac
 
 ## Deployment
 
-2026-11-16 — 本次v3仅经已授权正常Git→Vercel Production发布图标原图／派生资源／引用及必要治理，原no-cache及安装身份配置保持。不操作后端、真实账号或通知订阅；实际Source／部署状态／正式资源哈希及响应头见 `/private/tmp/calendar-pwa-branding-v3-release/RELEASE_RECEIPT.md`，不预写成功，手机验收待用户。
+2026-11-16 — v3验收Source `947c0a974bff3cfe8b3718446c41d70156b803b0` 已成功发布，Vercel部署 `6J9if5hr8XXmkNdw3ebAuET6S1ik`（GitHub Production `7818047239`）。沿用发布阶段40个正式资源HTTP200／哈希匹配及Manifest no-cache证据；本轮用户手机PWA验收PASS并确认v3最终图标。本轮仅docs收口，不主动创建部署或修改配置，历史发布回执见 `/private/tmp/calendar-pwa-branding-v3-release/RELEASE_RECEIPT.md`。以下早期图标发布记录为历史检查点。
 
 2026-11-16 — 本次v2仅经已授权正常Git→Vercel Production发布图标原图／派生资源／引用及必要治理，原no-cache及安装身份配置保持。不操作后端、真实账号或通知订阅；实际Source／部署状态／正式资源哈希及响应头见 `/private/tmp/calendar-pwa-branding-v2-release/RELEASE_RECEIPT.md`，不预写成功，手机验收待用户。
 
@@ -779,7 +779,7 @@ Notes: Shared Lists Slice 1 backend rollout/postflight and Slices 2–3 Vercel/m
 
 ## Next Action
 
-本次获授权v3图标发布核验通过后，由用户在手机PWA验证新版主屏幕、启动及应用切换图标和裁切效果，条件允许时检查iOS／Android。已有图标可延迟更新；不清理站点数据或改变通知订阅，不把静态核验记为真机PASS。
+本次PWA Branding Update已收口，保留v3为最终图标及全部历史原图／资源；不再安排本范围开发或验收，不启动新版本任务。
 
 本次获授权发布完成且正式构建核验通过后，由用户在真实 App 验证上一轮本人计划持续显示：退出重进、刷新、已保存草稿恢复、跨设备、历史回顾及双方独立填写；首次／空计划保持空态。Codex 不驱动真实登录会话，不提前标记人工验收通过。
 
@@ -930,7 +930,7 @@ Slice 5 Gate 2已按用户真实Production证据PASS，不要求重复SQL/REST/�
 
 ## Handoff Prompt
 
-2026-11-16：用户确认v3品牌原图并授权本轮生成／测试／审查／Commit／正常Push／Vercel Production。原图v3和6派生图新增，旧资源保留，仅更新index四href及Manifest两src与治理。源图设计／名称／安装身份／业务／数据库／SW／通知不变。Node15、双引擎静态2轮及Production配置Build通过；实际发布证据见 `/private/tmp/calendar-pwa-branding-v3-release/RELEASE_RECEIPT.md`。成功后停在手机PWA人工验收，不提前关闭范围。下方为历史。
+2026-11-16：PWA Branding Update CLOSED / PASS。用户已完成手机PWA人工验收并确认保留v3，USER_REPORTED_MOBILE_PWA_ACCEPTANCE=PASS；已验收业务Source为947c0a9。v1／v2／v3原图和全部历史资源保留，名称／安装身份／业务／数据库／通知不变。本轮只提交治理文档，不重跑已通过测试、不改图标或功能、不新增版本任务。不得将本次手机验收推断为用户未明确报告的平台／设备逐项PASS，其他模块原验收状态保持。下方为历史。
 
 2026-11-16：用户确认v2品牌原图并授权本轮生成／测试／审查／Commit／正常Push／Vercel Production。原图v2和6派生图新增，旧资源保留，仅更新index四href及Manifest两src与治理。源图设计／名称／安装身份／业务／数据库／SW／通知不变。Node15、双引擎静态2轮及Production配置Build通过；实际发布证据见 `/private/tmp/calendar-pwa-branding-v2-release/RELEASE_RECEIPT.md`。成功后停在手机PWA人工验收，不提前关闭范围。下方为历史。
 
